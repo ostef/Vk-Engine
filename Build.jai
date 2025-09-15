@@ -1,359 +1,206 @@
 #import "Common";
-#import "Compiler";
-#import "Hash_Set";
-#import "Metaprogram_Plugins";
+Basic :: #import "Basic";
+using,only(.["+","-","*","/","<",">","=="]) Basic;
+#import "String";
 #import "File";
 #import "File_Utilities";
-#import "Thread";
-#import "Process";
+#import "Compiler";
 
-Basic :: #import "Basic";
-using, only(.["+","-","*","/","<",">"]) Basic;
+ModuleID :: enum {
+    Core;
+}
 
-String :: #import "String";
+Num_Modules :: #run type_info(ModuleID).values.count;
 
-#load "Source/Build/entity.jai";
-#load "Source/Build/asset.jai";
-#load "Source/Build/shader_codegen.jai";
-#load "Source/Build/renderer.jai";
-#load "Source/Build/editor.jai";
-#load "Source/Build/profiler.jai";
-
-Default_Plugins :: string.[
-    "Check(CHECK_BINDINGS=false)",
-];
-
-Bindings_To_Generate :: string.[
-    "Modules/ImGui",
-    "Source/Modules/Vulkan",
-];
-
-Append   :: StringBuilderAppend;
-Appendln :: StringBuilderAppendLine;
-
-g_report_all_undeclared_identifiers := false;
-g_verbose_tests := false;
-g_execute_tests := true;
-g_tests_to_execute : [..]string;
-
-g_show_compiler_stats := false;
-
-g_generated_runtime_tests_code := false;
-g_runtime_tests : [..]string;
-
-g_all_loaded_files : [..]string;
-
-ReportErrorsForUnresolvedIdentifiersInAllFiles :: (workspace : Workspace) {
-    for g_all_loaded_files {
-        compiler_report_errors_for_unresolved_identifiers(it, workspace);
+#run {
+    for type_info(ModuleID).names {
+        add_build_file(TPrint("Source/%/build.jai", it), -1);
     }
 }
 
-GenerateBindings :: (module_name : string) {
-    ws := compiler_create_workspace(module_name);
+Max_Workspaces :: 20;
 
-    options := get_build_options(ws);
-    compiler_begin_intercept(ws);
-
-    add_build_file(SPrint("%/generate.jai", module_name), ws);
-
-    working_dir := Basic.get_working_directory();
-    defer Basic.set_working_directory(working_dir);
-
-    Basic.set_working_directory(SPrint("%/%", working_dir, module_name));
-
-    while true {
-        msg := compiler_wait_for_message();
-        if msg.kind == .COMPLETE {
-            if (cast(*Message_Complete) msg).error_code != .NONE {
-                LogError("Could not generate bindings for %", module_name);
-            } else {
-                LogMessage("Generated bindings for %", module_name);
-            }
-
-            break;
-        }
-    }
-
-    compiler_end_intercept(ws);
-}
-
-GetRootDirectory :: inline () -> string {
-    filename := path_strip_filename(#file);
-
-    return filename;
-}
-
-HandleCompilerMessage :: (msg : *Message) {
-    HandleCompilerMessageForProfiling(msg);
-
-    if msg.kind == {
-    case .ERROR;
-        if g_report_all_undeclared_identifiers {
-            ReportErrorsForUnresolvedIdentifiersInAllFiles(msg.workspace);
-        } else {
-            LogMessage("If this seems like an error caused by code not being generated, consider building using the -verbose_error option to report all undeclared identifiers in the main program.");
-        }
-
-    case .FILE;
-        file := cast(*Message_File) msg;
-        if file.enclosing_import && file.enclosing_import.module_type == .MAIN_PROGRAM {
-            ArrayPushUnique(*g_all_loaded_files, file.fully_pathed_filename);
-        }
-
-    case .TYPECHECKED;
-        typechecked := cast(*Message_Typechecked) msg;
-        for typechecked.declarations {
-            decl := it.expression;
-            if !decl {
-                continue;
-            }
-
-            HandleDeclarationForEntity(decl);
-            HandleDeclarationForAsset(decl);
-            HandleDeclarationForRenderer(decl);
-            HandleDeclarationForShaderCodegen(decl);
-            HandleDeclarationForEditor(decl);
-        }
-
-        if g_execute_tests {
-            for typechecked.procedure_headers {
-                header := it.expression;
-                if !header {
-                    continue;
-                }
-
-                for note : header.notes {
-                    if note.text == "Test" {
-                        ArrayPush(*g_tests_to_execute, header.name);
-                    }
-                    if note.text == "RuntimeTest" {
-                        ArrayPush(*g_runtime_tests, header.name);
-                    }
-                }
-            }
-        }
-
-    case .PHASE;
-        phase := cast(*Message_Phase) msg;
-        if phase.phase == .TYPECHECKED_ALL_WE_CAN {
-            GenerateEntityCode(msg.workspace);
-            GenerateAssetCode(msg.workspace);
-            GenerateRendererCode(msg.workspace);
-            GenerateEditorCode(msg.workspace);
-
-            if !g_generated_runtime_tests_code {
-                defer {
-                    g_generated_runtime_tests_code = true;
-                    ArrayClear(*g_runtime_tests);
-                }
-
-                builder : StringBuilder;
-                Appendln(*builder, "Runtime_Tests :: string.[");
-                for g_runtime_tests {
-                    Appendln(*builder, "    \"%\",", it);
-                }
-                Appendln(*builder, "];");
-
-                add_build_string(StringBuilderBuild(*builder), msg.workspace);
-            }
-
-            if g_execute_tests && g_tests_to_execute.count > 0 {
-                builder : StringBuilder;
-                Append(*builder, "#run, stallable {\n");
-
-                Append(*builder,
-#string JAI
-    console_logger : ConsoleLogger;
-    InitConsoleLogger(*console_logger);
-    SetContextLogger(*console_logger, ConsoleLoggerProc);
-JAI
-                );
-
-                for g_tests_to_execute {
-                    Append(*builder, "    {\n");
-                    Append(*builder, "        log_section := Log_Section.{\"Tests/%\"};\n", it);
-                    Append(*builder, "        LogSectionScope(*log_section);\n");
-                    Append(*builder, "        %(%);\n", it, g_verbose_tests);
-                    Append(*builder, "    }\n");
-                }
-
-                Append(*builder, "}");
-
-                test_code := StringBuilderBuild(*builder);
-                add_build_string(test_code, msg.workspace);
-
-                ArrayClear(*g_tests_to_execute);
-            }
-        }
-
-    case .COMPLETE;
-        complete := cast(*Message_Complete, msg);
-
-        if complete.error_code == .NONE {
-            GenerateShaderCode(msg.workspace);
-        }
-    }
-}
-
-Build :: () {
+BuildModule :: ($module : ModuleID) -> bool {
     compilation_failed := false;
+    name := TPrint("%", module);
 
-    begin_time := Basic.current_time_monotonic();
-    defer if !compilation_failed {
+    start_time := Basic.current_time_monotonic();
+    defer if compilation_failed {
+        LogError("Compilation failed for module %", name);
+    } else {
         end_time := Basic.current_time_monotonic();
-        total_time := end_time - begin_time;
-        Println("\n    Compiled program in % s", Basic.to_float64_seconds(total_time));
+        total_time := end_time - start_time;
+        Println("  Compiled module % in % seconds", name, Basic.to_float64_seconds(total_time));
     }
 
-    set_build_options_dc(.{do_output=false, write_added_strings=false});
-
-    log_section := Log_Section.{"Metaprogram"};
-    LogSectionScope(*log_section);
-
-    console_logger : ConsoleLogger;
-    InitConsoleLogger(*console_logger);
-    SetContextLogger(*console_logger, ConsoleLoggerProc);
-
-    ws := compiler_create_workspace("Vk");
-
-    args := get_build_options().compile_time_command_line;
-    arg_index := 0;
-    arg_error := false;
-    plugin_start_index := -1;
-
-    generate_bindings : bool;
-
-    while arg_index < args.count {
-        defer arg_index += 1;
-
-        if args[arg_index][0] == #char "+" {
-            plugin_start_index = arg_index;
-            break;
-        } else if args[arg_index] == {
-        case "-generate_bindings";
-            generate_bindings = true;
-
-        case "-no_tests";
-            g_execute_tests = false;
-
-        case "-verbose_tests";
-            g_verbose_tests = true;
-
-        case "-verbose_error";
-            g_report_all_undeclared_identifiers = true;
-
-        case "-compiler_stats";
-            g_show_compiler_stats = true;
-
-        case;
-            LogError("Unknown argument '%'.", args[arg_index]);
-            arg_error = true;
-            break;
-        }
-    }
-
-    if generate_bindings {
-        for Bindings_To_Generate {
-            GenerateBindings(it);
-        }
-    }
-
-    plugins_to_create : [..]Plugin_To_Create;
-
-    if plugin_start_index >= 0 {
-        success:, plugins_to_create = parse_plugin_arguments(args, plugin_start_index);
-        if !success {
-            Basic.exit(1);
-        }
-    }
-
-    for Default_Plugins {
-        ArrayPush(*plugins_to_create, .{name=it});
-    }
-
-    plugins : [..]*Metaprogram_Plugin;
-    init_plugins(plugins_to_create, *plugins, ws);
-
-    if arg_error {
-        Basic.exit(1);
-    }
+    ws := compiler_create_workspace(name);
 
     options := get_build_options(ws);
-    options.output_type = .EXECUTABLE;
-    options.output_executable_name = "Vk";
-    options.intermediate_path = "Source/.build";
+    if module == .Core {
+        options.output_type = .EXECUTABLE;
+        options.output_executable_name = "Vk";
+    } else {
+        options.output_type = .DYNAMIC_LIBRARY;
+        options.output_path = "Libs";
+        options.output_executable_name = name;
+    }
     options.import_path = get_build_options().import_path;
     options.Commonly_Propagated = get_build_options().Commonly_Propagated;
     options.write_added_strings = true;
     options.stack_trace = true;
     options.text_output_flags = 0;
-    if g_show_compiler_stats {
-        options.text_output_flags = .OUTPUT_TIMING_INFO;
-    }
-
-    #if OS == .LINUX {
-        #import "POSIX";
-
-        options.additional_linker_arguments = .[
-            TPrint("-L%/lib", MakeString(getenv("VULKAN_SDK"))),
-        ];
-    }
-
     set_build_options(options, ws);
 
-    intercept_flags : Intercept_Flags;
-    for plugins {
-        if it.before_intercept {
-            it.before_intercept(it, *intercept_flags);
-        }
-    }
+    compiler_begin_intercept(ws);
 
-    compiler_begin_intercept(ws, intercept_flags);
-
-    for plugins {
-        if it.add_source {
-            it.add_source(it);
-        }
-    }
-
-    add_build_file("Source/main.jai", ws);
+    filename := ifx module == .Core then "Source/main.jai" else TPrint("Source/%/module.jai", name);
+    add_build_file(filename, ws);
 
     while true {
         msg := compiler_wait_for_message();
+        if msg.workspace == ws {
+            #insert #run TPrint("#if #exists(%1HandleCompilerMessage) { %1HandleCompilerMessage(msg); }", module);
 
-        for plugins {
-            if it.message {
-                it.message(it, msg);
+            if msg.kind == .COMPLETE {
+                complete := cast(*Message_Complete, msg);
+                if complete.error_code != .NONE {
+                    compilation_failed = true;
+                }
+
+                break;
             }
-        }
-
-        HandleCompilerMessage(msg);
-
-        if msg.kind == .COMPLETE {
-            complete := cast(*Message_Complete) msg;
-            if complete.error_code != .NONE {
-                LogError("Compilation failed");
-                compilation_failed = true;
-            }
-
-            break;
         }
     }
 
     compiler_end_intercept(ws);
 
-    for plugins {
-        if it.finish {
-            it.finish(it);
-        }
+    return !compilation_failed;
+}
+
+CompareFileTimes :: (a : string, b : string) -> bool {
+    a_modtime, _, a_exists := file_modtime_and_size(a);
+    if !a_exists {
+        return true;
     }
 
-    for plugins {
-        if it.shutdown {
-            it.shutdown(it);
+    if !is_directory(b) {
+        b_modtime, _, b_exists := file_modtime_and_size(b);
+        if !b_exists {
+            return true;
         }
+
+        return a_modtime < b_modtime;
+    } else {
+        files := file_list(b, recursive=true);
+        for files {
+            modtime := file_modtime_and_size(it);
+            if a_modtime < modtime {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
-#run, stallable Build(); // If plugins have assertions, they may stall
+Build :: () {
+    auto_detect : bool;
+    modules_to_build : u64;
+
+    start_time := Basic.current_time_monotonic();
+    defer if modules_to_build {
+        end_time := Basic.current_time_monotonic();
+        total_time := end_time - start_time;
+        Println("  Total time: % seconds", Basic.to_float64_seconds(total_time));
+    }
+
+    set_build_options_dc(.{do_output=false, write_added_strings=false});
+
+    args := get_build_options().compile_time_command_line;
+    arg_index := 0;
+
+    while arg_index < args.count {
+        defer arg_index += 1;
+
+        if args[arg_index] == {
+        case "auto";
+            auto_detect = true;
+        case "all";
+            modules_to_build = 0xffffffffffffffff;
+        case;
+            for type_info(ModuleID).names {
+                if args[arg_index] == it {
+                    modules_to_build |= cast(u64, 1 << it_index);
+                    continue;
+                }
+            }
+
+            LogError("Unknown argument '%'", args[arg_index]);
+            Basic.exit(1);
+        }
+    }
+
+    if !auto_detect && !modules_to_build {
+        LogError("Nothing to build");
+        Basic.exit(1);
+    }
+
+    // Compare file times so we know if we should rebuild a module
+    if auto_detect {
+        #if OS == {
+        case .WINDOWS; Lib_Ext :: "dll";
+        case .LINUX;   Lib_Ext :: "so";
+        case .MACOS;   Lib_Ext :: "dylib";
+        }
+
+        for type_info(ModuleID).names {
+
+            lib_file : string;
+            source_dir := TPrint("Source/%", it);
+            if it_index == 0 {
+                lib_file = ifx OS == .WINDOWS then "Vk.exe" else "Vk";
+            } else {
+                lib_file = TPrint("Libs/%.%", it, Lib_Ext);
+            }
+
+            if it_index == 0 && CompareFileTimes(lib_file, "Source/main.jai") {
+                modules_to_build |= cast(u64, 1 << it_index);
+            }
+            if CompareFileTimes(lib_file, source_dir) {
+                modules_to_build |= cast(u64, 1 << it_index);
+            }
+        }
+
+        #insert -> string {
+            builder : StringBuilder;
+            for i : 1..Num_Modules - 1 {
+                lib_file := TPrint("Libs/%.%", cast(ModuleID, i), Lib_Ext);
+                Appendln(*builder, "for %_Module_Dependencies {", cast(ModuleID, i));
+                Appendln(*builder, "    if CompareFileTimes(\"%\", it) {", lib_file);
+                Appendln(*builder, "        modules_to_build |= cast(u64, 1 << %);", i);
+                Appendln(*builder, "    }");
+                Appendln(*builder, "}");
+            }
+
+            return StringBuilderBuild(*builder);
+        }
+    }
+
+    make_directory_if_it_does_not_exist("Libs");
+
+    #insert -> string {
+        builder : StringBuilder;
+
+        for i : 0..Num_Modules - 1 {
+            Appendln(*builder, "if modules_to_build & cast(u64, 1 << %) {", i);
+            Appendln(*builder, "    if !BuildModule(.%) {", cast(ModuleID, i));
+            Appendln(*builder, "        Basic.exit(1);");
+            Appendln(*builder, "    }");
+            Appendln(*builder, "}");
+        }
+
+        return StringBuilderBuild(*builder);
+    }
+}
+
+#run,stallable Build();

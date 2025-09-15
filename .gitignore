@@ -1,3 +1,4 @@
+Libs/
 *.log
 __pycache__/
 *.blend1
@@ -18,3 +19,6 @@ imgui.ini
 Vk
 engine.prefs
 Data/Ignore
+
+_Build.jai
+_Source

@@ -1,0 +1,2 @@
+CoreHandleCompilerMessage :: (msg : *Message) {
+}
