@@ -1,14 +1,14 @@
 // @Todo: better handling of module load failure
 
 #import "Common";
-Basic :: #import "Basic";
 #import "System";
 #import "String";
 #import "File";
 #import "File_Utilities";
 #import "File_Watcher";
 
-#load "Core/module.jai";
+//#import "Core"(.Program);
+#load "Core/main.jai";
 
 #scope_file
 

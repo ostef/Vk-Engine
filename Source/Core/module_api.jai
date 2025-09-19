@@ -1,0 +1,571 @@
+CoreModule :: struct {
+    #as base : Module;
+    AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
+    AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer);
+    AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
+    AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
+    AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
+    AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : [] *GfxTexture);
+    AllocGfxBindingSet : (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult;
+    BeginFrame : ();
+    BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass;
+    BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass;
+    BeginGfxDebugMarker_1 : (cmd_buffer : *GfxCommandBuffer, name : string);
+    BeginGfxDebugMarker_2 : (name : string);
+    BeginGfxRenderPass : (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass;
+    BindComputeBindingSet_1 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
+    BindComputeBindingSet_2 : (pass : *GfxComputePass, index : u32, set : *GfxBindingSet);
+    BindComputePipeline : (pass : *GfxComputePass, pipeline : *GfxComputePipeline);
+    BindGraphicsBindingSet_1 : (pass : *GfxRenderPass, index : u32, set : *GfxBindingSet);
+    BindGraphicsBindingSet_2 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
+    BindGraphicsPipeline : (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline);
+    BindIndexBuffer : (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuffer, offset : u64 = 0);
+    BindVertexBuffer : (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0);
+    CopyBufferToBuffer : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64);
+    CopyBufferToTexture : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture);
+    CopyTextureToBuffer : (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer);
+    CreateGfxBindingPool : (name : string, desc : GfxBindingPoolDesc) -> GfxBindingPool;
+    CreateGfxBindingSetLayout : (name : string, desc : GfxBindingSetLayoutDesc) -> GfxBindingSetLayout;
+    CreateGfxBuffer : (name : string, desc : GfxBufferDesc) -> GfxBuffer;
+    CreateGfxCommandBuffer : (name : string) -> GfxCommandBuffer;
+    CreateGfxComputePipeline : (name : string, desc : GfxComputePipelineDesc) -> GfxComputePipeline;
+    CreateGfxGraphicsPipeline : (name : string, desc : GfxGraphicsPipelineDesc) -> GfxGraphicsPipeline;
+    CreateGfxPipelineLayout : (name : string, desc : GfxPipelineLayoutDesc) -> GfxPipelineLayout;
+    CreateGfxSampler : (name : string, desc : GfxSamplerDesc) -> GfxSampler;
+    CreateGfxTexture : (name : string, desc : GfxTextureDesc) -> GfxTexture;
+    CreateGfxTextureView : (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture;
+    DestroyGfxBindingPool : (pool : *GfxBindingPool);
+    DestroyGfxBindingSetLayout : (layout : *GfxBindingSetLayout);
+    DestroyGfxBuffer : (buffer : *GfxBuffer);
+    DestroyGfxCommandPool : (pool : *GfxCommandPool);
+    DestroyGfxComputePipeline : (pipeline : *GfxComputePipeline);
+    DestroyGfxGraphicsPipeline : (pipeline : *GfxGraphicsPipeline);
+    DestroyGfxPipelineLayout : (layout : *GfxPipelineLayout);
+    DestroyGfxSampler : (sampler : *GfxSampler);
+    DestroyGfxShader : (shader : *GfxShader);
+    DestroyGfxTexture : (texture : *GfxTexture);
+    DestroyGfxTextureView : (texture : *GfxTexture);
+    Dispatch : (pass : *GfxComputePass, num_groups_x : u32, num_groups_y : u32, num_groups_z : u32);
+    Draw : (pass : *GfxRenderPass, vertex_count : u32, instance_count : u32, base_vertex : u32 = 0, base_instance : u32 = 0);
+    DrawIndexed : (pass : *GfxRenderPass, index_count : u32, instance_count : u32, base_index : u32 = 0, base_vertex : u32 = 0, base_instance : u32 = 0);
+    EndGfxComputePass : (pass : *GfxComputePass);
+    EndGfxCopyPass : (pass : *GfxCopyPass);
+    EndGfxDebugMarker_1 : ();
+    EndGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer);
+    EndGfxRenderPass : (pass : *GfxRenderPass);
+    GenerateMipmaps : (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout);
+    GetCPUFrameProfiler : () -> *CPUFrameProfiler;
+    GetGPUFrameProfiler : () -> *GPUFrameProfiler;
+    GetGfxContext : () -> *GfxContext;
+    GetGfxLimits : () -> GfxLimits;
+    GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float32;
+    GetModState : () -> KeyMods;
+    GetMousePixelPosition : (window : *void) -> x : s32, y : s32;
+    GetMousePixelPositionVector : (window : *void) -> Vector(N=2, T=float32);
+    GetMousePointPosition : (window : *void) -> x : s32, y : s32;
+    GetMousePointPositionVector : (window : *void) -> Vector(N=2, T=float32);
+    GetMouseWheel : () -> Vector(N=2, T=float32);
+    GetRawMouseDelta : () -> Vector(N=2, T=float32);
+    GetWindow : () -> *void;
+    GetWindowPixelSize : (window : *void) -> width : s32, height : s32;
+    GetWindowPointSize : (window : *void) -> width : s32, height : s32;
+    GetWindowScaleFactor : (window : *void) -> float32;
+    IsKeyDown : (key : KeyCode) -> bool;
+    IsKeyPressed : (key : KeyCode) -> bool;
+    IsKeyReleased : (key : KeyCode) -> bool;
+    IsMouseButtonDown : (button : MouseButton) -> bool;
+    IsMouseButtonPressed : (button : MouseButton) -> bool;
+    IsMouseButtonReleased : (button : MouseButton) -> bool;
+    LoadGfxShader : (name : string, extra_compiler_args : [] string = .[], dependencies : *[..] string = null) -> GfxShader;
+    QueueDestroyGfxBuffer : (buffer : *GfxBuffer);
+    QueueDestroyGfxSampler : (sampler : *GfxSampler);
+    QueueDestroyGfxTexture : (texture : *GfxTexture);
+    QueueDestroyGfxTextureView : (texture : *GfxTexture);
+    Quit : ();
+    ResetGfxBindingPool : (pool : *GfxBindingPool);
+    ResetGfxCommandPool : (pool : *GfxCommandPool);
+    SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
+    SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
+    SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
+    SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
+    SubmitFrame : ();
+    SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
+    WaitForGPUIdle : ();
+    WasKeyDown : (key : KeyCode) -> bool;
+    WasMouseButtonDown : (button : MouseButton) -> bool;
+}
+
+#if #exists(Import_Mode) {
+g_Core : *CoreModule;
+
+AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddBarrier_1(cmd_buffer, src_sync_points, dst_sync_points);
+}
+
+AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddBarrier_2(cmd_buffer);
+}
+
+AddMemoryBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddMemoryBarrier(cmd_buffer, src_sync_points, src_accesses, dst_sync_points, dst_accesses);
+}
+
+AddTextureBarrier :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddTextureBarrier_1(cmd_buffer, old_layout, new_layout, texture);
+}
+
+AddTextureBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddTextureBarrier_2(cmd_buffer, src_sync_points, src_accesses, dst_sync_points, dst_accesses, old_layout, new_layout, texture);
+}
+
+AddTextureBarriers :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : [] *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddTextureBarriers(cmd_buffer, old_layout, new_layout, textures);
+}
+
+AllocGfxBindingSet :: inline (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.AllocGfxBindingSet(pool, layout);
+    return _ret0, _ret1;
+}
+
+BeginFrame :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BeginFrame();
+}
+
+BeginGfxComputePass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.BeginGfxComputePass(cmd_buffer, name);
+}
+
+BeginGfxCopyPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.BeginGfxCopyPass(cmd_buffer, name);
+}
+
+BeginGfxDebugMarker :: inline (cmd_buffer : *GfxCommandBuffer, name : string) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BeginGfxDebugMarker_1(cmd_buffer, name);
+}
+
+BeginGfxDebugMarker :: inline (name : string) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BeginGfxDebugMarker_2(name);
+}
+
+BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.BeginGfxRenderPass(cmd_buffer, name, desc);
+}
+
+BindComputeBindingSet :: inline (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindComputeBindingSet_1(cmd_buffer, layout, index, set);
+}
+
+BindComputeBindingSet :: inline (pass : *GfxComputePass, index : u32, set : *GfxBindingSet) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindComputeBindingSet_2(pass, index, set);
+}
+
+BindComputePipeline :: inline (pass : *GfxComputePass, pipeline : *GfxComputePipeline) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindComputePipeline(pass, pipeline);
+}
+
+BindGraphicsBindingSet :: inline (pass : *GfxRenderPass, index : u32, set : *GfxBindingSet) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindGraphicsBindingSet_1(pass, index, set);
+}
+
+BindGraphicsBindingSet :: inline (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindGraphicsBindingSet_2(cmd_buffer, layout, index, set);
+}
+
+BindGraphicsPipeline :: inline (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindGraphicsPipeline(pass, pipeline);
+}
+
+BindIndexBuffer :: inline (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuffer, offset : u64 = 0) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindIndexBuffer(pass, type, buffer, offset);
+}
+
+BindVertexBuffer :: inline (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindVertexBuffer(pass, binding, buffer, offset);
+}
+
+CopyBufferToBuffer :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CopyBufferToBuffer(pass, src_buffer, dst_buffer, src_offset, dst_offset, size);
+}
+
+CopyBufferToTexture :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CopyBufferToTexture(pass, src_buffer, dst_texture);
+}
+
+CopyTextureToBuffer :: inline (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CopyTextureToBuffer(pass, src_texture, dst_buffer);
+}
+
+CreateGfxBindingPool :: inline (name : string, desc : GfxBindingPoolDesc) -> GfxBindingPool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxBindingPool(name, desc);
+}
+
+CreateGfxBindingSetLayout :: inline (name : string, desc : GfxBindingSetLayoutDesc) -> GfxBindingSetLayout {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxBindingSetLayout(name, desc);
+}
+
+CreateGfxBuffer :: inline (name : string, desc : GfxBufferDesc) -> GfxBuffer {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxBuffer(name, desc);
+}
+
+CreateGfxCommandBuffer :: inline (name : string) -> GfxCommandBuffer {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxCommandBuffer(name);
+}
+
+CreateGfxComputePipeline :: inline (name : string, desc : GfxComputePipelineDesc) -> GfxComputePipeline {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxComputePipeline(name, desc);
+}
+
+CreateGfxGraphicsPipeline :: inline (name : string, desc : GfxGraphicsPipelineDesc) -> GfxGraphicsPipeline {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxGraphicsPipeline(name, desc);
+}
+
+CreateGfxPipelineLayout :: inline (name : string, desc : GfxPipelineLayoutDesc) -> GfxPipelineLayout {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxPipelineLayout(name, desc);
+}
+
+CreateGfxSampler :: inline (name : string, desc : GfxSamplerDesc) -> GfxSampler {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxSampler(name, desc);
+}
+
+CreateGfxTexture :: inline (name : string, desc : GfxTextureDesc) -> GfxTexture {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxTexture(name, desc);
+}
+
+CreateGfxTextureView :: inline (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.CreateGfxTextureView(name, desc, texture);
+}
+
+DestroyGfxBindingPool :: inline (pool : *GfxBindingPool) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxBindingPool(pool);
+}
+
+DestroyGfxBindingSetLayout :: inline (layout : *GfxBindingSetLayout) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxBindingSetLayout(layout);
+}
+
+DestroyGfxBuffer :: inline (buffer : *GfxBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxBuffer(buffer);
+}
+
+DestroyGfxCommandPool :: inline (pool : *GfxCommandPool) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxCommandPool(pool);
+}
+
+DestroyGfxComputePipeline :: inline (pipeline : *GfxComputePipeline) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxComputePipeline(pipeline);
+}
+
+DestroyGfxGraphicsPipeline :: inline (pipeline : *GfxGraphicsPipeline) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxGraphicsPipeline(pipeline);
+}
+
+DestroyGfxPipelineLayout :: inline (layout : *GfxPipelineLayout) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxPipelineLayout(layout);
+}
+
+DestroyGfxSampler :: inline (sampler : *GfxSampler) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxSampler(sampler);
+}
+
+DestroyGfxShader :: inline (shader : *GfxShader) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxShader(shader);
+}
+
+DestroyGfxTexture :: inline (texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxTexture(texture);
+}
+
+DestroyGfxTextureView :: inline (texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGfxTextureView(texture);
+}
+
+Dispatch :: inline (pass : *GfxComputePass, num_groups_x : u32, num_groups_y : u32, num_groups_z : u32) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.Dispatch(pass, num_groups_x, num_groups_y, num_groups_z);
+}
+
+Draw :: inline (pass : *GfxRenderPass, vertex_count : u32, instance_count : u32, base_vertex : u32 = 0, base_instance : u32 = 0) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.Draw(pass, vertex_count, instance_count, base_vertex, base_instance);
+}
+
+DrawIndexed :: inline (pass : *GfxRenderPass, index_count : u32, instance_count : u32, base_index : u32 = 0, base_vertex : u32 = 0, base_instance : u32 = 0) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DrawIndexed(pass, index_count, instance_count, base_index, base_vertex, base_instance);
+}
+
+EndGfxComputePass :: inline (pass : *GfxComputePass) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.EndGfxComputePass(pass);
+}
+
+EndGfxCopyPass :: inline (pass : *GfxCopyPass) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.EndGfxCopyPass(pass);
+}
+
+EndGfxDebugMarker :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.EndGfxDebugMarker_1();
+}
+
+EndGfxDebugMarker :: inline (cmd_buffer : *GfxCommandBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.EndGfxDebugMarker_2(cmd_buffer);
+}
+
+EndGfxRenderPass :: inline (pass : *GfxRenderPass) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.EndGfxRenderPass(pass);
+}
+
+GenerateMipmaps :: inline (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.GenerateMipmaps(pass, texture, old_layout, new_layout);
+}
+
+GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetCPUFrameProfiler();
+}
+
+GetGPUFrameProfiler :: inline () -> *GPUFrameProfiler {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetGPUFrameProfiler();
+}
+
+GetGfxContext :: inline () -> *GfxContext {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetGfxContext();
+}
+
+GetGfxLimits :: inline () -> GfxLimits {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetGfxLimits();
+}
+
+GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float32 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetKeyAxisValue(negative, positive);
+}
+
+GetModState :: inline () -> KeyMods {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetModState();
+}
+
+GetMousePixelPosition :: inline (window : *void) -> x : s32, y : s32 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetMousePixelPosition(window);
+    return _ret0, _ret1;
+}
+
+GetMousePixelPositionVector :: inline (window : *void) -> Vector(N=2, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetMousePixelPositionVector(window);
+}
+
+GetMousePointPosition :: inline (window : *void) -> x : s32, y : s32 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetMousePointPosition(window);
+    return _ret0, _ret1;
+}
+
+GetMousePointPositionVector :: inline (window : *void) -> Vector(N=2, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetMousePointPositionVector(window);
+}
+
+GetMouseWheel :: inline () -> Vector(N=2, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetMouseWheel();
+}
+
+GetRawMouseDelta :: inline () -> Vector(N=2, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetRawMouseDelta();
+}
+
+GetWindow :: inline () -> *void {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetWindow();
+}
+
+GetWindowPixelSize :: inline (window : *void) -> width : s32, height : s32 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetWindowPixelSize(window);
+    return _ret0, _ret1;
+}
+
+GetWindowPointSize :: inline (window : *void) -> width : s32, height : s32 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetWindowPointSize(window);
+    return _ret0, _ret1;
+}
+
+GetWindowScaleFactor :: inline (window : *void) -> float32 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetWindowScaleFactor(window);
+}
+
+IsKeyDown :: inline (key : KeyCode) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsKeyDown(key);
+}
+
+IsKeyPressed :: inline (key : KeyCode) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsKeyPressed(key);
+}
+
+IsKeyReleased :: inline (key : KeyCode) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsKeyReleased(key);
+}
+
+IsMouseButtonDown :: inline (button : MouseButton) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsMouseButtonDown(button);
+}
+
+IsMouseButtonPressed :: inline (button : MouseButton) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsMouseButtonPressed(button);
+}
+
+IsMouseButtonReleased :: inline (button : MouseButton) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.IsMouseButtonReleased(button);
+}
+
+LoadGfxShader :: inline (name : string, extra_compiler_args : [] string = .[], dependencies : *[..] string = null) -> GfxShader {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.LoadGfxShader(name, extra_compiler_args, dependencies);
+}
+
+QueueDestroyGfxBuffer :: inline (buffer : *GfxBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.QueueDestroyGfxBuffer(buffer);
+}
+
+QueueDestroyGfxSampler :: inline (sampler : *GfxSampler) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.QueueDestroyGfxSampler(sampler);
+}
+
+QueueDestroyGfxTexture :: inline (texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.QueueDestroyGfxTexture(texture);
+}
+
+QueueDestroyGfxTextureView :: inline (texture : *GfxTexture) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.QueueDestroyGfxTextureView(texture);
+}
+
+Quit :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.Quit();
+}
+
+ResetGfxBindingPool :: inline (pool : *GfxBindingPool) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ResetGfxBindingPool(pool);
+}
+
+ResetGfxCommandPool :: inline (pool : *GfxCommandPool) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ResetGfxCommandPool(pool);
+}
+
+SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetBlendConstant(pass, color);
+}
+
+SetScissor :: inline (pass : *GfxRenderPass, rect : Rect(T=s32)) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetScissor(pass, rect);
+}
+
+SetStencilReference :: inline (pass : *GfxRenderPass, front_value : u32, back_value : u32) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetStencilReference(pass, front_value, back_value);
+}
+
+SetViewport :: inline (pass : *GfxRenderPass, viewport : GfxViewport) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetViewport(pass, viewport);
+}
+
+SubmitFrame :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SubmitFrame();
+}
+
+SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SubmitGfxCommandBuffer(cmd_buffer);
+}
+
+WaitForGPUIdle :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.WaitForGPUIdle();
+}
+
+WasKeyDown :: inline (key : KeyCode) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.WasKeyDown(key);
+}
+
+WasMouseButtonDown :: inline (button : MouseButton) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.WasMouseButtonDown(button);
+}
+
+}

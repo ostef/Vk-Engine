@@ -6,19 +6,23 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 #import "File_Utilities";
 #import "Compiler";
 
+Max_Workspaces :: 20;
+
 ModuleID :: enum {
     Core;
 }
 
 Num_Modules :: #run type_info(ModuleID).values.count;
 
-#run {
-    for type_info(ModuleID).names {
-        add_build_file(TPrint("Source/%/build.jai", it), -1);
-    }
-}
+#insert -> string {
+    builder : StringBuilder;
 
-Max_Workspaces :: 20;
+    for type_info(ModuleID).names {
+        Appendln(*builder, "%1Module :: #import \"%1\"(.Metaprogram);", it);
+    }
+
+    return StringBuilderBuild(*builder);
+}
 
 BuildModule :: ($module : ModuleID) -> bool {
     compilation_failed := false;
@@ -49,6 +53,15 @@ BuildModule :: ($module : ModuleID) -> bool {
     options.write_added_strings = true;
     options.stack_trace = true;
     options.text_output_flags = 0;
+
+    #if OS == .LINUX {
+        #import "POSIX";
+
+        options.additional_linker_arguments = .[
+            TPrint("-L%/lib", MakeString(getenv("VULKAN_SDK"))),
+        ];
+    }
+
     set_build_options(options, ws);
 
     compiler_begin_intercept(ws);
@@ -59,7 +72,7 @@ BuildModule :: ($module : ModuleID) -> bool {
     while true {
         msg := compiler_wait_for_message();
         if msg.workspace == ws {
-            #insert #run TPrint("#if #exists(%1HandleCompilerMessage) { %1HandleCompilerMessage(msg); }", module);
+            #insert #run TPrint("#if #exists(%1Module.HandleCompilerMessage) { %1Module.HandleCompilerMessage(msg); }", module);
 
             if msg.kind == .COMPLETE {
                 complete := cast(*Message_Complete, msg);
@@ -154,7 +167,6 @@ Build :: () {
         }
 
         for type_info(ModuleID).names {
-
             lib_file : string;
             source_dir := TPrint("Source/%", it);
             if it_index == 0 {
@@ -175,7 +187,7 @@ Build :: () {
             builder : StringBuilder;
             for i : 1..Num_Modules - 1 {
                 lib_file := TPrint("Libs/%.%", cast(ModuleID, i), Lib_Ext);
-                Appendln(*builder, "for %_Module_Dependencies {", cast(ModuleID, i));
+                Appendln(*builder, "for %.Module_Dependencies {", cast(ModuleID, i));
                 Appendln(*builder, "    if CompareFileTimes(\"%\", it) {", lib_file);
                 Appendln(*builder, "        modules_to_build |= cast(u64, 1 << %);", i);
                 Appendln(*builder, "    }");

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-jai -import_dir Modules -import_dir Source/Modules Build.jai $@
+jai -import_dir Modules -import_dir Source/Modules -import_dir Source Build.jai $@

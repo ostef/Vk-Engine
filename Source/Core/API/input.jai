@@ -1,25 +1,3 @@
-InputAPI :: struct {
-    GetMouseWheel : () -> Vec2f;
-    GetRawMouseDelta : () -> Vec2f;
-    GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float;
-    WasKeyDown : (key : KeyCode) -> bool;
-    IsKeyDown : (key : KeyCode) -> bool;
-    IsKeyPressed : (key : KeyCode) -> bool;
-    IsKeyReleased : (key : KeyCode) -> bool;
-    WasMouseButtonDown : (button : MouseButton) -> bool;
-    IsMouseButtonDown : (button : MouseButton) -> bool;
-    IsMouseButtonPressed : (button : MouseButton) -> bool;
-    IsMouseButtonReleased : (button : MouseButton) -> bool;
-    GetModState : () -> KeyMods;
-    GetMousePointPosition : (window : *SDL_Window) -> x : s32, y : s32;
-    GetMousePixelPosition : (window : *SDL_Window) -> x : s32, y : s32;
-    GetMousePointPositionVector : (window : *SDL_Window) -> Vec2f;
-    GetMousePixelPositionVector : (window : *SDL_Window) -> Vec2f;
-    GetWindowPointSize : (window : *SDL_Window) -> width : s32, height : s32;
-    GetWindowPixelSize : (window : *SDL_Window) -> width : s32, height : s32;
-    GetWindowScaleFactor : (window : *SDL_Window) -> float;
-}
-
 KeyCode :: enum u8 {
     Invalid;
 

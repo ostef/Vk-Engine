@@ -1,7 +1,15 @@
+#import "Common";
 #import "SDL";
 #import "Linalg";
+Math :: #import "Math";
+#import "Compiler";
+Basic :: #import "Basic";
 
 #load "API/input.jai";
+#load "API/gfx.jai";
+#load "API/gpu_frame_profiler.jai";
+#load "API/cpu_frame_profiler.jai";
+#load "API/utils.jai";
 
 ModuleID :: enum {
     Core;
@@ -23,21 +31,18 @@ Module :: struct {
 
 ModuleHandshakeProc :: #type (core : *CoreModule) -> *Module #c_call;
 
-CoreModule :: struct {
-    #as base : Module;
-
-    Quit : ();
-    GetModule : (id : ModuleID) -> *Module;
-    GetWindow : () -> *SDL_Window;
-
-    using input : InputAPI;
+GUID :: struct {
+    low, high : u64;
 }
 
-#if Module_ID != .Core {
-
-#insert -> string {
-    dummy : *CoreModule; // Make sure the compiler understands that we want to wait on CoreModule
-    return "using,except(base) g_core : *CoreModule;";
+operator== :: inline (a : GUID, b : GUID) -> bool {
+    return a.low == b.low && a.high == b.high;
 }
 
+EntityGUID :: #type,distinct GUID;
+
+Null_Entity_GUID :: EntityGUID.{0,0};
+
+operator== :: inline (a : EntityGUID, b : EntityGUID) -> bool {
+    return a.low == b.low && a.high == b.high;
 }
