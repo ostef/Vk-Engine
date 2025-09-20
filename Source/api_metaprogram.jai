@@ -146,7 +146,7 @@ AppendExpression :: (builder : *StringBuilder, expr : *Code_Node) {
         case .ARRAY;
             info := lit.array_literal_info;
             if !(info.array_literal_flags & .WAS_UNTYPED) && info.element_type {
-                Append(builder, "%", get_type(info.element_type.result));
+                AppendType(builder, info.element_type.result);
             }
 
             Append(builder, ".[");
@@ -229,6 +229,131 @@ AppendExpression :: (builder : *StringBuilder, expr : *Code_Node) {
     }
 }
 
+AppendType :: (builder : *StringBuilder, type : *Type_Info) {
+    if type.type == {
+    case .VOID;
+        Append(builder, "void");
+    case .INTEGER;
+        integer := cast(*Type_Info_Integer, type);
+        if integer.signed {
+            Append(builder, "s%", integer.runtime_size * 8);
+        } else {
+            Append(builder, "u%", integer.runtime_size * 8);
+        }
+    case .FLOAT;
+        if type.runtime_size == 4 {
+            Append(builder, "float");
+        } else {
+            Append(builder, "float64");
+        }
+    case .BOOL;
+        Append(builder, "bool");
+
+    case .STRING;
+        Append(builder, "string");
+
+    case .ARRAY;
+        array := cast(*Type_Info_Array, type);
+        Append(builder, "[");
+        if array.array_type == {
+        case .VIEW;
+        case .FIXED;
+            Append(builder, "%", array.array_count);
+        case .RESIZABLE;
+            Append(builder, "..");
+        }
+        Append(builder, "]");
+        AppendType(builder, array.element_type);
+
+    case .POINTER;
+        pointer := cast(*Type_Info_Pointer, type);
+        Append(builder, "*");
+        AppendType(builder, pointer.pointer_to);
+
+    case .STRUCT;
+        struct_type := cast(*Type_Info_Struct, type);
+        Append(builder, "%", struct_type.name);
+
+        if struct_type.polymorph_source_struct {
+            Append(builder, "(");
+
+            for param : struct_type.specified_parameters {
+                if it_index > 0 {
+                    Append(builder, ", ");
+                }
+
+                value : Any;
+                value.type = param.type;
+                value.value_pointer = struct_type.constant_storage.data + param.offset_into_constant_storage;
+
+                Append(builder, "%=%", param.name, value);
+            }
+
+            Append(builder, ")");
+        }
+
+    case .VARIANT;
+        variant := cast(*Type_Info_Variant, type);
+        if variant.name {
+            Append(builder, "%", variant.name);
+        } else {
+            Append(builder, "#type");
+            if variant.variant_flags & .DISTINCT {
+                Append(builder, ",distinct");
+            }
+            if variant.variant_flags & .ISA {
+                Append(builder, ",isa");
+            }
+
+            Append(builder, " ");
+            AppendType(builder, variant.variant_of);
+        }
+
+    case .ENUM;
+        enum_type := cast(*Type_Info_Enum, type);
+        Append(builder, "%", enum_type.name);
+
+    case .TYPE;
+        Append(builder, "Type");
+
+    case .ANY;
+        Append(builder, "Any");
+
+    case .PROCEDURE;
+        proc := cast(*Type_Info_Procedure, type);
+        Append(builder, "(");
+
+        for proc.argument_types {
+            if it_index > 0 {
+                Append(builder, ", ");
+            }
+
+            AppendType(builder, it);
+        }
+
+        Append(builder, ")");
+
+        if proc.return_types.count > 0 {
+            Append(builder, " -> ");
+        }
+
+        for proc.return_types {
+            if it_index > 0 {
+                Append(builder, ", ");
+            }
+
+            AppendType(builder, it);
+        }
+
+        if proc.procedure_flags & .IS_C_CALL {
+            Append(builder, " #c_call");
+        }
+        if proc.procedure_flags & .HAS_NO_CONTEXT {
+            Append(builder, " #no_context");
+        }
+    }
+}
+
 AppendVariableDeclaration :: (builder : *StringBuilder, decl : *Code_Declaration) {
     Assert(decl.kind == .DECLARATION);
 
@@ -236,7 +361,7 @@ AppendVariableDeclaration :: (builder : *StringBuilder, decl : *Code_Declaration
         Append(builder, "% : ", decl.name);
     }
 
-    Append(builder, "%", get_type(decl.type));
+    AppendType(builder, decl.type);
 
     if decl.expression {
         Append(builder, " = ");
