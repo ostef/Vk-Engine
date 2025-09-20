@@ -1,7 +1,7 @@
 CoreModule :: struct {
     #as base : Module;
-    AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
-    AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer);
+    AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);
+    AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
     AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
@@ -10,11 +10,11 @@ CoreModule :: struct {
     BeginFrame : ();
     BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass;
     BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass;
-    BeginGfxDebugMarker_1 : (cmd_buffer : *GfxCommandBuffer, name : string);
-    BeginGfxDebugMarker_2 : (name : string);
+    BeginGfxDebugMarker_1 : (name : string);
+    BeginGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer, name : string);
     BeginGfxRenderPass : (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass;
-    BindComputeBindingSet_1 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
-    BindComputeBindingSet_2 : (pass : *GfxComputePass, index : u32, set : *GfxBindingSet);
+    BindComputeBindingSet_1 : (pass : *GfxComputePass, index : u32, set : *GfxBindingSet);
+    BindComputeBindingSet_2 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
     BindComputePipeline : (pass : *GfxComputePass, pipeline : *GfxComputePipeline);
     BindGraphicsBindingSet_1 : (pass : *GfxRenderPass, index : u32, set : *GfxBindingSet);
     BindGraphicsBindingSet_2 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
@@ -98,14 +98,14 @@ CoreModule :: struct {
 #if #exists(Import_Mode) {
 g_Core : *CoreModule;
 
-AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags) {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.AddBarrier_1(cmd_buffer, src_sync_points, dst_sync_points);
-}
-
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
-    g_Core.AddBarrier_2(cmd_buffer);
+    g_Core.AddBarrier_1(cmd_buffer);
+}
+
+AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddBarrier_2(cmd_buffer, src_sync_points, dst_sync_points);
 }
 
 AddMemoryBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags) {
@@ -149,14 +149,14 @@ BeginGfxCopyPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> Gf
     return g_Core.BeginGfxCopyPass(cmd_buffer, name);
 }
 
-BeginGfxDebugMarker :: inline (cmd_buffer : *GfxCommandBuffer, name : string) {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.BeginGfxDebugMarker_1(cmd_buffer, name);
-}
-
 BeginGfxDebugMarker :: inline (name : string) {
     Assert(g_Core != null, "Core module is null");
-    g_Core.BeginGfxDebugMarker_2(name);
+    g_Core.BeginGfxDebugMarker_1(name);
+}
+
+BeginGfxDebugMarker :: inline (cmd_buffer : *GfxCommandBuffer, name : string) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BeginGfxDebugMarker_2(cmd_buffer, name);
 }
 
 BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass {
@@ -164,14 +164,14 @@ BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, des
     return g_Core.BeginGfxRenderPass(cmd_buffer, name, desc);
 }
 
-BindComputeBindingSet :: inline (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.BindComputeBindingSet_1(cmd_buffer, layout, index, set);
-}
-
 BindComputeBindingSet :: inline (pass : *GfxComputePass, index : u32, set : *GfxBindingSet) {
     Assert(g_Core != null, "Core module is null");
-    g_Core.BindComputeBindingSet_2(pass, index, set);
+    g_Core.BindComputeBindingSet_1(pass, index, set);
+}
+
+BindComputeBindingSet :: inline (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BindComputeBindingSet_2(cmd_buffer, layout, index, set);
 }
 
 BindComputePipeline :: inline (pass : *GfxComputePass, pipeline : *GfxComputePipeline) {

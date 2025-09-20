@@ -13,11 +13,6 @@ CompareTypes :: (a : *Type_Info, b : *Type_Info) -> int {
         return i;
     }
 
-    i = a.runtime_size - b.runtime_size;
-    if i != 0 {
-        return i;
-    }
-
     if a.type == {
     case .ARRAY;
         a_array := cast(*Type_Info_Array, a);
@@ -63,18 +58,24 @@ CompareTypes :: (a : *Type_Info, b : *Type_Info) -> int {
             return i;
         }
 
-        for i : 0..a_proc.argument_types.count - 1 {
-            i = CompareTypes(a_proc.argument_types[i], b_proc.argument_types[i]);
+        for j : 0..a_proc.argument_types.count - 1 {
+            i = CompareTypes(a_proc.argument_types[j], b_proc.argument_types[j]);
             if i != 0 {
                 return i;
             }
         }
 
-        for i : 0..a_proc.return_types.count - 1 {
-            i = CompareTypes(a_proc.return_types[i], b_proc.return_types[i]);
+        for j : 0..a_proc.return_types.count - 1 {
+            i = CompareTypes(a_proc.return_types[j], b_proc.return_types[j]);
             if i != 0 {
                 return i;
             }
+        }
+
+    case;
+        i = a.runtime_size - b.runtime_size;
+        if i != 0 {
+            return i;
         }
     }
 
@@ -82,12 +83,12 @@ CompareTypes :: (a : *Type_Info, b : *Type_Info) -> int {
 }
 
 CompareAPIProcedures :: (a : APIProcedure, b : APIProcedure) -> int {
-    return StringCompare(a.decl.name, b.decl.name);
-    // if i != 0 {
-    //     return i;
-    // }
+    i := StringCompare(a.decl.name, b.decl.name);
+    if i != 0 {
+        return i;
+    }
 
-    // return CompareTypes(a.decl.type, b.decl.type);
+    return CompareTypes(a.decl.type, b.decl.type);
 }
 
 AddModuleAPIProcedure :: (decl : *Code_Declaration) -> bool {
