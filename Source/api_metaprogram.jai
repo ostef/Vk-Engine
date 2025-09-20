@@ -298,6 +298,8 @@ GenerateModuleAPICode :: (workspace : Workspace, name : string) {
 
     builder : StringBuilder;
 
+    Appendln(*builder, "// This file was auto-generated. Do not modify it\n");
+
     Appendln(*builder, "%Module :: struct {", name);
     Appendln(*builder, "    #as base : Module;");
     for * g_api_procedures {

@@ -1,3 +1,5 @@
+// This file was auto-generated. Do not modify it
+
 CoreModule :: struct {
     #as base : Module;
     AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);
