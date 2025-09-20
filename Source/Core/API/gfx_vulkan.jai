@@ -30,7 +30,6 @@ GfxContext :: struct {
     last_frame_statistics : GfxFrameStatistics;
     frame_statistics : GfxFrameStatistics;
 
-    // @Todo: use DestroyGfxTextureView
     texture_view_collectors : [Gfx_Num_Frames_In_Flight]GfxGarbageCollector(GfxTexture);
     texture_collectors : [Gfx_Num_Frames_In_Flight]GfxGarbageCollector(GfxTexture);
     sampler_collectors : [Gfx_Num_Frames_In_Flight]GfxGarbageCollector(GfxSampler);

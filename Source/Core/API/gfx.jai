@@ -22,8 +22,9 @@ GetGfxFrameStatistics :: () -> GfxFrameStatistics {
 } @NoProfile
 
 // Tool to defer destroying objects after the last frame they were used is finished processing on the GPU
-GfxGarbageCollector :: struct($T : Type, destroy_func : #type (*T) = null) {
+GfxGarbageCollector :: struct($T : Type) {
     garbage : [..]T;
+    destroy_func : (*T);
 }
 
 AddGarbage :: (collector : *GfxGarbageCollector, garbage : collector.T) {
@@ -36,10 +37,9 @@ DestroyGfxGarbageCollector :: (collector : *GfxGarbageCollector) {
 }
 
 CollectGarbage :: (collector : *GfxGarbageCollector) {
-    #if collector.destroy_func {
-        Destroy :: collector.destroy_func;
-    } else {
-        Destroy :: #insert #run TPrint("Destroy%;", collector.T);
+    Destroy := collector.destroy_func;
+    if !Destroy {
+        Destroy = #insert #run TPrint("Destroy%;", collector.T);
     }
 
     for * collector.garbage {
