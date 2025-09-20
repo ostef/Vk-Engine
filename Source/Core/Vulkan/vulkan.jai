@@ -410,7 +410,7 @@ VulkanDebugCallback :: (
 
     if verbose {
         LogMessage("messageId=0x%, %", FormatIntHex(callback_data.messageIdNumber), verbose, flags=.VERBOSE_ONLY);
-    } else {
+    } else if callback_data.messageIdNumber != 0 {
         LogMessage("messageId=0x%", FormatIntHex(callback_data.messageIdNumber), flags=.VERBOSE_ONLY);
     }
 

@@ -25,6 +25,10 @@ g_gfx_context : GfxContext;
 g_gpu_profiler : GPUFrameProfiler;
 g_cpu_profiler : CPUFrameProfiler;
 
+GetModule :: (id : ModuleID) -> *Module {
+    return g_modules[id];
+} @ModuleAPI
+
 GetWindow :: () -> *SDL_Window {
     return g_window;
 } @ModuleAPI
@@ -58,11 +62,11 @@ CoreLoop :: () {
 
     event : SDL_Event;
     while SDL_PollEvent(*event) {
-        // for g_modules {
-        //     if it && it.OnEvent {
-        //         it.OnEvent(event);
-        //     }
-        // }
+        for g_modules {
+            if it && it.OnEvent {
+                it.OnEvent(event);
+            }
+        }
 
         if event.type == SDL_QUIT {
             Quit();
@@ -75,6 +79,6 @@ OnEvent :: (event : SDL_Event) {
 }
 
 Quit :: () {
-    // g_quit = true;
+    g_quit = true;
 } @ModuleAPI
 
