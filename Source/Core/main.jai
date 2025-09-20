@@ -42,7 +42,7 @@ GetCPUFrameProfiler :: () -> *CPUFrameProfiler {
 } @ModuleAPI
 
 InitializeCore :: () {
-    g_window = SDL_CreateWindow("Hot Reload", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900, 0);
+    g_window = SDL_CreateWindow("Hot Reload", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     InitGfxContext(g_window);
 }
