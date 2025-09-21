@@ -9,9 +9,10 @@
 #load "loader.jai";
 #load "input.jai";
 #load "asset.jai";
-#load "texture2d.jai";
-#load "image_based_lighting.jai";
-#load "Vulkan/vulkan.jai";
+
+#load "Graphics/texture2d.jai";
+#load "Graphics/environment_map.jai";
+#load "Graphics/Vulkan/vulkan.jai";
 
 Module_ID :: ModuleID.Core;
 

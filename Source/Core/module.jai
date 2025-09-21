@@ -17,12 +17,14 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 
 #load "API/asset.jai";
 #load "API/input.jai";
-#load "API/gfx.jai";
-#load "API/gpu_frame_profiler.jai";
 #load "API/cpu_frame_profiler.jai";
 #load "API/serialize_deserialize.jai";
 #load "API/utils.jai";
-#load "API/graphics.jai";
+
+#load "Graphics/API/gfx.jai";
+#load "Graphics/API/gpu_frame_profiler.jai";
+#load "Graphics/API/texture2d.jai";
+#load "Graphics/API/environment_map.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";

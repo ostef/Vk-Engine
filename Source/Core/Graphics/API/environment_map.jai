@@ -1,11 +1,3 @@
-// @Todo: limit the number of uploads per frame
-
-Texture2D :: struct {
-    // This needs to be the first member, because we want to cast *Texture2D to *GfxTexture
-    #as texture : GfxTexture;
-    using,only(width, height) texture.desc;
-} @Asset
-
 using _ :: struct {
     Num_Environment_Map_Levels :: 6;
 } @ShaderType
