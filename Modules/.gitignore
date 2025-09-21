@@ -1,0 +1,17 @@
+_GL/
+__pycache__/
+*.blend1
+obj/
+.build/
+*.obj
+*.o
+*.pdb
+*.exe
+.vscode/
+Fenetres/
+Stylo/
+imgui.ini
+*.DS_Store
+*.dylib
+*.a
+*.dSYM
