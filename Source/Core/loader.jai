@@ -7,8 +7,6 @@
 #import "File_Utilities";
 #import "File_Watcher";
 
-#load "Core/main.jai";
-
 #scope_file
 
 #if OS == {
@@ -23,6 +21,7 @@ g_quit : bool;
 g_module_libraries : [Num_Modules]*void;
 g_modules : [Num_Modules]*Module;
 g_modules_watcher : File_Watcher;
+g_console_logger : ConsoleLogger;
 
 ReloadModule :: (id : ModuleID) -> bool {
     state : []u8;
@@ -131,7 +130,11 @@ ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, 
     }
 }
 
-main :: () {
+LoaderMain :: () {
+    InitConsoleLogger(*g_console_logger);
+    SetContextLogger(*g_console_logger, ConsoleLoggerProc);
+    g_console_logger.print_stack_trace = false;
+
     for i : 0..Num_Modules - 1 {
         if !LoadModule(cast(ModuleID, i)) {
             Basic.exit(1);

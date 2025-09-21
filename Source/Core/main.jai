@@ -1,9 +1,13 @@
+#import "Common";
+#import "Linalg";
+#import "SDL";
 #import "String";
 #import "File";
 
-#load "api.jai";
-#load "Vulkan/vulkan.jai";
+#load "loader.jai";
 #load "input.jai";
+#load "asset.jai";
+#load "Vulkan/vulkan.jai";
 
 Module_ID :: ModuleID.Core;
 
@@ -25,10 +29,6 @@ g_gfx_context : GfxContext;
 g_gpu_profiler : GPUFrameProfiler;
 g_cpu_profiler : CPUFrameProfiler;
 
-GetModule :: (id : ModuleID) -> *Module {
-    return g_modules[id];
-} @ModuleAPI
-
 GetWindow :: () -> *SDL_Window {
     return g_window;
 } @ModuleAPI
@@ -45,10 +45,16 @@ GetCPUFrameProfiler :: () -> *CPUFrameProfiler {
     return *g_cpu_profiler;
 } @ModuleAPI
 
+Quit :: () {
+    g_quit = true;
+} @ModuleAPI
+
 InitializeCore :: () {
     g_window = SDL_CreateWindow("Hot Reload", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     InitGfxContext(g_window);
+
+    InitFrameProfiler(*g_cpu_profiler);
 }
 
 ShutdownCore :: () {
@@ -77,8 +83,3 @@ CoreLoop :: () {
 OnEvent :: (event : SDL_Event) {
     HandleInputEvent(event);
 }
-
-Quit :: () {
-    g_quit = true;
-} @ModuleAPI
-

@@ -10,6 +10,7 @@ Max_Workspaces :: 20;
 
 ModuleID :: enum {
     Core;
+    Game;
 }
 
 Num_Modules :: #run type_info(ModuleID).values.count;
@@ -18,7 +19,7 @@ Num_Modules :: #run type_info(ModuleID).values.count;
     builder : StringBuilder;
 
     for type_info(ModuleID).names {
-        Appendln(*builder, "%1Module :: #import \"%1\"(.Metaprogram);", it);
+        Appendln(*builder, "%1Module :: #import \"%1/Build\";", it);
     }
 
     return StringBuilderBuild(*builder);
@@ -66,8 +67,10 @@ BuildModule :: ($module : ModuleID) -> bool {
 
     compiler_begin_intercept(ws);
 
-    filename := ifx module == .Core then "Source/main.jai" else TPrint("Source/%/module.jai", name);
-    add_build_file(filename, ws);
+    add_build_string(TPrint("#import \"%\"(.Main);", name), ws);
+    if module == .Core {
+        add_build_string("main :: () { LoaderMain(); }", ws);
+    }
 
     while true {
         msg := compiler_wait_for_message();
@@ -141,15 +144,19 @@ Build :: () {
         case "all";
             modules_to_build = 0xffffffffffffffff;
         case;
+            found_module := false;
             for type_info(ModuleID).names {
                 if args[arg_index] == it {
                     modules_to_build |= cast(u64, 1 << it_index);
-                    continue;
+                    found_module = true;
+                    break;
                 }
             }
 
-            LogError("Unknown argument '%'", args[arg_index]);
-            Basic.exit(1);
+            if !found_module {
+                LogError("Unknown argument '%'", args[arg_index]);
+                Basic.exit(1);
+            }
         }
     }
 
@@ -187,7 +194,7 @@ Build :: () {
             builder : StringBuilder;
             for i : 1..Num_Modules - 1 {
                 lib_file := TPrint("Libs/%.%", cast(ModuleID, i), Lib_Ext);
-                Appendln(*builder, "for %.Module_Dependencies {", cast(ModuleID, i));
+                Appendln(*builder, "for %Module.Module_Dependencies {", cast(ModuleID, i));
                 Appendln(*builder, "    if CompareFileTimes(\"%\", it) {", lib_file);
                 Appendln(*builder, "        modules_to_build |= cast(u64, 1 << %);", i);
                 Appendln(*builder, "    }");

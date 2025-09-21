@@ -1,3 +1,5 @@
+#import "Vulkan";
+
 #load "initialization.jai";
 #load "buffer.jai";
 #load "texture.jai";
@@ -16,6 +18,10 @@ Vulkan_Break_On_Error :: true;
 Frame_Max_Wait :: Second_To_Nano * 4;
 
 g_vk_alloc_callbacks : *VkAllocationCallbacks;
+
+GetFrameInFlight :: inline () -> int {
+    return g_gfx_context.frame_in_flight;
+} @ModuleAPI @NoProfile
 
 GetGfxLimits :: inline () -> GfxLimits {
     return g_gfx_context.limits;

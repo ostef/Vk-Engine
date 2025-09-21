@@ -4,8 +4,12 @@ APIProcedure :: struct {
     decl : *Code_Declaration;
 }
 
-g_api_procedures : [..]APIProcedure;
-g_generated_module_api_code : bool;
+ModuleAPIWorkspaceBuildInfo :: struct {
+    api_procedures : [..]APIProcedure;
+    generated_module_api_code : bool;
+}
+
+g_module_api_workspace_build_info : [15]ModuleAPIWorkspaceBuildInfo;
 
 CompareTypes :: (a : *Type_Info, b : *Type_Info) -> int {
     i := cast(int, a.type) - cast(int, b.type);
@@ -91,14 +95,16 @@ CompareAPIProcedures :: (a : APIProcedure, b : APIProcedure) -> int {
     return CompareTypes(a.decl.type, b.decl.type);
 }
 
-AddModuleAPIProcedure :: (decl : *Code_Declaration) -> bool {
+AddModuleAPIProcedure :: (workspace : Workspace, decl : *Code_Declaration) -> bool {
+    using info := *g_module_api_workspace_build_info[workspace];
+
     if !decl.expression || !(decl.flags & .IS_CONSTANT) || decl.expression.kind != .PROCEDURE_HEADER {
         return false;
     }
 
     // @Todo: make sure it is not polymorphic
 
-    ArrayPush(*g_api_procedures, .{decl=decl});
+    ArrayPush(*api_procedures, .{decl=decl});
 
     return true;
 }
@@ -395,22 +401,24 @@ AppendProcedureHeader :: (builder : *StringBuilder, header : *Code_Procedure_Hea
     }
 }
 
-GenerateModuleAPICode :: (workspace : Workspace, name : string) {
-    if g_generated_module_api_code {
+GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : string) {
+    using info := *g_module_api_workspace_build_info[workspace];
+
+    if generated_module_api_code {
         return;
     }
 
-    defer g_generated_module_api_code = true;
+    defer generated_module_api_code = true;
 
-    QuickSort(g_api_procedures, CompareAPIProcedures);
+    QuickSort(api_procedures, CompareAPIProcedures);
 
     i := 0;
-    while i < g_api_procedures.count - 1 {
+    while i < api_procedures.count - 1 {
         j := 1;
-        while i + j < g_api_procedures.count - 1 {
-            if g_api_procedures[i].decl.name == g_api_procedures[i + j].decl.name {
-                g_api_procedures[i].overload_index = 1;
-                g_api_procedures[i + j].overload_index = j + 1;
+        while i + j < api_procedures.count - 1 {
+            if api_procedures[i].decl.name == api_procedures[i + j].decl.name {
+                api_procedures[i].overload_index = 1;
+                api_procedures[i + j].overload_index = j + 1;
             } else {
                 break;
             }
@@ -427,7 +435,7 @@ GenerateModuleAPICode :: (workspace : Workspace, name : string) {
 
     Appendln(*builder, "%Module :: struct {", name);
     Appendln(*builder, "    #as base : Module;");
-    for * g_api_procedures {
+    for * api_procedures {
         if it.overload_index > 0 {
             it.name = TPrint("%_%", it.decl.name, it.overload_index);
         } else {
@@ -442,12 +450,12 @@ GenerateModuleAPICode :: (workspace : Workspace, name : string) {
 
     Append(*builder, "\n");
 
-    Appendln(*builder, "#if #exists(Import_Mode) {");
+    Appendln(*builder, "#if Import_Mode == .Foreign {");
     Appendln(*builder, "g_%1 : *%1Module;", name);
 
     Append(*builder, "\n");
 
-    for g_api_procedures {
+    for api_procedures {
         Append(*builder, "% :: inline ", it.decl.name);
         AppendProcedureHeader(*builder, xx it.decl.expression);
         Appendln(*builder, " {");
@@ -500,17 +508,19 @@ GenerateModuleAPICode :: (workspace : Workspace, name : string) {
 
     Appendln(*builder, "}");
 
-    result := StringBuilderBuild(*builder);
-    write_entire_file(TPrint("Source/%/module_api.jai", name), result);
+    module_api := StringBuilderBuild(*builder);
+    write_entire_file(TPrint("Source/%/module_api.jai", name), module_api);
 
     Appendln(*builder, "InitializeAPI :: (module : *%Module) #c_call {", name);
-    for g_api_procedures {
+    for api_procedures {
         Appendln(*builder, "    module.% = %;", it.name, it.decl.name);
     }
     Appendln(*builder, "}");
 
-    result = StringBuilderBuild(*builder);
+    initialize_api := StringBuilderBuild(*builder);
 
-    add_build_file(TPrint("%/module_api.jai", name), workspace);
-    add_build_string(result, workspace);
+    add_build_string(module_api, workspace, target);
+    add_build_string(initialize_api, workspace, target);
+
+    LogMessage("Generated module API code");
 }

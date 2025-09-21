@@ -34,7 +34,7 @@ InitGPUFrameProfiler :: (profiler : *GPUFrameProfiler, max_events : int) {
     pool_create_info.queryType = .TIMESTAMP;
     pool_create_info.queryCount = xx (max_events * 2);
     for * profiler.query_pools {
-        result := vkCreateQueryPool(g_gfx_context.device, *pool_create_info, g_vk_alloc_callbacks, it);
+        result := vkCreateQueryPool(GetGfxContext().device, *pool_create_info, g_vk_alloc_callbacks, it);
         Assert(result == .SUCCESS, "Could not create query pool for GPU frame profiler");
     }
 
@@ -60,7 +60,7 @@ DestroyGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     Free(profiler.query_results.data);
 
     for profiler.query_pools {
-        vkDestroyQueryPool(g_gfx_context.device, it, g_vk_alloc_callbacks);
+        vkDestroyQueryPool(GetGfxContext().device, it, g_vk_alloc_callbacks);
     }
 
     profiler.* = .{};
@@ -71,15 +71,15 @@ ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
 
     // Only query results starting at the third frame, because frames prior don't have anything
     if profiler.frame_index >= 3 {
-        vkGetQueryPoolResults(g_gfx_context.device, profiler.query_pools[g_gfx_context.frame_in_flight], 0, profiler.query_pool_capacity, profiler.query_pool_capacity * size_of(u64), profiler.query_results.data, size_of(u64), ._64_BIT);
+        vkGetQueryPoolResults(GetGfxContext().device, profiler.query_pools[GetFrameInFlight()], 0, profiler.query_pool_capacity, profiler.query_pool_capacity * size_of(u64), profiler.query_results.data, size_of(u64), ._64_BIT);
 
         for * profiler.latest_frame {
             Free(it.name.data);
         }
 
-        profiler.latest_frame.count = profiler.num_events_for_frame[g_gfx_context.frame_in_flight];
+        profiler.latest_frame.count = profiler.num_events_for_frame[GetFrameInFlight()];
         for * profiler.latest_frame {
-            event := profiler.events_for_frame[g_gfx_context.frame_in_flight][it_index];
+            event := profiler.events_for_frame[GetFrameInFlight()][it_index];
             it.* = event;
             it.start_gpu_tick = profiler.query_results[it_index * 2 + 0];
             it.end_gpu_tick   = profiler.query_results[it_index * 2 + 1];
@@ -105,26 +105,26 @@ ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
         }
     }
 
-    vkResetQueryPool(g_gfx_context.device, profiler.query_pools[g_gfx_context.frame_in_flight], 0, profiler.query_pool_capacity);
+    vkResetQueryPool(GetGfxContext().device, profiler.query_pools[GetFrameInFlight()], 0, profiler.query_pool_capacity);
 
-    profiler.num_events_for_frame[g_gfx_context.frame_in_flight] = 0;
+    profiler.num_events_for_frame[GetFrameInFlight()] = 0;
     profiler.current_event = null;
 }
 
 ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent {
-    if profiler.num_events_for_frame[g_gfx_context.frame_in_flight] >= profiler.events_for_frame[g_gfx_context.frame_in_flight].count {
+    if profiler.num_events_for_frame[GetFrameInFlight()] >= profiler.events_for_frame[GetFrameInFlight()].count {
         return null;
     }
 
-    event := *profiler.events_for_frame[g_gfx_context.frame_in_flight][profiler.num_events_for_frame[g_gfx_context.frame_in_flight]];
+    event := *profiler.events_for_frame[GetFrameInFlight()][profiler.num_events_for_frame[GetFrameInFlight()]];
     event.* = .{};
     event.name = StringClone(name);
-    event.index = profiler.num_events_for_frame[g_gfx_context.frame_in_flight];
+    event.index = profiler.num_events_for_frame[GetFrameInFlight()];
     event.parent = profiler.current_event;
     profiler.current_event = event;
 
-    vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .TOP_OF_PIPE_BIT, profiler.query_pools[g_gfx_context.frame_in_flight], xx (event.index * 2));
-    profiler.num_events_for_frame[g_gfx_context.frame_in_flight] += 1;
+    vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .TOP_OF_PIPE_BIT, profiler.query_pools[GetFrameInFlight()], xx (event.index * 2));
+    profiler.num_events_for_frame[GetFrameInFlight()] += 1;
 
     return event;
 } @NoProfile
@@ -134,7 +134,7 @@ ProfilerEndEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfile
         return;
     }
 
-    vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .BOTTOM_OF_PIPE_BIT, profiler.query_pools[g_gfx_context.frame_in_flight], xx (event.index * 2 + 1));
+    vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .BOTTOM_OF_PIPE_BIT, profiler.query_pools[GetFrameInFlight()], xx (event.index * 2 + 1));
     profiler.current_event = event.parent;
 } @NoProfile
 

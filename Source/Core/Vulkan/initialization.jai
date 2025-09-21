@@ -18,6 +18,15 @@ InitGfxContext :: (window : *SDL_Window) {
     for * ctx.texture_view_collectors {
         it.destroy_func = DestroyGfxTextureView;
     }
+    for * ctx.texture_collectors {
+        it.destroy_func = DestroyGfxTexture;
+    }
+    for * ctx.sampler_collectors {
+        it.destroy_func = DestroyGfxSampler;
+    }
+    for * ctx.buffer_collectors {
+        it.destroy_func = DestroyGfxBuffer;
+    }
 
     // Setup allocation callbacks
     #if Debug_Vulkan_Allocations {

@@ -7,7 +7,7 @@ CoreModule :: struct {
     AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
-    AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : [] *GfxTexture);
+    AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture);
     AllocGfxBindingSet : (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult;
     BeginFrame : ();
     BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass;
@@ -36,6 +36,7 @@ CoreModule :: struct {
     CreateGfxSampler : (name : string, desc : GfxSamplerDesc) -> GfxSampler;
     CreateGfxTexture : (name : string, desc : GfxTextureDesc) -> GfxTexture;
     CreateGfxTextureView : (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture;
+    DeferNextAssetLoadsForAllCaches : ();
     DestroyGfxBindingPool : (pool : *GfxBindingPool);
     DestroyGfxBindingSetLayout : (layout : *GfxBindingSetLayout);
     DestroyGfxBuffer : (buffer : *GfxBuffer);
@@ -56,13 +57,14 @@ CoreModule :: struct {
     EndGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer);
     EndGfxRenderPass : (pass : *GfxRenderPass);
     GenerateMipmaps : (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout);
+    GetAssets : () -> *Assets;
     GetCPUFrameProfiler : () -> *CPUFrameProfiler;
+    GetFrameInFlight : () -> s64;
     GetGPUFrameProfiler : () -> *GPUFrameProfiler;
     GetGfxContext : () -> *GfxContext;
     GetGfxLimits : () -> GfxLimits;
-    GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float32;
+    GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float;
     GetModState : () -> KeyMods;
-    GetModule : (id : ModuleID) -> *Module;
     GetMousePixelPosition : (window : *void) -> x : s32, y : s32;
     GetMousePixelPositionVector : (window : *void) -> Vector(N=2, T=float32);
     GetMousePointPosition : (window : *void) -> x : s32, y : s32;
@@ -72,33 +74,37 @@ CoreModule :: struct {
     GetWindow : () -> *void;
     GetWindowPixelSize : (window : *void) -> width : s32, height : s32;
     GetWindowPointSize : (window : *void) -> width : s32, height : s32;
-    GetWindowScaleFactor : (window : *void) -> float32;
+    GetWindowScaleFactor : (window : *void) -> float;
     IsKeyDown : (key : KeyCode) -> bool;
     IsKeyPressed : (key : KeyCode) -> bool;
     IsKeyReleased : (key : KeyCode) -> bool;
     IsMouseButtonDown : (button : MouseButton) -> bool;
     IsMouseButtonPressed : (button : MouseButton) -> bool;
     IsMouseButtonReleased : (button : MouseButton) -> bool;
-    LoadGfxShader : (name : string, extra_compiler_args : [] string = .[], dependencies : *[..] string = null) -> GfxShader;
+    LoadGfxShader : (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader;
+    LoadPendingAssets : ();
     QueueDestroyGfxBuffer : (buffer : *GfxBuffer);
     QueueDestroyGfxSampler : (sampler : *GfxSampler);
     QueueDestroyGfxTexture : (texture : *GfxTexture);
     QueueDestroyGfxTextureView : (texture : *GfxTexture);
     Quit : ();
+    RegisterDataDirectoryChangeCallback : (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64;
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
+    SaveAssetDynamic : (data_type : Type, asset : *void) -> bool;
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
     SubmitFrame : ();
     SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
+    UnregisterDataDirectoryChangeCallback : (index : s64);
     WaitForGPUIdle : ();
     WasKeyDown : (key : KeyCode) -> bool;
     WasMouseButtonDown : (button : MouseButton) -> bool;
 }
 
-#if #exists(Import_Mode) {
+#if Import_Mode == .Foreign {
 g_Core : *CoreModule;
 
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
@@ -126,7 +132,7 @@ AddTextureBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : G
     g_Core.AddTextureBarrier_2(cmd_buffer, src_sync_points, src_accesses, dst_sync_points, dst_accesses, old_layout, new_layout, texture);
 }
 
-AddTextureBarriers :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : [] *GfxTexture) {
+AddTextureBarriers :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture) {
     Assert(g_Core != null, "Core module is null");
     g_Core.AddTextureBarriers(cmd_buffer, old_layout, new_layout, textures);
 }
@@ -272,6 +278,11 @@ CreateGfxTextureView :: inline (name : string, desc : GfxTextureViewDesc, textur
     return g_Core.CreateGfxTextureView(name, desc, texture);
 }
 
+DeferNextAssetLoadsForAllCaches :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DeferNextAssetLoadsForAllCaches();
+}
+
 DestroyGfxBindingPool :: inline (pool : *GfxBindingPool) {
     Assert(g_Core != null, "Core module is null");
     g_Core.DestroyGfxBindingPool(pool);
@@ -372,9 +383,19 @@ GenerateMipmaps :: inline (pass : *GfxCopyPass, texture : *GfxTexture, old_layou
     g_Core.GenerateMipmaps(pass, texture, old_layout, new_layout);
 }
 
+GetAssets :: inline () -> *Assets {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetAssets();
+}
+
 GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetCPUFrameProfiler();
+}
+
+GetFrameInFlight :: inline () -> s64 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetFrameInFlight();
 }
 
 GetGPUFrameProfiler :: inline () -> *GPUFrameProfiler {
@@ -392,7 +413,7 @@ GetGfxLimits :: inline () -> GfxLimits {
     return g_Core.GetGfxLimits();
 }
 
-GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float32 {
+GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetKeyAxisValue(negative, positive);
 }
@@ -400,11 +421,6 @@ GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float32 {
 GetModState :: inline () -> KeyMods {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetModState();
-}
-
-GetModule :: inline (id : ModuleID) -> *Module {
-    Assert(g_Core != null, "Core module is null");
-    return g_Core.GetModule(id);
 }
 
 GetMousePixelPosition :: inline (window : *void) -> x : s32, y : s32 {
@@ -456,7 +472,7 @@ GetWindowPointSize :: inline (window : *void) -> width : s32, height : s32 {
     return _ret0, _ret1;
 }
 
-GetWindowScaleFactor :: inline (window : *void) -> float32 {
+GetWindowScaleFactor :: inline (window : *void) -> float {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetWindowScaleFactor(window);
 }
@@ -491,9 +507,14 @@ IsMouseButtonReleased :: inline (button : MouseButton) -> bool {
     return g_Core.IsMouseButtonReleased(button);
 }
 
-LoadGfxShader :: inline (name : string, extra_compiler_args : [] string = .[], dependencies : *[..] string = null) -> GfxShader {
+LoadGfxShader :: inline (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader {
     Assert(g_Core != null, "Core module is null");
     return g_Core.LoadGfxShader(name, extra_compiler_args, dependencies);
+}
+
+LoadPendingAssets :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.LoadPendingAssets();
 }
 
 QueueDestroyGfxBuffer :: inline (buffer : *GfxBuffer) {
@@ -521,6 +542,11 @@ Quit :: inline () {
     g_Core.Quit();
 }
 
+RegisterDataDirectoryChangeCallback :: inline (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.RegisterDataDirectoryChangeCallback(proc, data);
+}
+
 ResetGfxBindingPool :: inline (pool : *GfxBindingPool) {
     Assert(g_Core != null, "Core module is null");
     g_Core.ResetGfxBindingPool(pool);
@@ -529,6 +555,11 @@ ResetGfxBindingPool :: inline (pool : *GfxBindingPool) {
 ResetGfxCommandPool :: inline (pool : *GfxCommandPool) {
     Assert(g_Core != null, "Core module is null");
     g_Core.ResetGfxCommandPool(pool);
+}
+
+SaveAssetDynamic :: inline (data_type : Type, asset : *void) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.SaveAssetDynamic(data_type, asset);
 }
 
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
@@ -559,6 +590,11 @@ SubmitFrame :: inline () {
 SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxCommandBuffer(cmd_buffer);
+}
+
+UnregisterDataDirectoryChangeCallback :: inline (index : s64) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.UnregisterDataDirectoryChangeCallback(index);
 }
 
 WaitForGPUIdle :: inline () {

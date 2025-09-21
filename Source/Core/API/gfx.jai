@@ -37,13 +37,10 @@ DestroyGfxGarbageCollector :: (collector : *GfxGarbageCollector) {
 }
 
 CollectGarbage :: (collector : *GfxGarbageCollector) {
-    Destroy := collector.destroy_func;
-    if !Destroy {
-        Destroy = #insert #run TPrint("Destroy%;", collector.T);
-    }
+    Assert(collector.destroy_func != null, "Collector destroy function not set");
 
     for * collector.garbage {
-        Destroy(it);
+        collector.destroy_func(it);
     }
 
     ArrayClear(*collector.garbage);
