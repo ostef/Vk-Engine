@@ -189,9 +189,6 @@ Build :: () {
                 lib_file = TPrint("Libs/%.%", it, Lib_Ext);
             }
 
-            if it_index == 0 && CompareFileTimes(lib_file, "Source/main.jai") {
-                modules_to_build |= cast(u64, 1 << it_index);
-            }
             if CompareFileTimes(lib_file, source_dir) {
                 modules_to_build |= cast(u64, 1 << it_index);
             }
