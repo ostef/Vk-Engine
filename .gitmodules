@@ -1,6 +1,0 @@
-[submodule "Modules"]
-	path = Modules
-	url = git@github.com:ostef/Modules.git
-[submodule "Source/Modules/Linalg"]
-	path = Source/Modules/Linalg
-	url = git@github.com:ostef/Linalg.git
