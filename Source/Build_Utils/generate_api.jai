@@ -1,3 +1,5 @@
+#import "File";
+
 APIProcedure :: struct {
     overload_index : int;
     name : string;

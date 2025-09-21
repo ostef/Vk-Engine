@@ -2,7 +2,7 @@
 #import "Compiler";
 #import "File";
 
-#load "../api_metaprogram.jai";
+#import "Build_Utils";
 
 Module_Dependencies :: string.[];
 

@@ -1,21 +1,16 @@
-#import "SDL";
+Module_ID :: ModuleID.Template;
 
-#load "world.jai";
-// #load "entity.jai";
-// #load "component.jai";
-
-Module_ID :: ModuleID.Game;
-
-g_module := GameModule.{
-    base.Initialize=InitializeGame,
-    base.Shutdown=ShutdownGame,
-    base.MainLoop=GameLoop,
+g_module := TemplateModule.{
+    base.Initialize=InitializeTemplate,
+    base.Shutdown=ShutdownTemplate,
+    base.MainLoop=TemplateLoop,
     base.OnEvent=OnEvent,
 };
 
 #program_export
 ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
     g_Core = core;
+    //g_SomeModule = GetModule(.SomeModule);
 
     InitializeAPI(*g_module);
 

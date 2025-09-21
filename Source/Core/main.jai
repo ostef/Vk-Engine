@@ -9,6 +9,8 @@
 #load "loader.jai";
 #load "input.jai";
 #load "asset.jai";
+#load "texture2d.jai";
+#load "image_based_lighting.jai";
 #load "Vulkan/vulkan.jai";
 
 Module_ID :: ModuleID.Core;
@@ -51,15 +53,39 @@ Quit :: () {
     g_quit = true;
 } @ModuleAPI
 
+#scope_file
+
+g_num_cpus : s32;
+g_default_num_worker_threads : s32;
+
+#scope_export
+
+GetNumCPUs :: inline () -> s32 {
+    return g_num_cpus;
+}
+
+GetDefaultNumWorkerThreads :: inline () -> s32 {
+    return g_default_num_worker_threads;
+}
+
 InitializeCore :: () {
-    g_window = SDL_CreateWindow("Hot Reload", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
+    g_num_cpus = get_number_of_processors(.ALL_LOGICAL);
+    g_num_cpus = Clamp(g_num_cpus, 1, 200);
+    g_default_num_worker_threads = Max(g_num_cpus - 1, 2);
+    LogMessage("CPU Information: % logical CPUs, default worker thread count: %", g_num_cpus, g_default_num_worker_threads);
+
+    g_window = SDL_CreateWindow("Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     InitGfxContext(g_window);
 
     InitFrameProfiler(*g_cpu_profiler);
+
+    InitAssets();
 }
 
 ShutdownCore :: () {
+    DestroyAllAssetCaches();
+
     DestroyGfxContext();
 
     SDL_DestroyWindow(g_window);
@@ -68,18 +94,36 @@ ShutdownCore :: () {
 CoreLoop :: () {
     UpdateInputState();
 
+    should_recreate_swapchain := false;
     event : SDL_Event;
     while SDL_PollEvent(*event) {
-        for g_modules {
-            if it && it.OnEvent {
-                it.OnEvent(event);
+        if event.type == SDL_WINDOWEVENT {
+            if event.window.event == SDL_WINDOWEVENT_RESIZED
+            || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED
+            || event.window.event == SDL_WINDOWEVENT_MINIMIZED {
+                should_recreate_swapchain = true;
             }
         }
 
         if event.type == SDL_QUIT {
             Quit();
         }
+
+        for g_modules {
+            if it && it.OnEvent {
+                it.OnEvent(event);
+            }
+        }
     }
+
+    w, h := GetWindowPixelSize(g_window);
+
+    if should_recreate_swapchain && w > 0 && h > 0 {
+        RecreateSwapchain();
+    }
+
+    UnloadAllUnreferencedAssets();
+    ProcessDataDirectoryChanges();
 }
 
 OnEvent :: (event : SDL_Event) {

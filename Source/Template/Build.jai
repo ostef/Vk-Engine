@@ -1,7 +1,3 @@
-#import "Common";
-#import "Compiler";
-#import "File";
-
 Core :: #import "Core/Build";
 
 #load "../api_metaprogram.jai";
@@ -13,8 +9,8 @@ Module_Dependencies :: string.[
 ];
 
 WorkspaceBuildInfo :: struct {
-    game_import : *Message_Import;
     core_import : *Message_Import;
+    template_import : *Message_Import;
 }
 
 g_workspace_build_info : [15]WorkspaceBuildInfo;
@@ -28,8 +24,8 @@ HandleCompilerMessage :: (msg : *Message) {
         if import.module_name == {
         case "Core";
             core_import = import;
-        case "Game";
-            game_import = import;
+        case "Template";
+            template_import = import;
         }
 
     case .TYPECHECKED;
@@ -42,7 +38,7 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
-            GenerateModuleAPICode(msg.workspace, game_import, "Game");
+            GenerateModuleAPICode(msg.workspace, template_import, "Template");
         }
     }
 }

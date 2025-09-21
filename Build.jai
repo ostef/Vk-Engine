@@ -1,12 +1,10 @@
 #import "Common";
-Basic :: #import "Basic";
-using,only(.["+","-","*","/","<",">","=="]) Basic;
 #import "String";
 #import "File";
 #import "File_Utilities";
 #import "Compiler";
-
-Max_Workspaces :: 20;
+Basic :: #import "Basic";
+using,only(.["+","-","*","/","<",">","=="]) Basic;
 
 ModuleID :: enum {
     Core;

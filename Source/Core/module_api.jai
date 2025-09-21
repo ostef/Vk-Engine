@@ -91,7 +91,6 @@ CoreModule :: struct {
     RegisterDataDirectoryChangeCallback : (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64;
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
-    SaveAssetDynamic : (data_type : Type, asset : *void) -> bool;
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
@@ -555,11 +554,6 @@ ResetGfxBindingPool :: inline (pool : *GfxBindingPool) {
 ResetGfxCommandPool :: inline (pool : *GfxCommandPool) {
     Assert(g_Core != null, "Core module is null");
     g_Core.ResetGfxCommandPool(pool);
-}
-
-SaveAssetDynamic :: inline (data_type : Type, asset : *void) -> bool {
-    Assert(g_Core != null, "Core module is null");
-    return g_Core.SaveAssetDynamic(data_type, asset);
 }
 
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {

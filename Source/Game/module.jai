@@ -7,6 +7,21 @@
 
 #import "Core";
 
+#import "Common";
+#import "Linalg";
+#import "Hash_Map";
+#import "Paged_Array";
+#import "Random";
+#import "String";
+#import "Compiler";
+#import "Type_Utils";
+#import "File";
+#import "File_Utilities";
+
+#load "API/world.jai";
+#load "API/entity.jai";
+#load "API/component.jai";
+
 #if Import_Mode == .Foreign {
     #load "module_api.jai";
 } else {

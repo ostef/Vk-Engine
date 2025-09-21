@@ -9,15 +9,20 @@
 #import "SDL";
 #import "Linalg";
 #import "Compiler";
+#import "String";
+#import "File";
 Math :: #import "Math";
 Basic :: #import "Basic";
+using,only(.["+","-","*","/","<",">","=="]) Basic;
 
 #load "API/asset.jai";
 #load "API/input.jai";
 #load "API/gfx.jai";
 #load "API/gpu_frame_profiler.jai";
 #load "API/cpu_frame_profiler.jai";
+#load "API/serialize_deserialize.jai";
 #load "API/utils.jai";
+#load "API/graphics.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";
@@ -51,13 +56,5 @@ GUID :: struct {
 }
 
 operator== :: inline (a : GUID, b : GUID) -> bool {
-    return a.low == b.low && a.high == b.high;
-}
-
-EntityGUID :: #type,distinct GUID;
-
-Null_Entity_GUID :: EntityGUID.{0,0};
-
-operator== :: inline (a : EntityGUID, b : EntityGUID) -> bool {
     return a.low == b.low && a.high == b.high;
 }

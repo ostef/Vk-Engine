@@ -7,6 +7,51 @@ GetAssets :: () -> *Assets {
     return *g_assets;
 } @ModuleAPI
 
+InitAssets :: () {
+    // InitAssetCache(
+    //     *g_assets.StaticMesh_cache,
+    //     load_proc=LoadStaticMeshFromMemory,
+    //     post_load_proc=null,
+    //     unload_proc=DestroyStaticMesh,
+    //     write_proc=null
+    // );
+    // InitAssetCache(
+    //     *g_assets.SkinnedMesh_cache,
+    //     load_proc=LoadSkinnedMeshFromMemory,
+    //     post_load_proc=null,
+    //     unload_proc=DestroySkinnedMesh,
+    //     write_proc=null
+    // );
+    // InitAssetCache(
+    //     *g_assets.ArmatureAnimation_cache,
+    //     load_proc=LoadArmatureAnimationFromMemory,
+    //     post_load_proc=null,
+    //     unload_proc=DestroyArmatureAnimation,
+    //     write_proc=null
+    // );
+    // InitAssetCache(
+    //     *g_assets.Material_cache,
+    //     load_proc=LoadMaterialFromMemory,
+    //     post_load_proc=null,
+    //     unload_proc=DestroyMaterial,
+    //     write_proc=WriteMaterial
+    // );
+    InitAssetCache(
+        *g_assets.Texture2D_cache,
+        load_proc=LoadTexture2DFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroyTexture2D,
+        write_proc=null
+    );
+    InitAssetCache(
+        *g_assets.EnvironmentMap_cache,
+        load_proc=LoadEnvironmentMapFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroyEnvironmentMap,
+        write_proc=null
+    );
+}
+
 g_data_directory_absolute_path : string;
 g_data_directory_watcher : File_Watcher;
 g_data_directory_change_callbacks : [..]DataDirectoryChangeCallback;
@@ -143,54 +188,6 @@ DestroyAssetCache :: (using cache : *AssetCache) {
     cache.* = .{};
 }
 
-LoadAssetDynamic :: (data_type : Type, name : string, location := #caller_location) -> *void {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "if data_type == {");
-        for Asset_Types {
-            Appendln(*builder, "case %1; return LoadAsset(*g_assets.%1_cache, name, location);", it);
-        }
-        Appendln(*builder, "}");
-
-        return StringBuilderBuild(*builder);
-    }
-
-    LogError("Unhandled type % when attempting to load asset of a type known only at runtime", data_type);
-
-    return null;
-}
-
-AddRefDynamic :: (data_type : Type, asset : *void, location := #caller_location) {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "if data_type == {");
-        for Asset_Types {
-            Appendln(*builder, "case %1; AddRef(cast(*Asset(%1), asset), location);", it);
-        }
-        Appendln(*builder, "case; LogError(\"AddRefDynamic does not handle asset type \%\", data_type);");
-        Appendln(*builder, "}");
-
-        return StringBuilderBuild(*builder);
-    }
-}
-
-RemoveRefDynamic :: (data_type : Type, asset : *void) {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "if data_type == {");
-        for Asset_Types {
-            Appendln(*builder, "case %1; RemoveRef(cast(*Asset(%1), asset));", it);
-        }
-        Appendln(*builder, "case; LogError(\"RemoveRefDynamic does not handle asset type \%\", data_type);");
-        Appendln(*builder, "}");
-
-        return StringBuilderBuild(*builder);
-    }
-}
-
 UnloadAllUnreferencedAssets :: () {
     num_unloaded_assets := 0;
 
@@ -241,273 +238,6 @@ UnloadAllUnreferencedAssets :: (using cache : *AssetCache, max_assets_to_unload 
     }
 
     return num_unloaded_assets;
-}
-
-GetLoadedAsset :: (cache : *AssetCache, name : string, location := #caller_location) -> *cache.AssetType {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-
-    asset := HashMapGet(*cache.assets_by_name, name);
-    if asset {
-        AddRef(asset, location);
-        return asset;
-    }
-
-    return null;
-}
-
-#scope_file
-
-AllocAsset :: (cache : *AssetCache, name : string, flags : AssetFlags = 0, location := #caller_location) -> *cache.AssetType {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-
-    asset := PagedArrayFindSlot(*cache.storage);
-    asset.asset_name = StringClone(name ,, cache.assets_by_name.allocator);
-    asset.asset_cache = cache;
-    asset.asset_flags = flags;
-
-    _, was_present := HashMapInsert(*cache.assets_by_name, asset.asset_name, asset);
-    Assert(!was_present, "Overriding existing asset '%'", asset.asset_name);
-
-    AddRef(asset, location);
-
-    return asset;
-}
-
-FreeAsset :: (cache : *AssetCache, asset : *cache.AssetType, free_referenced := false, free_permanent := false) {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-    Assert(cache == asset.asset_cache);
-    Assert(free_referenced || asset.ref_count == 0, "Freeing asset '%' but it is still referenced", asset.asset_name);
-    Assert(free_permanent || asset.asset_flags & .Permanent == 0, "Freeing permanent asset '%'", asset.asset_name);
-
-    asset_name := asset.asset_name;
-    defer Free(asset.asset_name.data ,, cache.assets_by_name.allocator);
-
-    #if Track_Asset_Reference_Locations {
-        ArrayFree(*asset.asset_reference_locations);
-    }
-
-    PagedArrayFreeSlot(*cache.storage, asset);
-    HashMapRemove(*cache.assets_by_name, asset.asset_name);
-    HashMapRemove(*cache.unreferenced_assets, asset.asset_name);
-}
-
-UnloadAsset :: (cache : *AssetCache, asset : *cache.AssetType, unload_referenced := false, unload_permanent := false) {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-    Assert(cache.unload_proc != null);
-    Assert(cache == asset.asset_cache);
-
-    if !unload_referenced && asset.ref_count > 0 {
-        LogError("Unloading asset '%' but it is still referenced", asset.asset_name);
-        return;
-    }
-
-    if !unload_permanent && asset.asset_flags & .Permanent {
-        LogError("Unloading permanent asset '%'", asset.asset_name);
-        return;
-    }
-
-    start_time := Basic.current_time_monotonic();
-    cache.unload_proc(asset);
-    end_time := Basic.current_time_monotonic();
-    LogContentMessage("Unloaded asset '%' in % ms", asset.asset_name, Basic.to_float64_seconds(end_time - start_time) * 1000);
-
-    FreeAsset(cache, asset, unload_referenced, unload_permanent);
-}
-
-#scope_export
-
-AllocNewAssetDynamic :: inline (data_type : Type, name : string, flags : AssetFlags = 0, location := #caller_location) -> *void, is_new : bool  {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "if data_type == {");
-        for Asset_Types {
-            Appendln(*builder, "case %1; asset, is_new := AllocNewAsset(%1, name, flags, location); return asset, is_new;", it);
-        }
-        Appendln(*builder, "case; LogError(\"AllocNewAssetDynamic does not handle asset type \%\", data_type);");
-        Appendln(*builder, "}");
-        Appendln(*builder, "return null, false;");
-
-        return StringBuilderBuild(*builder);
-    }
-}
-
-AllocNewAsset :: inline ($T : Type, name : string, flags : AssetFlags = 0, location := #caller_location) -> *Asset(T), is_new : bool  {
-    cache := #insert #run SPrint("*g_assets.%_cache;", T);
-    asset, is_new := AllocNewAsset(cache, name, flags, location);
-
-    return asset, is_new;
-}
-
-AllocNewAsset :: (cache : *AssetCache, name : string, flags : AssetFlags = 0, location := #caller_location) -> *cache.AssetType, is_new : bool {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-
-    asset := GetLoadedAsset(cache, name, location);
-    if asset {
-        return asset, false;
-    }
-
-    return AllocAsset(cache, name, flags, location), true;
-}
-
-#scope_file
-
-LoadPreallocatedAssetFromMemory :: (cache : *AssetCache, asset : *cache.AssetType, data : []u8) -> bool {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-
-    ok := cache.load_proc(asset, data, asset.asset_name);
-
-    if !ok {
-        LogContentError("Could not load asset '%'", asset.asset_name);
-
-        asset.asset_flags |= .LoadFailed;
-        cache.unload_proc(asset);
-
-        return false;
-    }
-
-    return true;
-}
-
-#scope_export
-
-AllocAndLoadAssetFromMemory :: (cache : *AssetCache, name : string, data : []u8, flags : AssetFlags = 0, location := #caller_location) -> *cache.AssetType {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-    Assert(cache.load_proc != null);
-
-    start_time := Basic.current_time_monotonic();
-
-    asset := AllocAsset(cache, name, flags | .FromMemory, location);
-    if !LoadPreallocatedAssetFromMemory(cache, asset, data) {
-        RemoveRef(asset);
-        FreeAsset(cache, asset);
-
-        return null;
-    }
-
-    if cache.post_load_proc {
-        cache.post_load_proc(asset, name);
-    }
-
-    total_time := Basic.current_time_monotonic() - start_time;
-    total_time_ms := Basic.to_float64_seconds(total_time) * 1000.0;
-
-    LogContentMessage("Loaded asset '%' in % ms", asset.asset_name, total_time_ms);
-
-    return asset;
-}
-
-LoadAsset :: (cache : *AssetCache, name : string, location := #caller_location) -> *cache.AssetType {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-    Assert(cache.load_proc != null);
-
-    LogSectionScope(*cache.log_section);
-
-    if cache.defer_next_asset_loads {
-        asset, is_new := AllocNewAsset(cache, name, .DeferredLoad, location);
-        if is_new {
-            ArrayPushUnique(*cache.pending_asset_loads, asset);
-        }
-
-        return asset;
-    }
-
-    asset := GetLoadedAsset(cache, name, location);
-    if asset {
-        return asset;
-    }
-
-    filename := StringJoin("Data/", name,, Temp);
-
-    file_contents, file_ok := read_entire_file(filename);
-    defer Free(file_contents.data);
-
-    if !file_ok {
-        LogContentError("Failed to load asset '%' because of a file error", name);
-
-        return null;
-    }
-
-    asset = AllocAndLoadAssetFromMemory(cache, name, xx file_contents, 0, location);
-    if !asset {
-        return null;
-    }
-
-    asset.asset_flags &= ~.FromMemory;
-
-    return asset;
-} @NoProfile
-
-LoadAssetPermanent :: inline ($T : Type, name : string, location := #caller_location) -> *Asset(T) {
-    cache := #insert #run SPrint("*g_assets.%_cache;", T);
-    return LoadAssetPermanent(cache, name, location);
-} @NoProfile
-
-LoadAssetPermanent :: (cache : *AssetCache, name : string, location := #caller_location) -> *cache.AssetType {
-    asset := LoadAsset(cache, name, location);
-    if !asset {
-        return null;
-    }
-
-    asset.asset_flags |= .Permanent;
-
-    return asset;
-} @NoProfile
-
-TryReloadAsset :: (cache : *AssetCache, name : string, location := #caller_location) -> bool, *cache.AssetType {
-    Assert(cache.initialized, "Asset cache % is not initialized", cache.AssetType);
-
-    LogSectionScope(*cache.log_section);
-
-    asset := GetLoadedAsset(cache, name, location);
-    if !asset {
-        return false, null;
-    }
-
-    if asset.asset_flags & .FromMemory {
-        LogContentError("Cannot reload asset '%' because it was not loaded from a file", name);
-
-        return false, asset;
-    }
-
-    filename := StringJoin("Data/", name,, Temp);
-    file_contents, file_ok := read_entire_file(filename);
-    defer Free(file_contents.data);
-
-    if !file_ok {
-        LogContentError("Failed to reload asset '%' because of a file error", name);
-
-        return false, asset;
-    }
-
-    old_data := asset.asset_data;
-
-    asset.asset_data = .{};
-    ok := cache.load_proc(*asset.asset_data, xx file_contents, name);
-
-    if !ok {
-        cache.unload_proc(*asset.asset_data);
-        asset.asset_data = old_data;
-
-        LogContentError("Failed to reload asset '%'", name);
-
-        return false, asset;
-    }
-
-    if cache.post_load_proc {
-        cache.post_load_proc(*asset.asset_data, name);
-    }
-
-    new_data := asset.asset_data;
-    asset.asset_data = old_data;
-
-    cache.unload_proc(*asset.asset_data);
-
-    asset.asset_data = new_data;
-
-    LogContentMessage("Reloaded asset '%'", name);
-
-    return true, asset;
 }
 
 DeferNextAssetLoadsForAllCaches :: () {
@@ -668,57 +398,4 @@ LoadPendingAssetsInParallel :: (using cache : *AssetCache) {
     }
 
     ArrayClear(*pending_asset_loads);
-}
-
-SaveAssetDynamic :: (data_type : Type, asset : *void) -> bool {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "if data_type == {");
-        for Asset_Types {
-            Appendln(*builder, "case %1; return SaveAsset(cast(*Asset(%1), asset));", it);
-        }
-        Appendln(*builder, "case; LogError(\"SaveAssetDynamic does not handle asset type \%\", data_type);");
-        Appendln(*builder, "}");
-
-        return StringBuilderBuild(*builder);
-    }
-
-    return false;
-} @ModuleAPI
-
-UnreferenceAllAssets :: (value : *$T)
-#modify { return cast(*Type_Info, T).type == .STRUCT; } {
-    #insert -> string {
-        builder : StringBuilder;
-
-        Appendln(*builder, "// UnreferenceAllAssets(%)", T);
-
-        info := type_info(T);
-        for info.members {
-            if it.type.type == .STRUCT {
-                Appendln(*builder, "UnreferenceAllAssets(*value.%);", it.name);
-                continue;
-            }
-
-            if it.type.type != .POINTER {
-                continue;
-            }
-
-            pointed_type := cast(*Type_Info_Pointer, it.type).pointer_to;
-            if pointed_type.type != .STRUCT {
-                continue;
-            }
-
-            if TypeGetSourcePolymorph(xx pointed_type) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
-                Appendln(*builder, "DerefAsset(*value.%);", it.name);
-            } else {
-                Appendln(*builder, "if value.% {", it.name);
-                Appendln(*builder, "    UnreferenceAllAssets(value.%);", it.name);
-                Appendln(*builder, "}");
-            }
-        }
-
-        return StringBuilderBuild(*builder);
-    }
 }
