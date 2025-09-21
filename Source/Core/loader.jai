@@ -79,13 +79,17 @@ LoadModule :: (id : ModuleID) -> bool {
         return false;
     }
 
+    LogMessage("Loaded module %", id);
+
+    if g_modules[id].Initialize {
+        g_modules[id].Initialize();
+    }
+
     for g_modules {
         if it && it.OnModuleLoad {
             it.OnModuleLoad(id);
         }
     }
-
-    LogMessage("Loaded module %", id);
 
     return true;
 }
@@ -95,6 +99,10 @@ UnloadModule :: (id : ModuleID) {
         if it && it.OnModuleUnload {
             it.OnModuleUnload(id);
         }
+    }
+
+    if g_modules[id].Initialize {
+        g_modules[id].Shutdown();
     }
 
     if g_module_libraries[id] {
@@ -138,18 +146,6 @@ LoaderMain :: () {
 
     defer for #v2 < i : 0..Num_Modules - 1 {
         UnloadModule(cast(ModuleID, i));
-    }
-
-    for g_modules {
-        if it.Initialize {
-            it.Initialize();
-        }
-    }
-
-    defer for < g_modules {
-        if it.Shutdown {
-            it.Shutdown();
-        }
     }
 
     init(*g_modules_watcher, ModulesChangeCallback);
