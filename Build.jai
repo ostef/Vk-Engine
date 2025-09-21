@@ -8,6 +8,7 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 
 ModuleID :: enum {
     Core;
+    Renderer;
     Game;
 }
 

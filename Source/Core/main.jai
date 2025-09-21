@@ -12,6 +12,7 @@
 
 #load "Graphics/texture2d.jai";
 #load "Graphics/environment_map.jai";
+#load "Graphics/material.jai";
 #load "Graphics/Vulkan/vulkan.jai";
 
 Module_ID :: ModuleID.Core;
@@ -33,6 +34,10 @@ g_window : *SDL_Window;
 g_gfx_context : GfxContext;
 g_gpu_profiler : GPUFrameProfiler;
 g_cpu_profiler : CPUFrameProfiler;
+
+GetModule :: (id : ModuleID) -> *Module {
+    return g_modules[id];
+} @ModuleAPI
 
 GetWindow :: () -> *SDL_Window {
     return g_window;

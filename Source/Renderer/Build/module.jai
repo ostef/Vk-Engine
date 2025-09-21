@@ -5,16 +5,13 @@
 #import "Build_Utils";
 Core :: #import "Core/Build";
 
-#load "entity.jai";
-
 Module_Dependencies :: string.[
     "Core",
-    "Renderer",
 ];
 
 WorkspaceBuildInfo :: struct {
-    game_import : *Message_Import;
     core_import : *Message_Import;
+    renderer_import : *Message_Import;
 }
 
 g_workspace_build_info : [15]WorkspaceBuildInfo;
@@ -28,8 +25,8 @@ HandleCompilerMessage :: (msg : *Message) {
         if import.module_name == {
         case "Core";
             core_import = import;
-        case "Game";
-            game_import = import;
+        case "Renderer";
+            renderer_import = import;
         }
 
     case .TYPECHECKED;
@@ -42,15 +39,12 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
-            GenerateEntityCode(msg.workspace, game_import);
-            GenerateModuleAPICode(msg.workspace, game_import, "Game");
+            GenerateModuleAPICode(msg.workspace, renderer_import, "Renderer");
         }
     }
 }
 
 HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
-    HandleDeclarationForEntity(workspace, decl);
-
     for note : decl.notes {
         if note.text == "ModuleAPI" {
             AddModuleAPIProcedure(workspace, decl);
@@ -62,10 +56,4 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
 }
 
 HandleNoteOnDeclaration :: (workspace : Workspace, decl : *Code_Declaration, note : *Code_Note) {
-    if note.text == "Entity" {
-        AddEntityType(workspace, decl);
-    }
-    if note.text == "Component" {
-        AddComponentType(workspace, decl);
-    }
 }

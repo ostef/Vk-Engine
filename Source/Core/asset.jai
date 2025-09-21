@@ -29,13 +29,13 @@ InitAssets :: () {
     //     unload_proc=DestroyArmatureAnimation,
     //     write_proc=null
     // );
-    // InitAssetCache(
-    //     *g_assets.Material_cache,
-    //     load_proc=LoadMaterialFromMemory,
-    //     post_load_proc=null,
-    //     unload_proc=DestroyMaterial,
-    //     write_proc=WriteMaterial
-    // );
+    InitAssetCache(
+        *g_assets.Material_cache,
+        load_proc=LoadMaterialFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroyMaterial,
+        write_proc=WriteMaterial
+    );
     InitAssetCache(
         *g_assets.Texture2D_cache,
         load_proc=LoadTexture2DFromMemory,

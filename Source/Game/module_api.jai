@@ -7,6 +7,7 @@ GameModule :: struct {
     DestroyWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
     SaveWorldToDirectory : (world : *World, output_directory : string);
+    SubmitWorldToRenderer : (world : *World);
 }
 
 #if Import_Mode == .Foreign {
@@ -35,6 +36,11 @@ LoadWorldFromDirectory :: inline (world : *World, directory : string) {
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SaveWorldToDirectory(world, output_directory);
+}
+
+SubmitWorldToRenderer :: inline (world : *World) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.SubmitWorldToRenderer(world);
 }
 
 }

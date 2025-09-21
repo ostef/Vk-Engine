@@ -11,6 +11,7 @@
 #import "Compiler";
 #import "String";
 #import "File";
+#import "Remap_Context"(VERBOSE=false);
 Math :: #import "Math";
 Basic :: #import "Basic";
 using,only(.["+","-","*","/","<",">","=="]) Basic;
@@ -25,6 +26,7 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 #load "Graphics/API/gpu_frame_profiler.jai";
 #load "Graphics/API/texture2d.jai";
 #load "Graphics/API/environment_map.jai";
+#load "Graphics/API/material.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";
@@ -34,6 +36,7 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 
 ModuleID :: enum {
     Core;
+    Renderer;
     Game;
 }
 
@@ -59,4 +62,9 @@ GUID :: struct {
 
 operator== :: inline (a : GUID, b : GUID) -> bool {
     return a.low == b.low && a.high == b.high;
+}
+
+AABB :: struct {
+    center : Vec3f;
+    half_extents : Vec3f;
 }

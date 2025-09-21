@@ -65,6 +65,7 @@ CoreModule :: struct {
     GetGfxLimits : () -> GfxLimits;
     GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float;
     GetModState : () -> KeyMods;
+    GetModule : (id : ModuleID) -> *Module;
     GetMousePixelPosition : (window : *void) -> x : s32, y : s32;
     GetMousePixelPositionVector : (window : *void) -> Vector(N=2, T=float32);
     GetMousePointPosition : (window : *void) -> x : s32, y : s32;
@@ -420,6 +421,11 @@ GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float {
 GetModState :: inline () -> KeyMods {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetModState();
+}
+
+GetModule :: inline (id : ModuleID) -> *Module {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetModule(id);
 }
 
 GetMousePixelPosition :: inline (window : *void) -> x : s32, y : s32 {
