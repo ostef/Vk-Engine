@@ -6,10 +6,8 @@ Module_ID :: ModuleID.Renderer;
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
     base.Shutdown=ShutdownRenderer,
-    base.OnEvent=OnEvent,
-    base.OnModuleUnload=OnModuleUnload,
-    base.OnModuleLoad=OnModuleLoad,
 };
+g_context : #Context;
 
 g_render_thread : Thread;
 g_render_thread_produced_semaphore : Semaphore;
@@ -30,6 +28,9 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 InitializeRenderer :: () {
+    g_context = remap_context();
+    push_context,defer_pop g_context;
+
     init(*g_render_thread_produced_semaphore);
     signal(*g_render_thread_produced_semaphore);
     init(*g_render_thread_consume_semaphore);
@@ -39,6 +40,8 @@ InitializeRenderer :: () {
 }
 
 ShutdownRenderer :: () {
+    push_context,defer_pop g_context;
+
     WaitForRenderThread();
     StopRenderThread();
 
@@ -49,36 +52,39 @@ ShutdownRenderer :: () {
     destroy(*g_render_thread_consume_semaphore);
 }
 
-OnEvent :: (event : SDL_Event) {
-}
-
-OnModuleLoad :: (id : ModuleID) {
-}
-
-OnModuleUnload :: (id : ModuleID) {
-}
-
 AddMeshToRender :: (mesh : MeshToRender) {
+    push_context,defer_pop g_context;
+
     ArrayPush(*g_meshes_to_render, mesh);
 } @ModuleAPI
 
 AddDirectionalLightToRender :: (light : DirectionalLightToRender) {
+    push_context,defer_pop g_context;
+
     ArrayPush(*g_directional_lights_to_render, light);
 } @ModuleAPI
 
 AddPointLightToRender :: (light : PointLightToRender) {
+    push_context,defer_pop g_context;
+
     ArrayPush(*g_point_lights_to_render, light);
 } @ModuleAPI
 
 WaitForRenderThread :: () {
+    push_context,defer_pop g_context;
+
     wait_for(*g_render_thread_produced_semaphore);
 } @ModuleAPI
 
 SubmitFrameToRenderThread :: () {
+    push_context,defer_pop g_context;
+
     signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI
 
 StopRenderThread :: () {
+    push_context,defer_pop g_context;
+
     g_render_thread_should_stop = true;
     signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI

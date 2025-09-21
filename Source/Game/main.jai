@@ -13,6 +13,7 @@ g_module := GameModule.{
     base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
+g_context : #Context;
 
 #program_export
 ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
@@ -27,6 +28,8 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleLoad :: (id : ModuleID) {
+    push_context,defer_pop g_context;
+
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
     }
@@ -35,21 +38,31 @@ OnModuleLoad :: (id : ModuleID) {
 g_world : World;
 
 InitializeGame :: () {
+    g_context = remap_context();
+    push_context,defer_pop g_context;
 }
 
 ShutdownGame :: () {
+    push_context,defer_pop g_context;
+
     DestroyWorld(*g_world);
 }
 
 GameLoop :: () {
+    push_context,defer_pop g_context;
+
     // Update world
     SubmitWorldToRenderer(*g_world);
 }
 
 OnEvent :: (event : SDL_Event) {
+    push_context,defer_pop g_context;
+
 }
 
 SubmitWorldToRenderer :: (world : *World) {
+    push_context,defer_pop g_context;
+
     WaitForRenderThread();
 
     SubmitFrameToRenderThread();
