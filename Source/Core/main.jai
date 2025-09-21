@@ -3,6 +3,8 @@
 #import "SDL";
 #import "String";
 #import "File";
+#import "File_Utilities";
+#import "System";
 
 #load "loader.jai";
 #load "input.jai";
