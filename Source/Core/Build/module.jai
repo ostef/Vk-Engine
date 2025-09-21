@@ -4,13 +4,12 @@
 
 #import "Build_Utils";
 
+#load "asset.jai";
+
 Module_Dependencies :: string.[];
 
 WorkspaceBuildInfo :: struct {
     core_import : *Message_Import;
-
-    asset_types : [..]*Type_Info_Struct;
-    generated_asset_code : bool;
 }
 
 g_workspace_build_info : [15]WorkspaceBuildInfo;
@@ -54,40 +53,4 @@ HandleNoteOnDeclaration :: (workspace : Workspace, decl : *Code_Declaration, not
     if note.text == "Asset" {
         AddAssetType(workspace, decl);
     }
-}
-
-AddAssetType :: (workspace : Workspace, decl : *Code_Declaration) {
-    using info := *g_workspace_build_info[workspace];
-
-    if !decl.expression || decl.expression.kind != .STRUCT {
-        return;
-    }
-
-    struct_expr := cast(*Code_Struct, decl.expression);
-    ArrayPush(*asset_types, xx struct_expr.defined_type);
-}
-
-GenerateAssetCode :: (workspace : Workspace, target : *Message) {
-    using info := *g_workspace_build_info[workspace];
-
-    if !target || generated_asset_code {
-        return;
-    }
-
-    defer generated_asset_code = true;
-
-    QuickSort(asset_types, (a, b) => StringCompare(a.name, b.name));
-
-    builder : StringBuilder;
-    Appendln(*builder, "Asset_Types :: Type.[");
-
-    for asset_types {
-        Appendln(*builder, "    %,", it.name);
-    }
-
-    Appendln(*builder, "];");
-
-    add_build_string(StringBuilderBuild(*builder), workspace, target);
-
-    LogMessage("Generated asset code");
 }
