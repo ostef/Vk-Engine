@@ -23,7 +23,6 @@ HandleCompilerMessage :: (msg : *Message) {
         import := cast(*Message_Import, msg);
         if import.module_name == "Core" {
             core_import = import;
-            Println("Found Core");
         }
 
     case .TYPECHECKED;
@@ -71,7 +70,7 @@ AddAssetType :: (workspace : Workspace, decl : *Code_Declaration) {
 GenerateAssetCode :: (workspace : Workspace, target : *Message) {
     using info := *g_workspace_build_info[workspace];
 
-    if generated_asset_code {
+    if !target || generated_asset_code {
         return;
     }
 

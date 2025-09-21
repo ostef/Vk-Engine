@@ -9,6 +9,7 @@ Core :: #import "Core/Build";
 Module_Dependencies :: string.[
     "Source/Core/API",
     "Source/Core/module.jai",
+    "Source/Core/module_api.jai",
 ];
 
 WorkspaceBuildInfo :: struct {
@@ -27,11 +28,8 @@ HandleCompilerMessage :: (msg : *Message) {
         if import.module_name == {
         case "Core";
             core_import = import;
-            Println("Found Core import");
-
         case "Game";
             game_import = import;
-            Println("Found Game import");
         }
 
     case .TYPECHECKED;
@@ -43,10 +41,7 @@ HandleCompilerMessage :: (msg : *Message) {
     case .PHASE;
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
-            if core_import {
-                Core.GenerateAssetCode(msg.workspace, core_import);
-            }
-
+            Core.GenerateAssetCode(msg.workspace, core_import);
             GenerateModuleAPICode(msg.workspace, game_import, "Game");
         }
     }

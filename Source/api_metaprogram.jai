@@ -404,7 +404,7 @@ AppendProcedureHeader :: (builder : *StringBuilder, header : *Code_Procedure_Hea
 GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : string) {
     using info := *g_module_api_workspace_build_info[workspace];
 
-    if generated_module_api_code {
+    if !target || generated_module_api_code {
         return;
     }
 

@@ -120,6 +120,13 @@ CompareFileTimes :: (a : string, b : string) -> bool {
 }
 
 Build :: () {
+    Log_Metaprogram :: Log_Section.{name="Metaprogram"};
+    LogSectionScope(*Log_Metaprogram);
+
+    console_logger : ConsoleLogger;
+    InitConsoleLogger(*console_logger);
+    SetContextLogger(*console_logger, ConsoleLoggerProc);
+
     auto_detect : bool;
     modules_to_build : u64;
 
