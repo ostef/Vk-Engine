@@ -58,6 +58,7 @@ CoreModule :: struct {
     EndGfxRenderPass : (pass : *GfxRenderPass);
     GenerateMipmaps : (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout);
     GetAssets : () -> *Assets;
+    GetBoxSplittingPlanes : (center : Vector(N=3, T=float32)) -> x : Plane, y : Plane, z : Plane;
     GetCPUFrameProfiler : () -> *CPUFrameProfiler;
     GetCVarBool : (name : string, default : bool = false) -> bool, exists : bool;
     GetCVarFloat : (name : string, default : float = 0) -> float, exists : bool;
@@ -76,6 +77,7 @@ CoreModule :: struct {
     GetMousePointPosition : (window : *void) -> x : s32, y : s32;
     GetMousePointPositionVector : (window : *void) -> Vector(N=2, T=float32);
     GetMouseWheel : () -> Vector(N=2, T=float32);
+    GetPointPenetrationInBox : (point_inside_box : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
     GetRawMouseDelta : () -> Vector(N=2, T=float32);
     GetWindow : () -> *void;
     GetWindowPixelSize : (window : *void) -> width : s32, height : s32;
@@ -89,11 +91,30 @@ CoreModule :: struct {
     IsMouseButtonReleased : (button : MouseButton) -> bool;
     LoadGfxShader : (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader;
     LoadPendingAssets : ();
+    PointIsInsideBox : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
+    PointIsOnTriangle : (point : Vector(N=3, T=float32), triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), epsilon : float = 0.00001) -> bool;
+    ProjectPointOnBox_1 : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
+    ProjectPointOnBox_2 : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32)) -> Vector(N=3, T=float32);
+    ProjectPointOnCapsule : (point : Vector(N=3, T=float32), capsule_base : Vector(N=3, T=float32), capsule_tip : Vector(N=3, T=float32), capsule_radius : float) -> Vector(N=3, T=float32);
+    ProjectPointOnLine : (point : Vector(N=3, T=float32), line_origin : Vector(N=3, T=float32), line_dir : Vector(N=3, T=float32)) -> Vector(N=3, T=float32), t : float;
+    ProjectPointOnPlane : (point : Vector(N=3, T=float32), plane_origin : Vector(N=3, T=float32), plane_normal : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
+    ProjectPointOnRay : (point : Vector(N=3, T=float32), ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float) -> Vector(N=3, T=float32), t : float;
+    ProjectPointOnSphere : (point : Vector(N=3, T=float32), sphere_center : Vector(N=3, T=float32), sphere_radius : float) -> Vector(N=3, T=float32);
     QueueDestroyGfxBuffer : (buffer : *GfxBuffer);
     QueueDestroyGfxSampler : (sampler : *GfxSampler);
     QueueDestroyGfxTexture : (texture : *GfxTexture);
     QueueDestroyGfxTextureView : (texture : *GfxTexture);
     Quit : ();
+    RayIntersectsBox_1 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsBox_2 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsBox_3 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsCapsule : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, capsule_base : Vector(N=3, T=float32), capsule_tip : Vector(N=3, T=float32), capsule_radius : float) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsMesh_1 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, mesh : *StaticMesh, transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32), triangle_index : s64;
+    RayIntersectsMesh_2 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, mesh : *StaticMesh, transform : Matrix(M=4, N=4, T=float32), inv_transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32), triangle_index : s64;
+    RayIntersectsOctreeMesh : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), mesh : *CollisionMesh, octree_index : s64, octree_center : Vector(N=3, T=float32), octree_half_size : float) -> intersects : bool, point : Vector(N=3, T=float32), normal : Vector(N=3, T=float32), triangle_index : s64, octree_index : s64;
+    RayIntersectsPlane : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, plane_origin : Vector(N=3, T=float32), plane_normal : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsSphere : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, sphere_center : Vector(N=3, T=float32), sphere_radius : float) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RayIntersectsTriangle : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32)) -> intersets : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
     RegisterDataDirectoryChangeCallback : (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64;
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
@@ -108,6 +129,7 @@ CoreModule :: struct {
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
     SubmitFrame : ();
     SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
+    TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     UnregisterDataDirectoryChangeCallback : (index : s64);
     WaitForGPUIdle : ();
     WasKeyDown : (key : KeyCode) -> bool;
@@ -398,6 +420,12 @@ GetAssets :: inline () -> *Assets {
     return g_Core.GetAssets();
 }
 
+GetBoxSplittingPlanes :: inline (center : Vector(N=3, T=float32)) -> x : Plane, y : Plane, z : Plane {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2 := g_Core.GetBoxSplittingPlanes(center);
+    return _ret0, _ret1, _ret2;
+}
+
 GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetCPUFrameProfiler();
@@ -495,6 +523,11 @@ GetMouseWheel :: inline () -> Vector(N=2, T=float32) {
     return g_Core.GetMouseWheel();
 }
 
+GetPointPenetrationInBox :: inline (point_inside_box : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetPointPenetrationInBox(point_inside_box, box_center, box_half_extents);
+}
+
 GetRawMouseDelta :: inline () -> Vector(N=2, T=float32) {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetRawMouseDelta();
@@ -562,6 +595,53 @@ LoadPendingAssets :: inline () {
     g_Core.LoadPendingAssets();
 }
 
+PointIsInsideBox :: inline (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.PointIsInsideBox(point, box_center, box_half_extents);
+}
+
+PointIsOnTriangle :: inline (point : Vector(N=3, T=float32), triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), epsilon : float = 0.00001) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.PointIsOnTriangle(point, triangle_A, triangle_B, triangle_C, epsilon);
+}
+
+ProjectPointOnBox :: inline (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProjectPointOnBox_1(point, box_center, box_half_extents);
+}
+
+ProjectPointOnBox :: inline (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32)) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProjectPointOnBox_2(point, box_center, box_half_extents, orientation);
+}
+
+ProjectPointOnCapsule :: inline (point : Vector(N=3, T=float32), capsule_base : Vector(N=3, T=float32), capsule_tip : Vector(N=3, T=float32), capsule_radius : float) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProjectPointOnCapsule(point, capsule_base, capsule_tip, capsule_radius);
+}
+
+ProjectPointOnLine :: inline (point : Vector(N=3, T=float32), line_origin : Vector(N=3, T=float32), line_dir : Vector(N=3, T=float32)) -> Vector(N=3, T=float32), t : float {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.ProjectPointOnLine(point, line_origin, line_dir);
+    return _ret0, _ret1;
+}
+
+ProjectPointOnPlane :: inline (point : Vector(N=3, T=float32), plane_origin : Vector(N=3, T=float32), plane_normal : Vector(N=3, T=float32)) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProjectPointOnPlane(point, plane_origin, plane_normal);
+}
+
+ProjectPointOnRay :: inline (point : Vector(N=3, T=float32), ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float) -> Vector(N=3, T=float32), t : float {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.ProjectPointOnRay(point, ray_origin, ray_dir, ray_length);
+    return _ret0, _ret1;
+}
+
+ProjectPointOnSphere :: inline (point : Vector(N=3, T=float32), sphere_center : Vector(N=3, T=float32), sphere_radius : float) -> Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProjectPointOnSphere(point, sphere_center, sphere_radius);
+}
+
 QueueDestroyGfxBuffer :: inline (buffer : *GfxBuffer) {
     Assert(g_Core != null, "Core module is null");
     g_Core.QueueDestroyGfxBuffer(buffer);
@@ -585,6 +665,66 @@ QueueDestroyGfxTextureView :: inline (texture : *GfxTexture) {
 Quit :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.Quit();
+}
+
+RayIntersectsBox :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsBox_1(ray_origin, ray_dir, ray_length, half_extents, transform);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsBox :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsBox_2(ray_origin, ray_dir, ray_length, box_center, box_half_extents);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsBox :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsBox_3(ray_origin, ray_dir, ray_length, box_center, box_half_extents, orientation);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsCapsule :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, capsule_base : Vector(N=3, T=float32), capsule_tip : Vector(N=3, T=float32), capsule_radius : float) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsCapsule(ray_origin, ray_dir, ray_length, capsule_base, capsule_tip, capsule_radius);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsMesh :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, mesh : *StaticMesh, transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32), triangle_index : s64 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3, _ret4 := g_Core.RayIntersectsMesh_1(ray_origin, ray_dir, ray_length, mesh, transform);
+    return _ret0, _ret1, _ret2, _ret3, _ret4;
+}
+
+RayIntersectsMesh :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, mesh : *StaticMesh, transform : Matrix(M=4, N=4, T=float32), inv_transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32), triangle_index : s64 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3, _ret4 := g_Core.RayIntersectsMesh_2(ray_origin, ray_dir, ray_length, mesh, transform, inv_transform);
+    return _ret0, _ret1, _ret2, _ret3, _ret4;
+}
+
+RayIntersectsOctreeMesh :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), mesh : *CollisionMesh, octree_index : s64, octree_center : Vector(N=3, T=float32), octree_half_size : float) -> intersects : bool, point : Vector(N=3, T=float32), normal : Vector(N=3, T=float32), triangle_index : s64, octree_index : s64 {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3, _ret4 := g_Core.RayIntersectsOctreeMesh(ray_origin, ray_dir, mesh, octree_index, octree_center, octree_half_size);
+    return _ret0, _ret1, _ret2, _ret3, _ret4;
+}
+
+RayIntersectsPlane :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, plane_origin : Vector(N=3, T=float32), plane_normal : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsPlane(ray_origin, ray_dir, ray_length, plane_origin, plane_normal);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsSphere :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, sphere_center : Vector(N=3, T=float32), sphere_radius : float) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsSphere(ray_origin, ray_dir, ray_length, sphere_center, sphere_radius);
+    return _ret0, _ret1, _ret2, _ret3;
+}
+
+RayIntersectsTriangle :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32)) -> intersets : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32) {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2, _ret3 := g_Core.RayIntersectsTriangle(ray_origin, ray_dir, ray_length, triangle_A, triangle_B, triangle_C);
+    return _ret0, _ret1, _ret2, _ret3;
 }
 
 RegisterDataDirectoryChangeCallback :: inline (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64 {
@@ -655,6 +795,11 @@ SubmitFrame :: inline () {
 SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxCommandBuffer(cmd_buffer);
+}
+
+TriangleIntersectsBox :: inline (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.TriangleIntersectsBox(triangle_A, triangle_B, triangle_C, triangle_normal, box_center, box_half_extents);
 }
 
 UnregisterDataDirectoryChangeCallback :: inline (index : s64) {

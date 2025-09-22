@@ -17,6 +17,7 @@ g_render_thread_produced_semaphore : Semaphore;
 g_render_thread_consume_semaphore : Semaphore;
 g_render_thread_should_stop : bool;
 
+g_viewpoints_to_render : [..]ViewpointToRender;
 g_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
 g_point_lights_to_render : [..]PointLightToRender;
@@ -69,6 +70,12 @@ RendererLoop :: () {
     ProcessShaderDirectoryChanges();
 }
 
+AddViewpointToRender :: (viewpoint : ViewpointToRender) {
+    push_context,defer_pop g_context;
+
+    ArrayPush(*g_viewpoints_to_render, viewpoint);
+} @ModuleAPI
+
 AddMeshToRender :: (mesh : MeshToRender) {
     push_context,defer_pop g_context;
 
@@ -114,6 +121,11 @@ RenderThread :: (thread : *Thread) -> s64 {
             break;
         }
 
+        for * g_viewpoints_to_render {
+            RenderViewpoint(it);
+        }
+
+        ArrayClear(*g_viewpoints_to_render);
         ArrayClear(*g_meshes_to_render);
         ArrayClear(*g_directional_lights_to_render);
         ArrayClear(*g_point_lights_to_render);
@@ -122,4 +134,7 @@ RenderThread :: (thread : *Thread) -> s64 {
     }
 
     return 0;
+}
+
+RenderViewpoint :: (viewpoint : *ViewpointToRender) {
 }

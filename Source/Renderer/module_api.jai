@@ -5,6 +5,7 @@ RendererModule :: struct {
     AddDirectionalLightToRender : (light : DirectionalLightToRender);
     AddMeshToRender : (mesh : MeshToRender);
     AddPointLightToRender : (light : PointLightToRender);
+    AddViewpointToRender : (viewpoint : ViewpointToRender);
     StopRenderThread : ();
     SubmitFrameToRenderThread : ();
     WaitForRenderThread : ();
@@ -26,6 +27,11 @@ AddMeshToRender :: inline (mesh : MeshToRender) {
 AddPointLightToRender :: inline (light : PointLightToRender) {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.AddPointLightToRender(light);
+}
+
+AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {
+    Assert(g_Renderer != null, "Renderer module is null");
+    g_Renderer.AddViewpointToRender(viewpoint);
 }
 
 StopRenderThread :: inline () {

@@ -25,6 +25,21 @@
     #load "main.jai";
 }
 
+ViewpointToRender :: struct {
+    position : Vec3f;
+    right, up, direction : Vec3f;
+    transform : Mat4f;
+    view : Mat4f;
+    projection : Mat4f;
+    inv_projection : Mat4f;
+    view_projection : Mat4f;
+    inv_view_projection : Mat4f;
+    resolution : Vec2u;
+    fov : float;
+    z_near : float;
+    z_far : float;
+}
+
 MeshToRender :: struct {
     entity_guid : GUID;
     transform : Mat4f;

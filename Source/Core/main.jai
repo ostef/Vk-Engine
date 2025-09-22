@@ -11,10 +11,14 @@
 #load "asset.jai";
 #load "cvar.jai";
 
+#load "Graphics/Vulkan/vulkan.jai";
 #load "Graphics/texture2d.jai";
 #load "Graphics/environment_map.jai";
 #load "Graphics/material.jai";
-#load "Graphics/Vulkan/vulkan.jai";
+#load "Graphics/mesh.jai";
+
+#load "Physics/intersection.jai";
+#load "Physics/collision_mesh.jai";
 
 Module_ID :: ModuleID.Core;
 

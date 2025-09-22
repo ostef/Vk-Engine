@@ -27,6 +27,10 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 #load "Graphics/API/texture2d.jai";
 #load "Graphics/API/environment_map.jai";
 #load "Graphics/API/material.jai";
+#load "Graphics/API/mesh.jai";
+
+#load "Physics/API/types.jai";
+#load "Physics/API/collision_mesh.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";
@@ -62,9 +66,4 @@ GUID :: struct {
 
 operator== :: inline (a : GUID, b : GUID) -> bool {
     return a.low == b.low && a.high == b.high;
-}
-
-AABB :: struct {
-    center : Vec3f;
-    half_extents : Vec3f;
 }

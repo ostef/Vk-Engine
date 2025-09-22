@@ -8,20 +8,20 @@ GetAssets :: () -> *Assets {
 } @ModuleAPI
 
 InitAssets :: () {
-    // InitAssetCache(
-    //     *g_assets.StaticMesh_cache,
-    //     load_proc=LoadStaticMeshFromMemory,
-    //     post_load_proc=null,
-    //     unload_proc=DestroyStaticMesh,
-    //     write_proc=null
-    // );
-    // InitAssetCache(
-    //     *g_assets.SkinnedMesh_cache,
-    //     load_proc=LoadSkinnedMeshFromMemory,
-    //     post_load_proc=null,
-    //     unload_proc=DestroySkinnedMesh,
-    //     write_proc=null
-    // );
+    InitAssetCache(
+        *g_assets.StaticMesh_cache,
+        load_proc=LoadStaticMeshFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroyStaticMesh,
+        write_proc=null
+    );
+    InitAssetCache(
+        *g_assets.SkinnedMesh_cache,
+        load_proc=LoadSkinnedMeshFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroySkinnedMesh,
+        write_proc=null
+    );
     // InitAssetCache(
     //     *g_assets.ArmatureAnimation_cache,
     //     load_proc=LoadArmatureAnimationFromMemory,
