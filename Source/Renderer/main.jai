@@ -1,11 +1,14 @@
 #import "SDL";
 #import "Thread";
 
+#load "shader.jai";
+
 Module_ID :: ModuleID.Renderer;
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
     base.Shutdown=ShutdownRenderer,
+    base.MainLoop=RendererLoop,
 };
 g_context : #Context;
 
@@ -37,6 +40,10 @@ InitializeRenderer :: () {
 
     thread_init(*g_render_thread, RenderThread);
     thread_start(*g_render_thread);
+
+    if !LoadAllShaders() {
+        Basic.exit(1);
+    }
 }
 
 ShutdownRenderer :: () {
@@ -50,6 +57,16 @@ ShutdownRenderer :: () {
 
     destroy(*g_render_thread_produced_semaphore);
     destroy(*g_render_thread_consume_semaphore);
+
+    WaitForGPUIdle();
+
+    DestroyAllShaders();
+}
+
+RendererLoop :: () {
+    push_context,defer_pop g_context;
+
+    ProcessShaderDirectoryChanges();
 }
 
 AddMeshToRender :: (mesh : MeshToRender) {

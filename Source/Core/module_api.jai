@@ -2,7 +2,8 @@
 
 CoreModule :: struct {
     #as base : Module;
-    AddBarrier : (cmd_buffer : *GfxCommandBuffer);
+    AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);
+    AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
     AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
@@ -58,6 +59,11 @@ CoreModule :: struct {
     GenerateMipmaps : (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout);
     GetAssets : () -> *Assets;
     GetCPUFrameProfiler : () -> *CPUFrameProfiler;
+    GetCVarBool : (name : string, default : bool = false) -> bool, exists : bool;
+    GetCVarFloat : (name : string, default : float = 0) -> float, exists : bool;
+    GetCVarInt : (name : string, default : s32 = 0) -> s32, exists : bool;
+    GetCVarString : (name : string, default : string = "") -> string, exists : bool;
+    GetCVarUInt : (name : string, default : u32 = 0) -> u32, exists : bool;
     GetFrameInFlight : () -> s64;
     GetGPUFrameProfiler : () -> *GPUFrameProfiler;
     GetGfxContext : () -> *GfxContext;
@@ -92,6 +98,11 @@ CoreModule :: struct {
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
+    SetCVarBool : (name : string, value : bool);
+    SetCVarFloat : (name : string, value : float);
+    SetCVarInt : (name : string, value : s32);
+    SetCVarString : (name : string, value : string);
+    SetCVarUInt : (name : string, value : u32);
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
@@ -108,7 +119,12 @@ g_Core : *CoreModule;
 
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
-    g_Core.AddBarrier(cmd_buffer);
+    g_Core.AddBarrier_1(cmd_buffer);
+}
+
+AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddBarrier_2(cmd_buffer, src_sync_points, dst_sync_points);
 }
 
 AddMemoryBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags) {
@@ -387,6 +403,36 @@ GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
     return g_Core.GetCPUFrameProfiler();
 }
 
+GetCVarBool :: inline (name : string, default : bool = false) -> bool, exists : bool {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetCVarBool(name, default);
+    return _ret0, _ret1;
+}
+
+GetCVarFloat :: inline (name : string, default : float = 0) -> float, exists : bool {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetCVarFloat(name, default);
+    return _ret0, _ret1;
+}
+
+GetCVarInt :: inline (name : string, default : s32 = 0) -> s32, exists : bool {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetCVarInt(name, default);
+    return _ret0, _ret1;
+}
+
+GetCVarString :: inline (name : string, default : string = "") -> string, exists : bool {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetCVarString(name, default);
+    return _ret0, _ret1;
+}
+
+GetCVarUInt :: inline (name : string, default : u32 = 0) -> u32, exists : bool {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1 := g_Core.GetCVarUInt(name, default);
+    return _ret0, _ret1;
+}
+
 GetFrameInFlight :: inline () -> s64 {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetFrameInFlight();
@@ -559,6 +605,31 @@ ResetGfxCommandPool :: inline (pool : *GfxCommandPool) {
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SetBlendConstant(pass, color);
+}
+
+SetCVarBool :: inline (name : string, value : bool) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetCVarBool(name, value);
+}
+
+SetCVarFloat :: inline (name : string, value : float) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetCVarFloat(name, value);
+}
+
+SetCVarInt :: inline (name : string, value : s32) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetCVarInt(name, value);
+}
+
+SetCVarString :: inline (name : string, value : string) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetCVarString(name, value);
+}
+
+SetCVarUInt :: inline (name : string, value : u32) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SetCVarUInt(name, value);
 }
 
 SetScissor :: inline (pass : *GfxRenderPass, rect : Rect(T=s32)) {

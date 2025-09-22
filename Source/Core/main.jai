@@ -9,6 +9,7 @@
 #load "loader.jai";
 #load "input.jai";
 #load "asset.jai";
+#load "cvar.jai";
 
 #load "Graphics/texture2d.jai";
 #load "Graphics/environment_map.jai";
