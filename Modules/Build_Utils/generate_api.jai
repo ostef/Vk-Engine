@@ -511,7 +511,15 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
     Appendln(*builder, "}");
 
     module_api := StringBuilderBuild(*builder);
-    write_entire_file(TPrint("Source/%/module_api.jai", name), module_api);
+
+    filename := TPrint("Source/%/module_api.jai", name);
+    current_contents := read_entire_file(filename);
+    // @Speed
+    // Avoid writing the file if the result ends up being the same, so we
+    // don't rebuild depending modules unnecessarily
+    if module_api != current_contents {
+        write_entire_file(filename, module_api);
+    }
 
     Appendln(*builder, "InitializeAPI :: (module : *%Module) #c_call {", name);
     for api_procedures {

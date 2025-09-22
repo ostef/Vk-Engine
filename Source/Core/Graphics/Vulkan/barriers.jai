@@ -14,7 +14,7 @@ AddBarrier :: (
     );
 
     g_gfx_context.frame_statistics.num_execution_barriers += 1;
-} @ModuleAPI @NoProfile
+} @NoProfile
 
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
     AddBarrier(cmd_buffer, .AllCommands, .AllCommands);

@@ -2,8 +2,7 @@
 
 CoreModule :: struct {
     #as base : Module;
-    AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);
-    AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
+    AddBarrier : (cmd_buffer : *GfxCommandBuffer);
     AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
@@ -109,12 +108,7 @@ g_Core : *CoreModule;
 
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
-    g_Core.AddBarrier_1(cmd_buffer);
-}
-
-AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags) {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.AddBarrier_2(cmd_buffer, src_sync_points, dst_sync_points);
+    g_Core.AddBarrier(cmd_buffer);
 }
 
 AddMemoryBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags) {

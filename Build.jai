@@ -118,6 +118,57 @@ CompareFileTimes :: (a : string, b : string) -> bool {
     }
 }
 
+ListDirectories :: (path : string, recursive := false, follow_directory_symlinks := true) -> []string {
+    files : [..]string;
+
+    Visitor :: (info : *File_Visit_Info, user_data : *[..]string) {
+        ArrayPush(user_data, StringClone(info.full_name));
+    }
+
+    visit_files(path, recursive, *files, Visitor, visit_files=false, visit_directories=true, follow_directory_symlinks=follow_directory_symlinks);
+
+    return files;
+}
+
+ShouldBuildModule :: ($module : ModuleID) -> bool {
+    #if OS == {
+    case .WINDOWS; Lib_Ext :: "dll";
+    case .LINUX;   Lib_Ext :: "so";
+    case .MACOS;   Lib_Ext :: "dylib";
+    }
+
+    lib_file : string;
+    source_dir := TPrint("Source/%", module);
+    if module == .Core {
+        lib_file = ifx OS == .WINDOWS then "Vk.exe" else "Vk";
+    } else {
+        lib_file = TPrint("Libs/%.%", module, Lib_Ext);
+    }
+
+    if CompareFileTimes(lib_file, source_dir) {
+        return true;
+    }
+
+    dependencies := #insert #run TPrint("%Module.Module_Dependencies;", module);
+    for dependencies {
+        dirs := ListDirectories(TPrint("Source/%", it), recursive=true);
+        for dir : dirs {
+            if path_filename(dir) == "API" && CompareFileTimes(lib_file, dir) {
+                return true;
+            }
+        }
+
+        if CompareFileTimes(lib_file, TPrint("Source/%/module_api.jai", it)) {
+            return true;
+        }
+        if CompareFileTimes(lib_file, TPrint("Source/%/module.jai", it)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 Build :: () {
     Log_Metaprogram :: Log_Section.{name="Metaprogram"};
     LogSectionScope(*Log_Metaprogram);
@@ -171,49 +222,15 @@ Build :: () {
         Basic.exit(1);
     }
 
-    // Compare file times so we know if we should rebuild a module
-    if auto_detect {
-        #if OS == {
-        case .WINDOWS; Lib_Ext :: "dll";
-        case .LINUX;   Lib_Ext :: "so";
-        case .MACOS;   Lib_Ext :: "dylib";
-        }
-
-        for type_info(ModuleID).names {
-            lib_file : string;
-            source_dir := TPrint("Source/%", it);
-            if it_index == 0 {
-                lib_file = ifx OS == .WINDOWS then "Vk.exe" else "Vk";
-            } else {
-                lib_file = TPrint("Libs/%.%", it, Lib_Ext);
-            }
-
-            if CompareFileTimes(lib_file, source_dir) {
-                modules_to_build |= cast(u64, 1 << it_index);
-            }
-        }
-
-        #insert -> string {
-            builder : StringBuilder;
-            for i : 1..Num_Modules - 1 {
-                lib_file := TPrint("Libs/%.%", cast(ModuleID, i), Lib_Ext);
-                Appendln(*builder, "for %Module.Module_Dependencies {", cast(ModuleID, i));
-                Appendln(*builder, "    if CompareFileTimes(\"%\", it) {", lib_file);
-                Appendln(*builder, "        modules_to_build |= cast(u64, 1 << %);", i);
-                Appendln(*builder, "    }");
-                Appendln(*builder, "}");
-            }
-
-            return StringBuilderBuild(*builder);
-        }
-    }
-
     make_directory_if_it_does_not_exist("Libs");
 
     #insert -> string {
         builder : StringBuilder;
 
         for i : 0..Num_Modules - 1 {
+            Appendln(*builder, "if auto_detect && ShouldBuildModule(.%) {", cast(ModuleID, i));
+            Appendln(*builder, "    modules_to_build |= cast(u64, 1 << %);", i);
+            Appendln(*builder, "}");
             Appendln(*builder, "if modules_to_build & cast(u64, 1 << %) {", i);
             Appendln(*builder, "    if !BuildModule(.%) {", cast(ModuleID, i));
             Appendln(*builder, "        Basic.exit(1);");
