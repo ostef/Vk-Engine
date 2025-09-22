@@ -2,8 +2,10 @@
 #import "Thread";
 
 #load "shader.jai";
-
-Module_ID :: ModuleID.Renderer;
+#load "glsl_packing.jai";
+#load "allocator.jai";
+#load "binding_set.jai";
+#load "imgui.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -137,4 +139,39 @@ RenderThread :: (thread : *Thread) -> s64 {
 }
 
 RenderViewpoint :: (viewpoint : *ViewpointToRender) {
+    // mesh_buffer : MeshBuffer;
+    // selected_mesh_buffer : MeshBuffer;
+
+    // for g_meshes_to_render {
+    //     if !it.is_skinned {
+    //         aabb := GetTransformedAABB(it.transform, it.static_bounds);
+    //         if !AABBIsInFrustum(it.static_bounds, frustum) {
+    //             continue;
+    //         }
+    //     }
+
+    //     depth := TransformPoint(viewpoint.view, it.position).z;
+    //     key := MakeMeshBufferKey(it, depth);
+    //     PushMesh(*g_mesh_buffer, key, it);
+    // }
+
+    // SortMeshBuffer(*mesh_buffer);
+    // AllocDrawData(*mesh_buffer);
+
+    // SortMeshBuffer(*selected_mesh_buffer);
+    // AllocDrawData(*selected_mesh_buffer);
+
+    // DepthPrepass(viewpoint, *mesh_buffer);
+    // PrepareClusters(viewpoint);
+    // ForwardPass(viewpoint, *mesh_buffer);
+    // SkyboxPass(viewpoint);
+    // if !(viewpoint.flags & .NoDebugLines) {
+    //     DebugLinesPass(viewpoint);
+    // }
+    // if !(viewpoint.flags & .NoGrids) {
+    //     GridPass(viewpoint);
+    // }
+    // if !(viewpoint.flags & .NoGizmos) {
+    //     GizmoPass(viewpoint);
+    // }
 }

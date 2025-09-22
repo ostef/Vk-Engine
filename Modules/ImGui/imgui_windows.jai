@@ -1610,7 +1610,7 @@ BeginChildEx :: (name: *u8, id: ID, size_arg: *ImVec2, child_flags: ChildFlags, 
 BeginChildEx :: (name: *u8, id: ID, size_arg: ImVec2, child_flags: ChildFlags, window_flags: WindowFlags) -> bool #no_context {
     return BeginChildEx(name, id, *size_arg, child_flags, window_flags);
 }
-OpenPopupEx :: (id: ID, popup_flags: PopupFlags = .None) -> void #foreign imgui "?OpenPopupEx@ImGui@@YAXIH@Z";
+OpenPopupEx :: (id: ID, popup_flags: PopupFlags = cast(PopupFlags).None) -> void #foreign imgui "?OpenPopupEx@ImGui@@YAXIH@Z";
 ClosePopupToLevel :: (remaining: s32, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "?ClosePopupToLevel@ImGui@@YAXH_N@Z";
 ClosePopupsOverWindow :: (ref_window: *Window, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "?ClosePopupsOverWindow@ImGui@@YAXPEAUImGuiWindow@@_N@Z";
 ClosePopupsExceptModals :: () -> void #foreign imgui "?ClosePopupsExceptModals@ImGui@@YAXXZ";
@@ -1811,7 +1811,7 @@ RenderDragDropTargetRect :: (bb: ImRect, item_clip_rect: ImRect) #no_context {
 }
 
 // Typing-Select API
-GetTypingSelectRequest :: (flags: TypingSelectFlags = .None) -> *TypingSelectRequest #foreign imgui "?GetTypingSelectRequest@ImGui@@YAPEAUImGuiTypingSelectRequest@@H@Z";
+GetTypingSelectRequest :: (flags: TypingSelectFlags = cast(TypingSelectFlags).None) -> *TypingSelectRequest #foreign imgui "?GetTypingSelectRequest@ImGui@@YAPEAUImGuiTypingSelectRequest@@H@Z";
 TypingSelectFindMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "?TypingSelectFindMatch@ImGui@@YAHPEAUImGuiTypingSelectRequest@@HP6APEBDPEAXH@Z1H@Z";
 TypingSelectFindNextSingleCharMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "?TypingSelectFindNextSingleCharMatch@ImGui@@YAHPEAUImGuiTypingSelectRequest@@HP6APEBDPEAXH@Z1H@Z";
 TypingSelectFindBestLeadingMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void) -> s32 #foreign imgui "?TypingSelectFindBestLeadingMatch@ImGui@@YAHPEAUImGuiTypingSelectRequest@@HP6APEBDPEAXH@Z1@Z";
@@ -1943,8 +1943,8 @@ RenderTextEllipsis :: (draw_list: *ImDrawList, pos_min: ImVec2, pos_max: ImVec2,
 RenderFrame :: (p_min: ImVec2, p_max: ImVec2, fill_col: ImU32, border := true, rounding: float = 0.0) -> void #foreign imgui "?RenderFrame@ImGui@@YAXUImVec2@@0I_NM@Z";
 RenderFrameBorder :: (p_min: ImVec2, p_max: ImVec2, rounding: float = 0.0) -> void #foreign imgui "?RenderFrameBorder@ImGui@@YAXUImVec2@@0M@Z";
 RenderColorRectWithAlphaCheckerboard :: (draw_list: *ImDrawList, p_min: ImVec2, p_max: ImVec2, fill_col: ImU32, grid_step: float, grid_off: ImVec2, rounding: float = 0.0, flags: ImDrawFlags = .None) -> void #foreign imgui "?RenderColorRectWithAlphaCheckerboard@ImGui@@YAXPEAUImDrawList@@UImVec2@@1IM1MH@Z";
-RenderNavHighlight :: (bb: *ImRect, id: ID, flags: NavHighlightFlags = .None) -> void #foreign imgui "?RenderNavHighlight@ImGui@@YAXAEBUImRect@@IH@Z";
-RenderNavHighlight :: (bb: ImRect, id: ID, flags: NavHighlightFlags = .None) #no_context {
+RenderNavHighlight :: (bb: *ImRect, id: ID, flags: NavHighlightFlags = cast(NavHighlightFlags).None) -> void #foreign imgui "?RenderNavHighlight@ImGui@@YAXAEBUImRect@@IH@Z";
+RenderNavHighlight :: (bb: ImRect, id: ID, flags: NavHighlightFlags = cast(NavHighlightFlags).None) #no_context {
     RenderNavHighlight(*bb, id, flags);
 }
 FindRenderedTextEnd :: (text: *u8, text_end: *u8 = null) -> *u8 #foreign imgui "?FindRenderedTextEnd@ImGui@@YAPEBDPEBD0@Z";

@@ -1,10 +1,6 @@
 #import "SDL";
 
 #load "world.jai";
-// #load "entity.jai";
-// #load "component.jai";
-
-Module_ID :: ModuleID.Game;
 
 g_module := GameModule.{
     base.Initialize=InitializeGame,
@@ -35,8 +31,6 @@ OnModuleLoad :: (id : ModuleID) {
     }
 }
 
-g_world : World;
-
 InitializeGame :: () {
     g_context = remap_context();
     push_context,defer_pop g_context;
@@ -44,26 +38,16 @@ InitializeGame :: () {
 
 ShutdownGame :: () {
     push_context,defer_pop g_context;
-
-    DestroyWorld(*g_world);
 }
 
 GameLoop :: () {
     push_context,defer_pop g_context;
-
-    // Update world
-    SubmitWorldToRenderer(*g_world);
 }
 
 OnEvent :: (event : SDL_Event) {
     push_context,defer_pop g_context;
-
 }
 
 SubmitWorldToRenderer :: (world : *World) {
     push_context,defer_pop g_context;
-
-    WaitForRenderThread();
-
-    SubmitFrameToRenderThread();
 } @ModuleAPI

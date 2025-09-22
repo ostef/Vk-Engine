@@ -26,6 +26,16 @@
 }
 
 ViewpointToRender :: struct {
+    Flags :: enum_flags {
+        NoShadowMap;
+        NoDebugLines;
+        NoGrids;
+        NoEntitySelection;
+        NoGizmos;
+    }
+
+    flags : Flags;
+
     position : Vec3f;
     right, up, direction : Vec3f;
     transform : Mat4f;
@@ -38,6 +48,8 @@ ViewpointToRender :: struct {
     fov : float;
     z_near : float;
     z_far : float;
+
+    skybox : *Asset(EnvironmentMap);
 }
 
 MeshToRender :: struct {

@@ -5,6 +5,9 @@
 #import "Build_Utils";
 Core :: #import "Core/Build";
 
+#load "shader_codegen.jai";
+#load "binding_set.jai";
+
 Module_Dependencies :: string.[
     "Core",
 ];
@@ -39,6 +42,7 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
+            GenerateBindingSetCode(msg.workspace, renderer_import);
             GenerateModuleAPICode(msg.workspace, renderer_import, "Renderer");
         }
     }
@@ -48,6 +52,9 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
     for note : decl.notes {
         if note.text == "ModuleAPI" {
             AddModuleAPIProcedure(workspace, decl);
+        }
+        if note.text == "BindingSet" {
+            AddBindingSetType(workspace, decl);
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);

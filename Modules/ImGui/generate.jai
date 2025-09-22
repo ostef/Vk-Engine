@@ -226,45 +226,45 @@ HandleDeclaration :: (decl : *Declaration, parent_decl : *Declaration) -> Declar
         }
     }
 
-    TypeContainsNamedType :: (type : *CType, name : string) -> bool
-    {
-        decl : *Declaration;
+    // TypeContainsNamedType :: (type : *CType, name : string) -> bool
+    // {
+    //     decl : *Declaration;
 
-        while true
-        {
-            if type.pointer_to
-                type = type.pointer_to;
-            else if type.array_element_type
-                type = type.array_element_type;
-            else
-                break;
-        }
+    //     while true
+    //     {
+    //         if type.pointer_to
+    //             type = type.pointer_to;
+    //         else if type.array_element_type
+    //             type = type.array_element_type;
+    //         else
+    //             break;
+    //     }
 
-        if type.type_of_enum
-            decl = type.type_of_enum;
-        else if type.type_of_struct
-            decl = type.type_of_struct;
-        else if type.type_of_typedef
-            decl = type.type_of_typedef;
+    //     if type.type_of_enum
+    //         decl = type.type_of_enum;
+    //     else if type.type_of_struct
+    //         decl = type.type_of_struct;
+    //     else if type.type_of_typedef
+    //         decl = type.type_of_typedef;
 
-        for type.template_instantiation_params
-        {
-            if TypeContainsNamedType(it, name)
-                return true;
-        }
+    //     for type.template_instantiation_params
+    //     {
+    //         if TypeContainsNamedType(it, name)
+    //             return true;
+    //     }
 
-        if !decl
-            return false;
+    //     if !decl
+    //         return false;
 
-        return name == decl.output_name;
-    }
+    //     return name == decl.output_name;
+    // }
 
     // Avoid name clashing in a more sophisticated way that the default thing
-    if decl.kind == .DECLARATION && decl.type
-    {
-        if TypeContainsNamedType(decl.type, decl.output_name)
-            decl.output_name = sprint("%_", decl.output_name);
-    }
+    // if decl.kind == .DECLARATION && decl.type
+    // {
+    //     if TypeContainsNamedType(decl.type, decl.output_name)
+    //         decl.output_name = sprint("%_", decl.output_name);
+    // }
 
     // We want to generate the correct strongly typed enum,
     // so each time we have an argument or a struct member that

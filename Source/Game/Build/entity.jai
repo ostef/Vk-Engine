@@ -75,13 +75,11 @@ HandleDeclarationForEntity :: (workspace : Workspace, decl : *Code_Declaration) 
     }
 
     if decl.name == "Entity" {// && decl.enclosing_load.fully_pathed_filename == StringJoin(GetRootDirectory(), "Source/Game/API/entity.jai") {
-        Println("%", decl.enclosing_load.fully_pathed_filename);
         entity_type = struct_type;
         LogMessage("Found Entity type");
     }
 
     if decl.name == "Component" {// && decl.enclosing_load.fully_pathed_filename == StringJoin(GetRootDirectory(), "Source/Game/API/component.jai") {
-        Println("%", decl.enclosing_load.fully_pathed_filename);
         component_type = struct_type;
         LogMessage("Found Component type");
     }

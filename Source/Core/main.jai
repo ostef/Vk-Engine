@@ -20,8 +20,6 @@
 #load "Physics/intersection.jai";
 #load "Physics/collision_mesh.jai";
 
-Module_ID :: ModuleID.Core;
-
 g_module := CoreModule.{
     base.Initialize=InitializeCore,
     base.Shutdown=ShutdownCore,

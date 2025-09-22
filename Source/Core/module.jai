@@ -42,6 +42,7 @@ ModuleID :: enum {
     Core;
     Renderer;
     Game;
+    Editor;
 }
 
 Num_Modules :: #run type_info(ModuleID).values.count;

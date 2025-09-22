@@ -4,17 +4,17 @@
 
 #import "Build_Utils";
 Core :: #import "Core/Build";
-
-#load "entity.jai";
+Game :: #import "Game/Build";
 
 Module_Dependencies :: string.[
     "Core",
-    "Renderer",
+    "Game",
 ];
 
 WorkspaceBuildInfo :: struct {
     core_import : *Message_Import;
     game_import : *Message_Import;
+    editor_import : *Message_Import;
 }
 
 g_workspace_build_info : [15]WorkspaceBuildInfo;
@@ -30,6 +30,8 @@ HandleCompilerMessage :: (msg : *Message) {
             core_import = import;
         case "Game";
             game_import = import;
+        case "Editor";
+            editor_import = import;
         }
 
     case .TYPECHECKED;
@@ -42,14 +44,14 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
-            GenerateEntityCode(msg.workspace, game_import);
-            GenerateModuleAPICode(msg.workspace, game_import, "Game");
+            Game.GenerateEntityCode(msg.workspace, game_import);
+            GenerateModuleAPICode(msg.workspace, editor_import, "Editor");
         }
     }
 }
 
 HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
-    HandleDeclarationForEntity(workspace, decl);
+    Game.HandleDeclarationForEntity(workspace, decl);
 
     for note : decl.notes {
         if note.text == "ModuleAPI" {
@@ -57,15 +59,6 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);
-        HandleNoteOnDeclaration(workspace, decl, note);
-    }
-}
-
-HandleNoteOnDeclaration :: (workspace : Workspace, decl : *Code_Declaration, note : *Code_Note) {
-    if note.text == "Entity" {
-        AddEntityType(workspace, decl);
-    }
-    if note.text == "Component" {
-        AddComponentType(workspace, decl);
+        Game.HandleNoteOnDeclaration(workspace, decl, note);
     }
 }

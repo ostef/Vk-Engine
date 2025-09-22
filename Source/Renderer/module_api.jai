@@ -6,6 +6,8 @@ RendererModule :: struct {
     AddMeshToRender : (mesh : MeshToRender);
     AddPointLightToRender : (light : PointLightToRender);
     AddViewpointToRender : (viewpoint : ViewpointToRender);
+    DestroyImGuiRenderer : ();
+    InitImGuiRenderer : ();
     StopRenderThread : ();
     SubmitFrameToRenderThread : ();
     WaitForRenderThread : ();
@@ -32,6 +34,16 @@ AddPointLightToRender :: inline (light : PointLightToRender) {
 AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.AddViewpointToRender(viewpoint);
+}
+
+DestroyImGuiRenderer :: inline () {
+    Assert(g_Renderer != null, "Renderer module is null");
+    g_Renderer.DestroyImGuiRenderer();
+}
+
+InitImGuiRenderer :: inline () {
+    Assert(g_Renderer != null, "Renderer module is null");
+    g_Renderer.InitImGuiRenderer();
 }
 
 StopRenderThread :: inline () {
