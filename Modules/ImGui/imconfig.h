@@ -38,8 +38,8 @@
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
 #define IM_ASSERT(_EXPR) do { if (!(_EXPR)) { \
-        printf ("ImGui assertion failed: %s at %s:%d\n", #_EXPR, __FILE__, __LINE__); \
-        IM_DEBUG_BREAK (); \
+        printf("ImGui assertion failed: %s at %s:%d\n", #_EXPR, __FILE__, __LINE__); \
+        IM_DEBUG_BREAK(); \
     } } while (0)
 
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)

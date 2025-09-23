@@ -18,14 +18,18 @@ FILE :: void;
 case .WINDOWS;
     #load "imgui_windows.jai";
 
+    imgui :: #library,no_static_library "win/ImGui";
     user32 :: #system_library,link_always "User32"; // Needed unless ImGui is compiled with IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS
 
 case .LINUX;
     #load "imgui_linux.jai";
 
+    imgui :: #library,no_static_library "linux/ImGui";
     libm :: #system_library,link_always "libm";
 case .MACOS;
     #load "imgui_macos.jai";
+
+    imgui :: #library,no_static_library "macos/ImGui";
 case;
     #assert false "Unsupported OS";
 }

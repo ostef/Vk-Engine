@@ -7059,4 +7059,3 @@ ImFontAtlasBuildMultiplyRectAlpha8 :: (table: *[256] u8, pixels: *u8, x: s32, y:
 
 #import "Basic"; // For push_context
 
-imgui :: #library "win/ImGui";
