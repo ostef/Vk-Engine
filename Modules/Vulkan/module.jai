@@ -88,7 +88,7 @@ VK_API_VERSION_PATCH   :: (version: u32) -> u32 { return version & 0xfff; }
 
 
     #if USE_LOCAL_VULKAN_DYNAMIC_LIB {
-        libvulkan :: #library "libs/windows/vulkan-1";
+        libvulkan :: #library,link_always,no_static_library "libs/windows/vulkan-1";
     } else {
         libvulkan :: #library,no_dll "libs/windows/vulkan-1";
     }

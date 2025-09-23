@@ -240,14 +240,14 @@ InitBindingSetAllocators :: () {
         }
     }
 
-    for * g_mesh_binding_set_allocators {
-        it.base_pool_desc = MakeGfxBindingPoolDesc(MeshBindingSet, 1000);
-        it.new_pool_desc = MakeGfxBindingPoolDesc(MeshBindingSet, 100);
+    // for * g_mesh_binding_set_allocators {
+    //     it.base_pool_desc = MakeGfxBindingPoolDesc(MeshBindingSet, 1000);
+    //     it.new_pool_desc = MakeGfxBindingPoolDesc(MeshBindingSet, 100);
 
-        if !InitBindingSetAllocator(it, TPrint("Mesh binding set allocator, frame in flight %", it_index)) {
-            Panic("Could not create MeshBindingSet allocator");
-        }
-    }
+    //     if !InitBindingSetAllocator(it, TPrint("Mesh binding set allocator, frame in flight %", it_index)) {
+    //         Panic("Could not create MeshBindingSet allocator");
+    //     }
+    // }
 }
 
 DestroyBindingSetAllocators :: () {

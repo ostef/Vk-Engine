@@ -22,7 +22,7 @@ InitFrameDataAllocator :: (allocator : *FrameDataAllocator, name : string, capac
     }
 
     alloc_info : VmaAllocationInfo;
-    vmaGetAllocationInfo(g_gfx_context.allocator, allocator.buffer.allocation, *alloc_info);
+    vmaGetAllocationInfo(GetGfxContext().allocator, allocator.buffer.allocation, *alloc_info);
 
     allocator.mapped_ptr = alloc_info.pMappedData;
     if !allocator.mapped_ptr {
@@ -49,13 +49,13 @@ InitFrameDataAllocators :: () {
 }
 
 FrameDataBuffer :: () -> *GfxBuffer {
-    using allocator := *g_frame_data_allocators[g_gfx_context.frame_in_flight];
+    using allocator := *g_frame_data_allocators[GetFrameInFlight()];
 
     return *buffer;
 }
 
 ResetFrameDataAllocator :: () {
-    using allocator := *g_frame_data_allocators[g_gfx_context.frame_in_flight];
+    using allocator := *g_frame_data_allocators[GetFrameInFlight()];
 
     current_offset = 0;
 }
@@ -105,7 +105,7 @@ AllocAndPackStorageFrameData :: (data : []$T) -> offset : u64, size : u64 {
 AllocFrameData :: (size : u64) -> offset : u64, ptr : *void {
     #import "Atomics";
 
-    using allocator := *g_frame_data_allocators[g_gfx_context.frame_in_flight];
+    using allocator := *g_frame_data_allocators[GetFrameInFlight()];
 
     limits := GetGfxLimits();
     alignment := Max(limits.uniform_buffer_offset_alignment, limits.storage_buffer_offset_alignment);

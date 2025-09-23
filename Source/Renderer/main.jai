@@ -1,3 +1,4 @@
+#import "Vulkan";
 #import "SDL";
 #import "Thread";
 
@@ -5,6 +6,8 @@
 #load "glsl_packing.jai";
 #load "allocator.jai";
 #load "binding_set.jai";
+#load "mesh_buffer.jai";
+#load "material.jai";
 #load "imgui.jai";
 
 g_module := RendererModule.{
@@ -47,6 +50,11 @@ InitializeRenderer :: () {
     if !LoadAllShaders() {
         Basic.exit(1);
     }
+
+    CreateAllBindingSetLayouts();
+
+    InitFrameDataAllocators();
+    InitBindingSetAllocators();
 }
 
 ShutdownRenderer :: () {
@@ -62,6 +70,14 @@ ShutdownRenderer :: () {
     destroy(*g_render_thread_consume_semaphore);
 
     WaitForGPUIdle();
+
+    for * g_frame_data_allocators {
+        DestroyFrameDataAllocator(it);
+    }
+
+    DestroyBindingSetAllocators();
+
+    DestroyAllBindingSetLayouts();
 
     DestroyAllShaders();
 }
