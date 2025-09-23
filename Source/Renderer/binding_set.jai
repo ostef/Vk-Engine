@@ -213,14 +213,14 @@ CreateGfxBindingSet :: (allocator : *BindingSetAllocator, bindings : $T) -> GfxB
 g_global_binding_set_allocators : [Gfx_Num_Frames_In_Flight]BindingSetAllocator;
 
 GlobalBindingSetAllocator :: inline () -> *BindingSetAllocator {
-    return *g_global_binding_set_allocators[g_gfx_context.frame_in_flight];
+    return *g_global_binding_set_allocators[GetFrameInFlight()];
 }
 
 // Specific allocator for MeshBindingSet layout
 g_mesh_binding_set_allocators : [Gfx_Num_Frames_In_Flight]BindingSetAllocator;
 
 MeshBindingSetAllocator :: inline () -> *BindingSetAllocator {
-    return *g_mesh_binding_set_allocators[g_gfx_context.frame_in_flight];
+    return *g_mesh_binding_set_allocators[GetFrameInFlight()];
 }
 
 InitBindingSetAllocators :: () {
@@ -260,6 +260,6 @@ DestroyBindingSetAllocators :: () {
 }
 
 ResetBindingSetAllocators :: () {
-    ResetBindingSetAllocator(*g_global_binding_set_allocators[g_gfx_context.frame_in_flight]);
-    ResetBindingSetAllocator(*g_mesh_binding_set_allocators[g_gfx_context.frame_in_flight]);
+    ResetBindingSetAllocator(*g_global_binding_set_allocators[GetFrameInFlight()]);
+    ResetBindingSetAllocator(*g_mesh_binding_set_allocators[GetFrameInFlight()]);
 }

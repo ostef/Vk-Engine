@@ -15,6 +15,16 @@ g_module := RendererModule.{
     base.Shutdown=ShutdownRenderer,
     base.MainLoop=RendererLoop,
 };
+
+#program_export
+ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
+    g_Core = core;
+
+    InitializeAPI(*g_module);
+
+    return *g_module;
+}
+
 g_context : #Context;
 
 g_render_thread : Thread;
@@ -27,13 +37,27 @@ g_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
 g_point_lights_to_render : [..]PointLightToRender;
 
-#program_export
-ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
-    g_Core = core;
+g_linear_clamp_sampler : GfxSampler;
+g_nearest_clamp_sampler : GfxSampler;
+g_material_texture_sampler : GfxSampler;
 
-    InitializeAPI(*g_module);
+// Pipeline layout used to bind binding sets outside of any render pass at the beginning of the frame
+g_dummy_frame_pipeline_layout : GfxPipelineLayout;
 
-    return *g_module;
+g_default_base_color : *Asset(Texture2D);
+g_default_normal_map : *Asset(Texture2D);
+g_default_metallic_roughness_map : *Asset(Texture2D);
+g_default_emissive : *Asset(Texture2D);
+g_default_environment_map : *Asset(EnvironmentMap);
+g_default_material : *Asset(Material);
+
+LoadDefaultAssets :: () {
+    g_default_base_color = LoadAssetPermanent(Texture2D, "Default_BaseColor.png");
+    g_default_normal_map = LoadAssetPermanent(Texture2D, "Default_Normal.png");
+    g_default_metallic_roughness_map = LoadAssetPermanent(Texture2D, "Default_MetallicRoughness.png");
+    g_default_emissive = LoadAssetPermanent(Texture2D, "Default_Emissive.png");
+    g_default_environment_map = LoadAssetPermanent(EnvironmentMap, "Default_EnvironmentMap.png");
+    g_default_material = LoadAssetPermanent(Material, "Default_Material.mat");
 }
 
 InitializeRenderer :: () {
@@ -55,6 +79,39 @@ InitializeRenderer :: () {
 
     InitFrameDataAllocators();
     InitBindingSetAllocators();
+
+    sampler_desc : GfxSamplerDesc;
+    sampler_desc.min_filter = .Linear;
+    sampler_desc.mag_filter = .Linear;
+    g_linear_clamp_sampler = CreateGfxSampler("Linear Clamp", sampler_desc);
+    Assert(!IsNull(*g_linear_clamp_sampler));
+
+    sampler_desc = .{};
+    sampler_desc.min_filter = .Nearest;
+    sampler_desc.mag_filter = .Nearest;
+    g_nearest_clamp_sampler = CreateGfxSampler("Nearest Clamp", sampler_desc);
+    Assert(!IsNull(*g_nearest_clamp_sampler));
+
+    sampler_desc = .{};
+    sampler_desc.min_filter = .Linear;
+    sampler_desc.mag_filter = .Linear;
+    sampler_desc.mipmap_filter = .Linear;
+    sampler_desc.u_address_mode = .Repeat;
+    sampler_desc.v_address_mode = .Repeat;
+
+    g_material_texture_sampler = CreateGfxSampler("Material Texture", sampler_desc);
+    Assert(!IsNull(*g_material_texture_sampler), "Could not create material texture sampler");
+
+    frame_layout_desc : GfxPipelineLayoutDesc;
+    frame_layout_desc.binding_sets = .[
+        g_binding_set_layouts.FrameBindingSet,
+    ];
+    g_dummy_frame_pipeline_layout = CreateGfxPipelineLayout("Dummy Frame", frame_layout_desc);
+    Assert(!IsNull(*g_dummy_frame_pipeline_layout), "Could not create dummy frame pipeline layout");
+
+    LoadDefaultAssets();
+
+    InitGPUFrameProfiler(GetGPUFrameProfiler(), 1000);
 }
 
 ShutdownRenderer :: () {
@@ -70,6 +127,14 @@ ShutdownRenderer :: () {
     destroy(*g_render_thread_consume_semaphore);
 
     WaitForGPUIdle();
+
+    DestroyGPUFrameProfiler(GetGPUFrameProfiler());
+
+    DestroyGfxPipelineLayout(*g_dummy_frame_pipeline_layout);
+
+    DestroyGfxSampler(*g_linear_clamp_sampler);
+    DestroyGfxSampler(*g_nearest_clamp_sampler);
+    DestroyGfxSampler(*g_material_texture_sampler);
 
     for * g_frame_data_allocators {
         DestroyFrameDataAllocator(it);
@@ -131,6 +196,9 @@ StopRenderThread :: () {
     signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI
 
+FrameBindingSet :: struct {
+} @BindingSet
+
 RenderThread :: (thread : *Thread) -> s64 {
     while true {
         wait_for(*g_render_thread_consume_semaphore);
@@ -139,14 +207,7 @@ RenderThread :: (thread : *Thread) -> s64 {
             break;
         }
 
-        for * g_viewpoints_to_render {
-            RenderViewpoint(it);
-        }
-
-        ArrayClear(*g_viewpoints_to_render);
-        ArrayClear(*g_meshes_to_render);
-        ArrayClear(*g_directional_lights_to_render);
-        ArrayClear(*g_point_lights_to_render);
+        RenderFrame();
 
         signal(*g_render_thread_produced_semaphore);
     }
@@ -154,39 +215,84 @@ RenderThread :: (thread : *Thread) -> s64 {
     return 0;
 }
 
+RenderFrame :: () {
+    BeginGfxFrame();
+
+    ProfilerBeginFrame(GetGPUFrameProfiler());
+
+    ResetFrameDataAllocator();
+    ResetBindingSetAllocators();
+
+    cmd_buffer := CreateGfxCommandBuffer("Main");
+
+    for * g_viewpoints_to_render {
+        RenderViewpoint(it);
+    }
+
+    ImGuiPass(*cmd_buffer, ImGui.GetDrawData());
+
+    // swapchain_texture := *GetGfxContext().swapchain_textures[GetGfxContext().frame_swapchain_image_index];
+    // AddTextureBarrier(*cmd_buffer, 0, 0, .AllGraphics, .AllWrites | .AllReads, .Undefined, .TransferDst, swapchain_texture);
+
+    // region : VkImageBlit;
+    // region.srcSubresource = MakeVkImageSubresourceLayers(g_final_texture.desc, 0);
+    // region.srcOffsets[1].x = xx g_final_texture.desc.width;
+    // region.srcOffsets[1].y = xx g_final_texture.desc.height;
+    // region.srcOffsets[1].z = 1;
+
+    // region.dstSubresource = MakeVkImageSubresourceLayers(swapchain_texture.desc, 0);
+    // region.dstOffsets[1].x = xx swapchain_texture.desc.width;
+    // region.dstOffsets[1].y = xx swapchain_texture.desc.height;
+    // region.dstOffsets[1].z = 1;
+
+    // vkCmdBlitImage(cmd_buffer.cmd_buffer, g_final_texture.image, .TRANSFER_SRC_OPTIMAL, swapchain_texture.image, .TRANSFER_DST_OPTIMAL, 1, *region, .LINEAR);
+
+    // AddTextureBarrier(*cmd_buffer, .AllGraphics, .AllWrites, 0, 0, .TransferDst, .PresentSrc, swapchain_texture);
+
+    SubmitGfxCommandBuffer(*cmd_buffer);
+
+    SubmitGfxFrame();
+
+    ArrayClear(*g_viewpoints_to_render);
+    ArrayClear(*g_meshes_to_render);
+    ArrayClear(*g_directional_lights_to_render);
+    ArrayClear(*g_point_lights_to_render);
+}
+
 RenderViewpoint :: (viewpoint : *ViewpointToRender) {
-    // mesh_buffer : MeshBuffer;
-    // selected_mesh_buffer : MeshBuffer;
+    AllocatorScope(Temp);
 
-    // for g_meshes_to_render {
-    //     if !it.is_skinned {
-    //         aabb := GetTransformedAABB(it.transform, it.static_bounds);
-    //         if !AABBIsInFrustum(it.static_bounds, frustum) {
-    //             continue;
-    //         }
-    //     }
+    mesh_buffer : MeshBuffer;
 
-    //     depth := TransformPoint(viewpoint.view, it.position).z;
-    //     key := MakeMeshBufferKey(it, depth);
-    //     PushMesh(*g_mesh_buffer, key, it);
-    // }
+    for g_meshes_to_render {
+        if !it.is_skinned {
+            aabb := GetTransformedAABB(it.transform, it.static_bounds);
+            if !AABBIsInFrustum(it.static_bounds, viewpoint.frustum) {
+                continue;
+            }
+        }
 
-    // SortMeshBuffer(*mesh_buffer);
-    // AllocDrawData(*mesh_buffer);
+        depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
+        key := MakeMeshBufferKey(it, depth);
+        PushMesh(*mesh_buffer, key, it);
+    }
 
-    // SortMeshBuffer(*selected_mesh_buffer);
-    // AllocDrawData(*selected_mesh_buffer);
+    SortMeshBuffer(*mesh_buffer);
+    AllocDrawData(*mesh_buffer);
 
     // DepthPrepass(viewpoint, *mesh_buffer);
     // PrepareClusters(viewpoint);
     // ForwardPass(viewpoint, *mesh_buffer);
     // SkyboxPass(viewpoint);
+
     // if !(viewpoint.flags & .NoDebugLines) {
     //     DebugLinesPass(viewpoint);
     // }
+
     // if !(viewpoint.flags & .NoGrids) {
     //     GridPass(viewpoint);
     // }
+
     // if !(viewpoint.flags & .NoGizmos) {
     //     GizmoPass(viewpoint);
     // }

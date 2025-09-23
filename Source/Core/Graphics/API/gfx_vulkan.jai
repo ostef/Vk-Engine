@@ -332,7 +332,7 @@ UpdateGfxBindingSet :: (set : *GfxBindingSet, value : $T) {
         return StringBuilderBuild(*builder);
     }
 
-    vkUpdateDescriptorSets(g_gfx_context.device, xx writes.count, writes.data, 0, null);
+    vkUpdateDescriptorSets(GetGfxContext().device, xx writes.count, writes.data, 0, null);
 } @NoProfile
 
 MakeVkFormat :: inline (pixel_format : GfxPixelFormat) -> VkFormat {

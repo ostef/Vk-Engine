@@ -76,7 +76,7 @@ BeginGfxRenderPass :: (cmd_buffer : *GfxCommandBuffer, name : string, desc : Gfx
     render_info.renderArea.extent = .{width=xx w, height=xx h};
 
     BeginGfxDebugMarker(cmd_buffer, name);
-    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_profiler, name);
+    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name);
     vkCmdBeginRendering(cmd_buffer.cmd_buffer, *render_info);
 
     g_gfx_context.frame_statistics.num_render_passes += 1;
@@ -88,7 +88,7 @@ EndGfxRenderPass :: (pass : *GfxRenderPass) {
     LogSectionScope(*Log_Vulkan);
 
     vkCmdEndRendering(pass.cmd_buffer.cmd_buffer);
-    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_profiler, pass.profiling_event);
+    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_frame_profiler, pass.profiling_event);
     EndGfxDebugMarker(pass.cmd_buffer);
 
     AddBarrier(pass.cmd_buffer);

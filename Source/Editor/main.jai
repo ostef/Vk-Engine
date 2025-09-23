@@ -10,7 +10,6 @@ g_module := EditorModule.{
     base.Initialize=InitializeEditor,
     base.Shutdown=ShutdownEditor,
     base.MainLoop=EditorLoop,
-    base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
 g_context : #Context;
@@ -115,10 +114,6 @@ EditorLoop :: () {
     SubmitWorldToRenderer(*g_editor_world);
 
     SubmitFrameToRenderThread();
-}
-
-OnEvent :: (event : SDL_Event) {
-    push_context,defer_pop g_context;
 }
 
 SetEditorStyleBasic :: () {

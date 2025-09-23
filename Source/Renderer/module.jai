@@ -49,6 +49,8 @@ ViewpointToRender :: struct {
     z_near : float;
     z_far : float;
 
+    frustum : Frustum;
+
     skybox : *Asset(EnvironmentMap);
 }
 

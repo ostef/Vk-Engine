@@ -9,11 +9,11 @@ CoreModule :: struct {
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture);
     AllocGfxBindingSet : (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult;
-    BeginFrame : ();
     BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass;
     BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass;
     BeginGfxDebugMarker_1 : (name : string);
     BeginGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer, name : string);
+    BeginGfxFrame : ();
     BeginGfxRenderPass : (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass;
     BindComputeBindingSet_1 : (pass : *GfxComputePass, index : u32, set : *GfxBindingSet);
     BindComputeBindingSet_2 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
@@ -37,6 +37,7 @@ CoreModule :: struct {
     CreateGfxTexture : (name : string, desc : GfxTextureDesc) -> GfxTexture;
     CreateGfxTextureView : (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture;
     DeferNextAssetLoadsForAllCaches : ();
+    DestroyGPUFrameProfiler : (profiler : *GPUFrameProfiler);
     DestroyGfxBindingPool : (pool : *GfxBindingPool);
     DestroyGfxBindingSetLayout : (layout : *GfxBindingSetLayout);
     DestroyGfxBuffer : (buffer : *GfxBuffer);
@@ -79,10 +80,12 @@ CoreModule :: struct {
     GetMouseWheel : () -> Vector(N=2, T=float32);
     GetPointPenetrationInBox : (point_inside_box : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
     GetRawMouseDelta : () -> Vector(N=2, T=float32);
+    GetVkAllocationCallbacks : () -> *VkAllocationCallbacks;
     GetWindow : () -> *void;
     GetWindowPixelSize : (window : *void) -> width : s32, height : s32;
     GetWindowPointSize : (window : *void) -> width : s32, height : s32;
     GetWindowScaleFactor : (window : *void) -> float;
+    InitGPUFrameProfiler : (profiler : *GPUFrameProfiler, max_events : s64);
     IsKeyDown : (key : KeyCode) -> bool;
     IsKeyPressed : (key : KeyCode) -> bool;
     IsKeyReleased : (key : KeyCode) -> bool;
@@ -93,6 +96,8 @@ CoreModule :: struct {
     LoadPendingAssets : ();
     PointIsInsideBox : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     PointIsOnTriangle : (point : Vector(N=3, T=float32), triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), epsilon : float = 0.00001) -> bool;
+    ProfilerBeginEvent : (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent;
+    ProfilerBeginFrame : (profiler : *GPUFrameProfiler);
     ProjectPointOnBox_1 : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
     ProjectPointOnBox_2 : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32)) -> Vector(N=3, T=float32);
     ProjectPointOnCapsule : (point : Vector(N=3, T=float32), capsule_base : Vector(N=3, T=float32), capsule_tip : Vector(N=3, T=float32), capsule_radius : float) -> Vector(N=3, T=float32);
@@ -127,8 +132,8 @@ CoreModule :: struct {
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
-    SubmitFrame : ();
     SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
+    SubmitGfxFrame : ();
     TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     UnregisterDataDirectoryChangeCallback : (index : s64);
     WaitForGPUIdle : ();
@@ -175,11 +180,6 @@ AllocGfxBindingSet :: inline (pool : *GfxBindingPool, layout : *GfxBindingSetLay
     return _ret0, _ret1;
 }
 
-BeginFrame :: inline () {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.BeginFrame();
-}
-
 BeginGfxComputePass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass {
     Assert(g_Core != null, "Core module is null");
     return g_Core.BeginGfxComputePass(cmd_buffer, name);
@@ -198,6 +198,11 @@ BeginGfxDebugMarker :: inline (name : string) {
 BeginGfxDebugMarker :: inline (cmd_buffer : *GfxCommandBuffer, name : string) {
     Assert(g_Core != null, "Core module is null");
     g_Core.BeginGfxDebugMarker_2(cmd_buffer, name);
+}
+
+BeginGfxFrame :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BeginGfxFrame();
 }
 
 BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass {
@@ -313,6 +318,11 @@ CreateGfxTextureView :: inline (name : string, desc : GfxTextureViewDesc, textur
 DeferNextAssetLoadsForAllCaches :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.DeferNextAssetLoadsForAllCaches();
+}
+
+DestroyGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.DestroyGPUFrameProfiler(profiler);
 }
 
 DestroyGfxBindingPool :: inline (pool : *GfxBindingPool) {
@@ -533,6 +543,11 @@ GetRawMouseDelta :: inline () -> Vector(N=2, T=float32) {
     return g_Core.GetRawMouseDelta();
 }
 
+GetVkAllocationCallbacks :: inline () -> *VkAllocationCallbacks {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetVkAllocationCallbacks();
+}
+
 GetWindow :: inline () -> *void {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetWindow();
@@ -553,6 +568,11 @@ GetWindowPointSize :: inline (window : *void) -> width : s32, height : s32 {
 GetWindowScaleFactor :: inline (window : *void) -> float {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetWindowScaleFactor(window);
+}
+
+InitGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler, max_events : s64) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.InitGPUFrameProfiler(profiler, max_events);
 }
 
 IsKeyDown :: inline (key : KeyCode) -> bool {
@@ -603,6 +623,16 @@ PointIsInsideBox :: inline (point : Vector(N=3, T=float32), box_center : Vector(
 PointIsOnTriangle :: inline (point : Vector(N=3, T=float32), triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), epsilon : float = 0.00001) -> bool {
     Assert(g_Core != null, "Core module is null");
     return g_Core.PointIsOnTriangle(point, triangle_A, triangle_B, triangle_C, epsilon);
+}
+
+ProfilerBeginEvent :: inline (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.ProfilerBeginEvent(cmd_buffer, profiler, name);
+}
+
+ProfilerBeginFrame :: inline (profiler : *GPUFrameProfiler) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ProfilerBeginFrame(profiler);
 }
 
 ProjectPointOnBox :: inline (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32) {
@@ -787,14 +817,14 @@ SetViewport :: inline (pass : *GfxRenderPass, viewport : GfxViewport) {
     g_Core.SetViewport(pass, viewport);
 }
 
-SubmitFrame :: inline () {
-    Assert(g_Core != null, "Core module is null");
-    g_Core.SubmitFrame();
-}
-
 SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxCommandBuffer(cmd_buffer);
+}
+
+SubmitGfxFrame :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SubmitGfxFrame();
 }
 
 TriangleIntersectsBox :: inline (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool {

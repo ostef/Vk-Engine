@@ -19,6 +19,10 @@ Frame_Max_Wait :: Second_To_Nano * 4;
 
 g_vk_alloc_callbacks : *VkAllocationCallbacks;
 
+GetVkAllocationCallbacks :: inline () -> *VkAllocationCallbacks {
+    return g_vk_alloc_callbacks;
+} @ModuleAPI @NoProfile
+
 GetFrameInFlight :: inline () -> int {
     return g_gfx_context.frame_in_flight;
 } @ModuleAPI @NoProfile
@@ -27,7 +31,7 @@ GetGfxLimits :: inline () -> GfxLimits {
     return g_gfx_context.limits;
 } @ModuleAPI @NoProfile
 
-BeginFrame :: () {
+BeginGfxFrame :: () {
     ctx := *g_gfx_context;
 
     ctx.last_frame_statistics = ctx.frame_statistics;
@@ -71,7 +75,7 @@ BeginFrame :: () {
     CollectGarbage(*ctx.buffer_collectors[ctx.frame_in_flight]);
 } @ModuleAPI
 
-SubmitFrame :: () {
+SubmitGfxFrame :: () {
     ctx := *g_gfx_context;
 
     EndGfxDebugMarker();

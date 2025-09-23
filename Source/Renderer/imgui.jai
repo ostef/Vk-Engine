@@ -149,7 +149,7 @@ g_imgui_index_buffer_ptrs : [Gfx_Num_Frames_In_Flight]*void;
 g_imgui_binding_set_allocators : [Gfx_Num_Frames_In_Flight]BindingSetAllocator;
 
 ImGuiBindingSetAllocator :: inline () -> *BindingSetAllocator {
-    return *g_imgui_binding_set_allocators[g_gfx_context.frame_in_flight];
+    return *g_imgui_binding_set_allocators[GetFrameInFlight()];
 }
 
 InitImGuiPipeline :: () {
@@ -161,8 +161,7 @@ InitImGuiPipeline :: () {
     pipeline_desc.blend_states[0] = .{enabled=true};
 
     pipeline_desc.layout.binding_sets = .[
-        g_binding_set_layouts.EmptyBindingSet,
-        // g_binding_set_layouts.FrameBindingSet,
+        g_binding_set_layouts.FrameBindingSet,
         g_binding_set_layouts.ImGuiPassBindingSet,
         g_binding_set_layouts.ImGuiDrawCallBindingSet,
     ];
@@ -199,7 +198,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         renderer.font_upload_buffer = CreateGfxBuffer("ImGui Font Upload", buffer_desc);
         Assert(!IsNull(*renderer.font_upload_buffer), "Could not create ImGui font upload buffer");
 
-        vmaCopyMemoryToAllocation(g_gfx_context.allocator, pixels, renderer.font_upload_buffer.allocation, 0, buffer_desc.size);
+        vmaCopyMemoryToAllocation(GetGfxContext().allocator, pixels, renderer.font_upload_buffer.allocation, 0, buffer_desc.size);
 
         pass := BeginGfxCopyPass(cmd_buffer, "ImGui Font Upload");
         {
@@ -217,13 +216,13 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         return;
     }
 
-    fb_width  := cast(s32) (draw_data.DisplaySize.x * draw_data.FramebufferScale.x);
-    fb_height := cast(s32) (draw_data.DisplaySize.y * draw_data.FramebufferScale.y);
+    fb_width  := cast(s32, draw_data.DisplaySize.x * draw_data.FramebufferScale.x);
+    fb_height := cast(s32, draw_data.DisplaySize.y * draw_data.FramebufferScale.y);
     if fb_width <= 0 || fb_height <= 0 {
         return;
     }
 
-    frame_in_flight := g_gfx_context.frame_in_flight;
+    frame_in_flight := GetFrameInFlight();
 
     vertex_buffer := *g_imgui_vertex_buffers[frame_in_flight];
     index_buffer := *g_imgui_index_buffers[frame_in_flight];
@@ -244,7 +243,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         Assert(!IsNull(vertex_buffer), "Could not create ImGui vertex buffer");
 
         alloc_info : VmaAllocationInfo;
-        vmaGetAllocationInfo(g_gfx_context.allocator, vertex_buffer.allocation, *alloc_info);
+        vmaGetAllocationInfo(GetGfxContext().allocator, vertex_buffer.allocation, *alloc_info);
         Assert(alloc_info.pMappedData != null);
 
         g_imgui_vertex_buffer_ptrs[frame_in_flight] = alloc_info.pMappedData;
@@ -265,7 +264,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         Assert(!IsNull(index_buffer), "Could not create ImGui vertex buffer");
 
         alloc_info : VmaAllocationInfo;
-        vmaGetAllocationInfo(g_gfx_context.allocator, index_buffer.allocation, *alloc_info);
+        vmaGetAllocationInfo(GetGfxContext().allocator, index_buffer.allocation, *alloc_info);
         Assert(alloc_info.pMappedData != null);
 
         g_imgui_index_buffer_ptrs[frame_in_flight] = alloc_info.pMappedData;

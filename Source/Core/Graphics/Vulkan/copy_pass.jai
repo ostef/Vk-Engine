@@ -2,7 +2,7 @@ BeginGfxCopyPass :: (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPa
     LogSectionScope(*Log_Vulkan);
 
     BeginGfxDebugMarker(cmd_buffer, name);
-    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_profiler, name);
+    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name);
 
     return .{cmd_buffer=cmd_buffer, profiling_event=profiling_event, name=name};
 } @ModuleAPI @NoProfile
@@ -10,7 +10,7 @@ BeginGfxCopyPass :: (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPa
 EndGfxCopyPass :: (pass : *GfxCopyPass) {
     LogSectionScope(*Log_Vulkan);
 
-    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_profiler, pass.profiling_event);
+    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_frame_profiler, pass.profiling_event);
     EndGfxDebugMarker(pass.cmd_buffer);
 
     AddBarrier(pass.cmd_buffer);

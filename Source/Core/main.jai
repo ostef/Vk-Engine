@@ -12,6 +12,7 @@
 #load "cvar.jai";
 
 #load "Graphics/Vulkan/vulkan.jai";
+#load "Graphics/gpu_frame_profiler.jai";
 #load "Graphics/texture2d.jai";
 #load "Graphics/environment_map.jai";
 #load "Graphics/material.jai";
@@ -35,7 +36,6 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 
 g_window : *SDL_Window;
 g_gfx_context : GfxContext;
-g_gpu_profiler : GPUFrameProfiler;
 g_cpu_profiler : CPUFrameProfiler;
 
 GetModule :: (id : ModuleID) -> *Module {
@@ -48,10 +48,6 @@ GetWindow :: () -> *SDL_Window {
 
 GetGfxContext :: () -> *GfxContext {
     return *g_gfx_context;
-} @ModuleAPI
-
-GetGPUFrameProfiler :: () -> *GPUFrameProfiler {
-    return *g_gpu_profiler;
 } @ModuleAPI
 
 GetCPUFrameProfiler :: () -> *CPUFrameProfiler {
@@ -89,11 +85,15 @@ InitializeCore :: () {
 
     InitFrameProfiler(*g_cpu_profiler);
 
+    InitTextureUpload();
+
     InitAssets();
 }
 
 ShutdownCore :: () {
     DestroyAllAssetCaches();
+
+    CleanupTextureUpload();
 
     DestroyGfxContext();
 

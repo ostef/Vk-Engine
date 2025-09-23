@@ -2,7 +2,7 @@ BeginGfxComputePass :: (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCom
     LogSectionScope(*Log_Vulkan);
 
     BeginGfxDebugMarker(cmd_buffer, name);
-    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_profiler, name);
+    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name);
     g_gfx_context.frame_statistics.num_compute_passes += 1;
 
     return .{cmd_buffer=cmd_buffer, profiling_event=profiling_event, name=name};
@@ -11,7 +11,7 @@ BeginGfxComputePass :: (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCom
 EndGfxComputePass :: (pass : *GfxComputePass) {
     LogSectionScope(*Log_Vulkan);
 
-    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_profiler, pass.profiling_event);
+    ProfilerEndEvent(pass.cmd_buffer, *g_gpu_frame_profiler, pass.profiling_event);
     EndGfxDebugMarker(pass.cmd_buffer);
 
     AddBarrier(pass.cmd_buffer);
