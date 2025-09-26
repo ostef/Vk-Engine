@@ -24,8 +24,9 @@ InitImGuiRenderer :: () {
     io.BackendFlags_ |= .RendererHasVtxOffset;
     // io.BackendFlags_ |= .RendererHasViewports;
 
-    // if io.ConfigFlags_ & .ViewportsEnable
+    // if io.ConfigFlags_ & .ViewportsEnable {
     //     InitPlatformInterface();
+    // }
 
     for * g_imgui_binding_set_allocators {
         it.base_pool_desc = MakeGfxBindingPoolDesc(ImGuiDrawCallBindingSet, 20);
@@ -166,10 +167,56 @@ InitImGuiPipeline :: () {
         g_binding_set_layouts.ImGuiDrawCallBindingSet,
     ];
 
-    AddColorAttachment(*pipeline_desc, g_imgui_color_texture.desc.pixel_format);
+    AddColorAttachment(*pipeline_desc, .RGBA8UNorm);
 
     g_imgui_pipeline = CreateGfxGraphicsPipeline("ImGui", pipeline_desc);
     Assert(!IsNull(*g_imgui_pipeline), "Could not create ImGui graphics pipeline");
+}
+
+g_imgui_draw_data : ImGui.ImDrawData;
+
+CopyImGuiDrawList :: (dst : *ImGui.ImDrawList, src : *ImGui.ImDrawList) {
+    dst.CmdBuffer.Reserve(*dst.CmdBuffer, src.CmdBuffer.Capacity);
+    dst.CmdBuffer.Size = src.CmdBuffer.Size;
+    memcpy(dst.CmdBuffer.Data, src.CmdBuffer.Data, size_of(ImGui.ImDrawCmd) * dst.CmdBuffer.Size);
+
+    dst.IdxBuffer.Reserve(*dst.IdxBuffer, src.IdxBuffer.Capacity);
+    dst.IdxBuffer.Size = src.IdxBuffer.Size;
+    memcpy(dst.IdxBuffer.Data, src.IdxBuffer.Data, size_of(ImGui.ImDrawIdx) * dst.IdxBuffer.Size);
+
+    dst.VtxBuffer.Reserve(*dst.VtxBuffer, src.VtxBuffer.Capacity);
+    dst.VtxBuffer.Size = src.VtxBuffer.Size;
+    memcpy(dst.VtxBuffer.Data, src.VtxBuffer.Data, size_of(ImGui.ImDrawVert) * dst.VtxBuffer.Size);
+
+    dst.Flags = src.Flags;
+}
+
+CopyImGuiDrawData :: (dst : *ImGui.ImDrawData, src : *ImGui.ImDrawData) {
+    for i : 0..dst.CmdLists.Size - 1 {
+        list := dst.CmdLists.Data[i];
+        list.CmdBuffer.Free(*list.CmdBuffer);
+        list.IdxBuffer.Free(*list.IdxBuffer);
+        list.VtxBuffer.Free(*list.VtxBuffer);
+        Free(list);
+    }
+
+    dst.Clear(dst);
+
+    dst.Valid = src.Valid;
+    dst.TotalIdxCount = src.TotalIdxCount;
+    dst.TotalVtxCount = src.TotalVtxCount;
+    dst.DisplayPos = src.DisplayPos;
+    dst.DisplaySize = src.DisplaySize;
+    dst.FramebufferScale = src.FramebufferScale;
+    dst.OwnerViewport = src.OwnerViewport;
+
+    dst.CmdListsCount = src.CmdListsCount;
+    dst.CmdLists.Reserve(*dst.CmdLists, src.CmdLists.Capacity);
+    for i : 0..src.CmdLists.Size - 1 {
+        list := Alloc(ImGui.ImDrawList);
+        CopyImGuiDrawList(list, src.CmdLists.Data[i]);
+        dst.CmdLists.Push(*dst.CmdLists, list);
+    }
 }
 
 ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
@@ -287,7 +334,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         idx_buffer_offset += list.IdxBuffer.Size * size_of(ImGui.ImDrawIdx);
     }
 
-    AddTextureBarrier(cmd_buffer, .Undefined, .ColorAttachment, *g_imgui_color_texture);
+    // AddTextureBarrier(cmd_buffer, .Undefined, .ColorAttachment, *g_imgui_color_texture);
 
     using g_imgui_pipeline;
 
@@ -304,7 +351,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
     pass_binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), pass_bindings);
 
     pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *g_imgui_color_texture);
+    AddColorAttachment(*pass_desc, *g_final_texture);
     ClearColor(*pass_desc, 0, Vec4f.{0,0,0,0});
 
     global_vtx_offset := 0;
@@ -384,5 +431,5 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
     }
     EndGfxRenderPass(*pass);
 
-    AddTextureBarrier(cmd_buffer, .ColorAttachment, .ShaderReadOnly, *g_imgui_color_texture);
+    // AddTextureBarrier(cmd_buffer, .ColorAttachment, .ShaderReadOnly, *g_imgui_color_texture);
 }

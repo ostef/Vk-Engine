@@ -10,6 +10,7 @@ g_module := EditorModule.{
     base.Initialize=InitializeEditor,
     base.Shutdown=ShutdownEditor,
     base.MainLoop=EditorLoop,
+    base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
 g_context : #Context;
@@ -101,11 +102,17 @@ ShutdownEditor :: () {
     ImGui.DestroyContext();
 }
 
+OnEvent :: (event : SDL_Event) {
+    ImGui_SDL.HandleWindowEvent(event);
+}
+
 EditorLoop :: () {
     push_context,defer_pop g_context;
 
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
+
+    ImGui.ShowDemoWindow(null);
 
     ImGui.Render();
 

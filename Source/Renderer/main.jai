@@ -14,6 +14,7 @@ g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
     base.Shutdown=ShutdownRenderer,
     base.MainLoop=RendererLoop,
+    base.OnEvent=OnEvent,
 };
 
 #program_export
@@ -36,6 +37,8 @@ g_viewpoints_to_render : [..]ViewpointToRender;
 g_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
 g_point_lights_to_render : [..]PointLightToRender;
+
+g_final_texture : GfxTexture;
 
 g_linear_clamp_sampler : GfxSampler;
 g_nearest_clamp_sampler : GfxSampler;
@@ -68,12 +71,16 @@ InitializeRenderer :: () {
     signal(*g_render_thread_produced_semaphore);
     init(*g_render_thread_consume_semaphore);
 
+    init(*g_sould_recreate_render_targets_mutex);
+
     thread_init(*g_render_thread, RenderThread);
     thread_start(*g_render_thread);
 
     if !LoadAllShaders() {
         Basic.exit(1);
     }
+
+    RecreateRenderTargets();
 
     CreateAllBindingSetLayouts();
 
@@ -126,6 +133,8 @@ ShutdownRenderer :: () {
     destroy(*g_render_thread_produced_semaphore);
     destroy(*g_render_thread_consume_semaphore);
 
+    destroy(*g_sould_recreate_render_targets_mutex);
+
     WaitForGPUIdle();
 
     DestroyGPUFrameProfiler(GetGPUFrameProfiler());
@@ -144,7 +153,26 @@ ShutdownRenderer :: () {
 
     DestroyAllBindingSetLayouts();
 
+    DestroyGfxTexture(*g_final_texture);
+
     DestroyAllShaders();
+}
+
+g_sould_recreate_render_targets_mutex : Mutex;
+g_sould_recreate_render_targets : bool;
+
+OnEvent :: (event : SDL_Event) {
+    push_context,defer_pop g_context;
+
+    if event.type == SDL_WINDOWEVENT {
+        if event.window.event == SDL_WINDOWEVENT_RESIZED
+        || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED {
+            lock(*g_sould_recreate_render_targets_mutex);
+            defer unlock(*g_sould_recreate_render_targets_mutex);
+
+            g_sould_recreate_render_targets = true;
+        }
+    }
 }
 
 RendererLoop :: () {
@@ -186,6 +214,9 @@ WaitForRenderThread :: () {
 SubmitFrameToRenderThread :: () {
     push_context,defer_pop g_context;
 
+    imgui_draw_data := ImGui.GetDrawData();
+    CopyImGuiDrawData(*g_imgui_draw_data, imgui_draw_data);
+
     signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI
 
@@ -195,6 +226,26 @@ StopRenderThread :: () {
     g_render_thread_should_stop = true;
     signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI
+
+RecreateRenderTargets :: () {
+    WaitForGPUIdle();
+
+    if !IsNull(*g_final_texture) {
+        DestroyGfxTexture(*g_final_texture);
+    }
+
+    w, h := GetWindowPixelSize(GetWindow());
+
+    desc : GfxTextureDesc;
+    desc.type = .Texture2D;
+    desc.width = xx w;
+    desc.height = xx h;
+    desc.pixel_format = .RGBA8UNorm;
+    desc.usage = .ColorAttachment | .TransferSrc;
+
+    g_final_texture = CreateGfxTexture("Final", desc);
+    Assert(!IsNull(*g_final_texture), "Could not create final texture");
+}
 
 FrameBindingSet :: struct {
 } @BindingSet
@@ -206,6 +257,12 @@ RenderThread :: (thread : *Thread) -> s64 {
             signal(*g_render_thread_produced_semaphore);
             break;
         }
+
+        lock(*g_sould_recreate_render_targets_mutex);
+        if g_sould_recreate_render_targets {
+            RecreateRenderTargets();
+        }
+        unlock(*g_sould_recreate_render_targets_mutex);
 
         RenderFrame();
 
@@ -229,25 +286,29 @@ RenderFrame :: () {
         RenderViewpoint(it);
     }
 
-    ImGuiPass(*cmd_buffer, ImGui.GetDrawData());
+    AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
-    // swapchain_texture := *GetGfxContext().swapchain_textures[GetGfxContext().frame_swapchain_image_index];
-    // AddTextureBarrier(*cmd_buffer, 0, 0, .AllGraphics, .AllWrites | .AllReads, .Undefined, .TransferDst, swapchain_texture);
+    ImGuiPass(*cmd_buffer, *g_imgui_draw_data);
 
-    // region : VkImageBlit;
-    // region.srcSubresource = MakeVkImageSubresourceLayers(g_final_texture.desc, 0);
-    // region.srcOffsets[1].x = xx g_final_texture.desc.width;
-    // region.srcOffsets[1].y = xx g_final_texture.desc.height;
-    // region.srcOffsets[1].z = 1;
+    AddTextureBarrier(*cmd_buffer, .ColorAttachment, .TransferSrc, *g_final_texture);
 
-    // region.dstSubresource = MakeVkImageSubresourceLayers(swapchain_texture.desc, 0);
-    // region.dstOffsets[1].x = xx swapchain_texture.desc.width;
-    // region.dstOffsets[1].y = xx swapchain_texture.desc.height;
-    // region.dstOffsets[1].z = 1;
+    swapchain_texture := *GetGfxContext().swapchain_textures[GetGfxContext().frame_swapchain_image_index];
+    AddTextureBarrier(*cmd_buffer, 0, 0, .AllGraphics, .AllWrites | .AllReads, .Undefined, .TransferDst, swapchain_texture);
 
-    // vkCmdBlitImage(cmd_buffer.cmd_buffer, g_final_texture.image, .TRANSFER_SRC_OPTIMAL, swapchain_texture.image, .TRANSFER_DST_OPTIMAL, 1, *region, .LINEAR);
+    region : VkImageBlit;
+    region.srcSubresource = MakeVkImageSubresourceLayers(g_final_texture.desc, 0);
+    region.srcOffsets[1].x = xx g_final_texture.desc.width;
+    region.srcOffsets[1].y = xx g_final_texture.desc.height;
+    region.srcOffsets[1].z = 1;
 
-    // AddTextureBarrier(*cmd_buffer, .AllGraphics, .AllWrites, 0, 0, .TransferDst, .PresentSrc, swapchain_texture);
+    region.dstSubresource = MakeVkImageSubresourceLayers(swapchain_texture.desc, 0);
+    region.dstOffsets[1].x = xx swapchain_texture.desc.width;
+    region.dstOffsets[1].y = xx swapchain_texture.desc.height;
+    region.dstOffsets[1].z = 1;
+
+    vkCmdBlitImage(cmd_buffer.cmd_buffer, g_final_texture.image, .TRANSFER_SRC_OPTIMAL, swapchain_texture.image, .TRANSFER_DST_OPTIMAL, 1, *region, .LINEAR);
+
+    AddTextureBarrier(*cmd_buffer, .AllGraphics, .AllWrites, 0, 0, .TransferDst, .PresentSrc, swapchain_texture);
 
     SubmitGfxCommandBuffer(*cmd_buffer);
 
