@@ -23,6 +23,7 @@
 #load "API/world.jai";
 #load "API/entity.jai";
 #load "API/component.jai";
+#load "API/graphics.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";

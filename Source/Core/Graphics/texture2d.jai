@@ -147,6 +147,9 @@ DestroyUsedTextureUploadBuffers :: () {
 }
 
 TextureUploadPass :: (cmd_buffer : *GfxCommandBuffer) {
+    lock(*g_texture_upload_mutex);
+    defer unlock(*g_texture_upload_mutex);
+
     DestroyUsedTextureUploadBuffers();
 
     if g_texture_uploads.count <= 0 {
@@ -158,4 +161,4 @@ TextureUploadPass :: (cmd_buffer : *GfxCommandBuffer) {
         UploadTexturesAndGenerateMipmaps(*pass);
     }
     EndGfxCopyPass(*pass);
-}
+} @ModuleAPI

@@ -47,7 +47,3 @@ GameLoop :: () {
 OnEvent :: (event : SDL_Event) {
     push_context,defer_pop g_context;
 }
-
-SubmitWorldToRenderer :: (world : *World) {
-    push_context,defer_pop g_context;
-} @ModuleAPI

@@ -134,6 +134,7 @@ CoreModule :: struct {
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
     SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
     SubmitGfxFrame : ();
+    TextureUploadPass : (cmd_buffer : *GfxCommandBuffer);
     TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     UnregisterDataDirectoryChangeCallback : (index : s64);
     WaitForGPUIdle : ();
@@ -825,6 +826,11 @@ SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
 SubmitGfxFrame :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxFrame();
+}
+
+TextureUploadPass :: inline (cmd_buffer : *GfxCommandBuffer) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.TextureUploadPass(cmd_buffer);
 }
 
 TriangleIntersectsBox :: inline (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool {

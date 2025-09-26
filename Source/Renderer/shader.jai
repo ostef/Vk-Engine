@@ -15,7 +15,6 @@ g_shader_file_watcher : File_Watcher;
 g_shaders := LoadedShader.[
     // .{name="infinite_grid"},
     // .{name="alpha_cutoff_entity_guid"},
-    // .{name="unlit"},
     // .{name="alpha_cutoff_depth_only"},
     // .{name="build_cluster_grid"},
     // .{name="populate_cluster_grid"},
@@ -36,9 +35,10 @@ g_shaders := LoadedShader.[
     // .{name="skybox"},
     // .{name="brdf_lut"},
     // .{name="compositing"},
-    // .{name="mesh_geometry"},
-    // .{name="skinned_mesh_geometry"},
+    .{name="mesh_geometry"},
+    .{name="skinned_mesh_geometry"},
     // .{name="opaque_surface"},
+    .{name="unlit"},
 ];
 
 ShaderReloadCallback :: struct {

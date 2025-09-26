@@ -16,6 +16,7 @@
 #define Num_Shadow_Map_Samples 64
 #define Num_Shadow_Map_Sqrt_Samples 8
 #define Populate_Cluster_Grid_Work_Group_Size 144
+#define Reverse_Depth_Range 1
 #define Shadow_Map_Noise_Size 32
 #define Shadow_Map_Reverse_Depth_Range 1
 

@@ -3,6 +3,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #import "SDL";
 
 #load "material_design_icons.jai";
+#load "viewport.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -90,6 +91,8 @@ InitializeEditor :: () {
     // InitBigFileIconsFont();
 
     InitImGuiRenderer();
+
+    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/DamagedHelmet.scene");
 }
 
 ShutdownEditor :: () {
@@ -109,9 +112,13 @@ OnEvent :: (event : SDL_Event) {
 EditorLoop :: () {
     push_context,defer_pop g_context;
 
+    w, h := GetWindowPixelSize(GetWindow());
+    g_main_viewport.camera.viewport_size = .{xx w, xx h};
+
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
 
+    UpdateCamera(*g_main_viewport.camera);
     ImGui.ShowDemoWindow(null);
 
     ImGui.Render();
@@ -119,6 +126,10 @@ EditorLoop :: () {
     WaitForRenderThread();
 
     SubmitWorldToRenderer(*g_editor_world);
+
+    main_viewpoint := MakeViewpointToRender(g_main_viewport);
+    main_viewpoint.skybox = g_editor_world.skybox;
+    AddViewpointToRender(main_viewpoint);
 
     SubmitFrameToRenderThread();
 }

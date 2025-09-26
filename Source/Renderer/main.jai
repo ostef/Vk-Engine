@@ -31,6 +31,14 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 
 g_context : #Context;
 
+#if Reverse_Depth_Range {
+    Depth_Compare_Op :: GfxCompareOp.GreaterEqual;
+    Depth_Clear :: 0.0;
+} else {
+    Depth_Compare_Op :: GfxCompareOp.LessEqual;
+    Depth_Clear :: 1.0;
+}
+
 g_render_thread : Thread;
 g_render_thread_produced_semaphore : Semaphore;
 g_render_thread_consume_semaphore : Semaphore;
@@ -236,6 +244,9 @@ RecreateRenderTargets :: () {
     if !IsNull(*g_final_texture) {
         DestroyGfxTexture(*g_final_texture);
     }
+    if !IsNull(*g_depth_texture) {
+        DestroyGfxTexture(*g_depth_texture);
+    }
 
     w, h := GetWindowPixelSize(GetWindow());
 
@@ -243,19 +254,26 @@ RecreateRenderTargets :: () {
     desc.type = .Texture2D;
     desc.width = xx w;
     desc.height = xx h;
+
     desc.pixel_format = .RGBA8UNorm;
     desc.usage = .ColorAttachment | .TransferSrc;
 
     g_final_texture = CreateGfxTexture("Final", desc);
     Assert(!IsNull(*g_final_texture), "Could not create final texture");
+
+    desc.pixel_format = .Depth32Float;
+    desc.usage = .DepthStencilAttachment;
+
+    g_depth_texture = CreateGfxTexture("Depth", desc);
+    Assert(!IsNull(*g_depth_texture), "Could not create final texture");
 }
 
 FrameBindingSet :: struct {
     frame_info : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage @ComputeStage
-    directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
-    point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
-    brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
-    shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
+    // directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
+    // point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
+    // brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    // shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
 } @BindingSet
 
 FrameInfo :: struct {
@@ -289,6 +307,25 @@ Viewpoint :: struct {
     z_near : float;
     z_far : float;
 } @ShaderType
+
+MakeViewpoint :: inline (viewpoint : ViewpointToRender) -> Viewpoint {
+    return .{
+        position=viewpoint.position,
+        direction=viewpoint.direction,
+        right=viewpoint.right,
+        up=viewpoint.up,
+        transform=viewpoint.transform,
+        view=viewpoint.view,
+        projection=viewpoint.projection,
+        inv_projection=viewpoint.inv_projection,
+        view_projection=viewpoint.view_projection,
+        inv_view_projection=viewpoint.inv_view_projection,
+        viewport_size=.{xx viewpoint.resolution.x, xx viewpoint.resolution.y},
+        fov=viewpoint.fov,
+        z_near=viewpoint.z_near,
+        z_far=viewpoint.z_far,
+    };
+}
 
 ViewpointsData :: struct {
     num_viewpoints : u32 = 1;
@@ -336,11 +373,29 @@ RenderFrame :: () {
 
     cmd_buffer := CreateGfxCommandBuffer("Main");
 
-    for * g_viewpoints_to_render {
-        RenderViewpoint(it);
-    }
+    w, h := GetWindowPixelSize(GetWindow());
+    frame_info := FrameInfo.{
+        time=xx Basic.to_float64_seconds(Basic.current_time_monotonic()),
+        window_pixel_size=.{xx w, xx h},
+    };
+    frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
+
+    frame_binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), FrameBindingSet.{
+        frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
+    });
+
+    BindGraphicsBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *frame_binding_set);
+    BindComputeBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *frame_binding_set);
+
+    TextureUploadPass(*cmd_buffer);
+    // GenerateEnvironmentMaps(*cmd_buffer);
 
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
+
+    Assert(g_viewpoints_to_render.count == 1);
+    for * g_viewpoints_to_render {
+        RenderViewpoint(*cmd_buffer, it);
+    }
 
     ImGuiPass(*cmd_buffer, *g_imgui_draw_data);
 
@@ -374,7 +429,7 @@ RenderFrame :: () {
     ArrayClear(*g_point_lights_to_render);
 }
 
-RenderViewpoint :: (viewpoint : *ViewpointToRender) {
+RenderViewpoint :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender) {
     AllocatorScope(Temp);
 
     mesh_buffer : MeshBuffer;
@@ -395,6 +450,8 @@ RenderViewpoint :: (viewpoint : *ViewpointToRender) {
     SortMeshBuffer(*mesh_buffer);
     AllocDrawData(*mesh_buffer);
 
+    ForwardPass(cmd_buffer, viewpoint, *mesh_buffer);
+
     // DepthPrepass(viewpoint, *mesh_buffer);
     // PrepareClusters(viewpoint);
     // ForwardPass(viewpoint, *mesh_buffer);
@@ -411,4 +468,69 @@ RenderViewpoint :: (viewpoint : *ViewpointToRender) {
     // if !(viewpoint.flags & .NoGizmos) {
     //     GizmoPass(viewpoint);
     // }
+}
+
+ForwardPassBindingSet :: struct {
+    viewpoints : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage
+} @BindingSet
+
+g_forward_material_pass := MaterialRenderPass.{
+    name="Forward",
+    fragment_shader="FORWARD_SHADING",
+    pipeline_template=.{
+        num_color_attachments=1,
+        color_formats[0]=.RGBA8UNorm,
+        depth_format=.Depth32Float,
+        depth_state=.{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op},
+    },
+};
+
+g_depth_texture : GfxTexture;
+
+ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, mesh_buffer : *MeshBuffer) {
+    if !g_forward_material_pass.initialized {
+        InitMaterialRenderPass(*g_forward_material_pass, *g_binding_set_layouts.ForwardPassBindingSet);
+    }
+
+    viewpoints : ViewpointsData;
+    viewpoints.viewpoints[0] = MakeViewpoint(viewpoint);
+    viewpoints_offset, viewpoints_size := AllocAndPackUniformFrameData(viewpoints);
+
+    pass_bindings := ForwardPassBindingSet.{
+        viewpoints=.{buffer=FrameDataBuffer(), offset=xx viewpoints_offset, size=xx viewpoints_size},
+    };
+
+    binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), pass_bindings);
+
+    w, h := viewpoint.resolution.x, viewpoint.resolution.y;
+
+    pass_desc : GfxRenderPassDesc;
+    AddColorAttachment(*pass_desc, *g_final_texture);
+    AddDepthAttachment(*pass_desc, *g_depth_texture);
+    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
+    ClearDepth(*pass_desc, Depth_Clear);
+
+    pass := BeginGfxRenderPass(cmd_buffer, "Forward Pass", pass_desc);
+    {
+        SetViewport(*pass, .{width=xx w, height=xx h});
+        SetScissor(*pass, .{w=xx w, h=xx h});
+
+        BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 1, *binding_set);
+
+        for mesh_buffer.draw_calls {
+            pipeline := GetPipeline(*g_forward_material_pass, it);
+            BindGraphicsPipeline(*pass, pipeline);
+
+            BindGraphicsBindingSet(*pass, 2, *it.binding_set);
+            BindVertexBuffer(*pass, 0, it.vertex_buffer);
+
+            if it.index_buffer {
+                BindIndexBuffer(*pass, .UInt32, it.index_buffer);
+                DrawIndexed(*pass, it.index_count, it.instance_count);
+            } else {
+                Draw(*pass, it.vertex_count, it.instance_count);
+            }
+        }
+    }
+    EndGfxRenderPass(*pass);
 }

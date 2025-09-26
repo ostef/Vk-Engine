@@ -74,7 +74,7 @@ MaterialDesc :: struct {
 // that draws meshes. The fragment shaders can be used or not, depending on the render pass.
 g_material_descs : [Num_Material_Types]MaterialDesc = .[
     // Opaque
-    .{vertex_shader="mesh_geometry", shading_fragment_shader="opaque_surface"},
+    .{vertex_shader="mesh_geometry", shading_fragment_shader="unlit"},
     .{vertex_shader="mesh_geometry", shading_fragment_shader="unlit", depth_only_fragment_shader="alpha_cutoff_depth_only", entity_guid_fragment_shader="alpha_cutoff_entity_guid"},
 ];
 
@@ -133,8 +133,8 @@ CreateMaterialPipelines :: (pipelines : *MaterialPipelines, name : string, templ
             g_binding_set_layouts.MeshBindingSet,
         ];
 
-        ok := CreateGfxGraphicsPipeline(it, TPrint("% (%)", name, flags), desc);
-        Assert(ok, "Could not create material pipeline (%, %)", name, flags);
+        it.* = CreateGfxGraphicsPipeline(TPrint("% (%)", name, flags), desc);
+        Assert(!IsNull(it), "Could not create material pipeline (%, %)", name, flags);
     }
 }
 

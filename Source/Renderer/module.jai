@@ -25,6 +25,10 @@
     #load "main.jai";
 }
 
+using _ :: struct {
+    Reverse_Depth_Range :: true;
+} @ShaderType
+
 ViewpointToRender :: struct {
     Flags :: enum_flags {
         NoShadowMap;
