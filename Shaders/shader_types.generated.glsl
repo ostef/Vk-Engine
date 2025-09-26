@@ -3,12 +3,7 @@
 #ifndef SHADER_TYPES_GENERATED_GLSL
 #define SHADER_TYPES_GENERATED_GLSL
 
-#define BRDF_LUT_Compute_Work_Group_Size 16
-#define Bloom_Compute_Work_Group_Size 16
-#define Kawase_Bur_Compute_Work_Group_Size 16
 #define Max_Lights_Per_Clusters 100
-#define Max_Point_Shadow_Maps 20
-#define Max_Shadow_Maps 2
 #define Max_Viewpoints 6
 #define Num_Clusters 3456
 #define Num_Clusters_X 16
@@ -21,23 +16,8 @@
 #define Num_Shadow_Map_Samples 64
 #define Num_Shadow_Map_Sqrt_Samples 8
 #define Populate_Cluster_Grid_Work_Group_Size 144
-#define Reverse_Depth_Range 1
 #define Shadow_Map_Noise_Size 32
 #define Shadow_Map_Reverse_Depth_Range 1
-
-struct BloomParams {
-    float resolution_factor;
-    float brightness_threshold;
-    float brightness_soft_threshold;
-    float blend_intensity;
-    float filter_radius;
-};
-
-struct DebugLine {
-    float3 start;
-    float3 end;
-    float4 color;
-};
 
 struct Viewpoint {
     float3 position;
@@ -66,76 +46,12 @@ struct DirectionalLight {
     Viewpoint shadow_map_viewpoints[4];
 };
 
-struct EditorBackgroundBlurSettings {
-    bool enabled;
-    float resolution_factor;
-    int num_iterations;
-};
-
-struct EditorColors {
-    float4 emphasis_button;
-    float4 emphasis_button_hovered;
-    float4 emphasis_button_active;
-    float4 submit_good_button;
-    float4 submit_good_button_hovered;
-    float4 submit_good_button_active;
-    float4 submit_bad_button;
-    float4 submit_bad_button_hovered;
-    float4 submit_bad_button_active;
-    float4 cancel_button;
-    float4 cancel_button_hovered;
-    float4 cancel_button_active;
-};
-
-struct EntityOutlineParams {
-    float thickness;
-    float covered_alpha;
-    float4 color;
-};
-
-struct EditorSettings {
-    EntityOutlineParams entity_outline;
-    EditorBackgroundBlurSettings background_blur;
-    EditorColors colors;
-};
-
-struct ShadowMapParams {
-    uint noise_resolution;
-    float2 depth_bias_min_max;
-    float normal_bias;
-    float filter_radius;
-};
-
 struct FrameInfo {
     float time;
     float2 window_pixel_size;
     uint num_directional_lights;
     uint num_point_lights;
     float skybox_light_intensity;
-    ShadowMapParams shadow_map_params;
-    BloomParams bloom_params;
-    EditorSettings editor_settings;
-};
-
-#define GizmoMesh int
-#define GizmoMesh_Cube 0
-#define GizmoMesh_Sphere 1
-#define GizmoMesh_SphereQuarter 2
-#define GizmoMesh_Plane 3
-#define GizmoMesh_TranslatePlane 4
-#define GizmoMesh_Arrow 5
-#define GizmoMesh_SquareArrow 6
-#define GizmoMesh_RotateFullThin 7
-#define GizmoMesh_RotateFull 8
-#define GizmoMesh_RotateHalf 9
-#define GizmoMesh_RotateQuarter 10
-
-struct GizmoWidget {
-    uint id;
-    GizmoMesh mesh_id;
-    float4 color;
-    float4x4 transform;
-    bool shaded;
 };
 
 struct LightCluster {

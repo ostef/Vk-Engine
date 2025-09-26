@@ -9,6 +9,9 @@
 #load "mesh_buffer.jai";
 #load "material.jai";
 #load "imgui.jai";
+#load "lights.jai";
+#load "shadow_map.jai";
+#load "point_shadow_map.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -248,7 +251,58 @@ RecreateRenderTargets :: () {
 }
 
 FrameBindingSet :: struct {
+    frame_info : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage @ComputeStage
+    directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
+    point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
+    brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
 } @BindingSet
+
+FrameInfo :: struct {
+    time : float;
+    window_pixel_size : Vec2f;
+    num_directional_lights : u32;
+    num_point_lights : u32;
+    skybox_light_intensity := 1.0;
+    // shadow_map_params : ShadowMapParams;
+    // bloom_params : BloomParams;
+    // editor_settings : EditorSettings;
+} @ShaderType
+
+using _ :: struct {
+    Max_Viewpoints :: 6;
+} @ShaderType
+
+Viewpoint :: struct {
+    position : Vec3f;
+    direction : Vec3f;
+    right : Vec3f;
+    up : Vec3f;
+    transform : Mat4f;
+    view : Mat4f;
+    projection : Mat4f;
+    inv_projection : Mat4f;
+    view_projection : Mat4f;
+    inv_view_projection : Mat4f;
+    viewport_size : Vec2f;
+    fov : float;
+    z_near : float;
+    z_far : float;
+} @ShaderType
+
+ViewpointsData :: struct {
+    num_viewpoints : u32 = 1;
+    viewpoints : [Max_Viewpoints]Viewpoint;
+} @ShaderType
+
+FrameRenderContext :: struct {
+    cmd_buffer : *GfxCommandBuffer;
+    frame_binding_set : GfxBindingSet;
+    directional_lights : []DirectionalLight;
+    point_lights : []PointLight;
+    clusters_offset : u32;
+    clusters_size : u32;
+}
 
 RenderThread :: (thread : *Thread) -> s64 {
     while true {

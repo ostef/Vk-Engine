@@ -45,6 +45,9 @@ HandleCompilerMessage :: (msg : *Message) {
             GenerateBindingSetCode(msg.workspace, renderer_import);
             GenerateModuleAPICode(msg.workspace, renderer_import, "Renderer");
         }
+
+    case .COMPLETE;
+        GenerateShaderCode();
     }
 }
 
@@ -55,6 +58,9 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         }
         if note.text == "BindingSet" {
             AddBindingSetType(workspace, decl);
+        }
+        if note.text == "ShaderType" {
+            AddShaderType(decl);
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);
