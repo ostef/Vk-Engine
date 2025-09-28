@@ -97,6 +97,7 @@ InitializeRenderer :: () {
 
     InitFrameDataAllocators();
     InitBindingSetAllocators();
+    InitImGui();
 
     sampler_desc : GfxSamplerDesc;
     sampler_desc.min_filter = .Linear;
@@ -137,6 +138,7 @@ ShutdownRenderer :: () {
 
     WaitForRenderThread();
     StopRenderThread();
+    WaitForGPUIdle();
 
     thread_is_done(*g_render_thread, -1);
     thread_deinit(*g_render_thread);
@@ -145,8 +147,6 @@ ShutdownRenderer :: () {
     destroy(*g_render_thread_consume_semaphore);
 
     destroy(*g_sould_recreate_render_targets_mutex);
-
-    WaitForGPUIdle();
 
     DestroyGPUFrameProfiler(GetGPUFrameProfiler());
 
@@ -159,6 +159,8 @@ ShutdownRenderer :: () {
     for * g_frame_data_allocators {
         DestroyFrameDataAllocator(it);
     }
+
+    DestroyImGui();
 
     DestroyBindingSetAllocators();
 
@@ -364,6 +366,8 @@ RenderThread :: (thread : *Thread) -> s64 {
 }
 
 RenderFrame :: () {
+    ResetTemporaryStorage();
+
     BeginGfxFrame();
 
     ProfilerBeginFrame(GetGPUFrameProfiler());
@@ -507,7 +511,7 @@ ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, 
     pass_desc : GfxRenderPassDesc;
     AddColorAttachment(*pass_desc, *g_final_texture);
     AddDepthAttachment(*pass_desc, *g_depth_texture);
-    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
+    ClearColor(*pass_desc, 0, Vec4f.{0,0,1,1});
     ClearDepth(*pass_desc, Depth_Clear);
 
     pass := BeginGfxRenderPass(cmd_buffer, "Forward Pass", pass_desc);
@@ -521,7 +525,7 @@ ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, 
             pipeline := GetPipeline(*g_forward_material_pass, it);
             BindGraphicsPipeline(*pass, pipeline);
 
-            BindGraphicsBindingSet(*pass, 2, *it.binding_set);
+            BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 2, *it.binding_set);
             BindVertexBuffer(*pass, 0, it.vertex_buffer);
 
             if it.index_buffer {

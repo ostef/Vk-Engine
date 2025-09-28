@@ -100,7 +100,11 @@ ShutdownEditor :: () {
 
     DestroyWorld(*g_editor_world);
 
+    WaitForRenderThread();
+    WaitForGPUIdle();
+
     DestroyImGuiRenderer();
+
     ImGui_SDL.Terminate();
     ImGui.DestroyContext();
 }

@@ -28,6 +28,23 @@ InitImGuiRenderer :: () {
     //     InitPlatformInterface();
     // }
 
+    CreateImGuiFontsTexture();
+} @ModuleAPI
+
+DestroyImGuiRenderer :: () {
+    renderer := GetImGuiRenderer();
+
+    DestroyImGuiFontsTexture();
+    DestroyGfxBuffer(*renderer.font_upload_buffer);
+
+    Free(renderer);
+
+    io := ImGui.GetIO();
+    io.BackendRendererUserData = null;
+    io.BackendRendererName = "";
+} @ModuleAPI
+
+InitImGui :: () {
     for * g_imgui_binding_set_allocators {
         it.base_pool_desc = MakeGfxBindingPoolDesc(ImGuiDrawCallBindingSet, 20);
         it.new_pool_desc = it.base_pool_desc;
@@ -36,18 +53,12 @@ InitImGuiRenderer :: () {
     }
 
     InitImGuiPipeline();
+}
 
-    CreateImGuiFontsTexture();
-} @ModuleAPI
-
-DestroyImGuiRenderer :: () {
-    renderer := GetImGuiRenderer();
-
+DestroyImGui :: () {
     WaitForGPUIdle();
 
-    DestroyImGuiFontsTexture();
     DestroyGfxGraphicsPipeline(*g_imgui_pipeline);
-    DestroyGfxBuffer(*renderer.font_upload_buffer);
 
     for * g_imgui_binding_set_allocators {
         DestroyBindingSetAllocator(it);
@@ -60,13 +71,7 @@ DestroyImGuiRenderer :: () {
     for * g_imgui_index_buffers {
         DestroyGfxBuffer(it);
     }
-
-    Free(renderer);
-
-    io := ImGui.GetIO();
-    io.BackendRendererUserData = null;
-    io.BackendRendererName = "";
-} @ModuleAPI
+}
 
 CreateImGuiFontsTexture :: () {
     io := ImGui.GetIO();
@@ -352,7 +357,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
 
     pass_desc : GfxRenderPassDesc;
     AddColorAttachment(*pass_desc, *g_final_texture);
-    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,0});
+    // ClearColor(*pass_desc, 0, Vec4f.{0,0,0,0});
 
     global_vtx_offset := 0;
     global_idx_offset := 0;

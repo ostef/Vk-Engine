@@ -12,6 +12,8 @@ case .MACOS;   Lib_Ext :: "dylib";
 
 #scope_export
 
+Log_Loader :: Log_Section.{name="ModuleLoader"};
+
 g_quit : bool;
 g_module_libraries : [Num_Modules]*void;
 g_modules : [Num_Modules]*Module;
@@ -19,6 +21,8 @@ g_modules_watcher : File_Watcher;
 g_console_logger : ConsoleLogger;
 
 ReloadModule :: (id : ModuleID) -> bool {
+    LogSectionScope(*Log_Loader);
+
     state : []u8;
     if g_modules[id].SaveState {
         state = g_modules[id].SaveState();
@@ -39,6 +43,8 @@ ReloadModule :: (id : ModuleID) -> bool {
 }
 
 LoadModule :: (id : ModuleID) -> bool {
+    LogSectionScope(*Log_Loader);
+
     handshake : ModuleHandshakeProc;
 
     if id == .Core {
@@ -82,12 +88,13 @@ LoadModule :: (id : ModuleID) -> bool {
     LogMessage("Loaded module %", id);
 
     if g_modules[id].Initialize {
-        g_modules[id].Initialize();
+        g_modules[id].Initialize(,, log_section=null);
+        LogMessage("Initialized module %", id);
     }
 
     for g_modules {
         if it && it.OnModuleLoad {
-            it.OnModuleLoad(id);
+            it.OnModuleLoad(id ,, log_section=null);
         }
     }
 
@@ -95,14 +102,17 @@ LoadModule :: (id : ModuleID) -> bool {
 }
 
 UnloadModule :: (id : ModuleID) {
+    LogSectionScope(*Log_Loader);
+
     for g_modules {
         if it && it.OnModuleUnload {
-            it.OnModuleUnload(id);
+            it.OnModuleUnload(id ,, log_section=null);
         }
     }
 
-    if g_modules[id].Initialize {
-        g_modules[id].Shutdown();
+    if g_modules[id].Shutdown {
+        g_modules[id].Shutdown(,, log_section=null);
+        LogMessage("Shut down module %", id);
     }
 
     if g_module_libraries[id] {
@@ -122,6 +132,8 @@ UnloadModule :: (id : ModuleID) {
 }
 
 ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, data : *void) {
+    LogSectionScope(*Log_Loader);
+
     filename := path_filename(change.full_path);
     for i : 0..Num_Modules - 1 {
         id := cast(ModuleID, i);
@@ -159,7 +171,7 @@ LoaderMain :: () {
 
         for g_modules {
             if it.MainLoop {
-                it.MainLoop();
+                it.MainLoop(,, log_section=null);
             }
         }
     }

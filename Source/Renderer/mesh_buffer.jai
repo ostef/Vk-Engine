@@ -259,7 +259,7 @@ PushMesh :: (
 } @NoProfile
 
 SortMeshBuffer :: (buffer : *MeshBuffer) {
-    QuickSort(buffer.meshes, (a, b) => cast,no_check(int) a.key - cast,no_check(int) b.key);
+    QuickSort(buffer.meshes, (a, b) => ifx a.key < b.key then -1 else ifx a.key > b.key then 1 else 0);
 }
 
 CanInstantiateMeshes :: inline (a : MeshBuffer.Entry, b : MeshBuffer.Entry) -> bool {
