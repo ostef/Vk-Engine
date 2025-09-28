@@ -441,7 +441,7 @@ RenderViewpoint :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRend
     for g_meshes_to_render {
         if !it.is_skinned {
             aabb := GetTransformedAABB(it.transform, it.static_bounds);
-            if !AABBIsInFrustum(it.static_bounds, viewpoint.frustum) {
+            if !AABBIsInFrustum(aabb, viewpoint.frustum) {
                 continue;
             }
         }
@@ -511,7 +511,7 @@ ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, 
     pass_desc : GfxRenderPassDesc;
     AddColorAttachment(*pass_desc, *g_final_texture);
     AddDepthAttachment(*pass_desc, *g_depth_texture);
-    ClearColor(*pass_desc, 0, Vec4f.{0,0,1,1});
+    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
     ClearDepth(*pass_desc, Depth_Clear);
 
     pass := BeginGfxRenderPass(cmd_buffer, "Forward Pass", pass_desc);
