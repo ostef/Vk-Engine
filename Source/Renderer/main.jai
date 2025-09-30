@@ -146,6 +146,14 @@ ShutdownRenderer :: () {
 
     DestroyAllBindingSetLayouts();
 
+    for g_viewpoint_render_targets {
+        DestroyViewpointRenderTargets(it);
+        Free(it);
+        remove it;
+    }
+
+    HashMapFree(*g_viewpoint_render_targets);
+
     DestroyRenderTargets();
 
     DestroyAllShaders();
@@ -216,12 +224,6 @@ StopRenderThread :: () {
 } @ModuleAPI
 
 DestroyRenderTargets :: () {
-    for g_viewpoint_render_targets {
-        DestroyViewpointRenderTargets(it);
-        Free(it);
-        remove it;
-    }
-
     DestroyGfxTexture(*g_final_texture);
 }
 
