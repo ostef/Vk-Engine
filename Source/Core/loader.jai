@@ -1,5 +1,6 @@
 // @Todo: better handling of module load failure
 
+DefaultAllocator :: #import "Default_Allocator";
 #import "File_Watcher";
 
 #scope_file
@@ -149,6 +150,10 @@ LoaderMain :: () {
     InitConsoleLogger(*g_console_logger);
     SetContextLogger(*g_console_logger, ConsoleLoggerProc);
     g_console_logger.print_stack_trace = false;
+
+    // Make sure the modules use the same allocator heap
+    DefaultAllocator.initialize_if_needed();
+    context.allocator.data = DefaultAllocator.allocator_default_heap;
 
     for i : 0..Num_Modules - 1 {
         if !LoadModule(cast(ModuleID, i)) {
