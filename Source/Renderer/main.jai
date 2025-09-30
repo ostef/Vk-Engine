@@ -39,11 +39,6 @@ g_context : #Context;
     Depth_Clear :: 1.0;
 }
 
-g_render_thread : Thread;
-g_render_thread_produced_semaphore : Semaphore;
-g_render_thread_consume_semaphore : Semaphore;
-g_render_thread_should_stop : bool;
-
 g_viewpoints_to_render : [..]ViewpointToRender;
 g_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
@@ -78,15 +73,6 @@ InitializeRenderer :: () {
     g_context = remap_context();
     push_context,defer_pop g_context;
 
-    init(*g_render_thread_produced_semaphore);
-    signal(*g_render_thread_produced_semaphore);
-    init(*g_render_thread_consume_semaphore);
-
-    init(*g_sould_recreate_render_targets_mutex);
-
-    thread_init(*g_render_thread, RenderThread);
-    thread_start(*g_render_thread);
-
     if !LoadAllShaders() {
         Basic.exit(1);
     }
@@ -97,6 +83,7 @@ InitializeRenderer :: () {
 
     InitFrameDataAllocators();
     InitBindingSetAllocators();
+
     InitImGui();
 
     sampler_desc : GfxSamplerDesc;
@@ -140,14 +127,6 @@ ShutdownRenderer :: () {
     StopRenderThread();
     WaitForGPUIdle();
 
-    thread_is_done(*g_render_thread, -1);
-    thread_deinit(*g_render_thread);
-
-    destroy(*g_render_thread_produced_semaphore);
-    destroy(*g_render_thread_consume_semaphore);
-
-    destroy(*g_sould_recreate_render_targets_mutex);
-
     DestroyGPUFrameProfiler(GetGPUFrameProfiler());
 
     DestroyGfxPipelineLayout(*g_dummy_frame_pipeline_layout);
@@ -171,8 +150,7 @@ ShutdownRenderer :: () {
     DestroyAllShaders();
 }
 
-g_sould_recreate_render_targets_mutex : Mutex;
-g_sould_recreate_render_targets : bool;
+g_should_recreate_render_targets : bool;
 
 OnEvent :: (event : SDL_Event) {
     push_context,defer_pop g_context;
@@ -180,10 +158,7 @@ OnEvent :: (event : SDL_Event) {
     if event.type == SDL_WINDOWEVENT {
         if event.window.event == SDL_WINDOWEVENT_RESIZED
         || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED {
-            lock(*g_sould_recreate_render_targets_mutex);
-            defer unlock(*g_sould_recreate_render_targets_mutex);
-
-            g_sould_recreate_render_targets = true;
+            g_should_recreate_render_targets = true;
         }
     }
 }
@@ -220,8 +195,6 @@ AddPointLightToRender :: (light : PointLightToRender) {
 
 WaitForRenderThread :: () {
     push_context,defer_pop g_context;
-
-    wait_for(*g_render_thread_produced_semaphore);
 } @ModuleAPI
 
 SubmitFrameToRenderThread :: () {
@@ -230,14 +203,15 @@ SubmitFrameToRenderThread :: () {
     imgui_draw_data := ImGui.GetDrawData();
     CopyImGuiDrawData(*g_imgui_draw_data, imgui_draw_data);
 
-    signal(*g_render_thread_consume_semaphore);
+    if g_should_recreate_render_targets {
+        RecreateRenderTargets();
+        g_should_recreate_render_targets = false;
+    }
+    RenderFrame();
 } @ModuleAPI
 
 StopRenderThread :: () {
     push_context,defer_pop g_context;
-
-    g_render_thread_should_stop = true;
-    signal(*g_render_thread_consume_semaphore);
 } @ModuleAPI
 
 RecreateRenderTargets :: () {
@@ -343,31 +317,7 @@ FrameRenderContext :: struct {
     clusters_size : u32;
 }
 
-RenderThread :: (thread : *Thread) -> s64 {
-    while true {
-        wait_for(*g_render_thread_consume_semaphore);
-        if g_render_thread_should_stop {
-            signal(*g_render_thread_produced_semaphore);
-            break;
-        }
-
-        lock(*g_sould_recreate_render_targets_mutex);
-        if g_sould_recreate_render_targets {
-            RecreateRenderTargets();
-        }
-        unlock(*g_sould_recreate_render_targets_mutex);
-
-        RenderFrame();
-
-        signal(*g_render_thread_produced_semaphore);
-    }
-
-    return 0;
-}
-
 RenderFrame :: () {
-    ResetTemporaryStorage();
-
     BeginGfxFrame();
 
     ProfilerBeginFrame(GetGPUFrameProfiler());
@@ -396,7 +346,6 @@ RenderFrame :: () {
 
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
-    Assert(g_viewpoints_to_render.count == 1);
     for * g_viewpoints_to_render {
         RenderViewpoint(*cmd_buffer, it);
     }
@@ -434,9 +383,9 @@ RenderFrame :: () {
 }
 
 RenderViewpoint :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender) {
-    AllocatorScope(Temp);
-
     mesh_buffer : MeshBuffer;
+    mesh_buffer.meshes.allocator = Temp;
+    mesh_buffer.draw_calls.allocator = Temp;
 
     for g_meshes_to_render {
         if !it.is_skinned {
