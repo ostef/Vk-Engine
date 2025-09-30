@@ -4,6 +4,7 @@
 
 #import "Build_Utils";
 Core :: #import "Core/Build";
+Renderer :: #import "Renderer/Build";
 
 #load "entity.jai";
 
@@ -57,6 +58,7 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);
+        Renderer.HandleNoteOnDeclaration(workspace, decl, note);
         HandleNoteOnDeclaration(workspace, decl, note);
     }
 }

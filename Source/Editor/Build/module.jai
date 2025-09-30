@@ -5,9 +5,11 @@
 #import "Build_Utils";
 Core :: #import "Core/Build";
 Game :: #import "Game/Build";
+Renderer :: #import "Renderer/Build";
 
 Module_Dependencies :: string.[
     "Core",
+    "Renderer",
     "Game",
 ];
 
@@ -59,6 +61,7 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);
+        Renderer.HandleNoteOnDeclaration(workspace, decl, note);
         Game.HandleNoteOnDeclaration(workspace, decl, note);
     }
 }
