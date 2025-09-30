@@ -121,7 +121,9 @@ UnloadModule :: (id : ModuleID) {
 
         lib_path := TPrint("Libs/%.copy.%", id, Lib_Ext);
         if file_exists(lib_path) {
-            file_delete(lib_path);
+            if !file_delete(lib_path) {
+                LogError("Could not delete file '%'", lib_path);
+            }
         }
 
         g_module_libraries[id] = null;
