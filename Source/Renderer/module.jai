@@ -38,6 +38,7 @@ ViewpointToRender :: struct {
         NoGizmos;
     }
 
+    unique_id : u64;
     flags : Flags;
 
     position : Vec3f;
@@ -56,6 +57,17 @@ ViewpointToRender :: struct {
     frustum : Frustum;
 
     skybox : *Asset(EnvironmentMap);
+}
+
+MakeViewpointID :: inline (str : string) -> u64 {
+    #import "Hash";
+
+    return fnv1a_hash(str.data, str.count);
+}
+
+ViewpointRenderTargets :: struct {
+    color_buffer : GfxTexture;
+    depth_buffer : GfxTexture;
 }
 
 MeshToRender :: struct {

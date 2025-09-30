@@ -54,7 +54,7 @@ CreateBuildClusterGridPipeline :: () {
     Assert(ok, "Could not create build cluster grid pipeline");
 }
 
-BuildClusterGrid :: (using ctx : *FrameRenderContext) {
+BuildClusterGrid :: (using ctx : *RenderContext) {
     if IsNull(*g_build_cluster_grid_pipeline) {
         CreateBuildClusterGridPipeline();
     }
@@ -82,7 +82,7 @@ CreatePopulateClusterGridPipeline :: () {
     Assert(ok, "Could not create populate cluster grid pipeline");
 }
 
-PopulateClusterGrid :: (using ctx : *FrameRenderContext) {
+PopulateClusterGrid :: (using ctx : *RenderContext) {
     if IsNull(*g_populate_cluster_grid_pipeline) {
         CreatePopulateClusterGridPipeline();
     }
@@ -95,7 +95,7 @@ PopulateClusterGrid :: (using ctx : *FrameRenderContext) {
     EndGfxComputePass(*pass);
 }
 
-// PrepareClusters :: (using ctx : *FrameRenderContext, camera : *Camera) {
+// PrepareClusters :: (using ctx : *RenderContext, camera : *Camera) {
 //     if IsNull(*g_build_cluster_grid_pipeline) {
 //         CreateBuildClusterGridPipeline();
 //     }

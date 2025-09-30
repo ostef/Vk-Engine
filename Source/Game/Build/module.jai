@@ -15,6 +15,7 @@ Module_Dependencies :: string.[
 
 WorkspaceBuildInfo :: struct {
     core_import : *Message_Import;
+    renderer_import : *Message_Import;
     game_import : *Message_Import;
 }
 
@@ -29,6 +30,8 @@ HandleCompilerMessage :: (msg : *Message) {
         if import.module_name == {
         case "Core";
             core_import = import;
+        case "Renderer";
+            renderer_import = import;
         case "Game";
             game_import = import;
         }

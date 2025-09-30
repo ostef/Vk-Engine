@@ -7,6 +7,7 @@ RendererModule :: struct {
     AddPointLightToRender : (light : PointLightToRender);
     AddViewpointToRender : (viewpoint : ViewpointToRender);
     DestroyImGuiRenderer : ();
+    GetViewpointRenderTargets : (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets;
     InitImGuiRenderer : ();
     StopRenderThread : ();
     SubmitFrameToRenderThread : ();
@@ -39,6 +40,11 @@ AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {
 DestroyImGuiRenderer :: inline () {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.DestroyImGuiRenderer();
+}
+
+GetViewpointRenderTargets :: inline (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.GetViewpointRenderTargets(id, desired_resolution);
 }
 
 InitImGuiRenderer :: inline () {

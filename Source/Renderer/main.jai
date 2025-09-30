@@ -39,6 +39,7 @@ g_context : #Context;
     Depth_Clear :: 1.0;
 }
 
+g_viewpoint_render_targets : HashMap(u64, *ViewpointRenderTargets);
 g_viewpoints_to_render : [..]ViewpointToRender;
 g_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
@@ -145,7 +146,7 @@ ShutdownRenderer :: () {
 
     DestroyAllBindingSetLayouts();
 
-    DestroyGfxTexture(*g_final_texture);
+    DestroyRenderTargets();
 
     DestroyAllShaders();
 }
@@ -214,15 +215,20 @@ StopRenderThread :: () {
     push_context,defer_pop g_context;
 } @ModuleAPI
 
+DestroyRenderTargets :: () {
+    for g_viewpoint_render_targets {
+        DestroyViewpointRenderTargets(it);
+        Free(it);
+        remove it;
+    }
+
+    DestroyGfxTexture(*g_final_texture);
+}
+
 RecreateRenderTargets :: () {
     WaitForGPUIdle();
 
-    if !IsNull(*g_final_texture) {
-        DestroyGfxTexture(*g_final_texture);
-    }
-    if !IsNull(*g_depth_texture) {
-        DestroyGfxTexture(*g_depth_texture);
-    }
+    DestroyRenderTargets();
 
     w, h := GetWindowPixelSize(GetWindow());
 
@@ -236,12 +242,6 @@ RecreateRenderTargets :: () {
 
     g_final_texture = CreateGfxTexture("Final", desc);
     Assert(!IsNull(*g_final_texture), "Could not create final texture");
-
-    desc.pixel_format = .Depth32Float;
-    desc.usage = .DepthStencilAttachment;
-
-    g_depth_texture = CreateGfxTexture("Depth", desc);
-    Assert(!IsNull(*g_depth_texture), "Could not create final texture");
 }
 
 FrameBindingSet :: struct {
@@ -308,8 +308,12 @@ ViewpointsData :: struct {
     viewpoints : [Max_Viewpoints]Viewpoint;
 } @ShaderType
 
-FrameRenderContext :: struct {
+RenderContext :: struct {
     cmd_buffer : *GfxCommandBuffer;
+
+    viewpoint : *ViewpointToRender;
+    render_targets : *ViewpointRenderTargets;
+
     frame_binding_set : GfxBindingSet;
     directional_lights : []DirectionalLight;
     point_lights : []PointLight;
@@ -327,6 +331,9 @@ RenderFrame :: () {
 
     cmd_buffer := CreateGfxCommandBuffer("Main");
 
+    ctx : RenderContext;
+    ctx.cmd_buffer = *cmd_buffer;
+
     w, h := GetWindowPixelSize(GetWindow());
     frame_info := FrameInfo.{
         time=xx Basic.to_float64_seconds(Basic.current_time_monotonic()),
@@ -334,12 +341,13 @@ RenderFrame :: () {
     };
     frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
 
-    frame_binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), FrameBindingSet.{
+    frame_bindings := FrameBindingSet.{
         frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
-    });
+    };
+    ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
 
-    BindGraphicsBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *frame_binding_set);
-    BindComputeBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *frame_binding_set);
+    BindGraphicsBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
+    BindComputeBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
 
     TextureUploadPass(*cmd_buffer);
     // GenerateEnvironmentMaps(*cmd_buffer);
@@ -347,7 +355,7 @@ RenderFrame :: () {
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
     for * g_viewpoints_to_render {
-        RenderViewpoint(*cmd_buffer, it);
+        RenderViewpoint(*ctx, it);
     }
 
     ImGuiPass(*cmd_buffer, *g_imgui_draw_data);
@@ -382,7 +390,69 @@ RenderFrame :: () {
     ArrayClear(*g_point_lights_to_render);
 }
 
-RenderViewpoint :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender) {
+DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
+    WaitForGPUIdle();
+    DestroyGfxTexture(*render_targets.color_buffer);
+    DestroyGfxTexture(*render_targets.depth_buffer);
+}
+
+GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *ViewpointRenderTargets {
+    ShouldRecreate :: inline (texture : *GfxTexture, desired_resolution : Vec2u) -> bool {
+        return IsNull(texture) || texture.desc.width != desired_resolution.x || texture.desc.height != desired_resolution.y;
+    }
+
+    ptr := HashMapInsert(*g_viewpoint_render_targets, id);
+    if !ptr.* {
+        ptr.* = Alloc(ViewpointRenderTargets);
+    }
+
+    using rt := ptr.*;
+
+    if ShouldRecreate(*color_buffer, desired_resolution) {
+        if !IsNull(*color_buffer) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*color_buffer);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA16Float;
+        desc.width = Max(desired_resolution.x, 1);
+        desc.height = Max(desired_resolution.y, 1);
+        desc.usage = .ColorAttachment | .Sampled;
+
+        color_buffer = CreateGfxTexture(TPrint("Viewpoint %, Color", id), desc);
+        Assert(!IsNull(*color_buffer), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*depth_buffer, desired_resolution) {
+        if !IsNull(*depth_buffer) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*depth_buffer);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .Depth32Float;
+        desc.width = Max(desired_resolution.x, 1);
+        desc.height = Max(desired_resolution.y, 1);
+        desc.usage = .DepthStencilAttachment;
+
+        depth_buffer = CreateGfxTexture(TPrint("Viewpoint %, Depth", id), desc);
+        Assert(!IsNull(*depth_buffer), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    return rt;
+} @ModuleAPI
+
+RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
+    ctx.viewpoint = viewpoint;
+    ctx.render_targets = GetViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution);
+    defer {
+        ctx.viewpoint = null;
+        ctx.render_targets = null;
+    }
+
     mesh_buffer : MeshBuffer;
     mesh_buffer.meshes.allocator = Temp;
     mesh_buffer.draw_calls.allocator = Temp;
@@ -403,24 +473,27 @@ RenderViewpoint :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRend
     SortMeshBuffer(*mesh_buffer);
     AllocDrawData(*mesh_buffer);
 
-    ForwardPass(cmd_buffer, viewpoint, *mesh_buffer);
+    AddTextureBarrier(ctx.cmd_buffer, .Undefined, .ColorAttachment, *ctx.render_targets.color_buffer);
+    AddTextureBarrier(ctx.cmd_buffer, .Undefined, .DepthStencilAttachment, *ctx.render_targets.depth_buffer);
 
-    // DepthPrepass(viewpoint, *mesh_buffer);
-    // PrepareClusters(viewpoint);
-    // ForwardPass(viewpoint, *mesh_buffer);
-    // SkyboxPass(viewpoint);
+    // DepthPrepass(ctx, *mesh_buffer);
+    // PrepareClusters(ctx);
+    ForwardPass(ctx, *mesh_buffer);
+    // SkyboxPass(ctx);
 
     // if !(viewpoint.flags & .NoDebugLines) {
-    //     DebugLinesPass(viewpoint);
+    //     DebugLinesPass(ctx);
     // }
 
     // if !(viewpoint.flags & .NoGrids) {
-    //     GridPass(viewpoint);
+    //     GridPass(ctx);
     // }
 
     // if !(viewpoint.flags & .NoGizmos) {
-    //     GizmoPass(viewpoint);
+    //     GizmoPass(ctx);
     // }
+
+    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.color_buffer);
 }
 
 ForwardPassBindingSet :: struct {
@@ -432,15 +505,13 @@ g_forward_material_pass := MaterialRenderPass.{
     fragment_shader="FORWARD_SHADING",
     pipeline_template=.{
         num_color_attachments=1,
-        color_formats[0]=.RGBA8UNorm,
+        color_formats[0]=.RGBA16Float,
         depth_format=.Depth32Float,
         depth_state=.{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op},
     },
 };
 
-g_depth_texture : GfxTexture;
-
-ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, mesh_buffer : *MeshBuffer) {
+ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
     if !g_forward_material_pass.initialized {
         InitMaterialRenderPass(*g_forward_material_pass, *g_binding_set_layouts.ForwardPassBindingSet);
     }
@@ -458,8 +529,8 @@ ForwardPass :: (cmd_buffer : *GfxCommandBuffer, viewpoint : *ViewpointToRender, 
     w, h := viewpoint.resolution.x, viewpoint.resolution.y;
 
     pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *g_final_texture);
-    AddDepthAttachment(*pass_desc, *g_depth_texture);
+    AddColorAttachment(*pass_desc, *render_targets.color_buffer);
+    AddDepthAttachment(*pass_desc, *render_targets.depth_buffer);
     ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
     ClearDepth(*pass_desc, Depth_Clear);
 

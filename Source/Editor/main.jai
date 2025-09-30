@@ -116,14 +116,20 @@ OnEvent :: (event : SDL_Event) {
 EditorLoop :: () {
     push_context,defer_pop g_context;
 
-    w, h := GetWindowPixelSize(GetWindow());
-    g_main_viewport.camera.viewport_size = .{xx w, xx h};
-
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
 
     UpdateCamera(*g_main_viewport.camera);
     ImGui.ShowDemoWindow(null);
+
+    if ImGui.Begin("Viewport") {
+        size := ImGui.GetContentRegionAvail();
+        g_main_viewport.camera.viewport_size = .{xx size.x, xx size.y};
+
+        rt := GetViewpointRenderTargets(MakeViewpointID("Main Editor Viewpoint"), g_main_viewport.camera.viewport_size);
+        ImGui.Image(*rt.color_buffer, size);
+    }
+    ImGui.End();
 
     ImGui.Render();
 
@@ -132,6 +138,7 @@ EditorLoop :: () {
     SubmitWorldToRenderer(*g_editor_world);
 
     main_viewpoint := MakeViewpointToRender(g_main_viewport);
+    main_viewpoint.unique_id = MakeViewpointID("Main Editor Viewpoint");
     main_viewpoint.skybox = g_editor_world.skybox;
     AddViewpointToRender(main_viewpoint);
 
