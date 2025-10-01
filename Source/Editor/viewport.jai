@@ -16,6 +16,9 @@ EditorViewport :: struct {
     render_targets : *ViewpointRenderTargets;
 
     camera : EditorCamera;
+
+    is_box_selecting : bool;
+    box_selection_start : Vec2i;
 }
 
 g_editor_viewports : [..]*EditorViewport;
@@ -62,7 +65,7 @@ CreateEditorViewport :: () -> *EditorViewport {
 
     RegisterEventCallback(viewport, HandleEventForCameraMovement);
     // RegisterEventCallback(viewport, HandleEventForGizmos);
-    // RegisterEventCallback(viewport, HandleEventForEntitySelection);
+    RegisterEventCallback(viewport, HandleEventForEntitySelection);
 
     return viewport;
 }
@@ -160,51 +163,48 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
         draw_list.AddImage(draw_list, *render_targets.color_texture, bb.Min, bb.Max, uv0, uv1, 0xffffffff);
     }
 
-    // if IsBoxSelectingEntities(viewport, mouse_position)
-    // {
-    //     using entity_selection_ctx;
+    if IsBoxSelecting(viewport, mouse_position) {
+        mouse_x := cast(s32, mouse_position.x + position.x);
+        mouse_y := cast(s32, mouse_position.y + position.y);
 
-    //     mouse_x := cast(s32, mouse_position.x + position.x);
-    //     mouse_y := cast(s32, mouse_position.y + position.y);
+        x1 := Min(box_selection_start.x + cast(s32, position.x), mouse_x);
+        y1 := Min(box_selection_start.y + cast(s32, position.y), mouse_y);
+        x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
+        y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
 
-    //     x1 := Min(box_selection_start.x + cast(s32, position.x), mouse_x);
-    //     y1 := Min(box_selection_start.y + cast(s32, position.y), mouse_y);
-    //     x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
-    //     y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
+        Bg_Color :: Vec4f.{1,1,1,0.2};
+        Outline_Color :: Vec4f.{1,1,1,1};
+        Outline_Dash_Length :: 5.0;
+        Outline_Dash_Space :: 5.0;
+        Outline_Dash_Thickness :: 1.0;
 
-    //     Bg_Color :: Vec4f.{1,1,1,0.2};
-    //     Outline_Color :: Vec4f.{1,1,1,1};
-    //     Outline_Dash_Length :: 5.0;
-    //     Outline_Dash_Space :: 5.0;
-    //     Outline_Dash_Thickness :: 1.0;
+        draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, U32Color(Bg_Color));
 
-    //     draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, U32Color(Bg_Color));
-
-    //     AddDashedLine(draw_list,
-    //         .{xx x1, xx y1}, .{xx x2, xx y1},
-    //         Outline_Dash_Length, Outline_Dash_Space,
-    //         U32Color(Outline_Color),
-    //         Outline_Dash_Thickness
-    //     );
-    //     AddDashedLine(draw_list,
-    //         .{xx x1, xx y2}, .{xx x2, xx y2},
-    //         Outline_Dash_Length, Outline_Dash_Space,
-    //         U32Color(Outline_Color),
-    //         Outline_Dash_Thickness
-    //     );
-    //     AddDashedLine(draw_list,
-    //         .{xx x1, xx y1}, .{xx x1, xx y2},
-    //         Outline_Dash_Length, Outline_Dash_Space,
-    //         U32Color(Outline_Color),
-    //         Outline_Dash_Thickness
-    //     );
-    //     AddDashedLine(draw_list,
-    //         .{xx x2, xx y1}, .{xx x2, xx y2},
-    //         Outline_Dash_Length, Outline_Dash_Space,
-    //         U32Color(Outline_Color),
-    //         Outline_Dash_Thickness
-    //     );
-    // }
+        AddDashedLine(draw_list,
+            .{xx x1, xx y1}, .{xx x2, xx y1},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x1, xx y2}, .{xx x2, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x1, xx y1}, .{xx x1, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x2, xx y1}, .{xx x2, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+    }
 
     return opened;
 }
@@ -359,7 +359,7 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
             if event.mouse_wheel.y < 0 {
                 camera.speed_mult -= 0.2;
             } else if event.mouse_wheel.y > 0 {
-               camera. speed_mult += 0.2;
+                camera.speed_mult += 0.2;
             }
             camera.speed_mult = Clamp(camera.speed_mult, 0.2, 100);
 
@@ -385,6 +385,76 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
         // Just in case, if we were moving the camera then don't propagate event this time
         return was_moving_camera;
+    }
+
+    return false;
+}
+
+IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
+    return viewport.is_box_selecting
+        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold")
+        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold"));
+}
+
+HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
+    if event.kind == {
+    case .MousePosition;
+        if is_box_selecting {
+            return true;
+        }
+
+    case .MouseButtonPress;
+        if event.mouse_button == .Left {
+            is_box_selecting = true;
+            box_selection_start = .{xx event.mouse_position.x, xx event.mouse_position.y};
+        }
+
+        // Also capture mouse right and middle buttons when selecting
+        return is_box_selecting;
+
+    case .MouseButtonRelease;
+        was_box_selecting := is_box_selecting;
+        if is_box_selecting && event.mouse_button == .Left {
+            x1, y1, x2, y2 : s32;
+
+            if IsBoxSelecting(viewport, event.mouse_position) {
+                x1 = Min(box_selection_start.x, xx event.mouse_position.x);
+                y1 = Min(box_selection_start.y, xx event.mouse_position.y);
+                x2 = Max(box_selection_start.x, xx event.mouse_position.x);
+                y2 = Max(box_selection_start.y, xx event.mouse_position.y);
+            } else {
+                x1 = xx event.mouse_position.x;
+                x2 = xx event.mouse_position.x;
+                y1 = xx event.mouse_position.y;
+                y2 = xx event.mouse_position.y;
+            }
+
+            scale_factor := GetWindowScaleFactor(GetWindow());
+            x1 = xx (x1 * scale_factor);
+            x2 = xx (x2 * scale_factor);
+            y1 = xx (y1 * scale_factor);
+            y2 = xx (y2 * scale_factor);
+
+            if GetModState() != .Shift && GetModState() != (.Ctrl | .Shift) {
+                // ArrayClear(*g_world_editor.selected_entities);
+            }
+
+            // for y : y1..y2 {
+            //     for x : x1..x2 {
+            //         guid := GetEntityAtPoint(world, *viewport.entity_selection_ctx, xx x, xx y);
+
+            //         if CheckModState(.Ctrl | .Shift) {
+            //             DeselectEntity(guid);
+            //         } else {
+            //             SelectEntity(guid, add_to_selection=true);
+            //         }
+            //     }
+            // }
+
+            is_box_selecting = false;
+        }
+
+        return was_box_selecting;
     }
 
     return false;

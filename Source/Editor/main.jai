@@ -4,6 +4,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 
 #load "material_design_icons.jai";
 #load "viewport.jai";
+#load "utils.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
