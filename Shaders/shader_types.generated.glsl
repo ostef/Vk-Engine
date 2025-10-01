@@ -4,6 +4,7 @@
 #define SHADER_TYPES_GENERATED_GLSL
 
 #define BRDF_LUT_Compute_Work_Group_Size 16
+#define Bloom_Compute_Work_Group_Size 16
 #define Max_Lights_Per_Clusters 100
 #define Max_Viewpoints 6
 #define Num_Clusters 3456
@@ -21,6 +22,14 @@
 #define Shadow_Map_Noise_Size 32
 #define Shadow_Map_Reverse_Depth_Range 1
 
+struct BloomParams {
+    float resolution_factor;
+    float brightness_threshold;
+    float brightness_soft_threshold;
+    float blend_intensity;
+    float filter_radius;
+};
+
 struct DirectionalLight {
     float3 direction;
     float3 color;
@@ -33,6 +42,7 @@ struct FrameInfo {
     uint num_directional_lights;
     uint num_point_lights;
     float skybox_light_intensity;
+    BloomParams bloom_params;
 };
 
 struct LightCluster {

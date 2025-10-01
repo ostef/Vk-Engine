@@ -17,6 +17,7 @@
 #load "entity_selection.jai";
 #load "forward_pass.jai";
 #load "compositing.jai";
+#load "bloom.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -291,7 +292,7 @@ FrameInfo :: struct {
     num_point_lights : u32;
     skybox_light_intensity := 1.0;
     // shadow_map_params : ShadowMapParams;
-    // bloom_params : BloomParams;
+    bloom_params : BloomParams;
     // editor_settings : EditorSettings;
 } @ShaderType
 
@@ -459,6 +460,8 @@ RenderFrame :: () {
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     WaitForGPUIdle();
 
+    DestroyBloomTextures(*render_targets.bloom_textures);
+
     DestroyGfxTexture(*render_targets.final_color_texture);
     DestroyGfxTexture(*render_targets.hdr_color_texture);
     DestroyGfxTexture(*render_targets.depth_texture);
@@ -481,6 +484,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
     }
 
     using rt := ptr.*;
+
+    CreateBloomTextures(*bloom_textures, desired_resolution);
 
     if ShouldRecreate(*final_color_texture, desired_resolution) {
         if !IsNull(*final_color_texture) {
@@ -631,6 +636,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
 
         AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .TransferSrc, *ctx.render_targets.entity_guids_texture);
         TransferEntityGUIDsForReadback(ctx);
+        AddTextureBarrier(ctx.cmd_buffer, .TransferSrc, .ShaderReadOnly, *ctx.render_targets.entity_guids_texture);
     }
 
     // DepthPrepass(ctx, *mesh_buffer);
@@ -650,7 +656,12 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     //     GizmoPass(ctx);
     // }
 
-    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.hdr_color_texture);
+    AddTextureBarriers(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, .[
+        *ctx.render_targets.selected_entity_guids_texture,
+        *ctx.render_targets.hdr_color_texture
+    ]);
+
+    ComputeBloom(ctx);
 
     CompositingPass(ctx);
 

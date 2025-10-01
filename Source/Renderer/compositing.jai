@@ -1,6 +1,6 @@
 CompositingBindingSet :: struct {
     hdr_color_texture : GfxBindingCombinedTextureSampler; @Binding(0) @FragmentStage
-    // bloom_texture : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
+    bloom_texture : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
     entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
     selected_entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
     // gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
@@ -39,7 +39,7 @@ CompositingPass :: (using ctx : *RenderContext) {
 
     bindings := CompositingBindingSet.{
         hdr_color_texture=.{texture=*render_targets.hdr_color_texture, sampler=*g_linear_clamp_sampler},
-        // bloom_texture=.{texture=GetFinalBloomTexture(), sampler=*g_linear_clamp_sampler},
+        bloom_texture=.{texture=GetFinalBloomTexture(*render_targets.bloom_textures), sampler=*g_linear_clamp_sampler},
         entity_guid_texture=.{texture=*render_targets.entity_guids_texture, sampler=*g_entity_guid_sampler},
         selected_entity_guid_texture=.{texture=*render_targets.selected_entity_guids_texture, sampler=*g_entity_guid_sampler},
         // gizmo_texture=.{texture=*g_gizmo_ctx.color_resolve, sampler=*g_linear_clamp_sampler},

@@ -133,7 +133,7 @@ InitializeEditor :: () {
 
     InitImGuiRenderer();
 
-    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/DamagedHelmet.scene");
+    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/Spheres.scene");
 
     CreateEditorViewport();
 }

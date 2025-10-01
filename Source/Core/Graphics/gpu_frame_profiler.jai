@@ -117,4 +117,4 @@ ProfilerEndEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfile
 
     vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .BOTTOM_OF_PIPE_BIT, profiler.query_pools[GetFrameInFlight()], xx (event.index * 2 + 1));
     profiler.current_event = event.parent;
-} @NoProfile
+} @ModuleAPI @NoProfile

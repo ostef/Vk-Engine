@@ -73,6 +73,21 @@ ViewpointRenderTargets :: struct {
     entity_guids_texture : GfxTexture;
     selected_entity_guids_texture : GfxTexture;
     entity_guids_readback_buffers : [Gfx_Num_Frames_In_Flight]GfxBuffer;
+    bloom_textures : BloomTextures;
+}
+
+Bloom_Resolution_Factor :: 0.75;
+Bloom_Num_Downsample_Passes :: 7;
+
+BloomTextures :: struct {
+    downsample_texture : GfxTexture;
+    downsample_levels : [Bloom_Num_Downsample_Passes + 1]GfxTexture;
+    upsample_texture : GfxTexture;
+    upsample_levels : [Bloom_Num_Downsample_Passes]GfxTexture;
+}
+
+GetFinalBloomTexture :: inline (using bloom : *BloomTextures) -> *GfxTexture {
+    return *upsample_levels[0];
 }
 
 MeshToRender :: struct {
