@@ -47,7 +47,7 @@ ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
     w, h := viewpoint.resolution.x, viewpoint.resolution.y;
 
     pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *render_targets.color_texture);
+    AddColorAttachment(*pass_desc, *render_targets.hdr_color_texture);
     AddDepthAttachment(*pass_desc, *render_targets.depth_texture);
     ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
     ClearDepth(*pass_desc, Depth_Clear);

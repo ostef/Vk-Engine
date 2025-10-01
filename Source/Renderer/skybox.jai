@@ -49,7 +49,7 @@ SkyboxPass :: (using ctx : *RenderContext, skybox_texture : *GfxTexture) {
     binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), pass_bindings);
 
     pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *render_targets.color_texture);
+    AddColorAttachment(*pass_desc, *render_targets.hdr_color_texture);
     AddDepthAttachment(*pass_desc, *render_targets.depth_texture);
 
     pass := BeginGfxRenderPass(cmd_buffer, "Skybox", pass_desc);

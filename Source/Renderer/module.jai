@@ -67,7 +67,8 @@ MakeViewpointID :: inline (str : string) -> u64 {
 }
 
 ViewpointRenderTargets :: struct {
-    color_texture : GfxTexture;
+    final_color_texture : GfxTexture;
+    hdr_color_texture : GfxTexture;
     depth_texture : GfxTexture;
     entity_guids_texture : GfxTexture;
     selected_entity_guids_texture : GfxTexture;

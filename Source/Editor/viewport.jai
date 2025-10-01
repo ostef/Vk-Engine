@@ -160,7 +160,7 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
 
     draw_list := ImGui.GetWindowDrawList();
     if render_targets {
-        draw_list.AddImage(draw_list, *render_targets.color_texture, bb.Min, bb.Max, uv0, uv1, 0xffffffff);
+        draw_list.AddImage(draw_list, *render_targets.final_color_texture, bb.Min, bb.Max, uv0, uv1, 0xffffffff);
     }
 
     if IsBoxSelecting(viewport, mouse_position) {

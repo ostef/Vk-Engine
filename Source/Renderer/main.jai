@@ -14,9 +14,9 @@
 #load "point_shadow_map.jai";
 #load "image_based_lighting.jai";
 #load "skybox.jai";
-
 #load "entity_selection.jai";
 #load "forward_pass.jai";
+#load "compositing.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -459,7 +459,8 @@ RenderFrame :: () {
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     WaitForGPUIdle();
 
-    DestroyGfxTexture(*render_targets.color_texture);
+    DestroyGfxTexture(*render_targets.final_color_texture);
+    DestroyGfxTexture(*render_targets.hdr_color_texture);
     DestroyGfxTexture(*render_targets.depth_texture);
     DestroyGfxTexture(*render_targets.entity_guids_texture);
     DestroyGfxTexture(*render_targets.selected_entity_guids_texture);
@@ -481,10 +482,27 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
 
     using rt := ptr.*;
 
-    if ShouldRecreate(*color_texture, desired_resolution) {
-        if !IsNull(*color_texture) {
+    if ShouldRecreate(*final_color_texture, desired_resolution) {
+        if !IsNull(*final_color_texture) {
             WaitForGPUIdle();
-            DestroyGfxTexture(*color_texture);
+            DestroyGfxTexture(*final_color_texture);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA8UNorm;
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
+        desc.usage = .ColorAttachment | .Sampled;
+
+        final_color_texture = CreateGfxTexture(TPrint("Viewpoint %, Final Color", id), desc);
+        Assert(!IsNull(*final_color_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*hdr_color_texture, desired_resolution) {
+        if !IsNull(*hdr_color_texture) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*hdr_color_texture);
         }
 
         desc : GfxTextureDesc;
@@ -494,8 +512,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled;
 
-        color_texture = CreateGfxTexture(TPrint("Viewpoint %, Color", id), desc);
-        Assert(!IsNull(*color_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+        hdr_color_texture = CreateGfxTexture(TPrint("Viewpoint %, HDR Color", id), desc);
+        Assert(!IsNull(*hdr_color_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
     if ShouldRecreate(*depth_texture, desired_resolution) {
@@ -600,7 +618,8 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     AllocDrawData(*selected_mesh_buffer);
 
     AddTextureBarriers(ctx.cmd_buffer, .Undefined, .ColorAttachment, .[
-        *ctx.render_targets.color_texture,
+        *ctx.render_targets.final_color_texture,
+        *ctx.render_targets.hdr_color_texture,
         *ctx.render_targets.entity_guids_texture,
         *ctx.render_targets.selected_entity_guids_texture
     ]);
@@ -631,5 +650,9 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     //     GizmoPass(ctx);
     // }
 
-    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.color_texture);
+    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.hdr_color_texture);
+
+    CompositingPass(ctx);
+
+    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.final_color_texture);
 }
