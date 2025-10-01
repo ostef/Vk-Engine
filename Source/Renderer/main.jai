@@ -14,6 +14,7 @@
 #load "point_shadow_map.jai";
 
 #load "entity_selection.jai";
+#load "forward_pass.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -258,8 +259,8 @@ RecreateRenderTargets :: () {
 
 FrameBindingSet :: struct {
     frame_info : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage @ComputeStage
-    // directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
-    // point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
+    directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
+    point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
     // brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
     // shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
 } @BindingSet
@@ -350,11 +351,38 @@ RenderFrame :: () {
     frame_info := FrameInfo.{
         time=xx Basic.to_float64_seconds(Basic.current_time_monotonic()),
         window_pixel_size=.{xx w, xx h},
+        num_directional_lights=xx g_directional_lights_to_render.count,
+        num_point_lights=xx g_point_lights_to_render.count,
     };
     frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
 
+    directional_lights := AllocArray(DirectionalLight, g_directional_lights_to_render.count ,, Temp);
+    for g_directional_lights_to_render {
+        directional_lights[it_index] = .{
+            direction=it.direction,
+            color=it.color,
+            intensity=it.intensity,
+        };
+    }
+    directional_lights_offset, directional_lights_size := AllocAndPackStorageFrameData(directional_lights);
+
+    point_lights := AllocArray(PointLight, g_point_lights_to_render.count ,, Temp);
+    for g_point_lights_to_render {
+        point_lights[it_index] = .{
+            position=it.position,
+            color=it.color,
+            intensity=it.intensity,
+            intensity_radius=it.intensity_radius,
+            source_radius=it.source_radius,
+        };
+    }
+
+    point_lights_offset, point_lights_size := AllocAndPackStorageFrameData(point_lights);
+
     frame_bindings := FrameBindingSet.{
         frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
+        directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
+        point_lights=.{buffer=FrameDataBuffer(), offset=xx point_lights_offset, size=xx point_lights_size},
     };
     ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
 
@@ -500,12 +528,11 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
 } @ModuleAPI
 
 RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
+    prev_ctx := ctx.*;
+    defer ctx.* = prev_ctx;
+
     ctx.viewpoint = viewpoint;
     ctx.render_targets = GetViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution);
-    defer {
-        ctx.viewpoint = null;
-        ctx.render_targets = null;
-    }
 
     mesh_buffer : MeshBuffer;
     mesh_buffer.meshes.allocator = Temp;
@@ -563,7 +590,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     }
 
     // DepthPrepass(ctx, *mesh_buffer);
-    // PrepareClusters(ctx);
+    PrepareClusters(ctx);
     ForwardPass(ctx, *mesh_buffer);
     // SkyboxPass(ctx);
 
@@ -580,67 +607,4 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     // }
 
     AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.color_texture);
-}
-
-ForwardPassBindingSet :: struct {
-    viewpoints : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage
-} @BindingSet
-
-g_forward_material_pass := MaterialRenderPass.{
-    name="Forward",
-    fragment_shader="FORWARD_SHADING",
-    pipeline_template=.{
-        num_color_attachments=1,
-        color_formats[0]=.RGBA16Float,
-        depth_format=.Depth32Float,
-        depth_state=.{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op},
-    },
-};
-
-ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
-    if !g_forward_material_pass.initialized {
-        InitMaterialRenderPass(*g_forward_material_pass, *g_binding_set_layouts.ForwardPassBindingSet);
-    }
-
-    viewpoints : ViewpointsData;
-    viewpoints.viewpoints[0] = MakeViewpoint(viewpoint);
-    viewpoints_offset, viewpoints_size := AllocAndPackUniformFrameData(viewpoints);
-
-    pass_bindings := ForwardPassBindingSet.{
-        viewpoints=.{buffer=FrameDataBuffer(), offset=xx viewpoints_offset, size=xx viewpoints_size},
-    };
-
-    binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), pass_bindings);
-
-    w, h := viewpoint.resolution.x, viewpoint.resolution.y;
-
-    pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *render_targets.color_texture);
-    AddDepthAttachment(*pass_desc, *render_targets.depth_texture);
-    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
-    ClearDepth(*pass_desc, Depth_Clear);
-
-    pass := BeginGfxRenderPass(cmd_buffer, "Forward Pass", pass_desc);
-    {
-        SetViewport(*pass, .{width=xx w, height=xx h});
-        SetScissor(*pass, .{w=xx w, h=xx h});
-
-        BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 1, *binding_set);
-
-        for mesh_buffer.draw_calls {
-            pipeline := GetPipeline(*g_forward_material_pass, it);
-            BindGraphicsPipeline(*pass, pipeline);
-
-            BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 2, *it.binding_set);
-            BindVertexBuffer(*pass, 0, it.vertex_buffer);
-
-            if it.index_buffer {
-                BindIndexBuffer(*pass, .UInt32, it.index_buffer);
-                DrawIndexed(*pass, it.index_count, it.instance_count);
-            } else {
-                Draw(*pass, it.vertex_count, it.instance_count);
-            }
-        }
-    }
-    EndGfxRenderPass(*pass);
 }

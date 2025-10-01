@@ -20,31 +20,10 @@
 #define Shadow_Map_Noise_Size 32
 #define Shadow_Map_Reverse_Depth_Range 1
 
-struct Viewpoint {
-    float3 position;
-    float3 direction;
-    float3 right;
-    float3 up;
-    float4x4 transform;
-    float4x4 view;
-    float4x4 projection;
-    float4x4 inv_projection;
-    float4x4 view_projection;
-    float4x4 inv_view_projection;
-    float2 viewport_size;
-    float fov;
-    float z_near;
-    float z_far;
-};
-
 struct DirectionalLight {
     float3 direction;
     float3 color;
     float intensity;
-    int shadow_map_index;
-    uint shadow_map_resolution;
-    float shadow_map_cascade_sizes[4];
-    Viewpoint shadow_map_viewpoints[4];
 };
 
 struct FrameInfo {
@@ -96,9 +75,23 @@ struct PointLight {
     float intensity;
     float intensity_radius;
     float source_radius;
-    int shadow_map_index;
-    uint shadow_map_resolution;
-    Viewpoint shadow_map_viewpoints[6];
+};
+
+struct Viewpoint {
+    float3 position;
+    float3 direction;
+    float3 right;
+    float3 up;
+    float4x4 transform;
+    float4x4 view;
+    float4x4 projection;
+    float4x4 inv_projection;
+    float4x4 view_projection;
+    float4x4 inv_view_projection;
+    float2 viewport_size;
+    float fov;
+    float z_near;
+    float z_far;
 };
 
 struct ViewpointsData {

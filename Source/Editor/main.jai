@@ -134,6 +134,8 @@ InitializeEditor :: () {
     InitImGuiRenderer();
 
     LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/DamagedHelmet.scene");
+
+    CreateEditorViewport();
 }
 
 ShutdownEditor :: () {
@@ -159,6 +161,8 @@ EditorLoop :: () {
 
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
+
+    ImGui.DockSpaceOverViewport();
 
     if ImGui.BeginMainMenuBar() {
         if ImGui.MenuItem("Add Viewport") {

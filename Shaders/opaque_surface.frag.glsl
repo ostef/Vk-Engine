@@ -1,6 +1,6 @@
 #include "common.glsl"
 #include "pbr.glsl"
-#include "shadow.glsl"
+// #include "shadow.glsl"
 
 DECLARE_PER_FRAME_PARAMS();
 DECLARE_FORWARD_PASS_PARAMS();
@@ -131,12 +131,12 @@ void main() {
         float3 L = -light.direction;
         float NdotL = max(dot(N, L), 0.0);
 
-        float shadow;
-        if (light.shadow_map_index >= 0) {
-            shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
-        } else {
-            shadow = 1;
-        }
+        float shadow = 1;
+        // if (light.shadow_map_index >= 0) {
+        //     shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+        // } else {
+        //     shadow = 1;
+        // }
 
         if ((mesh.material.flags & MaterialFlags_HasDepthMap) != 0) {
             float3 tangent_light_dir = inv_TBN * L;
@@ -171,12 +171,12 @@ void main() {
 
         float intensity = GetPointLightIntensity(light.source_radius, light.intensity, light.intensity_radius, distance);
 
-        float shadow;
-        if (light.shadow_map_index >= 0) {
-            shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_point_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
-        } else {
-            shadow = 1;
-        }
+        float shadow = 1;
+        // if (light.shadow_map_index >= 0) {
+        //     shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_point_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+        // } else {
+        //     shadow = 1;
+        // }
 
         if ((mesh.material.flags & MaterialFlags_HasDepthMap) != 0) {
             float3 tangent_light_dir = inv_TBN * L;
@@ -205,6 +205,7 @@ void main() {
 
     float3 R = reflect(-V, N);
 
+    /*
     float2 irradiance_uv = CartesianToSphericalUV(N);
     #ifndef TEXTURE_ORIGIN_BOTTOM_LEFT
         irradiance_uv.y = 1 - irradiance_uv.y;
@@ -218,8 +219,11 @@ void main() {
     #endif
     float3 environment = textureLod(u_environment_map, environment_uv, roughness * (Num_Environment_Map_Levels - 1)).rgb;
     environment *= u_frame_info.skybox_light_intensity;
+    */
+    float3 irradiance = float3(0);
+    float3 environment = float3(0);
 
-    float3 ambient = CalculateAmbientBRDF(base_color, metallic, roughness, N, V, irradiance, environment, u_brdf_lut);
+    float3 ambient = float3(0); //CalculateAmbientBRDF(base_color, metallic, roughness, N, V, irradiance, environment, u_brdf_lut);
     float3 color = ambient + Lo + emissive;
 
     out_color.rgb = color;

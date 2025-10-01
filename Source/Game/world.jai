@@ -400,4 +400,34 @@ SubmitWorldToRenderer :: (world : *World) {
     for :AllMeshesToRender world {
         AddMeshToRender(it);
     }
+
+    for * world.DirectionalLightComponent_storage {
+        entity := GetEntity(world, it.entity_index);
+        if !entity || entity.flags & .Hidden {
+            continue;
+        }
+
+        to_render := DirectionalLightToRender.{
+            direction=ForwardVector(it.world_transform),
+            color=it.color,
+            intensity=it.intensity,
+        };
+        AddDirectionalLightToRender(to_render);
+    }
+
+    for * world.PointLightComponent_storage {
+        entity := GetEntity(world, it.entity_index);
+        if !entity || entity.flags & .Hidden {
+            continue;
+        }
+
+        to_render := PointLightToRender.{
+            position=TranslationVector(it.world_transform),
+            color=it.color,
+            intensity=it.intensity,
+            intensity_radius=GetPointLightAttenuationDistance(it) - it.source_radius,
+            source_radius=it.source_radius,
+        };
+        AddPointLightToRender(to_render);
+    }
 } @ModuleAPI

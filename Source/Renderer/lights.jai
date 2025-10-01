@@ -2,10 +2,10 @@ DirectionalLight :: struct {
     direction : Vec3f;
     color : Vec3f;
     intensity : float;
-    shadow_map_index : s32;
-    shadow_map_resolution : u32;
-    shadow_map_cascade_sizes : [Num_Shadow_Map_Cascades]float = Shadow_Map_Cascade_Sizes;
-    shadow_map_viewpoints : [Num_Shadow_Map_Cascades]Viewpoint;
+    // shadow_map_index : s32;
+    // shadow_map_resolution : u32;
+    // shadow_map_cascade_sizes : [Num_Shadow_Map_Cascades]float = Shadow_Map_Cascade_Sizes;
+    // shadow_map_viewpoints : [Num_Shadow_Map_Cascades]Viewpoint;
 } @ShaderType
 
 PointLight :: struct {
@@ -14,9 +14,9 @@ PointLight :: struct {
     intensity : float;
     intensity_radius : float;
     source_radius : float;
-    shadow_map_index : s32;
-    shadow_map_resolution : u32;
-    shadow_map_viewpoints : [6]Viewpoint;
+    // shadow_map_index : s32;
+    // shadow_map_resolution : u32;
+    // shadow_map_viewpoints : [6]Viewpoint;
 } @ShaderType
 
 LightCluster :: struct {
@@ -50,8 +50,8 @@ CreateBuildClusterGridPipeline :: () {
         g_binding_set_layouts.ClusterGridBindingSet,
     ];
 
-    ok := CreateGfxComputePipeline(*g_build_cluster_grid_pipeline, "Build Cluster Grid", desc);
-    Assert(ok, "Could not create build cluster grid pipeline");
+    g_build_cluster_grid_pipeline = CreateGfxComputePipeline("Build Cluster Grid", desc);
+    Assert(!IsNull(*g_build_cluster_grid_pipeline), "Could not create build cluster grid pipeline");
 }
 
 BuildClusterGrid :: (using ctx : *RenderContext) {
@@ -78,8 +78,8 @@ CreatePopulateClusterGridPipeline :: () {
         g_binding_set_layouts.ClusterGridBindingSet,
     ];
 
-    ok := CreateGfxComputePipeline(*g_populate_cluster_grid_pipeline, "Populate Cluster Grid", desc);
-    Assert(ok, "Could not create populate cluster grid pipeline");
+    g_populate_cluster_grid_pipeline = CreateGfxComputePipeline("Populate Cluster Grid", desc);
+    Assert(!IsNull(*g_populate_cluster_grid_pipeline), "Could not create populate cluster grid pipeline");
 }
 
 PopulateClusterGrid :: (using ctx : *RenderContext) {
@@ -95,32 +95,32 @@ PopulateClusterGrid :: (using ctx : *RenderContext) {
     EndGfxComputePass(*pass);
 }
 
-// PrepareClusters :: (using ctx : *RenderContext, camera : *Camera) {
-//     if IsNull(*g_build_cluster_grid_pipeline) {
-//         CreateBuildClusterGridPipeline();
-//     }
+PrepareClusters :: (using ctx : *RenderContext) {
+    if IsNull(*g_build_cluster_grid_pipeline) {
+        CreateBuildClusterGridPipeline();
+    }
 
-//     if IsNull(*g_populate_cluster_grid_pipeline) {
-//         CreatePopulateClusterGridPipeline();
-//     }
+    if IsNull(*g_populate_cluster_grid_pipeline) {
+        CreatePopulateClusterGridPipeline();
+    }
 
-//     clusters_size = xx (GLSLStd430Size(LightCluster) * Num_Clusters);
-//     clusters_offset = xx AllocFrameData(clusters_size);
+    clusters_size = xx (GLSLStd430Size(LightCluster) * Num_Clusters);
+    clusters_offset = xx AllocFrameData(clusters_size);
 
-//     viewpoint_offset, viewpoint_size := AllocAndPackUniformFrameData(MakeViewpoint(camera));
+    viewpoint_offset, viewpoint_size := AllocAndPackUniformFrameData(MakeViewpoint(viewpoint));
 
-//     bindings := ClusterGridBindingSet.{
-//         clusters=.{buffer=FrameDataBuffer(), offset=xx clusters_offset, size=xx clusters_size},
-//         viewpoint=.{buffer=FrameDataBuffer(), offset=xx viewpoint_offset, size=xx viewpoint_size},
-//     };
-//     binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), bindings);
-//     BindComputeBindingSet(cmd_buffer, *g_build_cluster_grid_pipeline.layout, 1, *binding_set);
+    bindings := ClusterGridBindingSet.{
+        clusters=.{buffer=FrameDataBuffer(), offset=xx clusters_offset, size=xx clusters_size},
+        viewpoint=.{buffer=FrameDataBuffer(), offset=xx viewpoint_offset, size=xx viewpoint_size},
+    };
+    binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), bindings);
+    BindComputeBindingSet(cmd_buffer, *g_build_cluster_grid_pipeline.layout, 1, *binding_set);
 
-//     BuildClusterGrid(ctx);
+    BuildClusterGrid(ctx);
 
-//     AddMemoryBarrier(cmd_buffer, .AllCompute, .AllWrites, .AllCompute, .AllReads | .AllWrites);
+    AddMemoryBarrier(cmd_buffer, .AllCompute, .AllWrites, .AllCompute, .AllReads | .AllWrites);
 
-//     PopulateClusterGrid(ctx);
+    PopulateClusterGrid(ctx);
 
-//     AddMemoryBarrier(cmd_buffer, .AllCompute, .AllWrites, .AllCompute, .AllReads | .AllWrites);
-// }
+    AddMemoryBarrier(cmd_buffer, .AllCompute, .AllWrites, .AllCompute, .AllReads | .AllWrites);
+}

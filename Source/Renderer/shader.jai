@@ -14,8 +14,8 @@ LoadedShader :: struct {
 g_shader_file_watcher : File_Watcher;
 g_shaders := LoadedShader.[
     // .{name="infinite_grid"},
-    // .{name="build_cluster_grid"},
-    // .{name="populate_cluster_grid"},
+    .{name="build_cluster_grid"},
+    .{name="populate_cluster_grid"},
     // .{name="kawase_blur_downsample"},
     // .{name="kawase_blur_upsample"},
     // .{name="gizmo"},
@@ -34,7 +34,7 @@ g_shaders := LoadedShader.[
     // .{name="compositing"},
     .{name="mesh_geometry"},
     .{name="skinned_mesh_geometry"},
-    // .{name="opaque_surface"},
+    .{name="opaque_surface"},
     .{name="unlit"},
     .{name="entity_guid"},
     .{name="alpha_cutoff_entity_guid"},
