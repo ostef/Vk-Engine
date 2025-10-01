@@ -25,6 +25,7 @@ EditorCamera :: struct {
 
 EditorViewport :: struct {
     camera : EditorCamera;
+    render_targets : *ViewpointRenderTargets;
 }
 
 g_main_viewport : EditorViewport;

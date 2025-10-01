@@ -14,8 +14,6 @@ LoadedShader :: struct {
 g_shader_file_watcher : File_Watcher;
 g_shaders := LoadedShader.[
     // .{name="infinite_grid"},
-    // .{name="alpha_cutoff_entity_guid"},
-    // .{name="alpha_cutoff_depth_only"},
     // .{name="build_cluster_grid"},
     // .{name="populate_cluster_grid"},
     // .{name="kawase_blur_downsample"},
@@ -26,7 +24,6 @@ g_shaders := LoadedShader.[
     // .{name="bloom_filter"},
     // .{name="bloom_downsample"},
     // .{name="bloom_upsample"},
-    // .{name="entity_guid"},
     .{name="imgui"},
     // .{name="screen_effect"},
     // .{name="background_screen_effect"},
@@ -39,6 +36,9 @@ g_shaders := LoadedShader.[
     .{name="skinned_mesh_geometry"},
     // .{name="opaque_surface"},
     .{name="unlit"},
+    .{name="entity_guid"},
+    .{name="alpha_cutoff_entity_guid"},
+    .{name="alpha_cutoff_depth_only"},
 ];
 
 ShaderReloadCallback :: struct {

@@ -60,3 +60,14 @@ QueueDestroyGfxBuffer :: (buffer : *GfxBuffer) {
     AddGarbage(collector, buffer);
     buffer.* = .{};
 } @ModuleAPI @NoProfile
+
+GetMappedPtr :: (buffer : *GfxBuffer) -> *void {
+    if IsNull(buffer) {
+        return null;
+    }
+
+    alloc_info : VmaAllocationInfo;
+    vmaGetAllocationInfo(GetGfxContext().allocator, buffer.allocation, *alloc_info);
+
+    return alloc_info.pMappedData;
+} @ModuleAPI @NoProfile

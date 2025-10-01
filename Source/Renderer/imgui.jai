@@ -294,11 +294,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         vertex_buffer.* = CreateGfxBuffer("ImGui Vertices", desc);
         Assert(!IsNull(vertex_buffer), "Could not create ImGui vertex buffer");
 
-        alloc_info : VmaAllocationInfo;
-        vmaGetAllocationInfo(GetGfxContext().allocator, vertex_buffer.allocation, *alloc_info);
-        Assert(alloc_info.pMappedData != null);
-
-        g_imgui_vertex_buffer_ptrs[frame_in_flight] = alloc_info.pMappedData;
+        g_imgui_vertex_buffer_ptrs[frame_in_flight] = GetMappedPtr(vertex_buffer);
         g_imgui_vertex_buffer_sizes[frame_in_flight] = vtx_buffer_size;
     }
 
@@ -315,11 +311,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
         index_buffer.* = CreateGfxBuffer("ImGui Indices", desc);
         Assert(!IsNull(index_buffer), "Could not create ImGui vertex buffer");
 
-        alloc_info : VmaAllocationInfo;
-        vmaGetAllocationInfo(GetGfxContext().allocator, index_buffer.allocation, *alloc_info);
-        Assert(alloc_info.pMappedData != null);
-
-        g_imgui_index_buffer_ptrs[frame_in_flight] = alloc_info.pMappedData;
+        g_imgui_index_buffer_ptrs[frame_in_flight] = GetMappedPtr(index_buffer);
         g_imgui_index_buffer_sizes[frame_in_flight] = idx_buffer_size;
     }
 

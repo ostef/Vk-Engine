@@ -21,10 +21,7 @@ InitFrameDataAllocator :: (allocator : *FrameDataAllocator, name : string, capac
         return false;
     }
 
-    alloc_info : VmaAllocationInfo;
-    vmaGetAllocationInfo(GetGfxContext().allocator, allocator.buffer.allocation, *alloc_info);
-
-    allocator.mapped_ptr = alloc_info.pMappedData;
+    allocator.mapped_ptr = GetMappedPtr(*allocator.buffer);
     if !allocator.mapped_ptr {
         DestroyGfxBuffer(*allocator.buffer);
         return false;

@@ -13,6 +13,8 @@
 #load "shadow_map.jai";
 #load "point_shadow_map.jai";
 
+#load "entity_selection.jai";
+
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
     base.Shutdown=ShutdownRenderer,
@@ -394,8 +396,8 @@ RenderFrame :: () {
 
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     WaitForGPUIdle();
-    DestroyGfxTexture(*render_targets.color_buffer);
-    DestroyGfxTexture(*render_targets.depth_buffer);
+    DestroyGfxTexture(*render_targets.color_texture);
+    DestroyGfxTexture(*render_targets.depth_texture);
 }
 
 GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *ViewpointRenderTargets {
@@ -410,10 +412,10 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
 
     using rt := ptr.*;
 
-    if ShouldRecreate(*color_buffer, desired_resolution) {
-        if !IsNull(*color_buffer) {
+    if ShouldRecreate(*color_texture, desired_resolution) {
+        if !IsNull(*color_texture) {
             WaitForGPUIdle();
-            DestroyGfxTexture(*color_buffer);
+            DestroyGfxTexture(*color_texture);
         }
 
         desc : GfxTextureDesc;
@@ -423,14 +425,14 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc.height = Max(desired_resolution.y, 1);
         desc.usage = .ColorAttachment | .Sampled;
 
-        color_buffer = CreateGfxTexture(TPrint("Viewpoint %, Color", id), desc);
-        Assert(!IsNull(*color_buffer), "Could not create viewpoint render target with resolution=%", desired_resolution);
+        color_texture = CreateGfxTexture(TPrint("Viewpoint %, Color", id), desc);
+        Assert(!IsNull(*color_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
-    if ShouldRecreate(*depth_buffer, desired_resolution) {
-        if !IsNull(*depth_buffer) {
+    if ShouldRecreate(*depth_texture, desired_resolution) {
+        if !IsNull(*depth_texture) {
             WaitForGPUIdle();
-            DestroyGfxTexture(*depth_buffer);
+            DestroyGfxTexture(*depth_texture);
         }
 
         desc : GfxTextureDesc;
@@ -440,8 +442,42 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc.height = Max(desired_resolution.y, 1);
         desc.usage = .DepthStencilAttachment;
 
-        depth_buffer = CreateGfxTexture(TPrint("Viewpoint %, Depth", id), desc);
-        Assert(!IsNull(*depth_buffer), "Could not create viewpoint render target with resolution=%", desired_resolution);
+        depth_texture = CreateGfxTexture(TPrint("Viewpoint %, Depth", id), desc);
+        Assert(!IsNull(*depth_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*entity_guids_texture, desired_resolution) {
+        if !IsNull(*entity_guids_texture) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*entity_guids_texture);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA32UInt;
+        desc.width = Max(desired_resolution.x, 1);
+        desc.height = Max(desired_resolution.y, 1);
+        desc.usage = .ColorAttachment | .Sampled | .TransferSrc;
+
+        entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Entity GUIDs", id), desc);
+        Assert(!IsNull(*entity_guids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*selected_entity_guids_texture, desired_resolution) {
+        if !IsNull(*selected_entity_guids_texture) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*selected_entity_guids_texture);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA32UInt;
+        desc.width = Max(desired_resolution.x, 1);
+        desc.height = Max(desired_resolution.y, 1);
+        desc.usage = .ColorAttachment | .Sampled;
+
+        selected_entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Selected Entity GUIDs", id), desc);
+        Assert(!IsNull(*selected_entity_guids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
     return rt;
@@ -459,6 +495,10 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     mesh_buffer.meshes.allocator = Temp;
     mesh_buffer.draw_calls.allocator = Temp;
 
+    selected_mesh_buffer : MeshBuffer;
+    selected_mesh_buffer.meshes.allocator = Temp;
+    selected_mesh_buffer.draw_calls.allocator = Temp;
+
     for g_meshes_to_render {
         if !it.is_skinned {
             aabb := GetTransformedAABB(it.transform, it.static_bounds);
@@ -470,13 +510,32 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
         key := MakeMeshBufferKey(it, depth);
         PushMesh(*mesh_buffer, key, it);
+
+        if it.selected_in_editor {
+            PushMesh(*selected_mesh_buffer, key, it);
+        }
     }
 
     SortMeshBuffer(*mesh_buffer);
     AllocDrawData(*mesh_buffer);
 
-    AddTextureBarrier(ctx.cmd_buffer, .Undefined, .ColorAttachment, *ctx.render_targets.color_buffer);
-    AddTextureBarrier(ctx.cmd_buffer, .Undefined, .DepthStencilAttachment, *ctx.render_targets.depth_buffer);
+    SortMeshBuffer(*selected_mesh_buffer);
+    AllocDrawData(*selected_mesh_buffer);
+
+    AddTextureBarriers(ctx.cmd_buffer, .Undefined, .ColorAttachment, .[
+        *ctx.render_targets.color_texture,
+        *ctx.render_targets.entity_guids_texture,
+        *ctx.render_targets.selected_entity_guids_texture
+    ]);
+    AddTextureBarrier(ctx.cmd_buffer, .Undefined, .DepthStencilAttachment, *ctx.render_targets.depth_texture);
+
+    if !(viewpoint.flags & .NoEntitySelection) {
+        EntityGUIDsPass(ctx, *ctx.render_targets.entity_guids_texture, *ctx.render_targets.depth_texture, *mesh_buffer);
+        EntityGUIDsPass(ctx, *ctx.render_targets.selected_entity_guids_texture, *ctx.render_targets.depth_texture, *selected_mesh_buffer);
+
+        AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .TransferSrc, *ctx.render_targets.entity_guids_texture);
+        TransferEntityGUIDsForReadback(ctx);
+    }
 
     // DepthPrepass(ctx, *mesh_buffer);
     // PrepareClusters(ctx);
@@ -495,7 +554,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     //     GizmoPass(ctx);
     // }
 
-    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.color_buffer);
+    AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, *ctx.render_targets.color_texture);
 }
 
 ForwardPassBindingSet :: struct {
@@ -531,8 +590,8 @@ ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
     w, h := viewpoint.resolution.x, viewpoint.resolution.y;
 
     pass_desc : GfxRenderPassDesc;
-    AddColorAttachment(*pass_desc, *render_targets.color_buffer);
-    AddDepthAttachment(*pass_desc, *render_targets.depth_buffer);
+    AddColorAttachment(*pass_desc, *render_targets.color_texture);
+    AddDepthAttachment(*pass_desc, *render_targets.depth_texture);
     ClearColor(*pass_desc, 0, Vec4f.{0,0,0,1});
     ClearDepth(*pass_desc, Depth_Clear);
 

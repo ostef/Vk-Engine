@@ -66,8 +66,11 @@ MakeViewpointID :: inline (str : string) -> u64 {
 }
 
 ViewpointRenderTargets :: struct {
-    color_buffer : GfxTexture;
-    depth_buffer : GfxTexture;
+    color_texture : GfxTexture;
+    depth_texture : GfxTexture;
+    entity_guids_texture : GfxTexture;
+    selected_entity_guids_texture : GfxTexture;
+    entity_guids_readback_buffers : [Gfx_Num_Frames_In_Flight]GfxBuffer;
 }
 
 MeshToRender :: struct {
@@ -80,6 +83,7 @@ MeshToRender :: struct {
     cast_shadows : bool;
     cast_point_shadows : bool;
     is_skinned : bool;
+    selected_in_editor : bool;
     skinning_matrices : []Mat4f;
 }
 

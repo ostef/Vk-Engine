@@ -125,9 +125,9 @@ EditorLoop :: () {
     if ImGui.Begin("Viewport") {
         size := ImGui.GetContentRegionAvail();
         g_main_viewport.camera.viewport_size = .{xx size.x, xx size.y};
+        g_main_viewport.render_targets = GetViewpointRenderTargets(MakeViewpointID("Main Editor Viewpoint"), g_main_viewport.camera.viewport_size);
 
-        rt := GetViewpointRenderTargets(MakeViewpointID("Main Editor Viewpoint"), g_main_viewport.camera.viewport_size);
-        ImGui.Image(*rt.color_buffer, size);
+        ImGui.Image(*g_main_viewport.render_targets.color_texture, size);
     }
     ImGui.End();
 
@@ -315,4 +315,27 @@ SetEditorStyleForBlurredBackground :: () {
     style.Colors[ImGui.Col.ScrollbarGrabHovered].a = 0.78;
     style.Colors[ImGui.Col.ScrollbarGrabActive].a = 0.78;
     style.Colors[ImGui.Col.DockingEmptyBg].a = 0.78;
+}
+
+GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> EntityGUID {
+    if !viewport.render_targets {
+        return Null_Entity_GUID;
+    }
+
+    if x < 0 || x >= viewport.camera.viewport_size.x || y < 0 || y >= viewport.camera.viewport_size.y {
+        return Null_Entity_GUID;
+    }
+
+    frame_index := GetFrameInFlight();
+    frame_index += Gfx_Num_Frames_In_Flight - 1;
+    frame_index %= Gfx_Num_Frames_In_Flight;
+
+    buffer := *viewport.render_targets.entity_guid_readback_buffers[frame_index];
+    ptr := cast(*EntityGUID, GetMappedPtr(buffer));
+    index := y * w + x;
+    if !ptr || index * size_of(EntityGUID) > buffer.desc.size {
+        return Null_Entity_GUID;
+    }
+
+    return ptr[index];
 }
