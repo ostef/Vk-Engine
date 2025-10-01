@@ -61,8 +61,8 @@
     }; \
     layout(set=0, binding=2, std430) readonly buffer PointLights { \
         PointLight u_point_lights[]; \
-    }; /* \
-    layout(set=0, binding=3) uniform sampler2D u_brdf_lut ; \
+    }; \
+    layout(set=0, binding=3) uniform sampler2D u_brdf_lut ;  /* \
     layout(set=0, binding=4) uniform sampler2DArray u_shadow_map_noise_texture*/
 #endif
 
@@ -94,10 +94,9 @@
         Viewpoint u_viewpoints[Max_Viewpoints]; \
     }; /*\
     layout(set=1, binding=1) uniform sampler2DArrayShadow u_shadow_maps[Max_Shadow_Maps]; \
-    layout(set=1, binding=2) uniform samplerCube u_point_shadow_maps[Max_Point_Shadow_Maps]; \
+    layout(set=1, binding=2) uniform samplerCube u_point_shadow_maps[Max_Point_Shadow_Maps]; */ \
     layout(set=1, binding=3) uniform sampler2D u_irradiance_map; \
     layout(set=1, binding=4) uniform sampler2D u_environment_map; \
-    */ \
     layout(set=1, binding=5) readonly buffer Clusters { \
         LightCluster u_clusters[]; \
     }

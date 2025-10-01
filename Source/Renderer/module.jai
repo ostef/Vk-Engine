@@ -57,6 +57,7 @@ ViewpointToRender :: struct {
     frustum : Frustum;
 
     skybox : *Asset(EnvironmentMap);
+    skybox_light_intensity : float;
 }
 
 MakeViewpointID :: inline (str : string) -> u64 {

@@ -23,6 +23,7 @@ CoreModule :: struct {
     BindGraphicsPipeline : (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline);
     BindIndexBuffer : (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuffer, offset : u64 = 0);
     BindVertexBuffer : (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0);
+    ClearEnvironmentMapsToGenerate : ();
     CopyBufferToBuffer : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64);
     CopyBufferToTexture : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture);
     CopyTextureToBuffer : (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer);
@@ -66,6 +67,7 @@ CoreModule :: struct {
     GetCVarInt : (name : string, default : s32 = 0) -> s32, exists : bool;
     GetCVarString : (name : string, default : string = "") -> string, exists : bool;
     GetCVarUInt : (name : string, default : u32 = 0) -> u32, exists : bool;
+    GetEnvironmentMapsToGenerate : () -> []*EnvironmentMap;
     GetFrameInFlight : () -> s64;
     GetGPUFrameProfiler : () -> *GPUFrameProfiler;
     GetGfxContext : () -> *GfxContext;
@@ -250,6 +252,11 @@ BindIndexBuffer :: inline (pass : *GfxRenderPass, type : GfxIndexType, buffer : 
 BindVertexBuffer :: inline (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0) {
     Assert(g_Core != null, "Core module is null");
     g_Core.BindVertexBuffer(pass, binding, buffer, offset);
+}
+
+ClearEnvironmentMapsToGenerate :: inline () {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ClearEnvironmentMapsToGenerate();
 }
 
 CopyBufferToBuffer :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64) {
@@ -471,6 +478,11 @@ GetCVarUInt :: inline (name : string, default : u32 = 0) -> u32, exists : bool {
     Assert(g_Core != null, "Core module is null");
     _ret0, _ret1 := g_Core.GetCVarUInt(name, default);
     return _ret0, _ret1;
+}
+
+GetEnvironmentMapsToGenerate :: inline () -> []*EnvironmentMap {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetEnvironmentMapsToGenerate();
 }
 
 GetFrameInFlight :: inline () -> s64 {

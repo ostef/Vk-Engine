@@ -1,5 +1,9 @@
 ForwardPassBindingSet :: struct {
     viewpoints : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage
+    // shadow_maps : [Max_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage @AllowNull
+    // point_shadow_maps : [Max_Point_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage @AllowNull
+    irradiance_map : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    environment_map : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
     clusters : GfxBindingStorageBuffer; @Binding(5) @FragmentStage
 } @BindingSet
 
@@ -25,8 +29,18 @@ ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
 
     pass_bindings := ForwardPassBindingSet.{
         viewpoints=.{buffer=FrameDataBuffer(), offset=xx viewpoints_offset, size=xx viewpoints_size},
+        irradiance_map.sampler=*g_skybox_sampler,
+        environment_map.sampler=*g_skybox_sampler,
         clusters=.{buffer=FrameDataBuffer(), offset=xx clusters_offset, size=xx clusters_size},
     };
+
+    if viewpoint.skybox {
+        pass_bindings.irradiance_map.texture = *viewpoint.skybox.irradiance_map;
+        pass_bindings.environment_map.texture = *viewpoint.skybox.environment_map;
+    } else {
+        pass_bindings.irradiance_map.texture = *g_default_environment_map.irradiance_map;
+        pass_bindings.environment_map.texture = *g_default_environment_map.environment_map;
+    }
 
     binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), pass_bindings);
 

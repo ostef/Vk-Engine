@@ -201,6 +201,7 @@ EditorLoop :: () {
         viewpoint := MakeViewpointToRender(it);
         viewpoint.unique_id = it.unique_id;
         viewpoint.skybox = g_editor_world.skybox;
+        viewpoint.skybox_light_intensity = g_editor_world.skybox_light_intensity;
         AddViewpointToRender(viewpoint);
     }
 

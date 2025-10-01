@@ -3,6 +3,7 @@
 #ifndef SHADER_TYPES_GENERATED_GLSL
 #define SHADER_TYPES_GENERATED_GLSL
 
+#define BRDF_LUT_Compute_Work_Group_Size 16
 #define Max_Lights_Per_Clusters 100
 #define Max_Viewpoints 6
 #define Num_Clusters 3456

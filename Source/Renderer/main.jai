@@ -12,6 +12,8 @@
 #load "lights.jai";
 #load "shadow_map.jai";
 #load "point_shadow_map.jai";
+#load "image_based_lighting.jai";
+#load "skybox.jai";
 
 #load "entity_selection.jai";
 #load "forward_pass.jai";
@@ -113,6 +115,16 @@ InitializeRenderer :: () {
     g_material_texture_sampler = CreateGfxSampler("Material Texture", sampler_desc);
     Assert(!IsNull(*g_material_texture_sampler), "Could not create material texture sampler");
 
+    sampler_desc = .{};
+    sampler_desc.min_filter = .Linear;
+    sampler_desc.mag_filter = .Linear;
+    sampler_desc.mipmap_filter = .Linear;
+    sampler_desc.u_address_mode = .Repeat;
+    sampler_desc.v_address_mode = .ClampToEdge;
+
+    g_skybox_sampler = CreateGfxSampler("Skybox", sampler_desc);
+    Assert(!IsNull(*g_skybox_sampler), "Could not create skybox sampler");
+
     frame_layout_desc : GfxPipelineLayoutDesc;
     frame_layout_desc.binding_sets = .[
         g_binding_set_layouts.FrameBindingSet,
@@ -139,6 +151,7 @@ ShutdownRenderer :: () {
     DestroyGfxSampler(*g_linear_clamp_sampler);
     DestroyGfxSampler(*g_nearest_clamp_sampler);
     DestroyGfxSampler(*g_material_texture_sampler);
+    DestroyGfxSampler(*g_skybox_sampler);
 
     for * g_frame_data_allocators {
         DestroyFrameDataAllocator(it);
@@ -257,11 +270,17 @@ RecreateRenderTargets :: () {
     Assert(!IsNull(*g_final_texture), "Could not create final texture");
 }
 
+GetNumComputeWorkGroupsForTexture :: (desc : GfxTextureAndViewDesc, mipmap_level : int, work_group_size : u32) -> x : u32, y : u32 {
+    w, h := GetTextureMipSize(desc, mipmap_level);
+
+    return (w  + work_group_size - 1) / work_group_size, (h + work_group_size - 1) / work_group_size;
+}
+
 FrameBindingSet :: struct {
     frame_info : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage @ComputeStage
     directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
     point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
-    // brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
     // shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
 } @BindingSet
 
@@ -344,6 +363,10 @@ RenderFrame :: () {
 
     cmd_buffer := CreateGfxCommandBuffer("Main");
 
+    if IsNull(*g_brdf_lut) {
+        GenerateBRDFLUT(*cmd_buffer);
+    }
+
     ctx : RenderContext;
     ctx.cmd_buffer = *cmd_buffer;
 
@@ -353,6 +376,7 @@ RenderFrame :: () {
         window_pixel_size=.{xx w, xx h},
         num_directional_lights=xx g_directional_lights_to_render.count,
         num_point_lights=xx g_point_lights_to_render.count,
+        skybox_light_intensity=ifx g_viewpoints_to_render.count > 0 then g_viewpoints_to_render[0].skybox_light_intensity,
     };
     frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
 
@@ -383,6 +407,7 @@ RenderFrame :: () {
         frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
         directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
         point_lights=.{buffer=FrameDataBuffer(), offset=xx point_lights_offset, size=xx point_lights_size},
+        brdf_lut=.{texture=*g_brdf_lut, sampler=*g_linear_clamp_sampler},
     };
     ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
 
@@ -390,7 +415,7 @@ RenderFrame :: () {
     BindComputeBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
 
     TextureUploadPass(*cmd_buffer);
-    // GenerateEnvironmentMaps(*cmd_buffer);
+    GenerateEnvironmentMaps(*cmd_buffer);
 
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
@@ -592,7 +617,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     // DepthPrepass(ctx, *mesh_buffer);
     PrepareClusters(ctx);
     ForwardPass(ctx, *mesh_buffer);
-    // SkyboxPass(ctx);
+    SkyboxPass(ctx, ifx viewpoint.skybox && viewpoint.skybox.base_texture then *viewpoint.skybox.base_texture.texture);
 
     // if !(viewpoint.flags & .NoDebugLines) {
     //     DebugLinesPass(ctx);
