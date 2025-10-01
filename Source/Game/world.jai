@@ -384,103 +384,18 @@ DestroyKilledEntities :: (using world : *World) {
     ArrayClear(*entities_killed_this_frame);
 } @ModuleAPI
 
-MakeMeshToRender :: (entity : *Entity, component : *StaticMeshComponent) -> bool, MeshToRender {
-    if entity.flags & .Hidden || !component.mesh || IsNull(*component.mesh.vertex_buffer) || IsNull(*component.mesh.index_buffer) {
-        return false, .{};
-    }
-
-    return true, .{
-        entity_guid=xx entity.guid,
-        transform=component.world_transform,
-        vertex_buffer=*component.mesh.vertex_buffer,
-        index_buffer=*component.mesh.index_buffer,
-        vertex_count=component.mesh.vertex_count,
-        index_count=component.mesh.index_count,
-        static_bounds=component.mesh.static_bounds,
-        material=ifx component.material then component.material else g_default_material,
-        cast_shadows=component.cast_shadows,
-        cast_point_shadows=component.cast_point_shadows,
-        is_skinned=false,
-    };
-}
-
-MakeMeshToRender :: (world : *World, component : *StaticMeshComponent) -> bool, MeshToRender {
-    entity := GetEntity(world, component.entity_index);
-    if !entity {
-        LogError("Could not get entity %", component.entity_index);
-        return false, .{};
-    }
-
-    ok, mesh := MakeMeshToRender(entity, component);
-    return ok, mesh;
-}
-
-MakeMeshToRender :: (entity : *Entity, component : *SkinnedMeshComponent) -> bool, MeshToRender {
-    if entity.flags & .Hidden || !component.mesh || IsNull(*component.mesh.vertex_buffer) || IsNull(*component.mesh.index_buffer) {
-        return false, .{};
-    }
-
-    return true, .{
-        entity_guid=xx entity.guid,
-        transform=component.world_transform,
-        vertex_buffer=*component.mesh.vertex_buffer,
-        index_buffer=*component.mesh.index_buffer,
-        vertex_count=component.mesh.vertex_count,
-        index_count=component.mesh.index_count,
-        material=ifx component.material then component.material else g_default_material,
-        cast_shadows=component.cast_shadows,
-        cast_point_shadows=component.cast_point_shadows,
-        is_skinned=true,
-        skinning_matrices=component.skinning_matrices,
-    };
-}
-
-MakeMeshToRender :: (world : *World, component : *SkinnedMeshComponent) -> bool, MeshToRender {
-    entity := GetEntity(world, component.entity_index);
-    if !entity {
-        LogError("Could not get entity");
-        return false, .{};
-    }
-
-    ok, mesh := MakeMeshToRender(entity, component);
-    return ok, mesh;
-}
-
-AllMeshesToRender :: (world : *World, body : Code, flags : For_Flags) #expand {
-    `it : MeshToRender;
-    `it_index : int;
-
-    for * c, i : world.StaticMeshComponent_storage {
-        defer it_index += 1;
-
-        ok:, it = MakeMeshToRender(world, c);
-        if !ok {
-            continue;
-        }
-
-        #insert(break=return) body;
-    }
-
-    for * c, i : world.SkinnedMeshComponent_storage {
-        defer it_index += 1;
-
-        ok:, it = MakeMeshToRender(world, c);
-        if !ok {
-            continue;
-        }
-
-        #insert(break=return) body;
-    }
-}
-
 g_default_material : *Asset(Material);
 
-SubmitWorldToRenderer :: (world : *World) {
-    push_context,defer_pop g_context;
-
+GetDefaultMaterial :: inline () -> *Asset(Material) {
     if !g_default_material {
         g_default_material = LoadAsset(Material, "Default_Material.mat");
     }
+
+    return g_default_material;
+} @ModuleAPI
+
+SubmitWorldToRenderer :: (world : *World) {
+    push_context,defer_pop g_context;
 
     for :AllMeshesToRender world {
         AddMeshToRender(it);

@@ -9,6 +9,37 @@ StaticMeshComponent :: struct {
 
 AllStaticMeshComponents :: #bake_arguments AllEntityComponents(T=StaticMeshComponent);
 
+MakeMeshToRender :: (entity : *Entity, component : *StaticMeshComponent) -> bool, MeshToRender {
+    if entity.flags & .Hidden || !component.mesh || IsNull(*component.mesh.vertex_buffer) || IsNull(*component.mesh.index_buffer) {
+        return false, .{};
+    }
+
+    return true, .{
+        entity_guid=xx entity.guid,
+        transform=component.world_transform,
+        vertex_buffer=*component.mesh.vertex_buffer,
+        index_buffer=*component.mesh.index_buffer,
+        vertex_count=component.mesh.vertex_count,
+        index_count=component.mesh.index_count,
+        static_bounds=component.mesh.static_bounds,
+        material=ifx component.material then component.material else GetDefaultMaterial(),
+        cast_shadows=component.cast_shadows,
+        cast_point_shadows=component.cast_point_shadows,
+        is_skinned=false,
+    };
+}
+
+MakeMeshToRender :: (world : *World, component : *StaticMeshComponent) -> bool, MeshToRender {
+    entity := GetEntity(world, component.entity_index);
+    if !entity {
+        LogError("Could not get entity %", component.entity_index);
+        return false, .{};
+    }
+
+    ok, mesh := MakeMeshToRender(entity, component);
+    return ok, mesh;
+}
+
 SkinnedMeshComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
@@ -24,6 +55,37 @@ SkinnedMeshComponent :: struct {
 } @Component
 
 AllSkinnedMeshComponents :: #bake_arguments AllEntityComponents(T=SkinnedMeshComponent);
+
+MakeMeshToRender :: (entity : *Entity, component : *SkinnedMeshComponent) -> bool, MeshToRender {
+    if entity.flags & .Hidden || !component.mesh || IsNull(*component.mesh.vertex_buffer) || IsNull(*component.mesh.index_buffer) {
+        return false, .{};
+    }
+
+    return true, .{
+        entity_guid=xx entity.guid,
+        transform=component.world_transform,
+        vertex_buffer=*component.mesh.vertex_buffer,
+        index_buffer=*component.mesh.index_buffer,
+        vertex_count=component.mesh.vertex_count,
+        index_count=component.mesh.index_count,
+        material=ifx component.material then component.material else GetDefaultMaterial(),
+        cast_shadows=component.cast_shadows,
+        cast_point_shadows=component.cast_point_shadows,
+        is_skinned=true,
+        skinning_matrices=component.skinning_matrices,
+    };
+}
+
+MakeMeshToRender :: (world : *World, component : *SkinnedMeshComponent) -> bool, MeshToRender {
+    entity := GetEntity(world, component.entity_index);
+    if !entity {
+        LogError("Could not get entity");
+        return false, .{};
+    }
+
+    ok, mesh := MakeMeshToRender(entity, component);
+    return ok, mesh;
+}
 
 // SetPose :: (using component : *SkinnedMeshComponent, pose : *ArmaturePose) {
 //     if !pose.mesh {
@@ -95,6 +157,60 @@ StaticMeshEntity :: struct {
 //         SetPose(mesh, *pose);
 //     }
 // } @Entity
+
+AllMeshesToRender :: (world : *World, body : Code, flags : For_Flags) #expand {
+    `it : MeshToRender;
+    `it_index : int;
+
+    for * c, i : world.StaticMeshComponent_storage {
+        defer it_index += 1;
+
+        ok:, it = MakeMeshToRender(world, c);
+        if !ok {
+            continue;
+        }
+
+        #insert(break=return) body;
+    }
+
+    for * c, i : world.SkinnedMeshComponent_storage {
+        defer it_index += 1;
+
+        ok:, it = MakeMeshToRender(world, c);
+        if !ok {
+            continue;
+        }
+
+        #insert(break=return) body;
+    }
+}
+
+AllMeshesToRender :: (entity : *$E, body : Code, flags : For_Flags) #expand {
+    `it : MeshToRender;
+    `it_index : int;
+
+    for :AllStaticMeshComponents c, i : entity {
+        defer it_index += 1;
+
+        ok:, it = MakeMeshToRender(entity, c);
+        if !ok {
+            continue;
+        }
+
+        #insert(break=return) body;
+    }
+
+    for :AllSkinnedMeshComponents c, i : entity {
+        defer it_index += 1;
+
+        ok:, it = MakeMeshToRender(entity, c);
+        if !ok {
+            continue;
+        }
+
+        #insert(break=return) body;
+    }
+}
 
 DirectionalLightComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree

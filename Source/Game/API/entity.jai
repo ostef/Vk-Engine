@@ -104,8 +104,12 @@ Null_Entity_GUID :: EntityGUID.{};
 
 EntityGUID :: #type,distinct GUID;
 
-operator == :: inline (a : EntityGUID, b : EntityGUID) -> bool {
+CompareEntityGUIDs :: inline (a : EntityGUID, b : EntityGUID) -> bool {
     return a.low == b.low && a.high == b.high;
+}
+
+operator == :: inline (a : EntityGUID, b : EntityGUID) -> bool {
+    return CompareEntityGUIDs(a, b);
 }
 
 HashEntityGUID :: inline (guid : EntityGUID) -> u64 {

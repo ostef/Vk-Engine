@@ -439,17 +439,17 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
                 // ArrayClear(*g_world_editor.selected_entities);
             }
 
-            // for y : y1..y2 {
-            //     for x : x1..x2 {
-            //         guid := GetEntityAtPoint(world, *viewport.entity_selection_ctx, xx x, xx y);
+            for y : y1..y2 {
+                for x : x1..x2 {
+                    guid := GetEntityGUIDAtPoint(viewport, xx x, xx y);
 
-            //         if CheckModState(.Ctrl | .Shift) {
-            //             DeselectEntity(guid);
-            //         } else {
-            //             SelectEntity(guid, add_to_selection=true);
-            //         }
-            //     }
-            // }
+                    if GetModState() == (.Ctrl | .Shift) {
+                        DeselectEntity(guid);
+                    } else {
+                        SelectEntity(guid, add_to_selection=true);
+                    }
+                }
+            }
 
             is_box_selecting = false;
         }

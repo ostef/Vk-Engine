@@ -47,6 +47,46 @@ g_editor_medium_font : *ImGui.ImFont;
 
 g_editor_world : World;
 
+g_editor_selected_entities : [..]EntityGUID;
+
+DeselectEntity :: (entity : EntityGUID) {
+    index := ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs);
+    if index >= 0 {
+        ArrayRemove(*g_editor_selected_entities, index);
+    }
+}
+
+SelectEntity :: (entity : EntityGUID, add_to_selection := false, focus := true) {
+    if !add_to_selection {
+        ArrayClear(*g_editor_selected_entities);
+    }
+
+    if entity != Null_Entity_GUID {
+        ArrayPushUnique(*g_editor_selected_entities, entity, CompareEntityGUIDs);
+    }
+
+    if focus {
+        ImGui.FocusWindow(null);
+    }
+}
+
+EntityIsSelected :: inline (entity : EntityGUID) -> bool {
+    return ArrayFindFirst(g_editor_selected_entities, entity) != -1;
+}
+
+EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
+    e := GetEntity(world, entity);
+    while e {
+        if EntityIsSelected(e.guid) {
+            return true;
+        }
+
+        e = GetEntity(world, e.parent);
+    }
+
+    return false;
+}
+
 InitializeEditor :: () {
     LogSectionScope(*Log_Editor);
 
@@ -137,6 +177,17 @@ EditorLoop :: () {
     WaitForRenderThread();
 
     SubmitWorldToRenderer(*g_editor_world);
+
+    for g_editor_selected_entities {
+        entity := GetEntity(*g_editor_world, it);
+        if !entity {
+            continue;
+        }
+
+        for :AllMeshesToRender entity {
+            AddSelectedMeshToRender(it);
+        }
+    }
 
     for g_editor_viewports {
         if it.size.x == 0 || it.size.y == 0 {
@@ -329,7 +380,7 @@ GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> Entity
         return Null_Entity_GUID;
     }
 
-    if x < 0 || x >= viewport.size.x || y < 0 || y >= viewport.size.y {
+    if x < 0 || x >= xx viewport.size.x || y < 0 || y >= xx viewport.size.y {
         return Null_Entity_GUID;
     }
 
@@ -337,10 +388,10 @@ GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> Entity
     frame_index += Gfx_Num_Frames_In_Flight - 1;
     frame_index %= Gfx_Num_Frames_In_Flight;
 
-    buffer := *viewport.render_targets.entity_guid_readback_buffers[frame_index];
+    buffer := *viewport.render_targets.entity_guids_readback_buffers[frame_index];
     ptr := cast(*EntityGUID, GetMappedPtr(buffer));
-    index := y * w + x;
-    if !ptr || index * size_of(EntityGUID) > buffer.desc.size {
+    index := y * cast(u32, viewport.size.x) + x;
+    if !ptr || index * size_of(EntityGUID) > xx buffer.desc.size {
         return Null_Entity_GUID;
     }
 

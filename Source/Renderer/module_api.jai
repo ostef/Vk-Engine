@@ -5,6 +5,7 @@ RendererModule :: struct {
     AddDirectionalLightToRender : (light : DirectionalLightToRender);
     AddMeshToRender : (mesh : MeshToRender);
     AddPointLightToRender : (light : PointLightToRender);
+    AddSelectedMeshToRender : (mesh : MeshToRender);
     AddViewpointToRender : (viewpoint : ViewpointToRender);
     DestroyImGuiRenderer : ();
     GetViewpointRenderTargets : (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets;
@@ -30,6 +31,11 @@ AddMeshToRender :: inline (mesh : MeshToRender) {
 AddPointLightToRender :: inline (light : PointLightToRender) {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.AddPointLightToRender(light);
+}
+
+AddSelectedMeshToRender :: inline (mesh : MeshToRender) {
+    Assert(g_Renderer != null, "Renderer module is null");
+    g_Renderer.AddSelectedMeshToRender(mesh);
 }
 
 AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {

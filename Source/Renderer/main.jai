@@ -44,6 +44,7 @@ g_context : #Context;
 g_viewpoint_render_targets : HashMap(u64, *ViewpointRenderTargets);
 g_viewpoints_to_render : [..]ViewpointToRender;
 g_meshes_to_render : [..]MeshToRender;
+g_selected_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
 g_point_lights_to_render : [..]PointLightToRender;
 
@@ -192,6 +193,12 @@ AddMeshToRender :: (mesh : MeshToRender) {
     ArrayPush(*g_meshes_to_render, mesh);
 } @ModuleAPI
 
+AddSelectedMeshToRender :: (mesh : MeshToRender) {
+    push_context,defer_pop g_context;
+
+    ArrayPush(*g_selected_meshes_to_render, mesh);
+} @ModuleAPI
+
 AddDirectionalLightToRender :: (light : DirectionalLightToRender) {
     push_context,defer_pop g_context;
 
@@ -218,6 +225,7 @@ SubmitFrameToRenderThread :: () {
         RecreateRenderTargets();
         g_should_recreate_render_targets = false;
     }
+
     RenderFrame();
 } @ModuleAPI
 
@@ -390,6 +398,7 @@ RenderFrame :: () {
 
     ArrayClear(*g_viewpoints_to_render);
     ArrayClear(*g_meshes_to_render);
+    ArrayClear(*g_selected_meshes_to_render);
     ArrayClear(*g_directional_lights_to_render);
     ArrayClear(*g_point_lights_to_render);
 }
@@ -517,10 +526,19 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
         key := MakeMeshBufferKey(it, depth);
         PushMesh(*mesh_buffer, key, it);
+    }
 
-        if it.selected_in_editor {
-            PushMesh(*selected_mesh_buffer, key, it);
+    for g_selected_meshes_to_render {
+        if !it.is_skinned {
+            aabb := GetTransformedAABB(it.transform, it.static_bounds);
+            if !AABBIsInFrustum(aabb, viewpoint.frustum) {
+                continue;
+            }
         }
+
+        depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
+        key := MakeMeshBufferKey(it, depth);
+        PushMesh(*selected_mesh_buffer, key, it);
     }
 
     SortMeshBuffer(*mesh_buffer);

@@ -233,9 +233,9 @@ ArrayFindLastPtr :: (arr : []$T, item : T, $compare : (T, T) -> bool = (a, b) =>
     return *arr[index];
 }
 
-ArrayPushUnique :: (arr : *[..]$T, item : T) -> bool
+ArrayPushUnique :: (arr : *[..]$T, item : T, $compare : (T, T) -> bool = (a, b) => a == b) -> bool
 {
-    if ArrayFindFirst(arr.*, item) == -1
+    if ArrayFindFirst(arr.*, item, compare) == -1
     {
         ArrayPush(arr, item);
         return true;

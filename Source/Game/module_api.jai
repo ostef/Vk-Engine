@@ -5,6 +5,7 @@ GameModule :: struct {
     CopyWorld : (dest : *World, src : *World);
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
+    GetDefaultMaterial : () -> *Asset(DataType=Material);
     LoadWorldFromDirectory : (world : *World, directory : string);
     SaveWorldToDirectory : (world : *World, output_directory : string);
     SubmitWorldToRenderer : (world : *World);
@@ -26,6 +27,11 @@ DestroyKilledEntities :: inline (world : *World) {
 DestroyWorld :: inline (world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.DestroyWorld(world);
+}
+
+GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.GetDefaultMaterial();
 }
 
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {

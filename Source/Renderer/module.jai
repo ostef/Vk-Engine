@@ -83,7 +83,6 @@ MeshToRender :: struct {
     cast_shadows : bool;
     cast_point_shadows : bool;
     is_skinned : bool;
-    selected_in_editor : bool;
     skinning_matrices : []Mat4f;
 }
 
