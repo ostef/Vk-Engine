@@ -24,11 +24,31 @@ EditorCamera :: struct {
 }
 
 EditorViewport :: struct {
+    unique_id : u64;
     camera : EditorCamera;
     render_targets : *ViewpointRenderTargets;
 }
 
-g_main_viewport : EditorViewport;
+g_editor_viewports : [..]*EditorViewport;
+
+CreateEditorViewport :: () -> *EditorViewport {
+    #import "Random";
+
+    viewport := Alloc(EditorViewport);
+    viewport.unique_id = random_get();
+    ArrayPush(*g_editor_viewports, viewport);
+
+    return viewport;
+}
+
+DestroyEditorViewport :: (viewport : *EditorViewport) {
+    index := ArrayFindFirst(g_editor_viewports, viewport);
+    if index >= 0 {
+        ArrayOrderedRemove(*g_editor_viewports, index);
+    }
+
+    Free(viewport);
+}
 
 MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
     view_projection := camera.projection * camera.view;

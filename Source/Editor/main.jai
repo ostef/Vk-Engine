@@ -119,17 +119,30 @@ EditorLoop :: () {
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
 
-    UpdateCamera(*g_main_viewport.camera);
+    if ImGui.BeginMainMenuBar() {
+        if ImGui.MenuItem("Add Viewport") {
+            CreateEditorViewport();
+        }
+
+        defer ImGui.EndMainMenuBar();
+    }
+
     ImGui.ShowDemoWindow(null);
 
-    if ImGui.Begin("Viewport") {
-        size := ImGui.GetContentRegionAvail();
-        g_main_viewport.camera.viewport_size = .{xx size.x, xx size.y};
-        g_main_viewport.render_targets = GetViewpointRenderTargets(MakeViewpointID("Main Editor Viewpoint"), g_main_viewport.camera.viewport_size);
+    for g_editor_viewports {
+        if ImGui.Begin(CTPrint("Viewport %", it.unique_id)) {
+            size := ImGui.GetContentRegionAvail();
+            it.camera.viewport_size = .{xx size.x, xx size.y};
 
-        ImGui.Image(*g_main_viewport.render_targets.color_texture, size);
+            if it.camera.viewport_size.x > 0 && it.camera.viewport_size.y > 0 {
+                it.render_targets = GetViewpointRenderTargets(it.unique_id, it.camera.viewport_size);
+                ImGui.Image(*it.render_targets.color_texture, size);
+            }
+
+            UpdateCamera(*it.camera);
+        }
+        ImGui.End();
     }
-    ImGui.End();
 
     ImGui.Render();
 
@@ -137,10 +150,16 @@ EditorLoop :: () {
 
     SubmitWorldToRenderer(*g_editor_world);
 
-    main_viewpoint := MakeViewpointToRender(g_main_viewport);
-    main_viewpoint.unique_id = MakeViewpointID("Main Editor Viewpoint");
-    main_viewpoint.skybox = g_editor_world.skybox;
-    AddViewpointToRender(main_viewpoint);
+    for g_editor_viewports {
+        if it.camera.viewport_size.x == 0 || it.camera.viewport_size.y == 0 {
+            continue;
+        }
+
+        viewpoint := MakeViewpointToRender(it);
+        viewpoint.unique_id = it.unique_id;
+        viewpoint.skybox = g_editor_world.skybox;
+        AddViewpointToRender(viewpoint);
+    }
 
     SubmitFrameToRenderThread();
 }

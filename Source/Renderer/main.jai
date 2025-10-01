@@ -396,8 +396,15 @@ RenderFrame :: () {
 
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     WaitForGPUIdle();
+
     DestroyGfxTexture(*render_targets.color_texture);
     DestroyGfxTexture(*render_targets.depth_texture);
+    DestroyGfxTexture(*render_targets.entity_guids_texture);
+    DestroyGfxTexture(*render_targets.selected_entity_guids_texture);
+
+    for * render_targets.entity_guids_readback_buffers {
+        DestroyGfxBuffer(it);
+    }
 }
 
 GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *ViewpointRenderTargets {
@@ -421,8 +428,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc : GfxTextureDesc;
         desc.type = .Texture2D;
         desc.pixel_format = .RGBA16Float;
-        desc.width = Max(desired_resolution.x, 1);
-        desc.height = Max(desired_resolution.y, 1);
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled;
 
         color_texture = CreateGfxTexture(TPrint("Viewpoint %, Color", id), desc);
@@ -438,8 +445,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc : GfxTextureDesc;
         desc.type = .Texture2D;
         desc.pixel_format = .Depth32Float;
-        desc.width = Max(desired_resolution.x, 1);
-        desc.height = Max(desired_resolution.y, 1);
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
         desc.usage = .DepthStencilAttachment;
 
         depth_texture = CreateGfxTexture(TPrint("Viewpoint %, Depth", id), desc);
@@ -455,8 +462,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc : GfxTextureDesc;
         desc.type = .Texture2D;
         desc.pixel_format = .RGBA32UInt;
-        desc.width = Max(desired_resolution.x, 1);
-        desc.height = Max(desired_resolution.y, 1);
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled | .TransferSrc;
 
         entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Entity GUIDs", id), desc);
@@ -472,8 +479,8 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         desc : GfxTextureDesc;
         desc.type = .Texture2D;
         desc.pixel_format = .RGBA32UInt;
-        desc.width = Max(desired_resolution.x, 1);
-        desc.height = Max(desired_resolution.y, 1);
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled;
 
         selected_entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Selected Entity GUIDs", id), desc);
