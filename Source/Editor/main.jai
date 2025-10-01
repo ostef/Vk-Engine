@@ -129,20 +129,7 @@ EditorLoop :: () {
 
     ImGui.ShowDemoWindow(null);
 
-    for g_editor_viewports {
-        if ImGui.Begin(CTPrint("Viewport %", it.unique_id)) {
-            size := ImGui.GetContentRegionAvail();
-            it.camera.viewport_size = .{xx size.x, xx size.y};
-
-            if it.camera.viewport_size.x > 0 && it.camera.viewport_size.y > 0 {
-                it.render_targets = GetViewpointRenderTargets(it.unique_id, it.camera.viewport_size);
-                ImGui.Image(*it.render_targets.color_texture, size);
-            }
-
-            UpdateCamera(*it.camera);
-        }
-        ImGui.End();
-    }
+    UpdateEditorViewports(*g_editor_world, 1 / 60.0);
 
     ImGui.Render();
 
@@ -151,7 +138,7 @@ EditorLoop :: () {
     SubmitWorldToRenderer(*g_editor_world);
 
     for g_editor_viewports {
-        if it.camera.viewport_size.x == 0 || it.camera.viewport_size.y == 0 {
+        if it.size.x == 0 || it.size.y == 0 {
             continue;
         }
 
@@ -341,7 +328,7 @@ GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> Entity
         return Null_Entity_GUID;
     }
 
-    if x < 0 || x >= viewport.camera.viewport_size.x || y < 0 || y >= viewport.camera.viewport_size.y {
+    if x < 0 || x >= viewport.size.x || y < 0 || y >= viewport.size.y {
         return Null_Entity_GUID;
     }
 

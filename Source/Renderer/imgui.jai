@@ -349,7 +349,7 @@ ImGuiPass :: (cmd_buffer : *GfxCommandBuffer, draw_data : *ImGui.ImDrawData) {
 
     pass_desc : GfxRenderPassDesc;
     AddColorAttachment(*pass_desc, *g_final_texture);
-    // ClearColor(*pass_desc, 0, Vec4f.{0,0,0,0});
+    ClearColor(*pass_desc, 0, Vec4f.{0,0,0,0});
 
     global_vtx_offset := 0;
     global_idx_offset := 0;

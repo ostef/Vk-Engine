@@ -1,42 +1,68 @@
+EditorViewport :: struct {
+    unique_id : u64;
+
+    position : Vec2f;
+    size : Vec2f;
+    mouse_position : Vec2f;
+
+    is_hovered : bool;
+
+    had_mouse_input_previous_frame : bool;
+    has_mouse_input : bool;
+    has_keyboard_input : bool;
+
+    event_callbacks : [..]EditorViewportEventCallback;
+
+    render_targets : *ViewpointRenderTargets;
+
+    camera : EditorCamera;
+}
+
+g_editor_viewports : [..]*EditorViewport;
+
 EditorCamera :: struct {
+    viewport : *EditorViewport;
+
+    is_moving : bool;
+
     position := #run Normalized(Vec3f.{-1,1,-1}) * 10;
+    rotation : Quatf;
+
     target_yaw := #run ToRads(30.0);
     target_pitch := #run ToRads(30.0);
+
     yaw := #run ToRads(30.0);
     pitch := #run ToRads(30.0);
-    rotation : Quatf;
+
     fov_in_degrees := 80.0;
     z_near := 0.1;
     z_far := 1000.0;
-    transform : Mat4f;
-    view : Mat4f;
-    projection : Mat4f;
-    inv_projection : Mat4f;
-    ortho_projection : Mat4f;
-    inv_ortho_projection : Mat4f;
-    viewport_size : Vec2u;
 
     speed_mult := 1.0;
     base_speed := 0.1;
     fast_speed := 1.0;
     rotation_speed := 0.2;
     rotation_smoothing := 0.3;
-}
 
-EditorViewport :: struct {
-    unique_id : u64;
-    camera : EditorCamera;
-    render_targets : *ViewpointRenderTargets;
+    transform : Mat4f;
+    view : Mat4f;
+    projection : Mat4f;
+    inv_projection : Mat4f;
+    ortho_projection : Mat4f;
+    inv_ortho_projection : Mat4f;
 }
-
-g_editor_viewports : [..]*EditorViewport;
 
 CreateEditorViewport :: () -> *EditorViewport {
     #import "Random";
 
     viewport := Alloc(EditorViewport);
     viewport.unique_id = random_get();
+    viewport.camera.viewport = viewport;
     ArrayPush(*g_editor_viewports, viewport);
+
+    RegisterEventCallback(viewport, HandleEventForCameraMovement);
+    // RegisterEventCallback(viewport, HandleEventForGizmos);
+    // RegisterEventCallback(viewport, HandleEventForEntitySelection);
 
     return viewport;
 }
@@ -48,6 +74,320 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     }
 
     Free(viewport);
+}
+
+UpdateEditorViewports :: (world : *World, delta_time : float) {
+    for g_editor_viewports {
+        UpdateEditorViewport(world, it, delta_time);
+    }
+}
+
+RegisterEventCallback :: (viewport : *EditorViewport, callback : EditorViewportEventCallback) {
+    ArrayPushUnique(*viewport.event_callbacks, callback);
+}
+
+UnregisterEventCallback :: (viewport : *EditorViewport, callback : EditorViewportEventCallback) {
+    index := ArrayFindFirst(viewport.event_callbacks, callback);
+    if index >= 0 {
+        ArrayOrderedRemove(*viewport.event_callbacks, index);
+    }
+}
+
+EditorViewportEvent :: struct {
+    Kind :: enum {
+        MousePosition;
+        MouseButtonPress;
+        MouseButtonRelease;
+        MouseWheel;
+
+        Keyboard;
+    }
+
+    kind : Kind;
+    mouse_position : Vec2f;
+    mouse_button : MouseButton;
+    mouse_wheel : Vec2f;
+    key_mods : KeyMods;
+}
+
+EditorViewportEventCallback :: #type (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool;
+
+ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -> opened : bool {
+    opened := true;
+
+    ImGui.PushStyleVar(.WindowPadding, Vec2f.{0,0});
+    defer ImGui.PopStyleVar();
+
+    defer ImGui.End();
+
+    id := CTPrint("Viewport###viewport_%", unique_id);
+
+    ImGui.SetNextWindowSize(.{1000, 700}, .FirstUseEver);
+    if !ImGui.Begin(id, *opened) {
+        return opened;
+    }
+
+    has_keyboard_input = ImGui.IsWindowFocused();
+
+    size = ImGui.GetContentRegionAvail();
+    render_targets = GetViewpointRenderTargets(unique_id, .{xx size.x, xx size.y});
+
+    uv0 := Vec2f.{0,0};
+    uv1 := Vec2f.{1,1};
+    // #if Gfx_Texture_Origin_Bottom_Left {
+    //     uv0.y = 1 - uv0.y;
+    //     uv1.y = 1 - uv1.y;
+    // }
+
+    window := ImGui.GetCurrentWindow();
+    if window.SkipItems {
+        return opened;
+    }
+
+    content_id := ImGui.GetID("viewport_content");
+    position = ImGui.GetCursorScreenPos();
+    mouse_position = ImGui.GetMousePos() - position;
+    bb := ImGui.ImRect.{position, position + size};
+    ImGui.ItemSize(size);
+    if !ImGui.ItemAdd(bb, content_id) {
+        return opened;
+    }
+
+    ImGui.ButtonBehavior(bb, content_id, *is_hovered, *has_mouse_input, .MouseButtonLeft | .MouseButtonRight | .MouseButtonMiddle);
+
+    draw_list := ImGui.GetWindowDrawList();
+    if render_targets {
+        draw_list.AddImage(draw_list, *render_targets.color_texture, bb.Min, bb.Max, uv0, uv1, 0xffffffff);
+    }
+
+    // if IsBoxSelectingEntities(viewport, mouse_position)
+    // {
+    //     using entity_selection_ctx;
+
+    //     mouse_x := cast(s32, mouse_position.x + position.x);
+    //     mouse_y := cast(s32, mouse_position.y + position.y);
+
+    //     x1 := Min(box_selection_start.x + cast(s32, position.x), mouse_x);
+    //     y1 := Min(box_selection_start.y + cast(s32, position.y), mouse_y);
+    //     x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
+    //     y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
+
+    //     Bg_Color :: Vec4f.{1,1,1,0.2};
+    //     Outline_Color :: Vec4f.{1,1,1,1};
+    //     Outline_Dash_Length :: 5.0;
+    //     Outline_Dash_Space :: 5.0;
+    //     Outline_Dash_Thickness :: 1.0;
+
+    //     draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, U32Color(Bg_Color));
+
+    //     AddDashedLine(draw_list,
+    //         .{xx x1, xx y1}, .{xx x2, xx y1},
+    //         Outline_Dash_Length, Outline_Dash_Space,
+    //         U32Color(Outline_Color),
+    //         Outline_Dash_Thickness
+    //     );
+    //     AddDashedLine(draw_list,
+    //         .{xx x1, xx y2}, .{xx x2, xx y2},
+    //         Outline_Dash_Length, Outline_Dash_Space,
+    //         U32Color(Outline_Color),
+    //         Outline_Dash_Thickness
+    //     );
+    //     AddDashedLine(draw_list,
+    //         .{xx x1, xx y1}, .{xx x1, xx y2},
+    //         Outline_Dash_Length, Outline_Dash_Space,
+    //         U32Color(Outline_Color),
+    //         Outline_Dash_Thickness
+    //     );
+    //     AddDashedLine(draw_list,
+    //         .{xx x2, xx y1}, .{xx x2, xx y2},
+    //         Outline_Dash_Length, Outline_Dash_Space,
+    //         U32Color(Outline_Color),
+    //         Outline_Dash_Thickness
+    //     );
+    // }
+
+    return opened;
+}
+
+UpdateEditorViewport :: (world : *World, using viewport : *EditorViewport, delta_time : float) {
+    had_mouse_input_previous_frame = has_mouse_input;
+
+    if !ShowEditorViewportWindow(world, viewport) {
+        DestroyEditorViewport(viewport);
+        return;
+    }
+
+    // GizmoBeginFrame(world, *gizmo_ctx);
+
+    SendEditorViewportEvents(world, viewport);
+
+    CalculateCameraTransforms(*camera);
+
+    // GizmoClearWidgets(*gizmo_ctx);
+
+    // EntityGizmo(world, viewport);
+}
+
+SendEditorViewportEvents :: (world : *World, viewport : *EditorViewport) {
+    MouseButtonEventHelper :: (button : MouseButton, event : EditorViewportEvent.Kind, $func : (MouseButton) -> bool) #expand {
+        if func(button) {
+            HandleEditorViewportEvent(world, viewport, .{
+                kind=event,
+                mouse_position=viewport.mouse_position,
+                mouse_button=button,
+                key_mods=GetModState(),
+            });
+        }
+    }
+
+    if viewport.is_hovered || viewport.has_mouse_input {
+        HandleEditorViewportEvent(world, viewport, .{
+            kind=.MousePosition,
+            mouse_position=viewport.mouse_position,
+        });
+
+        MouseButtonEventHelper(.Left, .MouseButtonPress, IsMouseButtonPressed);
+        MouseButtonEventHelper(.Right, .MouseButtonPress, IsMouseButtonPressed);
+        MouseButtonEventHelper(.Middle, .MouseButtonPress, IsMouseButtonPressed);
+
+        if GetMouseWheel() != .{} {
+            HandleEditorViewportEvent(world, viewport, .{
+                kind=.MouseWheel,
+                mouse_position=viewport.mouse_position,
+                mouse_wheel=GetMouseWheel(),
+                key_mods=GetModState(),
+            });
+        }
+    }
+
+    if viewport.is_hovered || viewport.has_mouse_input || viewport.had_mouse_input_previous_frame {
+        MouseButtonEventHelper(.Left, .MouseButtonRelease, IsMouseButtonReleased);
+        MouseButtonEventHelper(.Right, .MouseButtonRelease, IsMouseButtonReleased);
+        MouseButtonEventHelper(.Middle, .MouseButtonRelease, IsMouseButtonReleased);
+    }
+
+    if viewport.has_keyboard_input {
+        HandleEditorViewportEvent(world, viewport, .{
+            kind=.Keyboard,
+            key_mods=GetModState(),
+        });
+    }
+}
+
+HandleEditorViewportEvent :: (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> captured : bool {
+    for viewport.event_callbacks {
+        callback := it;
+        capture := callback(world, viewport, event);
+
+        if capture {
+            ArrayOrderedRemove(*viewport.event_callbacks, it_index);
+            ArrayOrderedInsert(*viewport.event_callbacks, 0, callback);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+CalculateCameraTransforms :: (camera : *EditorCamera) {
+    camera.yaw = Lerp(camera.yaw, camera.target_yaw, camera.rotation_smoothing);
+    camera.pitch = Lerp(camera.pitch, camera.target_pitch, camera.rotation_smoothing);
+
+    camera.rotation = QuatfFromEulerAnglesYXZ(.{x=camera.pitch,y=camera.yaw});
+
+    camera.transform = Mat4fTranslate(camera.position) * Mat4fFromQuat(camera.rotation);
+    camera.view = Inverse(camera.transform);
+
+    aspect := camera.viewport.size.x / cast(float, camera.viewport.size.y);
+
+    if Reverse_Depth_Range {
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_far, camera.z_near);
+    } else {
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_near, camera.z_far);
+    }
+
+    camera.inv_projection = Inverse(camera.projection);
+
+    camera.ortho_projection = Mat4fOrthographicProjection(0, camera.viewport.size.x, camera.viewport.size.y, 0, -1, 1);
+    camera.inv_ortho_projection = Inverse(camera.ortho_projection);
+}
+
+HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
+    defer CalculateCameraTransforms(*camera);
+
+    if event.kind == {
+    case .Keyboard;
+        if camera.is_moving && !IsKeyDown(.Ctrl) {
+            movement_input : Vec3f;
+            movement_input.x = GetKeyAxisValue(.A, .D);
+            movement_input.y = GetKeyAxisValue(.Q, .E);
+            movement_input.z = GetKeyAxisValue(.S, .W);
+            movement_input = Normalized(movement_input);
+
+            speed := ifx IsKeyDown(.Shift)
+                then camera.fast_speed
+                else camera.base_speed;
+
+            speed *= camera.speed_mult;
+
+            // @Todo: delta timing
+            camera.position += speed * (
+                RightVector(camera.rotation) * movement_input.x +
+                UpVector(camera.rotation) * movement_input.y +
+                ForwardVector (camera.rotation) * movement_input.z
+            );
+
+            return true;
+        }
+
+    case .MousePosition;
+        if camera.is_moving {
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+
+            rotation_delta := GetRawMouseDelta() * camera.rotation_speed;
+
+            camera.target_yaw += ToRads(rotation_delta.x);
+            camera.target_pitch += ToRads(rotation_delta.y);
+            camera.target_pitch = Clamp(camera.target_pitch, ToRads(-90), ToRads(90));
+
+            return true;
+        }
+
+    case .MouseWheel;
+        if camera.is_moving {
+            if event.mouse_wheel.y < 0 {
+                camera.speed_mult -= 0.2;
+            } else if event.mouse_wheel.y > 0 {
+               camera. speed_mult += 0.2;
+            }
+            camera.speed_mult = Clamp(camera.speed_mult, 0.2, 100);
+
+            return true;
+        }
+
+    case .MouseButtonPress;
+        if event.mouse_button == .Right {
+            camera.is_moving = true;
+        }
+
+        return camera.is_moving;
+
+    case .MouseButtonRelease;
+        was_moving_camera := camera.is_moving;
+        if event.mouse_button == .Right {
+            camera.is_moving = false;
+
+            if was_moving_camera {
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+            }
+        }
+
+        // Just in case, if we were moving the camera then don't propagate event this time
+        return was_moving_camera;
+    }
+
+    return false;
 }
 
 MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
@@ -67,65 +407,7 @@ MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender 
         fov=ToRads(camera.fov_in_degrees),
         z_near=camera.z_near,
         z_far=camera.z_far,
-        resolution=camera.viewport_size,
-        frustum=MakePerspectiveFrustum(camera.transform, camera.fov_in_degrees, camera.viewport_size.x / cast(float, camera.viewport_size.y), camera.z_near, camera.z_far),
+        resolution=.{cast(u32, size.x), cast(u32, size.y)},
+        frustum=MakePerspectiveFrustum(camera.transform, camera.fov_in_degrees, size.x / cast(float, size.y), camera.z_near, camera.z_far),
     };
-}
-
-UpdateCamera :: (using camera : *EditorCamera) {
-    is_moving_camera := IsMouseButtonDown(.Right) && !IsMouseButtonDown(.Left);
-    is_moving_camera &= !ImGui.GetIO().WantCaptureMouse;
-    is_moving_camera &= !ImGui.GetIO().WantCaptureKeyboard;
-    // is_moving_camera &= g_gizmo_ctx.active_id == 0;
-    if is_moving_camera {
-        SDL_SetRelativeMouseMode(SDL_TRUE);
-
-        if !IsKeyDown(.Ctrl) {
-            movement_input : Vec3f;
-            movement_input.x = GetKeyAxisValue(.A, .D);
-            movement_input.y = GetKeyAxisValue(.Q, .E);
-            movement_input.z = GetKeyAxisValue(.S, .W);
-            movement_input = Normalized(movement_input);
-
-            speed := ifx IsKeyDown(.Shift) then fast_speed else base_speed;
-
-            speed *= speed_mult;
-
-            // @Todo: delta timing
-            position += speed * (
-                RightVector(rotation) * movement_input.x +
-                UpVector(rotation) * movement_input.y +
-                ForwardVector(rotation) * movement_input.z
-            );
-        }
-
-        rotation_delta := GetRawMouseDelta() * rotation_speed;
-
-        target_yaw += ToRads(rotation_delta.x);
-        target_pitch += ToRads(rotation_delta.y);
-    } else {
-        SDL_SetRelativeMouseMode(SDL_FALSE);
-    }
-
-    target_pitch = Clamp(target_pitch, ToRads(-90), ToRads(90));
-    yaw = Lerp(yaw, target_yaw, rotation_smoothing);
-    pitch = Lerp(pitch, target_pitch, rotation_smoothing);
-
-    rotation = QuatfFromEulerAnglesYXZ(.{x=pitch,y=yaw});
-
-    transform = Mat4fTranslate(position) * Mat4fFromQuat(rotation);
-    view = Inverse(transform);
-
-    aspect := camera.viewport_size.x / cast(float, camera.viewport_size.y);
-
-    if Reverse_Depth_Range {
-        projection = Mat4fPerspectiveProjection(fov_in_degrees, aspect, z_far, z_near);
-    } else {
-        projection = Mat4fPerspectiveProjection(fov_in_degrees, aspect, z_near, z_far);
-    }
-
-    inv_projection = Inverse(projection);
-
-    ortho_projection = Mat4fOrthographicProjection(0, xx camera.viewport_size.x, xx camera.viewport_size.y, 0, -1, 1);
-    inv_ortho_projection = Inverse(ortho_projection);
 }
