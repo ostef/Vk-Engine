@@ -1,10 +1,10 @@
 CompositingBindingSet :: struct {
-    hdr_color_texture : GfxBindingCombinedTextureSampler; @Binding(0) @FragmentStage
-    bloom_texture : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
-    entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
-    selected_entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
-    // gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
-    // blurred_color_texture : GfxBindingCombinedTextureSampler; @Binding(6) @FragmentStage @AllowNull
+    viewpoint : GfxBindingUniformBuffer; @Binding(0) @FragmentStage
+    hdr_color_texture : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
+    bloom_texture : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
+    entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    selected_entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
+    // gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(5) @FragmentStage
 } @BindingSet
 
 g_compositing_pipeline : GfxGraphicsPipeline;
@@ -37,21 +37,16 @@ CompositingPass :: (using ctx : *RenderContext) {
         CreateCompositingPipeline();
     }
 
+    viewpoint_offset, viewpoint_size := AllocAndPackUniformFrameData(MakeViewpoint(viewpoint));
+
     bindings := CompositingBindingSet.{
+        viewpoint=.{buffer=FrameDataBuffer(), offset=xx viewpoint_offset, size=xx viewpoint_size},
         hdr_color_texture=.{texture=*render_targets.hdr_color_texture, sampler=*g_linear_clamp_sampler},
         bloom_texture=.{texture=GetFinalBloomTexture(*render_targets.bloom_textures), sampler=*g_linear_clamp_sampler},
         entity_guid_texture=.{texture=*render_targets.entity_guids_texture, sampler=*g_entity_guid_sampler},
         selected_entity_guid_texture=.{texture=*render_targets.selected_entity_guids_texture, sampler=*g_entity_guid_sampler},
         // gizmo_texture=.{texture=*g_gizmo_ctx.color_resolve, sampler=*g_linear_clamp_sampler},
-        // imgui_texture=.{texture=*g_imgui_color_texture, sampler=*g_linear_clamp_sampler},
     };
-
-    // if g_editor_settings.background_blur.enabled {
-    //     bindings.blurred_color_texture = .{
-    //         texture=GetFinalTexture(*g_editor_background_blur),
-    //         sampler=*g_linear_clamp_sampler
-    //     };
-    // }
 
     binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), bindings);
 

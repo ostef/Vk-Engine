@@ -285,6 +285,12 @@ FrameBindingSet :: struct {
     // shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
 } @BindingSet
 
+EntityOutlineParams :: struct {
+    thickness : float = 2; @ShowInInspector @FloatRange(1,5)
+    covered_alpha : float = 0.4; @ShowInInspector @FloatRange(0,1)
+    color : Vec4f = .{0.972, 1, 0.498, 1}; @ShowInInspector @ColorEdit
+} @ShaderType
+
 FrameInfo :: struct {
     time : float;
     window_pixel_size : Vec2f;
@@ -293,7 +299,7 @@ FrameInfo :: struct {
     skybox_light_intensity := 1.0;
     // shadow_map_params : ShadowMapParams;
     bloom_params : BloomParams;
-    // editor_settings : EditorSettings;
+    entity_outline_params : EntityOutlineParams;
 } @ShaderType
 
 using _ :: struct {

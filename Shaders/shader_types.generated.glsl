@@ -36,6 +36,12 @@ struct DirectionalLight {
     float intensity;
 };
 
+struct EntityOutlineParams {
+    float thickness;
+    float covered_alpha;
+    float4 color;
+};
+
 struct FrameInfo {
     float time;
     float2 window_pixel_size;
@@ -43,6 +49,7 @@ struct FrameInfo {
     uint num_point_lights;
     float skybox_light_intensity;
     BloomParams bloom_params;
+    EntityOutlineParams entity_outline_params;
 };
 
 struct LightCluster {
