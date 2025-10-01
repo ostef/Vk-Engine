@@ -30,6 +30,12 @@ struct BloomParams {
     float filter_radius;
 };
 
+struct DebugLine {
+    float3 start;
+    float3 end;
+    float4 color;
+};
+
 struct DirectionalLight {
     float3 direction;
     float3 color;

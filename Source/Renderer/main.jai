@@ -18,6 +18,7 @@
 #load "forward_pass.jai";
 #load "compositing.jai";
 #load "bloom.jai";
+#load "debug_draw.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -650,9 +651,9 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     ForwardPass(ctx, *mesh_buffer);
     SkyboxPass(ctx, ifx viewpoint.skybox && viewpoint.skybox.base_texture then *viewpoint.skybox.base_texture.texture);
 
-    // if !(viewpoint.flags & .NoDebugLines) {
-    //     DebugLinesPass(ctx);
-    // }
+    if !(viewpoint.flags & .NoDebugLines) {
+        DebugLinesPass(ctx);
+    }
 
     // if !(viewpoint.flags & .NoGrids) {
     //     GridPass(ctx);

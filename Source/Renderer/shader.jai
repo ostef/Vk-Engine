@@ -13,13 +13,13 @@ LoadedShader :: struct {
 
 g_shader_file_watcher : File_Watcher;
 g_shaders := LoadedShader.[
-    // .{name="infinite_grid"},
+    .{name="infinite_grid"},
     .{name="build_cluster_grid"},
     .{name="populate_cluster_grid"},
     // .{name="kawase_blur_downsample"},
     // .{name="kawase_blur_upsample"},
     // .{name="gizmo"},
-    // .{name="debug_line"},
+    .{name="debug_line"},
     // .{name="point_shadow_map"},
     .{name="bloom_filter"},
     .{name="bloom_downsample"},

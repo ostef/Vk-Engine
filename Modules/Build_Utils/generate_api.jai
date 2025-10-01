@@ -168,6 +168,22 @@ AppendExpression :: (builder : *StringBuilder, expr : *Code_Node) {
 
             Append(builder, "]");
 
+        case .STRUCT;
+            info := lit.struct_literal_info;
+
+            if info.type_expression {
+                AppendType(builder, info.type_expression.result);
+            }
+
+            Append(builder, ".{");
+            for info.arguments {
+                if it_index > 0 {
+                    Append(builder, ", ");
+                }
+                AppendExpression(builder, it);
+            }
+            Append(builder, "}");
+
         case;
             compiler_report(TPrint("Unhandled literal type %", lit.value_type), make_location(expr));
         }
