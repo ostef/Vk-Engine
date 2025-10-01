@@ -436,17 +436,18 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
             y2 = xx (y2 * scale_factor);
 
             if GetModState() != .Shift && GetModState() != (.Ctrl | .Shift) {
-                // ArrayClear(*g_world_editor.selected_entities);
+                ArrayClear(*g_editor_selected_entities);
             }
 
             for y : y1..y2 {
                 for x : x1..x2 {
                     guid := GetEntityGUIDAtPoint(viewport, xx x, xx y);
-
-                    if GetModState() == (.Ctrl | .Shift) {
-                        DeselectEntity(guid);
-                    } else {
-                        SelectEntity(guid, add_to_selection=true);
+                    if guid != Null_Entity_GUID {
+                        if GetModState() == (.Ctrl | .Shift) {
+                            DeselectEntity(guid);
+                        } else {
+                            SelectEntity(guid, add_to_selection=true);
+                        }
                     }
                 }
             }
