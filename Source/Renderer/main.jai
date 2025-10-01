@@ -19,6 +19,7 @@
 #load "compositing.jai";
 #load "bloom.jai";
 #load "debug_draw.jai";
+#load "infinite_grid.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -655,9 +656,9 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         DebugLinesPass(ctx);
     }
 
-    // if !(viewpoint.flags & .NoGrids) {
-    //     GridPass(ctx);
-    // }
+    if !(viewpoint.flags & .NoGrids) {
+        InfiniteGridPass(ctx);
+    }
 
     // if !(viewpoint.flags & .NoGizmos) {
     //     GizmoPass(ctx);
