@@ -117,6 +117,29 @@ GizmoContext :: struct {
     depth_texture : GfxTexture;
 }
 
+GizmoContextState :: struct {
+    global_size : float; @Serialize(1)
+    gizmo_type : GizmoType; @Serialize(2)
+    gizmo_local : bool; @Serialize(3)
+    gizmo_pivot : GizmoPivot; @Serialize(4)
+}
+
+MakeGizmoContextState :: inline (ctx : *GizmoContext) -> GizmoContextState {
+    return .{
+        global_size=ctx.global_size,
+        gizmo_type=ctx.gizmo_type,
+        gizmo_local=ctx.gizmo_local,
+        gizmo_pivot=ctx.gizmo_pivot,
+    };
+}
+
+SetGizmoContextState :: inline (ctx : *GizmoContext, state : GizmoContextState) {
+    ctx.global_size = state.global_size;
+    ctx.gizmo_type = state.gizmo_type;
+    ctx.gizmo_local = state.gizmo_local;
+    ctx.gizmo_pivot = state.gizmo_pivot;
+}
+
 GizmoStyleColor :: enum {
     Origin;
 

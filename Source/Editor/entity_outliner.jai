@@ -1,10 +1,11 @@
-g_show_entity_outliner := true;
+EntityOutlinerState :: struct {
+    opened := true; @Serialize(1)
 
-g_editor_entity_filter_text : [100]u8;
-g_editor_entity_filter_case_sensitive : bool;
+    filter_text : [100]u8; @Serialize(2)
+    filter_case_sensitive : bool; @Serialize(3)
+}
 
-g_editor_last_copied_entity_guid : EntityGUID;
-g_editor_has_copied_entity_guid : bool;
+g_entity_outliner : EntityOutlinerState;
 
 EditorCopyEntityGUID :: inline (guid : EntityGUID) {
     g_editor_last_copied_entity_guid = guid;
@@ -164,22 +165,22 @@ GetNiceComponentTypeName :: (type_id : ComponentTypeId) -> string {
 }
 
 ShowEntityOutliner :: (world : *World) {
-    if !g_show_entity_outliner {
+    if !g_entity_outliner.opened {
         return;
     }
 
     defer ImGui.End();
 
     ImGui.SetNextWindowSize(.{350, 700}, .FirstUseEver);
-    if !ImGui.Begin("Entity Outliner", *g_show_entity_outliner) {
+    if !ImGui.Begin("Entity Outliner", *g_entity_outliner.opened) {
         return;
     }
 
-    ImGui.InputText("Filter", g_editor_entity_filter_text.data, xx g_editor_entity_filter_text.count);
+    ImGui.InputText("Filter", g_entity_outliner.filter_text.data, xx g_entity_outliner.filter_text.count);
     ImGui.SameLine();
-    Toggle("Aa", *g_editor_entity_filter_case_sensitive);
+    Toggle("Aa", *g_entity_outliner.filter_case_sensitive);
 
-    ImGui.SetItemTooltip(ifx g_editor_entity_filter_case_sensitive
+    ImGui.SetItemTooltip(ifx g_entity_outliner.filter_case_sensitive
         then "Disable case sensitive filter"
         else "Enable case sensitive filter"
     );
@@ -187,7 +188,7 @@ ShowEntityOutliner :: (world : *World) {
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
     ImGui.SetNextItemWidth(-1);
-    if ImGui.BeginCombo("###create_new_entity", "Create New Entity") {
+    if ImGui.BeginCombo("###create_new_entity", "Add Entity") {
         defer ImGui.EndCombo();
 
         ImGui.PushFont(g_editor_base_font);
@@ -213,7 +214,7 @@ ShowEntityOutliner :: (world : *World) {
     EntityGUIDSet :: HashSet(
         EntityGUID,
         hash_func = HashEntityGUID,
-        comp_func = (a, b) => a == b
+        comp_func = CompareEntityGUIDs
     );
 
     already_shown_entities : EntityGUIDSet;
@@ -248,10 +249,10 @@ ShowEntityOutliner :: (world : *World) {
             flags |= .Selected;
         }
 
-        filter := MakeString(g_editor_entity_filter_text.data);
-        pass_filter := FilterTest(g_editor_entity_filter_case_sensitive, entity.name, filter);
-        pass_filter ||= FilterTest(g_editor_entity_filter_case_sensitive, TPrint("%", GetNiceEntityTypeName(entity)), filter);
-        pass_filter ||= FilterTest(g_editor_entity_filter_case_sensitive, TPrint("%", entity.guid), filter);
+        filter := MakeString(g_entity_outliner.filter_text.data);
+        pass_filter := FilterTest(g_entity_outliner.filter_case_sensitive, entity.name, filter);
+        pass_filter ||= FilterTest(g_entity_outliner.filter_case_sensitive, TPrint("%", GetNiceEntityTypeName(entity)), filter);
+        pass_filter ||= FilterTest(g_entity_outliner.filter_case_sensitive, TPrint("%", entity.guid), filter);
 
         opened : bool;
         if pass_filter {

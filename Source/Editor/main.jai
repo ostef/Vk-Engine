@@ -25,6 +25,8 @@ g_module := EditorModule.{
     base.Initialize=InitializeEditor,
     base.Shutdown=ShutdownEditor,
     base.MainLoop=UpdateEditor,
+    base.SaveState=SaveState,
+    base.LoadState=LoadState,
     base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
@@ -84,6 +86,9 @@ g_editor_world : World;
 g_show_imgui_demo := false;
 
 g_editor_selected_entities : [..]EntityGUID;
+
+g_editor_last_copied_entity_guid : EntityGUID;
+g_editor_has_copied_entity_guid : bool;
 
 DeselectEntity :: (entity : EntityGUID) {
     index := ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs);
@@ -170,7 +175,7 @@ InitializeEditor :: () {
 
     InitBillboardVertexBuffer();
 
-    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/ParallaxTest.scene");
+    LoadWorldFromDirectory(*g_editor_world, "Data/Sponza/Sponza.scene");
 
     InitCustomInspectors();
     InitEditorMainMenus();
@@ -181,15 +186,86 @@ InitializeEditor :: () {
 ShutdownEditor :: () {
     push_context,defer_pop g_context;
 
-    DestroyWorld(*g_editor_world);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
 
     WaitForRenderThread();
     WaitForGPUIdle();
+
+    while g_editor_viewports.count > 0 {
+        DestroyEditorViewport(g_editor_viewports[0]);
+    }
+
+    DestroyWorld(*g_editor_world);
 
     DestroyImGuiRenderer();
 
     ImGui_SDL.Terminate();
     ImGui.DestroyContext();
+}
+
+AllEditorState :: struct {
+    selected_entities : []EntityGUID; @Serialize(1)
+    material_editor : MaterialEditorState; @Serialize(2)
+    entity_outliner : EntityOutlinerState; @Serialize(3)
+    last_copied_entity_guid : EntityGUID; @Serialize(4)
+    has_copied_entity_guid : bool; @Serialize(5)
+    show_imgui_demo : bool; @Serialize(6)
+    show_entity_inspector : bool; @Serialize(7)
+    show_world_inspector : bool; @Serialize(8)
+    viewports : []EditorViewportState; @Serialize(9)
+}
+
+SaveState :: () -> []u8 {
+    all_state := AllEditorState.{
+        selected_entities=g_editor_selected_entities,
+        material_editor=g_material_editor,
+        entity_outliner=g_entity_outliner,
+        last_copied_entity_guid=g_editor_last_copied_entity_guid,
+        has_copied_entity_guid=g_editor_has_copied_entity_guid,
+        show_imgui_demo=g_show_imgui_demo,
+        show_entity_inspector=g_show_entity_inspector,
+        show_world_inspector=g_show_world_inspector,
+    };
+
+    all_state.viewports = AllocArray(EditorViewportState, g_editor_viewports.count ,, Temp);
+    for g_editor_viewports {
+        all_state.viewports[it_index] = MakeEditorViewportState(it);
+    }
+
+    serializer : Serializer;
+    SerializeAny(*serializer, all_state);
+
+    return xx StringBuilderBuild(*serializer);
+}
+
+LoadState :: (state : []u8) {
+    using all_state : AllEditorState;
+    DeserializeAny(cast(string, state), all_state);
+    Free(state.data);
+
+    for selected_entities {
+        ArrayPush(*g_editor_selected_entities, it);
+    }
+    Free(selected_entities.data);
+
+    g_material_editor = material_editor;
+    g_entity_outliner = entity_outliner;
+
+    g_editor_last_copied_entity_guid = last_copied_entity_guid;
+    g_editor_has_copied_entity_guid = has_copied_entity_guid;
+
+    g_show_imgui_demo = show_imgui_demo;
+    g_show_entity_inspector = show_entity_inspector;
+    g_show_world_inspector = show_world_inspector;
+
+    while g_editor_viewports.count > 0 {
+        DestroyEditorViewport(g_editor_viewports[0]);
+    }
+
+    for viewports {
+        CreateEditorViewport(it);
+    }
+    Free(viewports.data);
 }
 
 OnEvent :: (event : SDL_Event) {
@@ -254,11 +330,11 @@ UpdateEditor :: () {
             if ImGui.MenuItem("Entity Inspector", selected=g_show_entity_inspector) {
                 g_show_entity_inspector = true;
             }
-            if ImGui.MenuItem("Entity Outliner", selected=g_show_entity_outliner) {
-                g_show_entity_outliner = true;
+            if ImGui.MenuItem("Entity Outliner", selected=g_entity_outliner.opened) {
+                g_entity_outliner.opened = true;
             }
-            if ImGui.MenuItem("Material Editor", selected=g_show_material_editor) {
-                g_show_material_editor = true;
+            if ImGui.MenuItem("Material Editor", selected=g_material_editor.opened) {
+                g_material_editor.opened = true;
             }
             // if ImGui.MenuItem("Engine Settings", selected=g_show_engine_settings) {
             //     g_show_engine_settings = true;
@@ -295,7 +371,6 @@ UpdateEditor :: () {
     ShowWorldInspector(*g_editor_world);
     ShowEntityOutliner(*g_editor_world);
     ShowMaterialEditor();
-    ShowEntityOutliner(*g_editor_world);
 
     entity_to_inspect : *Entity;
     if g_editor_selected_entities.count == 1 {

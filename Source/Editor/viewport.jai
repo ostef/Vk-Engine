@@ -25,29 +25,85 @@ EditorViewport :: struct {
 
 g_editor_viewports : [..]*EditorViewport;
 
+EditorViewportState :: struct {
+    unique_id : u64; @Serialize(1)
+    camera : EditorCamera; @Serialize(2)
+    gizmo_ctx : GizmoContextState; @Serialize(3)
+}
+
+MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewportState {
+    return .{
+        unique_id=viewport.unique_id,
+        camera=viewport.camera,
+        gizmo_ctx=MakeGizmoContextState(*viewport.gizmo_ctx),
+    };
+}
+
+CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
+    viewport := CreateEditorViewport();
+    viewport.unique_id = state.unique_id;
+
+    viewport.camera = state.camera;
+    viewport.camera.viewport = viewport;
+
+    SetGizmoContextState(*viewport.gizmo_ctx, state.gizmo_ctx);
+
+    return viewport;
+}
+
+CreateEditorViewport :: () -> *EditorViewport {
+    #import "Random";
+
+    viewport := Alloc(EditorViewport);
+    viewport.unique_id = random_get();
+
+    viewport.camera.viewport = viewport;
+    InitGizmoContext(*viewport.gizmo_ctx, viewport);
+
+    ArrayPush(*g_editor_viewports, viewport);
+
+    RegisterEventCallback(viewport, HandleEventForCameraMovement);
+    RegisterEventCallback(viewport, HandleEventForGizmos);
+    RegisterEventCallback(viewport, HandleEventForEntitySelection);
+
+    return viewport;
+}
+
+DestroyEditorViewport :: (viewport : *EditorViewport) {
+    index := ArrayFindFirst(g_editor_viewports, viewport);
+    if index >= 0 {
+        ArrayOrderedRemove(*g_editor_viewports, index);
+    }
+
+    DestroyGizmoContext(*viewport.gizmo_ctx);
+    ArrayFree(*viewport.event_callbacks);
+
+    Free(viewport);
+}
+
 EditorCamera :: struct {
     viewport : *EditorViewport;
 
     is_moving : bool;
 
-    position := #run Normalized(Vec3f.{-1,1,-1}) * 10;
-    rotation : Quatf;
+    position := #run Normalized(Vec3f.{-1,1,-1}) * 10; @Serialize(1)
+    rotation : Quatf; @Serialize(2)
 
-    target_yaw := #run ToRads(30.0);
-    target_pitch := #run ToRads(30.0);
+    target_yaw := #run ToRads(30.0); @Serialize(3)
+    target_pitch := #run ToRads(30.0); @Serialize(4)
 
-    yaw := #run ToRads(30.0);
-    pitch := #run ToRads(30.0);
+    yaw := #run ToRads(30.0); @Serialize(5)
+    pitch := #run ToRads(30.0); @Serialize(6)
 
-    fov_in_degrees := 80.0;
-    z_near := 0.1;
-    z_far := 1000.0;
+    fov_in_degrees := 80.0; @Serialize(7)
+    z_near := 0.1; @Serialize(8)
+    z_far := 1000.0; @Serialize(9)
 
-    speed_mult := 1.0;
-    base_speed := 0.1;
-    fast_speed := 1.0;
-    rotation_speed := 0.2;
-    rotation_smoothing := 0.3;
+    speed_mult := 1.0; @Serialize(10)
+    base_speed := 0.1; @Serialize(11)
+    fast_speed := 1.0; @Serialize(12)
+    rotation_speed := 0.2; @Serialize(13)
+    rotation_smoothing := 0.3; @Serialize(14)
 
     transform : Mat4f;
     view : Mat4f;
@@ -86,35 +142,6 @@ WorldToCamera :: (camera : *EditorCamera, point : Vec3f) -> is_behind : bool, Ve
     proj = camera.inv_ortho_projection * proj;
 
     return false, proj.xy;
-}
-
-CreateEditorViewport :: () -> *EditorViewport {
-    #import "Random";
-
-    viewport := Alloc(EditorViewport);
-    viewport.unique_id = random_get();
-
-    viewport.camera.viewport = viewport;
-    InitGizmoContext(*viewport.gizmo_ctx, viewport);
-
-    ArrayPush(*g_editor_viewports, viewport);
-
-    RegisterEventCallback(viewport, HandleEventForCameraMovement);
-    RegisterEventCallback(viewport, HandleEventForGizmos);
-    RegisterEventCallback(viewport, HandleEventForEntitySelection);
-
-    return viewport;
-}
-
-DestroyEditorViewport :: (viewport : *EditorViewport) {
-    index := ArrayFindFirst(g_editor_viewports, viewport);
-    if index >= 0 {
-        ArrayOrderedRemove(*g_editor_viewports, index);
-    }
-
-    DestroyGizmoContext(*viewport.gizmo_ctx);
-
-    Free(viewport);
 }
 
 UpdateEditorViewports :: (world : *World, delta_time : float) {

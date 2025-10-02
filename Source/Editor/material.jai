@@ -1,11 +1,15 @@
-g_show_material_editor := true;
-g_material_editor_selected_material : *Asset(Material);
+MaterialEditorState :: struct {
+    opened := true; @Serialize(1)
+    selected_material : *Asset(Material); @Serialize(2)
+}
+
+using g_material_editor : MaterialEditorState;
 
 OpenMaterialEditor :: (material : *Asset(Material)) {
-    g_show_material_editor = true;
+    g_material_editor.opened = true;
 
-    DerefAsset(*g_material_editor_selected_material);
-    g_material_editor_selected_material = AddRef(material);
+    DerefAsset(*g_material_editor.selected_material);
+    g_material_editor.selected_material = AddRef(material);
 
     window := ImGui.FindWindowByName("Material Editor");
     if window {
@@ -14,21 +18,21 @@ OpenMaterialEditor :: (material : *Asset(Material)) {
 }
 
 ShowMaterialEditor :: () {
-    if !g_show_material_editor {
+    if !g_material_editor.opened {
         return;
     }
 
     defer ImGui.End();
 
     ImGui.SetNextWindowSize(.{350, 500}, .FirstUseEver);
-    if !ImGui.Begin("Material Editor", *g_show_material_editor) {
+    if !ImGui.Begin("Material Editor", *g_material_editor.opened) {
         return;
     }
 
     world : *World;
-    ShowInspector("Selected Material", world, g_material_editor_selected_material, .["AllowCreateAsset"]);
+    ShowInspector("Selected Material", world, g_material_editor.selected_material, .["AllowCreateAsset"]);
 
-    if g_material_editor_selected_material {
+    if g_material_editor.selected_material {
         available := ImGui.GetContentRegionAvail();
         size := available;
         size.y -= 2 * ImGui.GetFrameHeightWithSpacing();
@@ -36,7 +40,7 @@ ShowMaterialEditor :: () {
         size.y = Max(size.y, 0);
 
         if ImGui.BeginChild("material", size=size, child_flags=.Border) {
-            ShowInspector("", world, g_material_editor_selected_material.asset_data, .["InspectorNoTree"]);
+            ShowInspector("", world, g_material_editor.selected_material.asset_data, .["InspectorNoTree"]);
             ImGui.EndChild();
         } else {
             ImGui.EndChild();
@@ -45,14 +49,14 @@ ShowMaterialEditor :: () {
 
         PushButtonColor(.CancelButton);
         if ImGui.Button("Reload", size=.{-1, 0}) {
-            reloaded, asset := TryReloadAsset(*GetAssets().Material_cache, g_material_editor_selected_material.asset_name);
+            reloaded, asset := TryReloadAsset(*GetAssets().Material_cache, g_material_editor.selected_material.asset_name);
             RemoveRef(asset); // TryReloadAsset adds a ref
         }
         PopButtonColor();
 
         PushButtonColor(.SubmitGoodButton);
         if ImGui.Button("Save", size=.{-1, 0}) {
-            SaveAsset(g_material_editor_selected_material);
+            SaveAsset(g_material_editor.selected_material);
         }
         PopButtonColor();
     } else {

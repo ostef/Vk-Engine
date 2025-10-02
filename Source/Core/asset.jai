@@ -290,10 +290,16 @@ LoadAssetWorker :: (group : *Thread_Group, thread : *Thread, work : *void, $T : 
 }
 
 LoadPendingAssets :: () {
+    LoadPendingAssetsSynchronously(*g_assets.Material_cache);
+
     #insert -> string {
         builder : StringBuilder;
 
         for Asset_Types {
+            if it == Material {
+                continue;
+            }
+
             Appendln(*builder, "LoadPendingAssetsInParallel(*g_assets.%_cache);", it);
         }
 
