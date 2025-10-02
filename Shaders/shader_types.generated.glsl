@@ -58,6 +58,12 @@ struct FrameInfo {
     EntityOutlineParams entity_outline_params;
 };
 
+struct GizmoWidget {
+    float4x4 transform;
+    bool shaded;
+    float4 color;
+};
+
 struct LightCluster {
     float3 min;
     float3 max;

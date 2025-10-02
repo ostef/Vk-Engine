@@ -3,15 +3,15 @@
 
 DECLARE_PER_FRAME_PARAMS();
 
-layout(set=1, binding=0) uniform ViewpointData { \
-    Viewpoint u_viewpoint; \
+layout(set=1, binding=0) uniform ViewpointData {
+    Viewpoint u_viewpoint;
 };
 
 layout(set=1, binding=1) uniform sampler2D u_hdr_color_texture;
 layout(set=1, binding=2) uniform sampler2D u_bloom_texture;
 layout(set=1, binding=3) uniform usampler2D u_entity_guid_texture;
 layout(set=1, binding=4) uniform usampler2D u_selected_entity_guid_texture;
-// layout(set=1, binding=5) uniform sampler2D u_gizmo_texture;
+layout(set=1, binding=5) uniform sampler2D u_gizmo_texture;
 
 layout(location=0) in float2 in_position;
 
@@ -60,8 +60,8 @@ void main() {
     float4 entity_outline = GetEntityOutline(in_position, 1 / u_viewpoint.viewport_size);
     color = BlendRGBPostMultipliedAlpha(color, entity_outline.rgb, entity_outline.a);
 
-    // float4 gizmo = texture(u_gizmo_texture, in_position);
-    // color = BlendRGBPreMultipliedAlpha(color, gizmo.rgb, gizmo.a);
+    float4 gizmo = texture(u_gizmo_texture, in_position);
+    color = BlendRGBPreMultipliedAlpha(color, gizmo.rgb, gizmo.a);
 
     out_color = float4(color, 1);
 }

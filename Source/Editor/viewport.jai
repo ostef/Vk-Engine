@@ -16,6 +16,7 @@ EditorViewport :: struct {
     render_targets : *ViewpointRenderTargets;
 
     camera : EditorCamera;
+    gizmo_ctx : GizmoContext;
 
     is_box_selecting : bool;
     box_selection_start : Vec2i;
@@ -55,12 +56,46 @@ EditorCamera :: struct {
     inv_ortho_projection : Mat4f;
 }
 
+RayFromViewportPoint :: (camera : *EditorCamera, point : Vec2f) -> origin : Vec3f, direction : Vec3f {
+    clip_space := (camera.ortho_projection * Vec4f.{point.x , point.y, 0, 1}).xy;
+
+    view_space := camera.inv_projection * Vec4f.{xy=clip_space,z=0,w=1};
+    view_space.z = 1;
+    view_space.w = 0;
+
+    origin := TranslationVector(camera.transform);
+    direction := Normalized((camera.transform * view_space).xyz);
+
+    return origin, direction;
+}
+
+RayFromMouse :: inline (viewport : *EditorViewport) -> origin : Vec3f, direction : Vec3f {
+    origin, direction := RayFromViewportPoint(*viewport.camera, viewport.mouse_position);
+
+    return origin, direction;
+}
+
+WorldToCamera :: (camera : *EditorCamera, point : Vec3f) -> is_behind : bool, Vec2f {
+    proj := camera.projection * camera.view * Vec4f.{xyz=point,w=1};
+    if proj.w < 0 {
+        return true, .{};
+    }
+
+    proj /= proj.w;
+    proj = camera.inv_ortho_projection * proj;
+
+    return false, proj.xy;
+}
+
 CreateEditorViewport :: () -> *EditorViewport {
     #import "Random";
 
     viewport := Alloc(EditorViewport);
     viewport.unique_id = random_get();
+
     viewport.camera.viewport = viewport;
+    InitGizmoContext(*viewport.gizmo_ctx, viewport);
+
     ArrayPush(*g_editor_viewports, viewport);
 
     RegisterEventCallback(viewport, HandleEventForCameraMovement);
@@ -75,6 +110,8 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     if index >= 0 {
         ArrayOrderedRemove(*g_editor_viewports, index);
     }
+
+    DestroyGizmoContext(*viewport.gizmo_ctx);
 
     Free(viewport);
 }
@@ -217,15 +254,13 @@ UpdateEditorViewport :: (world : *World, using viewport : *EditorViewport, delta
         return;
     }
 
-    // GizmoBeginFrame(world, *gizmo_ctx);
-
     SendEditorViewportEvents(world, viewport);
 
     CalculateCameraTransforms(*camera);
 
-    // GizmoClearWidgets(*gizmo_ctx);
+    UpdateGizmos(world, *gizmo_ctx);
 
-    // EntityGizmo(world, viewport);
+    EntityGizmo(world, *gizmo_ctx);
 }
 
 SendEditorViewportEvents :: (world : *World, viewport : *EditorViewport) {

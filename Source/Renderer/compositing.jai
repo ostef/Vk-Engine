@@ -4,7 +4,7 @@ CompositingBindingSet :: struct {
     bloom_texture : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
     entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
     selected_entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
-    // gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(5) @FragmentStage
+    gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(5) @FragmentStage
 } @BindingSet
 
 g_compositing_pipeline : GfxGraphicsPipeline;
@@ -45,7 +45,7 @@ CompositingPass :: (using ctx : *RenderContext) {
         bloom_texture=.{texture=GetFinalBloomTexture(*render_targets.bloom_textures), sampler=*g_linear_clamp_sampler},
         entity_guid_texture=.{texture=*render_targets.entity_guids_texture, sampler=*g_entity_guid_sampler},
         selected_entity_guid_texture=.{texture=*render_targets.selected_entity_guids_texture, sampler=*g_entity_guid_sampler},
-        // gizmo_texture=.{texture=*g_gizmo_ctx.color_resolve, sampler=*g_linear_clamp_sampler},
+        gizmo_texture=.{texture=*render_targets.gizmo_color_resolve, sampler=*g_linear_clamp_sampler},
     };
 
     binding_set := CreateGfxBindingSet(GlobalBindingSetAllocator(), bindings);

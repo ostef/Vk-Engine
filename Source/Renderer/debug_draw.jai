@@ -1,9 +1,3 @@
-DebugLine :: struct {
-    start : Vec3f;
-    end : Vec3f;
-    color : Vec4f;
-} @ShaderType
-
 g_debug_lines : [..]DebugLine;
 
 Max_Debug_Lines :: Frame_Data_Capacity / size_of(DebugLine) / 2;

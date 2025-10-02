@@ -20,6 +20,7 @@
 #load "bloom.jai";
 #load "debug_draw.jai";
 #load "infinite_grid.jai";
+#load "gizmo.jai";
 
 g_module := RendererModule.{
     base.Initialize=InitializeRenderer,
@@ -458,6 +459,11 @@ RenderFrame :: () {
 
     SubmitGfxFrame();
 
+    for * g_viewpoints_to_render {
+        ArrayFree(*it.gizmo_widgets);
+        ArrayFree(*it.gizmo_lines);
+    }
+
     ArrayClear(*g_viewpoints_to_render);
     ArrayClear(*g_meshes_to_render);
     ArrayClear(*g_selected_meshes_to_render);
@@ -475,6 +481,9 @@ DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     DestroyGfxTexture(*render_targets.depth_texture);
     DestroyGfxTexture(*render_targets.entity_guids_texture);
     DestroyGfxTexture(*render_targets.selected_entity_guids_texture);
+    DestroyGfxTexture(*render_targets.gizmo_color_texture);
+    DestroyGfxTexture(*render_targets.gizmo_color_resolve);
+    DestroyGfxTexture(*render_targets.gizmo_depth_texture);
 
     for * render_targets.entity_guids_readback_buffers {
         DestroyGfxBuffer(it);
@@ -580,6 +589,59 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         Assert(!IsNull(*selected_entity_guids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
+    if ShouldRecreate(*gizmo_color_texture, desired_resolution) {
+        if !IsNull(*gizmo_color_texture) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*gizmo_color_texture);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA8UNorm;
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
+        desc.usage = .ColorAttachment;
+        desc.num_samples = Gizmo_Texture_Num_Samples;
+
+        gizmo_color_texture = CreateGfxTexture(TPrint("Viewpoint %, Gizmo Color MS", id), desc);
+        Assert(!IsNull(*gizmo_color_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*gizmo_color_resolve, desired_resolution) {
+        if !IsNull(*gizmo_color_resolve) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*gizmo_color_resolve);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .RGBA8UNorm;
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
+        desc.usage = .ColorAttachment | .Sampled;
+
+        gizmo_color_resolve = CreateGfxTexture(TPrint("Viewpoint %, Gizmo Color", id), desc);
+        Assert(!IsNull(*gizmo_color_resolve), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
+    if ShouldRecreate(*gizmo_depth_texture, desired_resolution) {
+        if !IsNull(*gizmo_depth_texture) {
+            WaitForGPUIdle();
+            DestroyGfxTexture(*gizmo_depth_texture);
+        }
+
+        desc : GfxTextureDesc;
+        desc.type = .Texture2D;
+        desc.pixel_format = .Depth32Float;
+        desc.width = desired_resolution.x;
+        desc.height = desired_resolution.y;
+        desc.usage = .DepthStencilAttachment;
+        desc.num_samples = Gizmo_Texture_Num_Samples;
+
+        gizmo_depth_texture = CreateGfxTexture(TPrint("Viewpoint %, Gizmo Depth MS", id), desc);
+        Assert(!IsNull(*gizmo_depth_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+    }
+
     return rt;
 } @ModuleAPI
 
@@ -675,9 +737,9 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         InfiniteGridPass(ctx);
     }
 
-    // if !(viewpoint.flags & .NoGizmos) {
-    //     GizmoPass(ctx);
-    // }
+    if !(viewpoint.flags & .NoGizmos) {
+        GizmoPass(ctx);
+    }
 
     AddTextureBarriers(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, .[
         *ctx.render_targets.selected_entity_guids_texture,

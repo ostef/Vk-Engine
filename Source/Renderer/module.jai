@@ -58,6 +58,9 @@ ViewpointToRender :: struct {
 
     skybox : *Asset(EnvironmentMap);
     skybox_light_intensity : float;
+
+    gizmo_widgets : [..]GizmoWidgetToRender;
+    gizmo_lines : [..]DebugLine;
 }
 
 MakeViewpointID :: inline (str : string) -> u64 {
@@ -74,6 +77,9 @@ ViewpointRenderTargets :: struct {
     selected_entity_guids_texture : GfxTexture;
     entity_guids_readback_buffers : [Gfx_Num_Frames_In_Flight]GfxBuffer;
     bloom_textures : BloomTextures;
+    gizmo_color_texture : GfxTexture;
+    gizmo_color_resolve : GfxTexture;
+    gizmo_depth_texture : GfxTexture;
 }
 
 Bloom_Resolution_Factor :: 0.75;
@@ -117,3 +123,17 @@ DirectionalLightToRender :: struct {
     color : Vec3f;
     intensity : float;
 }
+
+GizmoWidgetToRender :: struct {
+    transform : Mat4f;
+    vertex_buffer, index_buffer : *GfxBuffer;
+    vertex_count, index_count : u32;
+    shaded : bool;
+    color : Vec4f;
+}
+
+DebugLine :: struct {
+    start : Vec3f;
+    end : Vec3f;
+    color : Vec4f;
+} @ShaderType

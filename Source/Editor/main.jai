@@ -2,10 +2,11 @@ ImGui :: #import "ImGui";
 ImGui_SDL :: #import "ImGui/Impl/SDL";
 #import "SDL";
 
-#load "material_design_icons.jai";
-#load "viewport.jai";
 #load "utils.jai";
+#load "material_design_icons.jai";
 #load "render.jai";
+#load "viewport.jai";
+#load "gizmo.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -49,6 +50,13 @@ g_editor_medium_font : *ImGui.ImFont;
 g_editor_world : World;
 
 g_editor_selected_entities : [..]EntityGUID;
+
+InteractionState :: enum_flags {
+    Started;
+    Interacting;
+    Cancelled;
+    Submitted;
+}
 
 DeselectEntity :: (entity : EntityGUID) {
     index := ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs);

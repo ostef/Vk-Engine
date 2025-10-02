@@ -219,6 +219,27 @@ SubmitEditorWorldToRenderer :: (world : *World) {
         viewpoint.unique_id = it.unique_id;
         viewpoint.skybox = world.skybox;
         viewpoint.skybox_light_intensity = world.skybox_light_intensity;
+
+        for widget : it.gizmo_ctx.widgets {
+            mesh := it.gizmo_ctx.meshes.all[widget.mesh_id];
+
+            to_render := GizmoWidgetToRender.{
+                transform=widget.transform,
+                color=widget.color,
+                shaded=widget.shaded,
+                vertex_buffer=*mesh.vertex_buffer,
+                index_buffer=*mesh.index_buffer,
+                vertex_count=mesh.vertex_count,
+                index_count=mesh.index_count,
+            };
+
+            ArrayPush(*viewpoint.gizmo_widgets, to_render);
+        }
+
+        for line : it.gizmo_ctx.lines_to_draw {
+            ArrayPush(*viewpoint.gizmo_lines, line);
+        }
+
         AddViewpointToRender(viewpoint);
     }
 }
