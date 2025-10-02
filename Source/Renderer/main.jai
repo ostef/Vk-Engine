@@ -587,6 +587,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     prev_ctx := ctx.*;
     defer ctx.* = prev_ctx;
 
+    billboard_rotation := Mat4fFromRightUpForwardOrigin(-viewpoint.right, viewpoint.up, -viewpoint.direction, .{});
     ctx.viewpoint = viewpoint;
     ctx.render_targets = GetViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution);
 
@@ -599,29 +600,43 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     selected_mesh_buffer.draw_calls.allocator = Temp;
 
     for g_meshes_to_render {
-        if !it.is_skinned {
-            aabb := GetTransformedAABB(it.transform, it.static_bounds);
+        mesh := it;
+
+        if mesh.is_billboard {
+            mesh.transform *= billboard_rotation;
+        }
+
+        if !mesh.is_skinned {
+            aabb := GetTransformedAABB(mesh.transform, mesh.static_bounds);
             if !AABBIsInFrustum(aabb, viewpoint.frustum) {
                 continue;
             }
         }
 
-        depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
-        key := MakeMeshBufferKey(it, depth);
-        PushMesh(*mesh_buffer, key, it);
+        depth := TransformPoint(viewpoint.view, TranslationVector(mesh.transform)).z;
+        key := MakeMeshBufferKey(mesh, depth);
+
+        PushMesh(*mesh_buffer, key, mesh);
     }
 
     for g_selected_meshes_to_render {
-        if !it.is_skinned {
-            aabb := GetTransformedAABB(it.transform, it.static_bounds);
+        mesh := it;
+
+        if mesh.is_billboard {
+            mesh.transform *= billboard_rotation;
+        }
+
+        if !mesh.is_skinned {
+            aabb := GetTransformedAABB(mesh.transform, mesh.static_bounds);
             if !AABBIsInFrustum(aabb, viewpoint.frustum) {
                 continue;
             }
         }
 
-        depth := TransformPoint(viewpoint.view, TranslationVector(it.transform)).z;
-        key := MakeMeshBufferKey(it, depth);
-        PushMesh(*selected_mesh_buffer, key, it);
+        depth := TransformPoint(viewpoint.view, TranslationVector(mesh.transform)).z;
+        key := MakeMeshBufferKey(mesh, depth);
+
+        PushMesh(*selected_mesh_buffer, key, mesh);
     }
 
     SortMeshBuffer(*mesh_buffer);

@@ -5,6 +5,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #load "material_design_icons.jai";
 #load "viewport.jai";
 #load "utils.jai";
+#load "render.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -71,7 +72,7 @@ SelectEntity :: (entity : EntityGUID, add_to_selection := false, focus := true) 
 }
 
 EntityIsSelected :: inline (entity : EntityGUID) -> bool {
-    return ArrayFindFirst(g_editor_selected_entities, entity) != -1;
+    return ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs) != -1;
 }
 
 EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
@@ -133,7 +134,9 @@ InitializeEditor :: () {
 
     InitImGuiRenderer();
 
-    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/Spheres.scene");
+    InitBillboardVertexBuffer();
+
+    LoadWorldFromDirectory(*g_editor_world, "Data/Scenes/ParallaxTest.scene");
 
     CreateEditorViewport();
 }
@@ -180,30 +183,7 @@ EditorLoop :: () {
 
     WaitForRenderThread();
 
-    SubmitWorldToRenderer(*g_editor_world);
-
-    for g_editor_selected_entities {
-        entity := GetEntity(*g_editor_world, it);
-        if !entity {
-            continue;
-        }
-
-        for :AllMeshesToRender entity {
-            AddSelectedMeshToRender(it);
-        }
-    }
-
-    for g_editor_viewports {
-        if it.size.x == 0 || it.size.y == 0 {
-            continue;
-        }
-
-        viewpoint := MakeViewpointToRender(it);
-        viewpoint.unique_id = it.unique_id;
-        viewpoint.skybox = g_editor_world.skybox;
-        viewpoint.skybox_light_intensity = g_editor_world.skybox_light_intensity;
-        AddViewpointToRender(viewpoint);
-    }
+    SubmitEditorWorldToRenderer(*g_editor_world);
 
     SubmitFrameToRenderThread();
 }

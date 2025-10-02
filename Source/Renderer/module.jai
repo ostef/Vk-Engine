@@ -99,6 +99,7 @@ MeshToRender :: struct {
     material : *Asset(Material);
     cast_shadows : bool;
     cast_point_shadows : bool;
+    is_billboard : bool;
     is_skinned : bool;
     skinning_matrices : []Mat4f;
 }
