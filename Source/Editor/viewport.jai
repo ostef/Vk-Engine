@@ -99,7 +99,7 @@ CreateEditorViewport :: () -> *EditorViewport {
     ArrayPush(*g_editor_viewports, viewport);
 
     RegisterEventCallback(viewport, HandleEventForCameraMovement);
-    // RegisterEventCallback(viewport, HandleEventForGizmos);
+    RegisterEventCallback(viewport, HandleEventForGizmos);
     RegisterEventCallback(viewport, HandleEventForEntitySelection);
 
     return viewport;

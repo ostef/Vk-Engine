@@ -504,18 +504,18 @@ HandleEventForGizmos :: (world : *World, viewport : *EditorViewport, event : Edi
 
     if event.kind == {
     case .MousePosition;
-        closest_hit : bool;
         closest_hit_dist := F32_Inf;
 
+        ctx.hovered_id = 0;
+
         if ctx.active_id == 0 {
-            ray_origin, ray_direction := RayFromMouse(world, viewport);
+            ray_origin, ray_direction := RayFromMouse(viewport);
             for ctx.widgets {
                 mesh := ctx.meshes.all[it.mesh_id];
                 hit, point, dist, normal
-                    := RayIntersectsMesh(ray_origin, ray_direction, F32_Inf, *mesh.collision_mesh, it.transform);
+                    := RayIntersectsMesh(ray_origin, ray_direction, F32_Inf, mesh, it.transform);
 
                 if hit && dist < closest_hit_dist {
-                    closest_hit = true;
                     closest_hit_dist = dist;
                     ctx.hovered_id = it.id;
                 }
@@ -541,8 +541,6 @@ HandleEventForGizmos :: (world : *World, viewport : *EditorViewport, event : Edi
 UpdateGizmos :: (world : *World, ctx : *GizmoContext) {
     ctx.mouse_position = ctx.viewport.mouse_position;
 
-    ctx.hovered_id = 0;
-
     // Make sure we set active_id to 0 if the widget does not exist this frame
     // Otherwise we won't be able to select anything else
     found_active := false;
@@ -559,22 +557,6 @@ UpdateGizmos :: (world : *World, ctx : *GizmoContext) {
 
     if !found_active {
         ctx.active_id = 0;
-    }
-
-    if !IsMouseButtonDown(.Right) && ctx.active_id == 0 {
-        closest_hit_dist := F32_Inf;
-
-        ray_origin, ray_direction := RayFromMouse(ctx.viewport);
-        for ctx.widgets {
-            mesh := ctx.meshes.all[it.mesh_id];
-            hit, point, dist, normal
-                := RayIntersectsMesh(ray_origin, ray_direction, F32_Inf, mesh, it.transform);
-
-            if hit && dist < closest_hit_dist {
-                closest_hit_dist = dist;
-                ctx.hovered_id = it.id;
-            }
-        }
     }
 
     // Reset the widgets for this frame
