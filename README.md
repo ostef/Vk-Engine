@@ -9,12 +9,14 @@ Supports Linux and Windows.
 
 ## Features:
 * No "big idea" (e.g. ECS), simple and pragmatic entity system
+* Hot reloadable engine modules
+* Custom gizmos
+* Multi editor viewports
 * Graphics abstraction layer
 * Shader hot reloading
 * Ref counted asset system
 * Asset hot reloading
 * Highly backward and forward compatible serialization system using manual indices
-* Simple editor with gizmos
 * Simple CPU profiler
 * Simple GPU profiler
 * Skinned meshes
@@ -42,7 +44,6 @@ Supports Linux and Windows.
 * Texture viewer
 ### Core:
 * Pipelining
-* Hot reloading code
 * Input system
 ### Animation:
 * Animation system
