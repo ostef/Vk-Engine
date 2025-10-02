@@ -28,6 +28,7 @@ using,only(.["+","-","*","/","<",">","=="]) Basic;
 #load "Graphics/API/environment_map.jai";
 #load "Graphics/API/material.jai";
 #load "Graphics/API/mesh.jai";
+#load "Graphics/API/animation.jai";
 
 #load "Physics/API/types.jai";
 #load "Physics/API/collision_mesh.jai";

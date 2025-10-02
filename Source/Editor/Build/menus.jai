@@ -1,0 +1,42 @@
+EditorMenusWorkspaceBuildInfo :: struct {
+    generated_editor_main_menu_code := false;
+    editor_main_menus : [..]string;
+}
+
+g_editor_menus_workspace_build_info : [15]EditorMenusWorkspaceBuildInfo;
+
+AddEditorMainMenu :: (workspace : Workspace, decl : *Code_Declaration) {
+    using info := *g_editor_menus_workspace_build_info[workspace];
+
+    location := make_location(decl);
+
+    if decl.expression && decl.expression.kind == .PROCEDURE_HEADER {
+        ArrayPush(*editor_main_menus, decl.name);
+    } else {
+        compiler_report("Declaration is marked @EditorMainMenu but is not a procedure declaration.", location);
+    }
+}
+
+GenerateEditorMainMenuCode :: (workspace : Workspace, target : *Message) {
+    using info := *g_editor_menus_workspace_build_info[workspace];
+
+    if !target || generated_editor_main_menu_code {
+        return;
+    }
+
+    defer generated_editor_main_menu_code = true;
+
+    builder : StringBuilder;
+
+    Appendln(*builder, "InitEditorMainMenus :: () {");
+
+    for editor_main_menus {
+        Appendln(*builder, "    RegisterEditorMainMenu(%);", it);
+    }
+
+    Appendln(*builder, "}");
+
+    add_build_string(StringBuilderBuild(*builder), workspace, target);
+
+    LogMessage("Generated editor main menu code");
+}

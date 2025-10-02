@@ -22,13 +22,13 @@ InitAssets :: () {
         unload_proc=DestroySkinnedMesh,
         write_proc=null
     );
-    // InitAssetCache(
-    //     *g_assets.ArmatureAnimation_cache,
-    //     load_proc=LoadArmatureAnimationFromMemory,
-    //     post_load_proc=null,
-    //     unload_proc=DestroyArmatureAnimation,
-    //     write_proc=null
-    // );
+    InitAssetCache(
+        *g_assets.ArmatureAnimation_cache,
+        load_proc=LoadArmatureAnimationFromMemory,
+        post_load_proc=null,
+        unload_proc=DestroyArmatureAnimation,
+        write_proc=null
+    );
     InitAssetCache(
         *g_assets.Material_cache,
         load_proc=LoadMaterialFromMemory,
@@ -86,6 +86,15 @@ ProcessDataDirectoryChanges :: () {
     process_changes(*g_data_directory_watcher);
 }
 
+GetDataDirectoryAbsolutePath :: () -> string {
+    if !g_data_directory_absolute_path {
+        g_data_directory_absolute_path = StringClone(get_absolute_path("Data"));
+        path_overwrite_separators(g_data_directory_absolute_path, #char "/");
+    }
+
+    return g_data_directory_absolute_path;
+} @ModuleAPI
+
 InitAssetCache :: (
     cache : *$T/AssetCache,
     load_proc : cache.LoadProc,
@@ -96,11 +105,6 @@ InitAssetCache :: (
     Assert(!cache.initialized, "Asset cache % is already initialized", T);
 
     defer cache.initialized = true;
-
-    if !g_data_directory_absolute_path {
-        g_data_directory_absolute_path = StringClone(get_absolute_path("Data"));
-        path_overwrite_separators(g_data_directory_absolute_path, #char "/");
-    }
 
     cache.load_proc = load_proc;
     cache.post_load_proc = post_load_proc;

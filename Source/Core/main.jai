@@ -17,6 +17,7 @@
 #load "Graphics/environment_map.jai";
 #load "Graphics/material.jai";
 #load "Graphics/mesh.jai";
+#load "Graphics/animation.jai";
 
 #load "Physics/intersection.jai";
 #load "Physics/collision_mesh.jai";
@@ -100,7 +101,60 @@ ShutdownCore :: () {
     SDL_DestroyWindow(g_window);
 }
 
+g_last_frame_start_time : Basic.Apollo_Time;
+g_frame_times : [120]float;
+g_frame_time_index : int;
+
+g_avg_frame_time : float = 1 / 60.0;
+g_min_frame_time : float = 1 / 60.0;
+g_max_frame_time : float = 1 / 60.0;
+g_last_frame_time : float = 1 / 60.0;
+
+GetFrameTimes :: inline () -> min : float, max : float, avg : float {
+    return g_min_frame_time, g_max_frame_time, g_avg_frame_time;
+} @ModuleAPI
+
+GetDeltaTime :: inline () -> float {
+    return g_last_frame_time;
+} @ModuleAPI
+
+UpdateFrameTimes :: () {
+    if g_last_frame_start_time != .{} {
+        frame_end := Basic.current_time_monotonic();
+        frame_time := Basic.to_float64_seconds(frame_end - g_last_frame_start_time);
+
+        g_last_frame_time = xx frame_time;
+
+        g_frame_times[g_frame_time_index] = xx frame_time;
+
+        if g_frame_time_index == g_frame_times.count - 1 {
+            g_frame_time_index = 0;
+
+            min := F32_Inf;
+            max := -F32_Inf;
+            avg : float;
+            for g_frame_times {
+                min = Min(min, it);
+                max = Max(max, it);
+                avg += it;
+            }
+
+            avg /= g_frame_times.count;
+
+            g_min_frame_time = min;
+            g_max_frame_time = max;
+            g_avg_frame_time = avg;
+        } else {
+            g_frame_time_index += 1;
+        }
+    };
+
+    g_last_frame_start_time = Basic.current_time_monotonic();
+}
+
 CoreLoop :: () {
+    UpdateFrameTimes();
+
     UpdateInputState();
 
     should_recreate_swapchain := false;

@@ -1,6 +1,7 @@
 EditorViewport :: struct {
     unique_id : u64;
 
+    visible : bool;
     position : Vec2f;
     size : Vec2f;
     mouse_position : Vec2f;
@@ -152,6 +153,39 @@ EditorViewportEvent :: struct {
 
 EditorViewportEventCallback :: #type (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool;
 
+ShowGizmoControls :: (ctx : *GizmoContext) {
+    if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
+        ctx.gizmo_type = .None;
+    }
+
+    ImGui.SetItemTooltip("No gizmo");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_translate", Icon_Cursor_Move_MDI), selected=ctx.gizmo_type == .Translate) {
+        ctx.gizmo_type = .Translate;
+    }
+
+    ImGui.SetItemTooltip("Translate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_rotate", Icon_Rotate_Orbit_MDI), selected=ctx.gizmo_type == .Rotate) {
+        ctx.gizmo_type = .Rotate;
+    }
+
+    ImGui.SetItemTooltip("Rotate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_scale", Icon_Resize_MDI), selected=ctx.gizmo_type == .Scale) {
+        ctx.gizmo_type = .Scale;
+    }
+
+    ImGui.SetItemTooltip("Scale");
+
+    ImGui.Separator();
+
+    ImGui.Checkbox("Local", *ctx.gizmo_local);
+
+    ImGui.SetNextItemWidth(80);
+    ImGui_Ext.EnumCombo("Pivot", *ctx.gizmo_pivot);
+}
+
 ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -> opened : bool {
     opened := true;
 
@@ -163,11 +197,18 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     id := CTPrint("Viewport###viewport_%", unique_id);
 
     ImGui.SetNextWindowSize(.{1000, 700}, .FirstUseEver);
-    if !ImGui.Begin(id, *opened) {
+    visible = ImGui.Begin(id, *opened, flags=.MenuBar);
+    if !visible {
         return opened;
     }
 
     has_keyboard_input = ImGui.IsWindowFocused();
+
+    if ImGui.BeginMenuBar() {
+        defer ImGui.EndMenuBar();
+
+        ShowGizmoControls(*gizmo_ctx);
+    }
 
     size = ImGui.GetContentRegionAvail();
     render_targets = GetViewpointRenderTargets(unique_id, .{xx size.x, xx size.y});

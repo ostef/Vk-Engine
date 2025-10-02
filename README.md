@@ -40,6 +40,7 @@ Supports Linux and Windows.
 * Variance shadow maps
 * Particle system
 ### Editor:
+* Undo/Redo
 * Gizmo interaction improvements and rework
 * Texture viewer
 ### Core:

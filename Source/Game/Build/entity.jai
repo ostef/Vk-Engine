@@ -5,6 +5,7 @@
 
 EntityWorkspaceBuildInfo :: struct {
     generated_entity_code := false;
+
     entity_type : *Type_Info;
     entity_types_set : HashSet(*Type_Info_Struct);
     entity_types : [..]*Type_Info_Struct;

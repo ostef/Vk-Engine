@@ -5,6 +5,7 @@ CoreModule :: struct {
     AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);
     AddBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, dst_sync_points : GfxBarrierSyncPointFlags);
     AddMemoryBarrier : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags);
+    AddPoses : (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1);
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture);
@@ -23,9 +24,13 @@ CoreModule :: struct {
     BindGraphicsPipeline : (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline);
     BindIndexBuffer : (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuffer, offset : u64 = 0);
     BindVertexBuffer : (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0);
+    BlendPoses : (dest : *ArmaturePose, a : *ArmaturePose, b : *ArmaturePose, t : float);
+    CalculatePoseTransforms : (pose : *ArmaturePose);
+    CalculateSkinningMatrices : (pose : *ArmaturePose, matrices : *[]Matrix(M=4, N=4, T=float32));
     ClearEnvironmentMapsToGenerate : ();
     CopyBufferToBuffer : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64);
     CopyBufferToTexture : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture);
+    CopyPose : (dest : *ArmaturePose, src : *ArmaturePose);
     CopyTextureToBuffer : (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer);
     CreateGfxBindingPool : (name : string, desc : GfxBindingPoolDesc) -> GfxBindingPool;
     CreateGfxBindingSetLayout : (name : string, desc : GfxBindingSetLayoutDesc) -> GfxBindingSetLayout;
@@ -58,6 +63,7 @@ CoreModule :: struct {
     EndGfxDebugMarker_1 : ();
     EndGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer);
     EndGfxRenderPass : (pass : *GfxRenderPass);
+    FreeArmaturePose : (pose : *ArmaturePose);
     GenerateMipmaps : (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout);
     GetAssets : () -> *Assets;
     GetBoxSplittingPlanes : (center : Vector(N=3, T=float32)) -> x : Plane, y : Plane, z : Plane;
@@ -67,11 +73,17 @@ CoreModule :: struct {
     GetCVarInt : (name : string, default : s32 = 0) -> s32, exists : bool;
     GetCVarString : (name : string, default : string = "") -> string, exists : bool;
     GetCVarUInt : (name : string, default : u32 = 0) -> u32, exists : bool;
+    GetDataDirectoryAbsolutePath : () -> string;
+    GetDeltaTime : () -> float;
     GetEnvironmentMapsToGenerate : () -> []*EnvironmentMap;
     GetFrameInFlight : () -> s64;
+    GetFrameTimes : () -> min : float, max : float, avg : float;
     GetGPUFrameProfiler : () -> *GPUFrameProfiler;
     GetGfxContext : () -> *GfxContext;
     GetGfxLimits : () -> GfxLimits;
+    GetJointName : (anim : *ArmatureAnimation, joint_id : s16) -> string;
+    GetJointNamesArray : (anim : *ArmatureAnimation) -> [][64]u8;
+    GetJointSample : (anim : *ArmatureAnimation, joint_id : s16, pose_index : s64) -> *JointSample;
     GetKeyAxisValue : (negative : KeyCode, positive : KeyCode) -> float;
     GetMappedPtr : (buffer : *GfxBuffer) -> *void;
     GetModState : () -> KeyMods;
@@ -88,7 +100,9 @@ CoreModule :: struct {
     GetWindowPixelSize : (window : *void) -> width : s32, height : s32;
     GetWindowPointSize : (window : *void) -> width : s32, height : s32;
     GetWindowScaleFactor : (window : *void) -> float;
+    InitArmaturePose : (pose : *ArmaturePose, mesh : *Asset(DataType=SkinnedMesh));
     InitGPUFrameProfiler : (profiler : *GPUFrameProfiler, max_events : s64);
+    InterpolateJointSamples : (a : JointSample, b : JointSample, t : float) -> JointSample;
     IsKeyDown : (key : KeyCode) -> bool;
     IsKeyPressed : (key : KeyCode) -> bool;
     IsKeyReleased : (key : KeyCode) -> bool;
@@ -127,6 +141,8 @@ CoreModule :: struct {
     RegisterDataDirectoryChangeCallback : (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64;
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
+    ResetToBindPose : (pose : *ArmaturePose);
+    SampleAnimation : (anim : *ArmatureAnimation, pose_index : float, output_pose : *ArmaturePose);
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
     SetCVarBool : (name : string, value : bool);
     SetCVarFloat : (name : string, value : float);
@@ -138,6 +154,7 @@ CoreModule :: struct {
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
     SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
     SubmitGfxFrame : ();
+    SubtractPoses : (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1);
     TextureUploadPass : (cmd_buffer : *GfxCommandBuffer);
     TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     UnregisterDataDirectoryChangeCallback : (index : s64);
@@ -162,6 +179,11 @@ AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarri
 AddMemoryBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags) {
     Assert(g_Core != null, "Core module is null");
     g_Core.AddMemoryBarrier(cmd_buffer, src_sync_points, src_accesses, dst_sync_points, dst_accesses);
+}
+
+AddPoses :: inline (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AddPoses(dest, other, weight);
 }
 
 AddTextureBarrier :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture) {
@@ -255,6 +277,21 @@ BindVertexBuffer :: inline (pass : *GfxRenderPass, binding : u32, buffer : *GfxB
     g_Core.BindVertexBuffer(pass, binding, buffer, offset);
 }
 
+BlendPoses :: inline (dest : *ArmaturePose, a : *ArmaturePose, b : *ArmaturePose, t : float) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.BlendPoses(dest, a, b, t);
+}
+
+CalculatePoseTransforms :: inline (pose : *ArmaturePose) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CalculatePoseTransforms(pose);
+}
+
+CalculateSkinningMatrices :: inline (pose : *ArmaturePose, matrices : *[]Matrix(M=4, N=4, T=float32)) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CalculateSkinningMatrices(pose, matrices);
+}
+
 ClearEnvironmentMapsToGenerate :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.ClearEnvironmentMapsToGenerate();
@@ -268,6 +305,11 @@ CopyBufferToBuffer :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_
 CopyBufferToTexture :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture) {
     Assert(g_Core != null, "Core module is null");
     g_Core.CopyBufferToTexture(pass, src_buffer, dst_texture);
+}
+
+CopyPose :: inline (dest : *ArmaturePose, src : *ArmaturePose) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CopyPose(dest, src);
 }
 
 CopyTextureToBuffer :: inline (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer) {
@@ -430,6 +472,11 @@ EndGfxRenderPass :: inline (pass : *GfxRenderPass) {
     g_Core.EndGfxRenderPass(pass);
 }
 
+FreeArmaturePose :: inline (pose : *ArmaturePose) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.FreeArmaturePose(pose);
+}
+
 GenerateMipmaps :: inline (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout) {
     Assert(g_Core != null, "Core module is null");
     g_Core.GenerateMipmaps(pass, texture, old_layout, new_layout);
@@ -481,6 +528,16 @@ GetCVarUInt :: inline (name : string, default : u32 = 0) -> u32, exists : bool {
     return _ret0, _ret1;
 }
 
+GetDataDirectoryAbsolutePath :: inline () -> string {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetDataDirectoryAbsolutePath();
+}
+
+GetDeltaTime :: inline () -> float {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetDeltaTime();
+}
+
 GetEnvironmentMapsToGenerate :: inline () -> []*EnvironmentMap {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetEnvironmentMapsToGenerate();
@@ -489,6 +546,12 @@ GetEnvironmentMapsToGenerate :: inline () -> []*EnvironmentMap {
 GetFrameInFlight :: inline () -> s64 {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetFrameInFlight();
+}
+
+GetFrameTimes :: inline () -> min : float, max : float, avg : float {
+    Assert(g_Core != null, "Core module is null");
+    _ret0, _ret1, _ret2 := g_Core.GetFrameTimes();
+    return _ret0, _ret1, _ret2;
 }
 
 GetGPUFrameProfiler :: inline () -> *GPUFrameProfiler {
@@ -504,6 +567,21 @@ GetGfxContext :: inline () -> *GfxContext {
 GetGfxLimits :: inline () -> GfxLimits {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetGfxLimits();
+}
+
+GetJointName :: inline (anim : *ArmatureAnimation, joint_id : s16) -> string {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetJointName(anim, joint_id);
+}
+
+GetJointNamesArray :: inline (anim : *ArmatureAnimation) -> [][64]u8 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetJointNamesArray(anim);
+}
+
+GetJointSample :: inline (anim : *ArmatureAnimation, joint_id : s16, pose_index : s64) -> *JointSample {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetJointSample(anim, joint_id, pose_index);
 }
 
 GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float {
@@ -590,9 +668,19 @@ GetWindowScaleFactor :: inline (window : *void) -> float {
     return g_Core.GetWindowScaleFactor(window);
 }
 
+InitArmaturePose :: inline (pose : *ArmaturePose, mesh : *Asset(DataType=SkinnedMesh)) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.InitArmaturePose(pose, mesh);
+}
+
 InitGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler, max_events : s64) {
     Assert(g_Core != null, "Core module is null");
     g_Core.InitGPUFrameProfiler(profiler, max_events);
+}
+
+InterpolateJointSamples :: inline (a : JointSample, b : JointSample, t : float) -> JointSample {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.InterpolateJointSamples(a, b, t);
 }
 
 IsKeyDown :: inline (key : KeyCode) -> bool {
@@ -797,6 +885,16 @@ ResetGfxCommandPool :: inline (pool : *GfxCommandPool) {
     g_Core.ResetGfxCommandPool(pool);
 }
 
+ResetToBindPose :: inline (pose : *ArmaturePose) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ResetToBindPose(pose);
+}
+
+SampleAnimation :: inline (anim : *ArmatureAnimation, pose_index : float, output_pose : *ArmaturePose) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SampleAnimation(anim, pose_index, output_pose);
+}
+
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SetBlendConstant(pass, color);
@@ -850,6 +948,11 @@ SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
 SubmitGfxFrame :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxFrame();
+}
+
+SubtractPoses :: inline (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SubtractPoses(dest, other, weight);
 }
 
 TextureUploadPass :: inline (cmd_buffer : *GfxCommandBuffer) {

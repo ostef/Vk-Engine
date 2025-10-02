@@ -1,76 +1,3 @@
-AllEntitiesWithEditorIcon :: #bake_arguments AllEntitiesWithCallback(Callback="GetEditorIcon");
-AllComponentsWithEditorIcon :: #bake_arguments AllComponentsWithCallback(Callback="GetEditorIcon");
-
-GetEditorIcon :: inline (world : *World, entity : *$T) -> *Asset(Texture2D), *Asset(Material)
-#modify { return T == Entity || IsInEntityTypesArray(T); } {
-    icon : *Asset(Texture2D);
-    #if T == Entity {
-        #insert -> string {
-            builder : StringBuilder;
-
-            Appendln(*builder, "if GetEntityTypeId(entity.index) == {");
-            for i : 1..Entity_Types.count - 1 {
-                type := Entity_Types[i];
-                Appendln(*builder, "case .%1; #if #exists(%1.GetEditorIcon) { icon = %1.GetEditorIcon(world, xx entity); }", type);
-            }
-            Appendln(*builder, "}");
-
-            return StringBuilderBuild(*builder);
-        }
-    } else {
-        #if #exists(T.GetEdiorIcon) {
-            icon = T.GetEditorIcon(world, entity);
-        }
-    }
-
-    if !icon {
-        return null, null;
-    }
-
-    material, is_new := AllocNewAsset(Material, TPrint("%.mat", icon.asset_name), .FromMemory | .Permanent);
-    if is_new {
-        material.type = .Unlit;
-        material.base_color = icon;
-    }
-
-    return icon, material;
-}
-
-GetEditorIcon :: inline (world : *World, entity : *Entity, component : *$T) -> *Asset(Texture2D), *Asset(Material)
-#modify { return T == Component || IsInComponentTypesArray(T); } {
-    icon : *Asset(Texture2D);
-    #if T == Component {
-        #insert -> string {
-            builder : StringBuilder;
-
-            Appendln(*builder, "if GetComponentTypeId(component) == {");
-            for i : 1..Component_Types.count - 1 {
-                type := Component_Types[i];
-                Appendln(*builder, "case .%1; #if #exists(%1.GetEditorIcon) { icon = %1.GetEditorIcon(world, entity, xx component); }", type);
-            }
-            Appendln(*builder, "}");
-
-            return StringBuilderBuild(*builder);
-        }
-    } else {
-        #if #exists(T.GetEdiorIcon) {
-            icon = T.GetEditorIcon(world, entity, component);
-        }
-    }
-
-    if !icon {
-        return null, null;
-    }
-
-    material, is_new := AllocNewAsset(Material, TPrint("%.mat", icon.asset_name), .FromMemory | .Permanent);
-    if is_new {
-        material.type = .Unlit;
-        material.base_color = icon;
-    }
-
-    return icon, material;
-}
-
 g_billboard_vertex_buffer : GfxBuffer;
 
 InitBillboardVertexBuffer :: () {
@@ -133,9 +60,9 @@ SubmitEditorWorldToRenderer :: (world : *World) {
     SubmitWorldToRenderer(world);
 
     for :AllEntitiesWithEditorIcon world {
-        // if !ShouldShowEntityEditorIcon(GetEntityTypeId(it.index)) {
-        //     continue;
-        // }
+        if !ShouldShowEntityEditorIcon(GetEntityTypeId(it.index)) {
+            continue;
+        }
 
         icon, icon_material := GetEditorIcon(world, it);
         if icon {
@@ -163,9 +90,9 @@ SubmitEditorWorldToRenderer :: (world : *World) {
     }
 
     for :AllComponentsWithEditorIcon world {
-        // if !ShouldShowComponentEditorIcon(GetComponentTypeId(it)) {
-        //     continue;
-        // }
+        if !ShouldShowComponentEditorIcon(GetComponentTypeId(it)) {
+            continue;
+        }
 
         entity := GetEntity(world, it.entity_index);
         if !entity {
@@ -212,6 +139,10 @@ SubmitEditorWorldToRenderer :: (world : *World) {
 
     for g_editor_viewports {
         if it.size.x == 0 || it.size.y == 0 {
+            continue;
+        }
+
+        if !it.visible {
             continue;
         }
 

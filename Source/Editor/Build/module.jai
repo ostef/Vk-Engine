@@ -7,6 +7,8 @@ Core :: #import "Core/Build";
 Game :: #import "Game/Build";
 Renderer :: #import "Renderer/Build";
 
+#load "menus.jai";
+
 Module_Dependencies :: string.[
     "Core",
     "Renderer",
@@ -48,8 +50,13 @@ HandleCompilerMessage :: (msg : *Message) {
     case .PHASE;
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
+            if Game.g_entity_workspace_build_info[msg.workspace].generated_entity_code {
+                GenerateEditorMainMenuCode(msg.workspace, editor_import);
+            }
+
             Core.GenerateAssetCode(msg.workspace, core_import);
             Game.GenerateEntityCode(msg.workspace, game_import);
+
             GenerateModuleAPICode(msg.workspace, editor_import, "Editor");
         }
     }
@@ -62,9 +69,16 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         if note.text == "ModuleAPI" {
             AddModuleAPIProcedure(workspace, decl);
         }
+        if note.text == "EditorMainMenu" {
+            AddEditorMainMenu(workspace, decl);
+        }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);
         Renderer.HandleNoteOnDeclaration(workspace, decl, note);
         Game.HandleNoteOnDeclaration(workspace, decl, note);
+        HandleNoteOnDeclaration(workspace, decl, note);
     }
+}
+
+HandleNoteOnDeclaration :: (workspace : Workspace, decl : *Code_Declaration, note : *Code_Note) {
 }

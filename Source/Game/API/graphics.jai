@@ -87,17 +87,17 @@ MakeMeshToRender :: (world : *World, component : *SkinnedMeshComponent) -> bool,
     return ok, mesh;
 }
 
-// SetPose :: (using component : *SkinnedMeshComponent, pose : *ArmaturePose) {
-//     if !pose.mesh {
-//         return;
-//     }
+SetPose :: (using component : *SkinnedMeshComponent, pose : *ArmaturePose) {
+    if !pose.mesh {
+        return;
+    }
 
-//     if pose.mesh != mesh {
-//         LogError("Mismatching mesh when setting pose ('%' vs '%')", mesh.asset_name, pose.mesh.asset_name);
-//     }
+    if pose.mesh != mesh {
+        LogError("Mismatching mesh when setting pose ('%' vs '%')", mesh.asset_name, pose.mesh.asset_name);
+    }
 
-//     CalculateSkinningMatrices(pose, *skinning_matrices);
-// }
+    CalculateSkinningMatrices(pose, *skinning_matrices);
+}
 
 StaticMeshEntity :: struct {
     #as using _ : Entity; @Serialize(1) @InspectorNoTree
@@ -113,50 +113,50 @@ StaticMeshEntity :: struct {
     }
 } @Entity
 
-// AnimatedMeshEntity :: struct {
-//     #as using _ : Entity; @Serialize(1) @InspectorNoTree
+AnimatedMeshEntity :: struct {
+    #as using _ : Entity; @Serialize(1) @InspectorNoTree
 
-//     mesh : *SkinnedMeshComponent; @Serialize(2)
+    mesh : *SkinnedMeshComponent; @Serialize(2)
 
-//     animation : *Asset(ArmatureAnimation); @Serialize(3)
-//     animation_frames_per_second := 30.0; @Serialize(4)
-//     animation_time : float;
-//     pose : ArmaturePose;
+    animation : *Asset(ArmatureAnimation); @Serialize(3)
+    animation_frames_per_second := 30.0; @Serialize(4)
+    animation_time : float;
+    pose : ArmaturePose;
 
-//     OnSpawn :: (world : *World, entity : *AnimatedMeshEntity) {
-//         entity.mesh = CreateComponent(world, SkinnedMeshComponent, entity);
-//     }
+    OnSpawn :: (world : *World, entity : *AnimatedMeshEntity) {
+        entity.mesh = CreateComponent(world, SkinnedMeshComponent, entity);
+    }
 
-//     OnDespawn :: (world : *World, using entity : *AnimatedMeshEntity) {
-//         DestroyComponent(world, mesh);
-//         FreeArmaturePose(*pose);
-//     }
+    OnDespawn :: (world : *World, using entity : *AnimatedMeshEntity) {
+        DestroyComponent(world, mesh);
+        FreeArmaturePose(*pose);
+    }
 
-//     OnEditorUpdate :: (world : *World, using entity : *AnimatedMeshEntity) {
-//         if pose.mesh != mesh.mesh {
-//             FreeArmaturePose(*pose);
+    OnEditorUpdate :: (world : *World, using entity : *AnimatedMeshEntity) {
+        if pose.mesh != mesh.mesh {
+            FreeArmaturePose(*pose);
 
-//             if mesh {
-//                 InitArmaturePose(*pose, mesh.mesh);
-//             }
-//         }
+            if mesh {
+                InitArmaturePose(*pose, mesh.mesh);
+            }
+        }
 
-//         if !mesh.mesh {
-//             return;
-//         }
+        if !mesh.mesh {
+            return;
+        }
 
-//         if animation {
-//             SampleAnimation(animation, animation_time, *pose);
-//             animation_time += GetDeltaTime() * animation_frames_per_second;
-//         } else {
-//             ResetToBindPose(*pose);
-//             animation_time = 0;
-//         }
+        if animation {
+            SampleAnimation(animation, animation_time, *pose);
+            animation_time += GetDeltaTime() * animation_frames_per_second;
+        } else {
+            ResetToBindPose(*pose);
+            animation_time = 0;
+        }
 
-//         CalculatePoseTransforms(*pose);
-//         SetPose(mesh, *pose);
-//     }
-// } @Entity
+        CalculatePoseTransforms(*pose);
+        SetPose(mesh, *pose);
+    }
+} @Entity
 
 AllMeshesToRender :: (world : *World, body : Code, flags : For_Flags) #expand {
     `it : MeshToRender;
