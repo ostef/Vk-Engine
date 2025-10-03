@@ -231,6 +231,7 @@ AllEditorState :: struct {
     viewports : []EditorViewportState; @Serialize(9)
     focused_window : string; @Serialize(10)
     loaded_world : string; @Serialize(11)
+    main_editor_viewport_id : u64; @Serialize(12)
 }
 
 SaveState :: () -> []u8 {
@@ -244,6 +245,7 @@ SaveState :: () -> []u8 {
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
         loaded_world=StringClone(g_editor_world.loaded_from_directory),
+        main_editor_viewport_id=ifx g_main_editor_viewport.unique_id,
     };
     defer Free(all_state.loaded_world.data);
 
@@ -287,7 +289,10 @@ LoadState :: (state : []u8) {
     }
 
     for viewports {
-        CreateEditorViewport(it);
+        viewport := CreateEditorViewport(it);
+        if it.unique_id == main_editor_viewport_id {
+            g_main_editor_viewport = viewport;
+        }
     }
     Free(viewports.data);
 
