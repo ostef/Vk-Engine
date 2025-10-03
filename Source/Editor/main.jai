@@ -243,8 +243,12 @@ SaveState :: () -> []u8 {
         show_imgui_demo=g_show_imgui_demo,
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
-        loaded_world=g_editor_world.loaded_from_directory,
+        loaded_world=StringClone(g_editor_world.loaded_from_directory),
     };
+    defer Free(all_state.loaded_world.data);
+
+    make_directory_if_it_does_not_exist(".EditorState");
+    SaveWorldToDirectory(*g_editor_world, ".EditorState/World");
 
     all_state.viewports = AllocArray(EditorViewportState, g_editor_viewports.count ,, Temp);
     for g_editor_viewports {
@@ -258,9 +262,10 @@ SaveState :: () -> []u8 {
 }
 
 LoadState :: (state : []u8) {
+    defer Free(state.data);
+
     using all_state : AllEditorState;
     DeserializeAny(cast(string, state), all_state);
-    Free(state.data);
 
     for selected_entities {
         ArrayPush(*g_editor_selected_entities, it);
@@ -286,8 +291,9 @@ LoadState :: (state : []u8) {
     }
     Free(viewports.data);
 
-    LoadWorldFromDirectory(*g_editor_world, loaded_world);
-    Free(loaded_world.data);
+    LoadWorldFromDirectory(*g_editor_world, ".EditorState/World");
+
+    g_editor_world.loaded_from_directory = loaded_world;
 }
 
 OnEvent :: (event : SDL_Event) {

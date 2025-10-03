@@ -424,7 +424,7 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
     case .MousePosition;
         if camera.is_moving {
-            SDL_SetRelativeMouseMode(SDL_TRUE);
+            // SDL_SetRelativeMouseMode(SDL_TRUE);
 
             rotation_delta := GetRawMouseDelta() * camera.rotation_speed;
 
@@ -460,7 +460,7 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
             camera.is_moving = false;
 
             if was_moving_camera {
-                SDL_SetRelativeMouseMode(SDL_FALSE);
+                // SDL_SetRelativeMouseMode(SDL_FALSE);
             }
         }
 
