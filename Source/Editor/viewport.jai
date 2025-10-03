@@ -186,17 +186,19 @@ EditorViewportEventCallback :: #type (world : *World, viewport : *EditorViewport
 ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -> opened : bool {
     opened := true;
 
-    ImGui.PushStyleVar(.WindowPadding, Vec2f.{0,0});
-    defer ImGui.PopStyleVar();
-
     defer ImGui.End();
 
-    id := CTPrint("Viewport###viewport_%", unique_id);
+    {
+        id := CTPrint("Viewport###viewport_%", unique_id);
 
-    ImGui.SetNextWindowSize(.{1000, 700}, .FirstUseEver);
-    visible = ImGui.Begin(id, *opened, flags=.MenuBar);
-    if !visible {
-        return opened;
+        ImGui.PushStyleVar(.WindowPadding, Vec2f.{0,0});
+        defer ImGui.PopStyleVar();
+
+        ImGui.SetNextWindowSize(.{1000, 700}, .FirstUseEver);
+        visible = ImGui.Begin(id, *opened, flags=.MenuBar);
+        if !visible {
+            return opened;
+        }
     }
 
     has_keyboard_input = ImGui.IsWindowFocused();
