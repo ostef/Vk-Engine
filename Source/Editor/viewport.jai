@@ -27,6 +27,7 @@ EditorViewport :: struct {
 }
 
 g_editor_viewports : [..]*EditorViewport;
+g_main_editor_viewport : *EditorViewport;
 
 EditorViewportState :: struct {
     unique_id : u64; @Serialize(1)
@@ -69,6 +70,10 @@ CreateEditorViewport :: () -> *EditorViewport {
     RegisterEventCallback(viewport, HandleEventForGizmos);
     RegisterEventCallback(viewport, HandleEventForEntitySelection);
 
+    if !g_main_editor_viewport {
+        g_main_editor_viewport = viewport;
+    }
+
     return viewport;
 }
 
@@ -76,6 +81,14 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     index := ArrayFindFirst(g_editor_viewports, viewport);
     if index >= 0 {
         ArrayOrderedRemove(*g_editor_viewports, index);
+    }
+
+    if g_main_editor_viewport == viewport {
+        if g_editor_viewports.count > 0 {
+            g_main_editor_viewport = g_editor_viewports[0];
+        } else {
+            g_main_editor_viewport = null;
+        }
     }
 
     DestroyGizmoContext(*viewport.gizmo_ctx);
@@ -189,7 +202,9 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     defer ImGui.End();
 
     {
-        id := CTPrint("Viewport###viewport_%", unique_id);
+        id := ifx g_main_editor_viewport == viewport
+            then CTPrint("Viewport (Main)###viewport_%", unique_id)
+            else CTPrint("Viewport###viewport_%", unique_id);
 
         ImGui.PushStyleVar(.WindowPadding, Vec2f.{0,0});
         defer ImGui.PopStyleVar();
