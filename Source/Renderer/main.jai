@@ -464,6 +464,7 @@ RenderFrame :: () {
         ArrayFree(*it.gizmo_lines);
     }
 
+    ArrayClear(*g_debug_lines);
     ArrayClear(*g_viewpoints_to_render);
     ArrayClear(*g_meshes_to_render);
     ArrayClear(*g_selected_meshes_to_render);

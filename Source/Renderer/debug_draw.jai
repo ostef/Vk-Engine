@@ -249,8 +249,6 @@ DebugLinesPass :: (using ctx : *RenderContext) {
         CreateDebugLinesPipeline();
     }
 
-    defer ArrayClear(*g_debug_lines);
-
     if g_debug_lines.count <= 0 {
         return;
     }
