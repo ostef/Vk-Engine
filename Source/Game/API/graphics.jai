@@ -224,25 +224,23 @@ DirectionalLightComponent :: struct {
     //     DestroyShadowMap(*shadow_map);
     // }
 
-    // OnDebugDraw :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) {
-    //     if EntityOrParentIsSelected(world, entity.guid) {
-    //         position := TranslationVector(light.world_transform);
-    //         right := RightVector(light.world_transform);
-    //         up := UpVector(light.world_transform);
-    //         direction := ForwardVector(light.world_transform);
+    OnDebugDraw :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) {
+        position := TranslationVector(light.world_transform);
+        right := RightVector(light.world_transform);
+        up := UpVector(light.world_transform);
+        direction := ForwardVector(light.world_transform);
 
-    //         p0 := position + right * 0.3;
-    //         p1 := position - right * 0.3;
-    //         p2 := position + up * 0.3;
-    //         p3 := position - up * 0.3;
+        p0 := position + right * 0.3;
+        p1 := position - right * 0.3;
+        p2 := position + up * 0.3;
+        p3 := position - up * 0.3;
 
-    //         DebugDrawCircleOutline(.{1,1,1,1}, position, right, up, 0.3);
-    //         DebugDrawLine(.{1,1,1,1}, p0, p0 + direction);
-    //         DebugDrawLine(.{1,1,1,1}, p1, p1 + direction);
-    //         DebugDrawLine(.{1,1,1,1}, p2, p2 + direction);
-    //         DebugDrawLine(.{1,1,1,1}, p3, p3 + direction);
-    //     }
-    // }
+        DebugDrawCircleOutline(.{1,1,1,1}, position, right, up, 0.3);
+        DebugDrawLine(.{1,1,1,1}, p0, p0 + direction);
+        DebugDrawLine(.{1,1,1,1}, p1, p1 + direction);
+        DebugDrawLine(.{1,1,1,1}, p2, p2 + direction);
+        DebugDrawLine(.{1,1,1,1}, p3, p3 + direction);
+    }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) -> *Asset(Texture2D) {
         return LoadAssetPermanent(Texture2D, "Editor/Icons/DirectionalLight.png");
@@ -279,13 +277,11 @@ PointLightComponent :: struct {
     //     DestroyShadowMap(*shadow_map);
     // }
 
-    // OnDebugDraw :: (world : *World, entity : *Entity, light : *PointLightComponent) {
-    //     if EntityOrParentIsSelected(world, entity.guid) {
-    //         position := TranslationVector(light.world_transform);
-    //         DebugDrawSphereOutline(.{1,1,1,1}, position, light.source_radius);
-    //         DebugDrawSphereOutline(.{1,1,1,1}, position, GetPointLightAttenuationDistance(light));
-    //     }
-    // }
+    OnDebugDraw :: (world : *World, entity : *Entity, light : *PointLightComponent) {
+        position := TranslationVector(light.world_transform);
+        DebugDrawSphereOutline(.{1,1,1,1}, position, light.source_radius);
+        DebugDrawSphereOutline(.{1,1,1,1}, position, GetPointLightAttenuationDistance(light));
+    }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *PointLightComponent) -> *Asset(Texture2D) {
         return LoadAssetPermanent(Texture2D, "Editor/Icons/PointLight.png");

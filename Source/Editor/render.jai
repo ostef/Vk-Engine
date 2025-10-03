@@ -151,6 +151,14 @@ SubmitEditorWorldToRenderer :: (world : *World) {
         viewpoint.skybox = world.skybox;
         viewpoint.skybox_light_intensity = world.skybox_light_intensity;
 
+        if !it.show_debug_drawings {
+            viewpoint.flags |= .NoDebugLines;
+        }
+
+        if !it.show_grid {
+            viewpoint.flags |= .NoGrids;
+        }
+
         for widget : it.gizmo_ctx.widgets {
             mesh := it.gizmo_ctx.meshes.all[widget.mesh_id];
 

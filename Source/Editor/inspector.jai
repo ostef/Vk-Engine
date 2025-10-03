@@ -118,6 +118,52 @@ UnregisterCustomInspector :: (type : *Type_Info) -> bool {
     return HashMapRemove(*g_custom_inspectors, type);
 }
 
+InspectGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
+    guid := cast(*GUID) any.value_pointer;
+
+    g := ImGui.GetCurrentContext();
+
+    not_editable := ArrayFindFirst(notes, "NotEditable") != -1;
+
+    BeginInspectorLine(label);
+
+    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", guid.*);
+
+    state := LastItemInteractionState();
+
+    if !not_editable {
+        ImGui.SetItemTooltip("Drag and drop GUID");
+    }
+
+    if ImGui.BeginDragDropSource() {
+        ImGui.Text("%", guid.*);
+
+        ImGui.SetDragDropPayload("GUID", guid, size_of(GUID));
+        ImGui.EndDragDropSource();
+    }
+
+    if !not_editable && !(g.LastItemData_.InFlags & .Disabled) && ImGui.BeginDragDropTarget() {
+        payload := ImGui.AcceptDragDropPayload("GUID");
+        if payload {
+            Assert(payload.DataSize == size_of(GUID));
+            guid.* = (cast(*GUID) payload.Data).*;
+
+            state |= .Started;
+            state |= .Submitted;
+        }
+
+        ImGui.EndDragDropTarget();
+    }
+
+    if !not_editable {
+        state |= EndInspectorLineWithReset(ctx, any);
+    } else {
+        EndInspectorLine();
+    }
+
+    return state;
+}
+
 InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
     guid := cast(*EntityGUID) any.value_pointer;
 
@@ -416,6 +462,11 @@ InspectQuaternionAsEulerAngles :: (label : *u8, using ctx : *InspectorContext, q
 }
 
 InitCustomInspectors :: () {
+    if g_custom_inspectors_initialized {
+        return;
+    }
+
+    RegisterCustomInspector(GUID, InspectGUID, null);
     RegisterCustomInspector(EntityGUID, InspectEntityGUID, null);
     RegisterCustomInspector(SpatialComponent, InspectSpatialComponent, null);
     RegisterCustomInspector(TypeGetSourcePolymorph(type_info(Asset(struct{}))), InspectAsset, null);

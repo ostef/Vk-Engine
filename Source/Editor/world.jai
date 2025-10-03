@@ -181,14 +181,6 @@ WorldShowMenu :: (world : *World) {
     if ImGui.BeginMenu("Show") {
         defer ImGui.EndMenu();
 
-        if ImGui.MenuItem("Debug Draw", selected=g_editor_show_debug_drawings) {
-            g_editor_show_debug_drawings = !g_editor_show_debug_drawings;
-        }
-
-        if ImGui.MenuItem("Grid", selected=g_editor_show_grid) {
-            g_editor_show_grid = !g_editor_show_grid;
-        }
-
         if ImGui.BeginMenu("Icons") {
             defer ImGui.EndMenu();
 

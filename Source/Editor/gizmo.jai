@@ -1830,3 +1830,38 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
         }
     }
 }
+
+GizmoViewportMenu :: (world : *World, viewport : *EditorViewport) {
+    ctx := *viewport.gizmo_ctx;
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
+        ctx.gizmo_type = .None;
+    }
+
+    ImGui.SetItemTooltip("No gizmo");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_translate", Icon_Cursor_Move_MDI), selected=ctx.gizmo_type == .Translate) {
+        ctx.gizmo_type = .Translate;
+    }
+
+    ImGui.SetItemTooltip("Translate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_rotate", Icon_Rotate_Orbit_MDI), selected=ctx.gizmo_type == .Rotate) {
+        ctx.gizmo_type = .Rotate;
+    }
+
+    ImGui.SetItemTooltip("Rotate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_scale", Icon_Resize_MDI), selected=ctx.gizmo_type == .Scale) {
+        ctx.gizmo_type = .Scale;
+    }
+
+    ImGui.SetItemTooltip("Scale");
+
+    ImGui.Separator();
+
+    ImGui.Checkbox("Local", *ctx.gizmo_local);
+
+    ImGui.SetNextItemWidth(80);
+    ImGui_Ext.EnumCombo("Pivot", *ctx.gizmo_pivot);
+} @EditorViewportMenu

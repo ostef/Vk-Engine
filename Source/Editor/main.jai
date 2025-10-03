@@ -75,8 +75,23 @@ UnregisterEditorMainMenu :: (callback : EditorMainMenuCallback) -> bool {
     return true;
 }
 
-g_editor_show_debug_drawings := true;
-g_editor_show_grid := true;
+EditorViewportMenuCallback :: #type (*World, *EditorViewport);
+
+g_editor_viewport_menus : [..]EditorViewportMenuCallback;
+
+RegisterEditorViewportMenu :: (callback : EditorViewportMenuCallback) -> bool {
+    return ArrayPushUnique(*g_editor_viewport_menus, callback);
+}
+
+UnregisterEditorViewportMenu :: (callback : EditorViewportMenuCallback) -> bool {
+    index := ArrayFindFirst(g_editor_viewport_menus, callback);
+    if index < 0 {
+        return false;
+    }
+
+    ArrayOrderedRemove(*g_editor_viewport_menus, index);
+    return true;
+}
 
 g_editor_base_font : *ImGui.ImFont;
 g_editor_medium_font : *ImGui.ImFont;
@@ -134,6 +149,8 @@ InitializeEditor :: () {
     g_context = remap_context();
     push_context,defer_pop g_context;
 
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+
     ImGui.CreateContext();
     ImGui.GetIO().ConfigFlags_ |= .DockingEnable;
 
@@ -175,10 +192,9 @@ InitializeEditor :: () {
 
     InitBillboardVertexBuffer();
 
-    LoadWorldFromDirectory(*g_editor_world, "Data/Sponza/Sponza.scene");
-
     InitCustomInspectors();
     InitEditorMainMenus();
+    InitEditorViewportMenus();
 
     CreateEditorViewport();
 }
@@ -213,6 +229,8 @@ AllEditorState :: struct {
     show_entity_inspector : bool; @Serialize(7)
     show_world_inspector : bool; @Serialize(8)
     viewports : []EditorViewportState; @Serialize(9)
+    focused_window : string; @Serialize(10)
+    loaded_world : string; @Serialize(11)
 }
 
 SaveState :: () -> []u8 {
@@ -225,6 +243,7 @@ SaveState :: () -> []u8 {
         show_imgui_demo=g_show_imgui_demo,
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
+        loaded_world=g_editor_world.loaded_from_directory,
     };
 
     all_state.viewports = AllocArray(EditorViewportState, g_editor_viewports.count ,, Temp);
@@ -266,6 +285,9 @@ LoadState :: (state : []u8) {
         CreateEditorViewport(it);
     }
     Free(viewports.data);
+
+    LoadWorldFromDirectory(*g_editor_world, loaded_world);
+    Free(loaded_world.data);
 }
 
 OnEvent :: (event : SDL_Event) {
@@ -385,7 +407,7 @@ UpdateEditor :: () {
         for :AllEntities entity : g_editor_world {
             CallEntityCallback(*g_editor_world, entity, "OnEditorUpdate");
 
-            if !g_editor_show_debug_drawings || entity.flags & .Hidden {
+            if entity.flags & .Hidden {
                 continue;
             }
 
@@ -401,7 +423,7 @@ UpdateEditor :: () {
 
             CallComponentCallback(*g_editor_world, entity, component, "OnEditorUpdate");
 
-            if !g_editor_show_debug_drawings || !entity || entity.flags & .Hidden {
+            if !entity || entity.flags & .Hidden {
                 continue;
             }
 

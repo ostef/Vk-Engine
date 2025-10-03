@@ -51,7 +51,7 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             if Game.g_entity_workspace_build_info[msg.workspace].generated_entity_code {
-                GenerateEditorMainMenuCode(msg.workspace, editor_import);
+                GenerateEditorMenuCode(msg.workspace, editor_import);
             }
 
             Core.GenerateAssetCode(msg.workspace, core_import);
@@ -71,6 +71,9 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         }
         if note.text == "EditorMainMenu" {
             AddEditorMainMenu(workspace, decl);
+        }
+        if note.text == "EditorViewportMenu" {
+            AddEditorViewportMenu(workspace, decl);
         }
 
         Core.HandleNoteOnDeclaration(workspace, decl, note);

@@ -19,6 +19,9 @@ EditorViewport :: struct {
     camera : EditorCamera;
     gizmo_ctx : GizmoContext;
 
+    show_debug_drawings := true;
+    show_grid := true;
+
     is_box_selecting : bool;
     box_selection_start : Vec2i;
 }
@@ -180,39 +183,6 @@ EditorViewportEvent :: struct {
 
 EditorViewportEventCallback :: #type (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool;
 
-ShowGizmoControls :: (ctx : *GizmoContext) {
-    if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
-        ctx.gizmo_type = .None;
-    }
-
-    ImGui.SetItemTooltip("No gizmo");
-
-    if ImGui.MenuItem(CTPrint("%##gizmo_translate", Icon_Cursor_Move_MDI), selected=ctx.gizmo_type == .Translate) {
-        ctx.gizmo_type = .Translate;
-    }
-
-    ImGui.SetItemTooltip("Translate");
-
-    if ImGui.MenuItem(CTPrint("%##gizmo_rotate", Icon_Rotate_Orbit_MDI), selected=ctx.gizmo_type == .Rotate) {
-        ctx.gizmo_type = .Rotate;
-    }
-
-    ImGui.SetItemTooltip("Rotate");
-
-    if ImGui.MenuItem(CTPrint("%##gizmo_scale", Icon_Resize_MDI), selected=ctx.gizmo_type == .Scale) {
-        ctx.gizmo_type = .Scale;
-    }
-
-    ImGui.SetItemTooltip("Scale");
-
-    ImGui.Separator();
-
-    ImGui.Checkbox("Local", *ctx.gizmo_local);
-
-    ImGui.SetNextItemWidth(80);
-    ImGui_Ext.EnumCombo("Pivot", *ctx.gizmo_pivot);
-}
-
 ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -> opened : bool {
     opened := true;
 
@@ -234,7 +204,13 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     if ImGui.BeginMenuBar() {
         defer ImGui.EndMenuBar();
 
-        ShowGizmoControls(*gizmo_ctx);
+        if ImGui.BeginMenu("Show") {
+            ImGui.EndMenu();
+        }
+
+        for g_editor_viewport_menus {
+            it(world, viewport);
+        }
     }
 
     size = ImGui.GetContentRegionAvail();
@@ -495,8 +471,8 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
 IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
     return viewport.is_box_selecting
-        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold")
-        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold"));
+        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 4)
+        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 4));
 }
 
 HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
@@ -585,3 +561,17 @@ MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender 
         frustum=MakePerspectiveFrustum(camera.transform, camera.fov_in_degrees, size.x / cast(float, size.y), camera.z_near, camera.z_far),
     };
 }
+
+ViewportShowMenu :: (world : *World, viewport : *EditorViewport) {
+    if ImGui.BeginMenu("Show") {
+        defer ImGui.EndMenu();
+
+        if ImGui.MenuItem("Debug Draw", selected=viewport.show_debug_drawings) {
+            viewport.show_debug_drawings = !viewport.show_debug_drawings;
+        }
+
+        if ImGui.MenuItem("Grid", selected=viewport.show_grid) {
+            viewport.show_grid = !viewport.show_grid;
+        }
+    }
+} @EditorViewportMenu
