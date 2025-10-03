@@ -75,6 +75,8 @@ GetDefaultNumWorkerThreads :: inline () -> s32 {
 }
 
 InitializeCore :: () {
+    context.print_style.struct_printer = CoreStructPrinter;
+
     g_num_cpus = get_number_of_processors(.ALL_LOGICAL);
     g_num_cpus = Clamp(g_num_cpus, 1, 200);
     g_default_num_worker_threads = Max(g_num_cpus - 1, 2);

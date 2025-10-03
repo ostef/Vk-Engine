@@ -84,17 +84,24 @@ AlignForward :: (x : s64, alignment : s64) -> s64 {
     return ((x + alignment - 1) / alignment) * alignment;
 } @NoProfile
 
-StructPrinter :: (builder : *StringBuilder, any : Any, data : *void) -> bool {
-    // if any.type == type_info(EntityGUID) {
-    //     guid := cast(*EntityGUID) any.value_pointer;
-    //     if guid.* == Null_Entity_GUID {
-    //         Append(builder, "(null entity)");
-    //     } else {
-    //         Append(builder, "%1%2", FormatIntHex(guid.high), FormatIntHex(guid.low));
-    //     }
+CoreStructPrinter :: (builder : *StringBuilder, any : Any, data : *void) -> bool {
+    if any.type == type_info(GUID)
+    || (TypeIsStruct(any.type) && cast(*Type_Info_Struct, any.type).name == "GUID") {
+        guid := cast(*GUID, any.value_pointer);
+        if guid.* == .{} {
+            Append(builder, "(null entity)");
+        } else {
+            Append(builder, "%1%2", FormatIntHex(guid.high), FormatIntHex(guid.low));
+        }
 
-    //     return true;
-    // }
+        return true;
+    }
+
+    type := Devariantize(any.type);
+    if type != any.type {
+        devariantized := Any.{value_pointer=any.value_pointer, type=type};
+        return CoreStructPrinter(builder, devariantized, data);
+    }
 
     return false;
 } @NoProfile
