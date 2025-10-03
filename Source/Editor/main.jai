@@ -380,7 +380,6 @@ UpdateEditor :: () {
                 g_show_imgui_demo = true;
             }
         }
-
     }
 
     if g_show_imgui_demo {

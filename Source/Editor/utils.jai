@@ -705,3 +705,35 @@ SetEditorStyleForBlurredBackground :: () {
     style.Colors[ImGui.Col.ScrollbarGrabActive].a = 0.78;
     style.Colors[ImGui.Col.DockingEmptyBg].a = 0.78;
 }
+
+BeginButtonCombo :: (label : *u8, size : Vec2f = .{0,0}, flags : ImGui.ComboFlags = 0) -> bool {
+    window := ImGui.GetCurrentWindow();
+
+    backup_next_window_data_flags := ImGui.GImGui.NextWindowData_.Flags;
+    ImGui.GImGui.NextWindowData_.Flags = 0; // We behave like Begin() and need to consume those values
+    if window.SkipItems {
+        return false;
+    }
+
+    id := ImGui.GetID(label);
+    pressed := ImGui.Button(label, size=size);
+    popup_id := ImGui.ImHashStr("##ComboPopup", 0, id);
+    bb := ImGui.ImRect.{
+        ImGui.GetItemRectMin(),
+        ImGui.GetItemRectMax(),
+    };
+
+    popup_open := ImGui.IsPopupOpen(popup_id, 0);
+    if pressed && !popup_open {
+        ImGui.OpenPopupEx(popup_id, 0);
+        popup_open = true;
+    }
+
+    if !popup_open {
+        return false;
+    }
+
+    ImGui.GImGui.NextWindowData_.Flags = backup_next_window_data_flags;
+
+    return ImGui.BeginComboPopup(popup_id, bb, flags);
+}

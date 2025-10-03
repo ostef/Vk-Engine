@@ -129,8 +129,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
-    ImGui.SetNextItemWidth(-1);
-    if ImGui.BeginCombo("###add_component", "Add Component") {
+    if BeginButtonCombo("Add Component", size=.{-1,0}) {
         defer ImGui.EndCombo();
 
         ImGui.PushFont(g_editor_base_font);

@@ -187,8 +187,7 @@ ShowEntityOutliner :: (world : *World) {
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
-    ImGui.SetNextItemWidth(-1);
-    if ImGui.BeginCombo("###create_new_entity", "Add Entity") {
+    if BeginButtonCombo("Add Entity", size=.{-1,0}) {
         defer ImGui.EndCombo();
 
         ImGui.PushFont(g_editor_base_font);

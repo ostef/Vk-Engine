@@ -31,6 +31,7 @@ ReloadModule :: (id : ModuleID) -> bool {
     }
 
     UnloadModule(id);
+
     if !LoadModule(id) {
         return false;
     }

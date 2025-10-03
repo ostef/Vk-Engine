@@ -1834,6 +1834,8 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
 GizmoViewportMenu :: (world : *World, viewport : *EditorViewport) {
     ctx := *viewport.gizmo_ctx;
 
+    ImGui.Separator();
+
     if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
         ctx.gizmo_type = .None;
     }
