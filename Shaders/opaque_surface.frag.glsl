@@ -1,6 +1,6 @@
 #include "common.glsl"
 #include "pbr.glsl"
-// #include "shadow.glsl"
+#include "shadow.glsl"
 
 DECLARE_PER_FRAME_PARAMS();
 DECLARE_FORWARD_PASS_PARAMS();
@@ -131,12 +131,13 @@ void main() {
         float3 L = -light.direction;
         float NdotL = max(dot(N, L), 0.0);
 
-        float shadow = 1;
-        // if (light.shadow_map_index >= 0) {
-        //     shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
-        // } else {
-        //     shadow = 1;
-        // }
+        float shadow;
+        if (light.shadow_map_index >= 0) {
+            ShadowMap shadow_map = u_shadow_maps[light.shadow_map_index];
+            shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, shadow_map, u_shadow_map_noise_texture, u_shadow_map_textures[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+        } else {
+            shadow = 1;
+        }
 
         if ((mesh.material.flags & MaterialFlags_HasDepthMap) != 0) {
             float3 tangent_light_dir = inv_TBN * L;

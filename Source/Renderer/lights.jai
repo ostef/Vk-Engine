@@ -2,10 +2,7 @@ DirectionalLight :: struct {
     direction : Vec3f;
     color : Vec3f;
     intensity : float;
-    // shadow_map_index : s32;
-    // shadow_map_resolution : u32;
-    // shadow_map_cascade_sizes : [Num_Shadow_Map_Cascades]float = Shadow_Map_Cascade_Sizes;
-    // shadow_map_viewpoints : [Num_Shadow_Map_Cascades]Viewpoint;
+    shadow_map_index : s32;
 } @ShaderType
 
 PointLight :: struct {
@@ -14,9 +11,7 @@ PointLight :: struct {
     intensity : float;
     intensity_radius : float;
     source_radius : float;
-    // shadow_map_index : s32;
-    // shadow_map_resolution : u32;
-    // shadow_map_viewpoints : [6]Viewpoint;
+    shadow_map_index : s32;
 } @ShaderType
 
 LightCluster :: struct {

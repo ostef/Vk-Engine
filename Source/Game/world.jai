@@ -407,10 +407,22 @@ SubmitWorldToRenderer :: (world : *World) {
             continue;
         }
 
+        shadow_map_index := -1;
+        direction := ForwardVector(it.world_transform);
+        if it.cast_shadows {
+            shadow_map := ShadowMapToRender.{
+                resolution=Default_Shadow_Map_Resolution,
+                direction=direction,
+                target_transform=Mat4f.{},
+            };
+            shadow_map_index = AddShadowMapToRender(shadow_map);
+        }
+
         to_render := DirectionalLightToRender.{
-            direction=ForwardVector(it.world_transform),
+            direction=direction,
             color=it.color,
             intensity=it.intensity,
+            shadow_map_index=shadow_map_index,
         };
         AddDirectionalLightToRender(to_render);
     }

@@ -2,9 +2,9 @@
 
 g_shader_types : [..]*Type_Info;
 
-RemoveShaderPrefix :: (str : string) -> string {
-    return ifx StringStartsWith(str, "Shader")
-        then StringAdvance(str, "Shader".count)
+RemoveShaderSuffix :: (str : string) -> string {
+    return ifx StringEndsWith(str, "ShaderData")
+        then .{count=str.count - "ShaderData".count, data=str.data}
         else str;
 }
 
@@ -198,7 +198,7 @@ GenerateGLSLShaderCode :: () {
 }
 
 GenerateGLSLEnumDefinition :: (builder : *StringBuilder, info : *Type_Info_Enum, indent := 0) {
-    name := RemoveShaderPrefix(info.name);
+    name := RemoveShaderSuffix(info.name);
     if info.name {
         Appendln(builder, "#define % int", name);
     }
@@ -249,7 +249,7 @@ AppendGLSLTypePrefix :: (builder : *StringBuilder, info : *Type_Info, indent := 
                     Append(builder, "double% ", vector_N);
                 }
             } else {
-                Append(builder, "% ", RemoveShaderPrefix(struct_info.name));
+                Append(builder, "% ", RemoveShaderSuffix(struct_info.name));
             }
         } else if is_matrix_type {
             if matrix_T.type == .FLOAT {
@@ -261,16 +261,16 @@ AppendGLSLTypePrefix :: (builder : *StringBuilder, info : *Type_Info, indent := 
 
                 Append(builder, "%x% ", matrix_M, matrix_N);
             } else {
-                Append(builder, "% ", RemoveShaderPrefix(struct_info.name));
+                Append(builder, "% ", RemoveShaderSuffix(struct_info.name));
             }
         } else {
-            Append(builder, "% ", RemoveShaderPrefix(struct_info.name));
+            Append(builder, "% ", RemoveShaderSuffix(struct_info.name));
         }
 
     case .ENUM;
         enum_info := cast(*Type_Info_Enum, info);
         if enum_info.name {
-            Append(builder, "% ", RemoveShaderPrefix(enum_info.name));
+            Append(builder, "% ", RemoveShaderSuffix(enum_info.name));
         } else {
             Append(builder, "int ");
         }
@@ -340,7 +340,7 @@ GenerateGLSLStructDefinition :: (builder : *StringBuilder, info : *Type_Info_Str
     }
 
     if info.name && info.name != "_" {
-        Appendln(builder, "struct % {", RemoveShaderPrefix(info.name));
+        Appendln(builder, "struct % {", RemoveShaderSuffix(info.name));
     } else {
         Appendln(builder, "struct {");
     }

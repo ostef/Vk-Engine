@@ -5,7 +5,9 @@ RendererModule :: struct {
     AddDirectionalLightToRender : (light : DirectionalLightToRender);
     AddMeshToRender : (mesh : MeshToRender);
     AddPointLightToRender : (light : PointLightToRender);
+    AddPointShadowMapToRender : (shadow_map : PointShadowMapToRender) -> s64;
     AddSelectedMeshToRender : (mesh : MeshToRender);
+    AddShadowMapToRender : (shadow_map : ShadowMapToRender) -> s64;
     AddViewpointToRender : (viewpoint : ViewpointToRender);
     DebugDrawBoxOutline_1 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32));
     DebugDrawBoxOutline_2 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32) = Quat(T=float32).{});
@@ -43,9 +45,19 @@ AddPointLightToRender :: inline (light : PointLightToRender) {
     g_Renderer.AddPointLightToRender(light);
 }
 
+AddPointShadowMapToRender :: inline (shadow_map : PointShadowMapToRender) -> s64 {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.AddPointShadowMapToRender(shadow_map);
+}
+
 AddSelectedMeshToRender :: inline (mesh : MeshToRender) {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.AddSelectedMeshToRender(mesh);
+}
+
+AddShadowMapToRender :: inline (shadow_map : ShadowMapToRender) -> s64 {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.AddShadowMapToRender(shadow_map);
 }
 
 AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {

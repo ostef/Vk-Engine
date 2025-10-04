@@ -27,6 +27,7 @@ CoreModule :: struct {
     BlendPoses : (dest : *ArmaturePose, a : *ArmaturePose, b : *ArmaturePose, t : float);
     CalculatePoseTransforms : (pose : *ArmaturePose);
     CalculateSkinningMatrices : (pose : *ArmaturePose, matrices : *[]Matrix(M=4, N=4, T=float32));
+    CancelTextureUpload : (texture : *Texture2D);
     ClearEnvironmentMapsToGenerate : ();
     CopyBufferToBuffer : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64);
     CopyBufferToTexture : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture);
@@ -127,6 +128,7 @@ CoreModule :: struct {
     QueueDestroyGfxSampler : (sampler : *GfxSampler);
     QueueDestroyGfxTexture : (texture : *GfxTexture);
     QueueDestroyGfxTextureView : (texture : *GfxTexture);
+    QueueTextureUpload : (data : *void, texture : *Texture2D);
     Quit : ();
     RayIntersectsBox_1 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
     RayIntersectsBox_2 : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
@@ -290,6 +292,11 @@ CalculatePoseTransforms :: inline (pose : *ArmaturePose) {
 CalculateSkinningMatrices :: inline (pose : *ArmaturePose, matrices : *[]Matrix(M=4, N=4, T=float32)) {
     Assert(g_Core != null, "Core module is null");
     g_Core.CalculateSkinningMatrices(pose, matrices);
+}
+
+CancelTextureUpload :: inline (texture : *Texture2D) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.CancelTextureUpload(texture);
 }
 
 ClearEnvironmentMapsToGenerate :: inline () {
@@ -803,6 +810,11 @@ QueueDestroyGfxTexture :: inline (texture : *GfxTexture) {
 QueueDestroyGfxTextureView :: inline (texture : *GfxTexture) {
     Assert(g_Core != null, "Core module is null");
     g_Core.QueueDestroyGfxTextureView(texture);
+}
+
+QueueTextureUpload :: inline (data : *void, texture : *Texture2D) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.QueueTextureUpload(data, texture);
 }
 
 Quit :: inline () {

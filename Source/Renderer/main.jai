@@ -54,6 +54,9 @@ g_meshes_to_render : [..]MeshToRender;
 g_selected_meshes_to_render : [..]MeshToRender;
 g_directional_lights_to_render : [..]DirectionalLightToRender;
 g_point_lights_to_render : [..]PointLightToRender;
+g_shadow_maps_to_render : [..]ShadowMapToRender;
+g_shadow_map_render_targets : [..]GfxTexture;
+g_point_shadow_maps_to_render : [..]PointShadowMapToRender;
 
 g_final_texture : GfxTexture;
 
@@ -136,6 +139,8 @@ InitializeRenderer :: () {
     g_dummy_frame_pipeline_layout = CreateGfxPipelineLayout("Dummy Frame", frame_layout_desc);
     Assert(!IsNull(*g_dummy_frame_pipeline_layout), "Could not create dummy frame pipeline layout");
 
+    CreateGlobalShadowMapObjects();
+
     LoadDefaultAssets();
 
     InitGPUFrameProfiler(GetGPUFrameProfiler(), 1000);
@@ -152,6 +157,8 @@ ShutdownRenderer :: () {
 
     DestroyGfxPipelineLayout(*g_dummy_frame_pipeline_layout);
 
+    DestroyGlobalShadowMapObjects();
+
     DestroyGfxSampler(*g_linear_clamp_sampler);
     DestroyGfxSampler(*g_nearest_clamp_sampler);
     DestroyGfxSampler(*g_material_texture_sampler);
@@ -166,6 +173,21 @@ ShutdownRenderer :: () {
     DestroyBindingSetAllocators();
 
     DestroyAllBindingSetLayouts();
+
+    DerefAsset(*g_default_base_color);
+    DerefAsset(*g_default_normal_map);
+    DerefAsset(*g_default_metallic_roughness_map);
+    DerefAsset(*g_default_emissive);
+    DerefAsset(*g_default_environment_map);
+    DerefAsset(*g_default_material);
+
+    ArrayFree(*g_viewpoints_to_render);
+    ArrayFree(*g_meshes_to_render);
+    ArrayFree(*g_selected_meshes_to_render);
+    ArrayFree(*g_directional_lights_to_render);
+    ArrayFree(*g_point_lights_to_render);
+    ArrayFree(*g_shadow_maps_to_render);
+    ArrayFree(*g_point_shadow_maps_to_render);
 
     for g_viewpoint_render_targets {
         DestroyViewpointRenderTargets(it);
@@ -229,6 +251,30 @@ AddPointLightToRender :: (light : PointLightToRender) {
     ArrayPush(*g_point_lights_to_render, light);
 } @ModuleAPI
 
+AddShadowMapToRender :: (shadow_map : ShadowMapToRender) -> int {
+    push_context,defer_pop g_context;
+
+    if g_shadow_maps_to_render.count >= Max_Shadow_Maps {
+        return -1;
+    }
+
+    ArrayPush(*g_shadow_maps_to_render, shadow_map);
+
+    return g_shadow_maps_to_render.count - 1;
+} @ModuleAPI
+
+AddPointShadowMapToRender :: (shadow_map : PointShadowMapToRender) -> int {
+    push_context,defer_pop g_context;
+
+    if g_point_shadow_maps_to_render.count >= Max_Point_Shadow_Maps {
+        return -1;
+    }
+
+    ArrayPush(*g_point_shadow_maps_to_render, shadow_map);
+
+    return g_point_shadow_maps_to_render.count - 1;
+} @ModuleAPI
+
 WaitForRenderThread :: () {
     push_context,defer_pop g_context;
 } @ModuleAPI
@@ -285,7 +331,11 @@ FrameBindingSet :: struct {
     directional_lights : GfxBindingStorageBuffer; @Binding(1) @FragmentStage @AllowNull @ComputeStage
     point_lights : GfxBindingStorageBuffer; @Binding(2) @FragmentStage @AllowNull @ComputeStage
     brdf_lut : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
-    // shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
+    shadow_map_noise : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
+    shadow_maps : GfxBindingStorageBuffer; @Binding(5) @AllowNull @FragmentStage
+    shadow_map_textures : [Max_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(6) @AllowNull @FragmentStage
+    point_shadow_maps : GfxBindingStorageBuffer; @Binding(7) @AllowNull @FragmentStage
+    point_shadow_map_textures : [Max_Point_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(8) @AllowNull @FragmentStage
 } @BindingSet
 
 EntityOutlineParams :: struct {
@@ -294,13 +344,25 @@ EntityOutlineParams :: struct {
     color : Vec4f = .{0.972, 1, 0.498, 1}; @ShowInInspector @ColorEdit
 } @ShaderType
 
+using _ :: struct {
+    Max_Shadow_Maps :: 2;
+    Max_Point_Shadow_Maps :: 20;
+} @ShaderType
+
+ShadowMapParams :: struct {
+    noise_resolution : u32;
+    depth_bias_min_max : Vec2f;
+    normal_bias : float;
+    filter_radius : float;
+} @ShaderType
+
 FrameInfo :: struct {
     time : float;
     window_pixel_size : Vec2f;
     num_directional_lights : u32;
     num_point_lights : u32;
     skybox_light_intensity := 1.0;
-    // shadow_map_params : ShadowMapParams;
+    shadow_map_params : ShadowMapParams;
     bloom_params : BloomParams;
     entity_outline_params : EntityOutlineParams;
 } @ShaderType
@@ -387,6 +449,13 @@ RenderFrame :: () {
         num_directional_lights=xx g_directional_lights_to_render.count,
         num_point_lights=xx g_point_lights_to_render.count,
         skybox_light_intensity=ifx g_viewpoints_to_render.count > 0 then g_viewpoints_to_render[0].skybox_light_intensity,
+        shadow_map_params=.{
+            noise_resolution=Shadow_Map_Noise_Size,
+            depth_bias_min_max=.{1, 5},
+            normal_bias=10,
+            filter_radius=1,
+        },
+        bloom_params=g_bloom_params,
     };
     frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
 
@@ -396,6 +465,7 @@ RenderFrame :: () {
             direction=it.direction,
             color=it.color,
             intensity=it.intensity,
+            shadow_map_index=xx it.shadow_map_index,
         };
     }
     directional_lights_offset, directional_lights_size := AllocAndPackStorageFrameData(directional_lights);
@@ -408,17 +478,48 @@ RenderFrame :: () {
             intensity=it.intensity,
             intensity_radius=it.intensity_radius,
             source_radius=it.source_radius,
+            shadow_map_index=xx it.shadow_map_index,
         };
     }
 
     point_lights_offset, point_lights_size := AllocAndPackStorageFrameData(point_lights);
+
+    shadow_maps := AllocArray(ShadowMap, g_shadow_maps_to_render.count ,, Temp);
+    for * g_shadow_maps_to_render {
+        shadow_maps[it_index] = .{
+            resolution=it.resolution,
+            direction=it.direction,
+        };
+
+        for * size, level : shadow_maps[it_index].cascade_sizes {
+            size.* = it.cascade_sizes[level];
+        }
+
+        for * viewpoint, level : shadow_maps[it_index].viewpoints {
+            viewpoint.* = GetShadowMapViewpoint(it, level);
+        }
+    }
+
+    shadow_maps_offset, shadow_maps_size := AllocAndPackStorageFrameData(shadow_maps);
+
+    for g_shadow_maps_to_render {
+        texture := GetShadowMapRenderTarget(it.resolution);
+        ArrayPush(*g_shadow_map_render_targets, texture);
+    }
 
     frame_bindings := FrameBindingSet.{
         frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
         directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
         point_lights=.{buffer=FrameDataBuffer(), offset=xx point_lights_offset, size=xx point_lights_size},
         brdf_lut=.{texture=*g_brdf_lut, sampler=*g_linear_clamp_sampler},
+        shadow_map_noise=.{texture=*g_shadow_map_noise_texture, sampler=*g_shadow_map_noise_sampler},
+        shadow_maps=.{buffer=FrameDataBuffer(), offset=xx shadow_maps_offset, size=xx shadow_maps_size},
     };
+
+    for * g_shadow_map_render_targets {
+        frame_bindings.shadow_map_textures[it_index] = .{texture=it, sampler=*g_shadow_map_sampler};
+    }
+
     ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
 
     BindGraphicsBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
@@ -426,6 +527,10 @@ RenderFrame :: () {
 
     TextureUploadPass(*cmd_buffer);
     GenerateEnvironmentMaps(*cmd_buffer);
+
+    for * g_shadow_maps_to_render {
+        RenderShadowMap(*ctx, it, *g_shadow_map_render_targets[it_index]);
+    }
 
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
@@ -470,6 +575,11 @@ RenderFrame :: () {
     ArrayClear(*g_selected_meshes_to_render);
     ArrayClear(*g_directional_lights_to_render);
     ArrayClear(*g_point_lights_to_render);
+    ArrayClear(*g_shadow_maps_to_render);
+    ArrayClear(*g_shadow_map_render_targets);
+    ArrayClear(*g_point_shadow_maps_to_render);
+
+    RecycleShadowMapRenderTargets();
 }
 
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {

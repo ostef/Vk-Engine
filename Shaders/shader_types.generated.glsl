@@ -6,6 +6,8 @@
 #define BRDF_LUT_Compute_Work_Group_Size 16
 #define Bloom_Compute_Work_Group_Size 16
 #define Max_Lights_Per_Clusters 100
+#define Max_Point_Shadow_Maps 20
+#define Max_Shadow_Maps 2
 #define Max_Viewpoints 6
 #define Num_Clusters 3456
 #define Num_Clusters_X 16
@@ -40,6 +42,7 @@ struct DirectionalLight {
     float3 direction;
     float3 color;
     float intensity;
+    int shadow_map_index;
 };
 
 struct EntityOutlineParams {
@@ -48,12 +51,20 @@ struct EntityOutlineParams {
     float4 color;
 };
 
+struct ShadowMapParams {
+    uint noise_resolution;
+    float2 depth_bias_min_max;
+    float normal_bias;
+    float filter_radius;
+};
+
 struct FrameInfo {
     float time;
     float2 window_pixel_size;
     uint num_directional_lights;
     uint num_point_lights;
     float skybox_light_intensity;
+    ShadowMapParams shadow_map_params;
     BloomParams bloom_params;
     EntityOutlineParams entity_outline_params;
 };
@@ -105,6 +116,7 @@ struct PointLight {
     float intensity;
     float intensity_radius;
     float source_radius;
+    int shadow_map_index;
 };
 
 struct Viewpoint {
@@ -122,6 +134,21 @@ struct Viewpoint {
     float fov;
     float z_near;
     float z_far;
+};
+
+struct PointShadowMap {
+    uint resolution;
+    float z_near;
+    float z_far;
+    float3 position;
+    Viewpoint viewpoints[6];
+};
+
+struct ShadowMap {
+    uint resolution;
+    float3 direction;
+    float cascade_sizes[4];
+    Viewpoint viewpoints[4];
 };
 
 struct ViewpointsData {

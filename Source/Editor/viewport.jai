@@ -92,6 +92,7 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     }
 
     DestroyGizmoContext(*viewport.gizmo_ctx);
+
     ArrayFree(*viewport.event_callbacks);
 
     Free(viewport);

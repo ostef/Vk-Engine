@@ -1,10 +1,8 @@
 ForwardPassBindingSet :: struct {
     viewpoints : GfxBindingUniformBuffer; @Binding(0) @VertexStage @FragmentStage
-    // shadow_maps : [Max_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage @AllowNull
-    // point_shadow_maps : [Max_Point_Shadow_Maps]GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage @AllowNull
-    irradiance_map : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
-    environment_map : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
-    clusters : GfxBindingStorageBuffer; @Binding(5) @FragmentStage
+    irradiance_map : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
+    environment_map : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
+    clusters : GfxBindingStorageBuffer; @Binding(3) @FragmentStage
 } @BindingSet
 
 g_forward_material_pass := MaterialRenderPass.{

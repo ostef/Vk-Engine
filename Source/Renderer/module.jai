@@ -110,18 +110,49 @@ MeshToRender :: struct {
     skinning_matrices : []Mat4f;
 }
 
+DirectionalLightToRender :: struct {
+    direction : Vec3f;
+    color : Vec3f;
+    intensity : float;
+    shadow_map_index := -1;
+}
+
 PointLightToRender :: struct {
     position : Vec3f;
     color : Vec3f;
     intensity : float;
     intensity_radius : float;
     source_radius : float;
+    shadow_map_index := -1;
 }
 
-DirectionalLightToRender :: struct {
+Default_Shadow_Map_Resolution :: 2048;
+
+Shadow_Map_Cascade_Sizes : [Num_Shadow_Map_Cascades]float : .[5,20,50,200];
+Shadow_Map_Forward_Offset :: 1.0;
+Shadow_Map_Depth_Extent_Factor :: 6.0;
+
+using _ :: struct {
+    Shadow_Map_Reverse_Depth_Range :: true;
+    Num_Shadow_Map_Cascades :: 4;
+    Shadow_Map_Noise_Size :: 32;
+    Num_Shadow_Map_Sqrt_Samples :: 8;
+    Num_Shadow_Map_Samples :: Num_Shadow_Map_Sqrt_Samples * Num_Shadow_Map_Sqrt_Samples;
+} @ShaderType
+
+ShadowMapToRender :: struct {
     direction : Vec3f;
-    color : Vec3f;
-    intensity : float;
+    target_transform : Mat4f;
+    cascade_sizes : [Num_Shadow_Map_Cascades]float = Shadow_Map_Cascade_Sizes;
+    resolution : u32;
+}
+
+Default_Point_Shadow_Map_Resolution :: 1024;
+
+PointShadowMapToRender :: struct {
+    position : Vec3f;
+    z_near, z_far : float;
+    resolution : u32;
 }
 
 GizmoWidgetToRender :: struct {

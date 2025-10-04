@@ -104,7 +104,7 @@ QueueTextureUpload :: (data : *void, texture : *Texture2D) {
 
     ArrayPush(*g_texture_upload_buffers, buffer);
     ArrayPush(*g_texture_uploads, texture);
-}
+} @ModuleAPI
 
 CancelTextureUpload :: (texture : *Texture2D) {
     lock(*g_texture_upload_mutex);
@@ -117,7 +117,7 @@ CancelTextureUpload :: (texture : *Texture2D) {
         ArrayRemove(*g_texture_uploads, index);
         ArrayRemove(*g_texture_upload_buffers, index);
     }
-}
+} @ModuleAPI
 
 UploadTexturesAndGenerateMipmaps :: (pass : *GfxCopyPass) {
     AddTextureBarriers(pass.cmd_buffer, .Undefined, .TransferDst, .{data=xx g_texture_uploads.data, count=g_texture_uploads.count});

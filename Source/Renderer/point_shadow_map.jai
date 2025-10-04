@@ -1,20 +1,17 @@
 // @Todo: allow all shadow map passes to run concurrently (currently EndGfxRenderPass puts execution barriers for correctness)
 
+PointShadowMap :: struct {
+    resolution : u32;
+    z_near : float;
+    z_far : float;
+    position : Vec3f;
+    viewpoints : [6]Viewpoint;
+} @ShaderType
+
 using _ :: struct {
     Num_Point_Shadow_Map_Cbrt_Samples :: 3;
     Num_Point_Shadow_Map_Samples :: Num_Point_Shadow_Map_Cbrt_Samples * Num_Point_Shadow_Map_Cbrt_Samples * Num_Point_Shadow_Map_Cbrt_Samples;
 } @ShaderType
-
-Default_Point_Shadow_Map_Resolution :: 1024;
-
-PointShadowMap :: struct {
-    resolution : u32;
-    z_near := 0.01;
-    z_far := 30.0;
-    mesh_buffers : [6]MeshBuffer;
-    depth_texture : GfxTexture;
-    depth_texture_faces : [6]GfxTexture;
-}
 
 CubeMapFace :: enum {
     PositiveX;
