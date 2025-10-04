@@ -1837,8 +1837,6 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
 GizmoViewportMenu :: (world : *World, viewport : *EditorViewport) {
     ctx := *viewport.gizmo_ctx;
 
-    ImGui.Separator();
-
     if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
         ctx.gizmo_type = .None;
     }
@@ -1865,8 +1863,10 @@ GizmoViewportMenu :: (world : *World, viewport : *EditorViewport) {
 
     ImGui.Separator();
 
-    ImGui.Checkbox("Local", *ctx.gizmo_local);
+    ImGui.Text("Local:");
+    ImGui.Checkbox("##local", *ctx.gizmo_local);
 
+    ImGui.Text("Pivot:");
     ImGui.SetNextItemWidth(80);
-    ImGui_Ext.EnumCombo("Pivot", *ctx.gizmo_pivot);
+    ImGui_Ext.EnumCombo("##pivot", *ctx.gizmo_pivot);
 } @EditorViewportMenu

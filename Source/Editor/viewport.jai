@@ -33,6 +33,8 @@ EditorViewportState :: struct {
     unique_id : u64; @Serialize(1)
     camera : EditorCamera; @Serialize(2)
     gizmo_ctx : GizmoContextState; @Serialize(3)
+    show_grid : bool; @Serialize(4)
+    show_debug_drawings : bool; @Serialize(5)
 }
 
 MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewportState {
@@ -40,6 +42,8 @@ MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewport
         unique_id=viewport.unique_id,
         camera=viewport.camera,
         gizmo_ctx=MakeGizmoContextState(*viewport.gizmo_ctx),
+        show_grid=viewport.show_grid,
+        show_debug_drawings=viewport.show_debug_drawings,
     };
 }
 
@@ -49,6 +53,9 @@ CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
 
     viewport.camera = state.camera;
     viewport.camera.viewport = viewport;
+
+    viewport.show_grid = state.show_grid;
+    viewport.show_debug_drawings = state.show_debug_drawings;
 
     SetGizmoContextState(*viewport.gizmo_ctx, state.gizmo_ctx);
 
@@ -222,11 +229,11 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     if ImGui.BeginMenuBar() {
         defer ImGui.EndMenuBar();
 
-        if ImGui.BeginMenu("Show") {
-            ImGui.EndMenu();
-        }
-
         for g_editor_viewport_menus {
+            if it_index != 0  {
+                ImGui.Separator();
+            }
+
             it(world, viewport);
         }
     }
@@ -580,16 +587,16 @@ MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender 
     };
 }
 
-ViewportShowMenu :: (world : *World, viewport : *EditorViewport) {
-    if ImGui.BeginMenu("Show") {
-        defer ImGui.EndMenu();
-
-        if ImGui.MenuItem("Debug Draw", selected=viewport.show_debug_drawings) {
-            viewport.show_debug_drawings = !viewport.show_debug_drawings;
-        }
-
-        if ImGui.MenuItem("Grid", selected=viewport.show_grid) {
-            viewport.show_grid = !viewport.show_grid;
-        }
+DefaultViewportMenu :: (world : *World, viewport : *EditorViewport) {
+    if ImGui.MenuItem(CTPrint("%###show_grid", ifx viewport.show_grid then Icon_Grid_MDI else Icon_Grid_Off_MDI), selected=viewport.show_grid) {
+        viewport.show_grid = !viewport.show_grid;
     }
+
+    ImGui.SetItemTooltip(ifx viewport.show_grid then "Hide grid" else "Show grid");
+
+    if ImGui.MenuItem(CTPrint("%##show_debug_drawings", Icon_Shape_Outline_MDI), selected=viewport.show_debug_drawings) {
+        viewport.show_debug_drawings = !viewport.show_debug_drawings;
+    }
+
+    ImGui.SetItemTooltip(ifx viewport.show_debug_drawings then "Hide debug drawings" else "Show debug drawings");
 } @EditorViewportMenu
