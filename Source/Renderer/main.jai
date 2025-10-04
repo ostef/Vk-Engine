@@ -215,6 +215,7 @@ ShutdownRenderer :: () {
     ArrayFree(*g_directional_lights_to_render);
     ArrayFree(*g_point_lights_to_render);
     ArrayFree(*g_shadow_maps_to_render);
+    ArrayFree(*g_shadow_map_render_targets);
     ArrayFree(*g_point_shadow_maps_to_render);
 
     for g_viewpoint_render_targets {
@@ -224,6 +225,16 @@ ShutdownRenderer :: () {
     }
 
     HashMapFree(*g_viewpoint_render_targets);
+
+    for * g_unused_shadow_map_render_targets {
+        DestroyGfxTexture(it);
+    }
+    ArrayFree(*g_unused_shadow_map_render_targets);
+
+    for * g_used_shadow_map_render_targets {
+        DestroyGfxTexture(it);
+    }
+    ArrayFree(*g_used_shadow_map_render_targets);
 
     DestroyRenderTargets();
 
