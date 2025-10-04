@@ -1,4 +1,5 @@
 #import "SDL";
+#import "Remap_Context"(false);
 
 #load "world.jai";
 
@@ -9,7 +10,6 @@ g_module := GameModule.{
     base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
-g_context : #Context;
 
 #program_export
 ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
@@ -24,7 +24,7 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleLoad :: (id : ModuleID) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
@@ -32,18 +32,17 @@ OnModuleLoad :: (id : ModuleID) {
 }
 
 InitializeGame :: () {
-    g_context = remap_context();
-    push_context,defer_pop g_context;
+    Remap_Context();
 }
 
 ShutdownGame :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 }
 
 GameLoop :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 }
 
 OnEvent :: (event : SDL_Event) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 }

@@ -6,6 +6,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #import "Hash_Map";
 #import "File";
 #import "File_Utilities";
+#import "Remap_Context"(false);
 
 #load "utils.jai";
 #load "material_design_icons.jai";
@@ -20,6 +21,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #load "material.jai";
 #load "cpu_profiler.jai";
 #load "gpu_profiler.jai";
+#load "misc.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -32,7 +34,6 @@ g_module := EditorModule.{
     base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
-g_context : #Context;
 
 #program_export
 ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
@@ -48,7 +49,7 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleLoad :: (id : ModuleID) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
@@ -146,10 +147,9 @@ EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
 }
 
 InitializeEditor :: () {
-    LogSectionScope(*Log_Editor);
+    Remap_Context();
 
-    g_context = remap_context();
-    push_context,defer_pop g_context;
+    LogSectionScope(*Log_Editor);
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
@@ -202,7 +202,7 @@ InitializeEditor :: () {
 }
 
 ShutdownEditor :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
@@ -239,6 +239,8 @@ AllEditorState :: struct {
 }
 
 SaveState :: () -> []u8 {
+    Remap_Context();
+
     all_state := AllEditorState.{
         selected_entities=g_editor_selected_entities,
         material_editor=g_material_editor,
@@ -270,6 +272,8 @@ SaveState :: () -> []u8 {
 }
 
 LoadState :: (state : []u8) {
+    Remap_Context();
+
     defer Free(state.data);
 
     using all_state : AllEditorState;
@@ -315,7 +319,9 @@ OnEvent :: (event : SDL_Event) {
 }
 
 UpdateEditor :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
+
+    DestroyKilledEntities(*g_editor_world);
 
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();

@@ -13,7 +13,6 @@
 #import "Hash_Map";
 #import "Paged_Array";
 #import "Random";
-#import "Remap_Context"(VERBOSE=false);
 #import "String";
 #import "Compiler";
 #import "Type_Utils";
@@ -24,6 +23,7 @@
 #load "API/entity.jai";
 #load "API/component.jai";
 #load "API/graphics.jai";
+#load "API/misc.jai";
 
 #if Import_Mode == .Foreign {
     #load "module_api.jai";

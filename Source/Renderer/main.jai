@@ -1,6 +1,7 @@
 #import "Vulkan";
 #import "SDL";
 #import "Thread";
+#import "Remap_Context"(false);
 
 #load "shader.jai";
 #load "glsl_packing.jai";
@@ -37,8 +38,6 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 
     return *g_module;
 }
-
-g_context : #Context;
 
 #if Reverse_Depth_Range {
     Depth_Compare_Op :: GfxCompareOp.GreaterEqual;
@@ -84,8 +83,7 @@ LoadDefaultAssets :: () {
 }
 
 InitializeRenderer :: () {
-    g_context = remap_context();
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if !LoadAllShaders() {
         Basic.exit(1);
@@ -147,7 +145,7 @@ InitializeRenderer :: () {
 }
 
 ShutdownRenderer :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     WaitForRenderThread();
     StopRenderThread();
@@ -205,7 +203,7 @@ ShutdownRenderer :: () {
 g_should_recreate_render_targets : bool;
 
 OnEvent :: (event : SDL_Event) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if event.type == SDL_WINDOWEVENT {
         if event.window.event == SDL_WINDOWEVENT_RESIZED
@@ -216,43 +214,43 @@ OnEvent :: (event : SDL_Event) {
 }
 
 RendererLoop :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ProcessShaderDirectoryChanges();
 }
 
 AddViewpointToRender :: (viewpoint : ViewpointToRender) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ArrayPush(*g_viewpoints_to_render, viewpoint);
 } @ModuleAPI
 
 AddMeshToRender :: (mesh : MeshToRender) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ArrayPush(*g_meshes_to_render, mesh);
 } @ModuleAPI
 
 AddSelectedMeshToRender :: (mesh : MeshToRender) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ArrayPush(*g_selected_meshes_to_render, mesh);
 } @ModuleAPI
 
 AddDirectionalLightToRender :: (light : DirectionalLightToRender) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ArrayPush(*g_directional_lights_to_render, light);
 } @ModuleAPI
 
 AddPointLightToRender :: (light : PointLightToRender) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     ArrayPush(*g_point_lights_to_render, light);
 } @ModuleAPI
 
 AddShadowMapToRender :: (shadow_map : ShadowMapToRender) -> int {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if g_shadow_maps_to_render.count >= Max_Shadow_Maps {
         return -1;
@@ -264,7 +262,7 @@ AddShadowMapToRender :: (shadow_map : ShadowMapToRender) -> int {
 } @ModuleAPI
 
 AddPointShadowMapToRender :: (shadow_map : PointShadowMapToRender) -> int {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     if g_point_shadow_maps_to_render.count >= Max_Point_Shadow_Maps {
         return -1;
@@ -276,11 +274,11 @@ AddPointShadowMapToRender :: (shadow_map : PointShadowMapToRender) -> int {
 } @ModuleAPI
 
 WaitForRenderThread :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 } @ModuleAPI
 
 SubmitFrameToRenderThread :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     imgui_draw_data := ImGui.GetDrawData();
     CopyImGuiDrawData(*g_imgui_draw_data, imgui_draw_data);
@@ -294,7 +292,7 @@ SubmitFrameToRenderThread :: () {
 } @ModuleAPI
 
 StopRenderThread :: () {
-    push_context,defer_pop g_context;
+    Remap_Context();
 } @ModuleAPI
 
 DestroyRenderTargets :: () {
