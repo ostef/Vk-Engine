@@ -429,7 +429,7 @@ UpdateEditor :: () {
     ShowEntityInspector(*g_editor_world, entity_to_inspect);
 
     {
-        // ProfileBlock(*g_cpu_profiler, "Entity.OnEditorUpdate+OnDebugDraw");
+        ProfileBlock(GetCPUFrameProfiler(), "Entity.OnEditorUpdate+OnDebugDraw");
 
         for :AllEntities entity : g_editor_world {
             CallEntityCallback(*g_editor_world, entity, "OnEditorUpdate");
@@ -443,7 +443,7 @@ UpdateEditor :: () {
     }
 
     {
-        // ProfileBlock(*g_cpu_profiler, "Component.OnEditorUpdate+OnDebugDraw");
+        ProfileBlock(GetCPUFrameProfiler(), "Component.OnEditorUpdate+OnDebugDraw");
 
         for :AllComponents component : g_editor_world {
             entity := GetEntity(*g_editor_world, component.entity_index);
