@@ -186,7 +186,7 @@ LoaderMain :: () {
             }
         }
     }
-}
+} @NoProfile
 
 #scope_file
 

@@ -47,6 +47,8 @@ HandleCompilerMessage :: (msg : *Message) {
             HandleDeclaration(msg.workspace, it.expression);
         }
 
+        Core.HandleCompilerTypecheckedMessageForProfiling(typechecked, editor_import);
+
     case .PHASE;
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {

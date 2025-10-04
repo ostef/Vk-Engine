@@ -5,6 +5,7 @@
 #import "Build_Utils";
 
 #load "asset.jai";
+#load "profiler.jai";
 
 Module_Dependencies :: string.[];
 
@@ -29,6 +30,8 @@ HandleCompilerMessage :: (msg : *Message) {
         for typechecked.declarations {
             HandleDeclaration(msg.workspace, it.expression);
         }
+
+        HandleCompilerTypecheckedMessageForProfiling(typechecked, core_import);
 
     case .PHASE;
         phase := cast(*Message_Phase, msg);
