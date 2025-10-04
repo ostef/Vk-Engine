@@ -151,25 +151,24 @@ ShowCPUProfiler :: () {
         BuildEventList();
     }
 
-    PushButtonColor(.EmphasisButton);
-    if ImGui.Button("Record") {
-        ClearProfilingData(profiler);
-        ResumeProfiler(profiler);
+    if profiler.paused {
+        PushButtonColor(.EmphasisButton);
+        if ImGui.Button("Start") {
+            ClearProfilingData(profiler);
+            ResumeProfiler(profiler);
+        }
+        PopButtonColor();
+    } else {
+        PushButtonColor(.EmphasisButton);
+        if ImGui.Button("Stop") {
+            PauseProfiler(profiler);
+        }
+        PopButtonColor();
     }
-    PopButtonColor();
 
     ImGui.SameLine();
 
-    if ImGui.Button("Pause") {
-        PauseProfiler(profiler);
-    }
-
-    if profiler.paused {
-        ImGui.SameLine();
-
-        ImGui.Text("Paused");
-    }
-
+    ImGui.SetNextItemWidth(150);
     ImGui.SliderInt("Max Events", *g_cpu_profiler_window.max_events, 1, 100);
 
     table_flags := ImGui.TableFlags.Resizable | .RowBg | .ScrollX | .ScrollY
