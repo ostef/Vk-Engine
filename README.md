@@ -59,6 +59,7 @@ Supports Linux and Windows.
 * Sponza running at 155 FPS with all point lights casting shadows
 
 ## Gallery
+![General Showcase](Screenshots/general_showcase2.png)
 ![General Showcase](Screenshots/general_showcase.png)
 ### Custom editor gizmos
 ![Gizmos](Screenshots/gizmo.gif)
