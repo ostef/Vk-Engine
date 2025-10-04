@@ -173,6 +173,9 @@ LoaderMain :: () {
     add_directories(*g_modules_watcher, "Libs");
 
     while !g_quit {
+        frame_event := ProfilerBeginFrame(*g_cpu_profiler);
+        defer ProfilerEndFrame(*g_cpu_profiler, frame_event);
+
         ResetTemporaryStorage();
 
         process_changes(*g_modules_watcher);
