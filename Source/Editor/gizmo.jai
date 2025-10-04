@@ -74,7 +74,7 @@ GizmoContext :: struct {
 
     global_size := 1.0;
 
-    gizmo_type := GizmoType.Translate;
+    gizmo_type := GizmoType.None;
     gizmo_local := true;
     gizmo_pivot := GizmoPivot.Center;
 
