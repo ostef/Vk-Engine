@@ -395,7 +395,7 @@ GetDefaultMaterial :: inline () -> *Asset(Material) {
 } @ModuleAPI
 
 SubmitWorldToRenderer :: (world : *World) {
-    push_context,defer_pop g_context;
+    Remap_Context();
 
     for :AllMeshesToRender world {
         AddMeshToRender(it);
