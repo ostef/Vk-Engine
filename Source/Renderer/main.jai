@@ -160,7 +160,37 @@ ShutdownRenderer :: () {
     DestroyGfxSampler(*g_linear_clamp_sampler);
     DestroyGfxSampler(*g_nearest_clamp_sampler);
     DestroyGfxSampler(*g_material_texture_sampler);
+    DestroyGfxSampler(*g_entity_guid_sampler);
     DestroyGfxSampler(*g_skybox_sampler);
+
+    DestroyMaterialRenderPass(*g_forward_material_pass);
+    DestroyMaterialRenderPass(*g_shadow_map_material_pass);
+    DestroyMaterialRenderPass(*g_entity_guid_material_pass);
+
+    DestroyGfxComputePipeline(*g_populate_cluster_grid_pipeline);
+    DestroyGfxComputePipeline(*g_build_cluster_grid_pipeline);
+
+    DestroyGfxComputePipeline(*g_bloom_filter_compute_pipeline);
+    DestroyGfxComputePipeline(*g_bloom_downsample_compute_pipeline);
+    DestroyGfxComputePipeline(*g_bloom_upsample_compute_pipeline);
+
+    DestroyGfxGraphicsPipeline(*g_skybox_pipeline);
+
+    DestroyGfxTexture(*g_brdf_lut);
+    DestroyGfxComputePipeline(*g_brdf_lut_compute_pipeline);
+
+    DestroyGfxGraphicsPipeline(*g_environment_map_pipeline);
+    DestroyGfxGraphicsPipeline(*g_irradiance_map_pipeline);
+
+    ArrayFree(*g_debug_lines);
+    DestroyGfxGraphicsPipeline(*g_debug_lines_pipeline);
+
+    DestroyGfxGraphicsPipeline(*g_gizmo_pipeline);
+    DestroyGfxGraphicsPipeline(*g_gizmo_lines_pipeline);
+
+    DestroyGfxGraphicsPipeline(*g_compositing_pipeline);
+
+    DestroyGfxGraphicsPipeline(*g_infinite_grid_pipeline);
 
     for * g_frame_data_allocators {
         DestroyFrameDataAllocator(it);

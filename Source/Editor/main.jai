@@ -209,6 +209,8 @@ ShutdownEditor :: () {
     WaitForRenderThread();
     WaitForGPUIdle();
 
+    DestroyGfxBuffer(*g_billboard_vertex_buffer);
+
     while g_editor_viewports.count > 0 {
         DestroyEditorViewport(g_editor_viewports[0]);
     }
