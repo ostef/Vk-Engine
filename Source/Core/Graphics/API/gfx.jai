@@ -17,10 +17,6 @@ GfxFrameStatistics :: struct {
     num_execution_barriers : int;
 }
 
-GetGfxFrameStatistics :: () -> GfxFrameStatistics {
-    return g_gfx_context.last_frame_statistics;
-} @NoProfile
-
 // Tool to defer destroying objects after the last frame they were used is finished processing on the GPU
 GfxGarbageCollector :: struct($T : Type) {
     garbage : [..]T;

@@ -81,6 +81,7 @@ CoreModule :: struct {
     GetFrameTimes : () -> min : float, max : float, avg : float;
     GetGPUFrameProfiler : () -> *GPUFrameProfiler;
     GetGfxContext : () -> *GfxContext;
+    GetGfxFrameStatistics : () -> GfxFrameStatistics;
     GetGfxLimits : () -> GfxLimits;
     GetJointName : (anim : *ArmatureAnimation, joint_id : s16) -> string;
     GetJointNamesArray : (anim : *ArmatureAnimation) -> [][64]u8;
@@ -569,6 +570,11 @@ GetGPUFrameProfiler :: inline () -> *GPUFrameProfiler {
 GetGfxContext :: inline () -> *GfxContext {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetGfxContext();
+}
+
+GetGfxFrameStatistics :: inline () -> GfxFrameStatistics {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetGfxFrameStatistics();
 }
 
 GetGfxLimits :: inline () -> GfxLimits {

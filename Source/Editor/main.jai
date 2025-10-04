@@ -18,7 +18,8 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #load "entity_outliner.jai";
 #load "entity_inspector.jai";
 #load "material.jai";
-#load "profiler.jai";
+#load "cpu_profiler.jai";
+#load "gpu_profiler.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -234,6 +235,7 @@ AllEditorState :: struct {
     loaded_world : string; @Serialize(11)
     main_editor_viewport_id : u64; @Serialize(12)
     cpu_profiler_window : CPUProfilerWindowState; @Serialize(13)
+    show_gpu_profiler : bool; @Serialize(14)
 }
 
 SaveState :: () -> []u8 {
@@ -249,6 +251,7 @@ SaveState :: () -> []u8 {
         loaded_world=StringClone(g_editor_world.loaded_from_directory),
         main_editor_viewport_id=ifx g_main_editor_viewport.unique_id,
         cpu_profiler_window=g_cpu_profiler_window,
+        show_gpu_profiler=g_show_gpu_profiler,
     };
     defer Free(all_state.loaded_world.data);
 
@@ -304,6 +307,7 @@ LoadState :: (state : []u8) {
     g_editor_world.loaded_from_directory = loaded_world;
 
     g_cpu_profiler_window = cpu_profiler_window;
+    g_show_gpu_profiler = show_gpu_profiler;
 }
 
 OnEvent :: (event : SDL_Event) {
@@ -380,9 +384,9 @@ UpdateEditor :: () {
             if ImGui.MenuItem("CPU Profiler", selected=g_cpu_profiler_window.opened) {
                 g_cpu_profiler_window.opened = true;
             }
-            // if ImGui.MenuItem("GPU Profiler", selected=g_show_gpu_profiler) {
-            //     g_show_gpu_profiler = true;
-            // }
+            if ImGui.MenuItem("GPU Profiler", selected=g_show_gpu_profiler) {
+                g_show_gpu_profiler = true;
+            }
             // if ImGui.MenuItem("Debug", selected=g_show_debug_window) {
             //     g_show_debug_window = true;
             // }
@@ -406,6 +410,7 @@ UpdateEditor :: () {
     UpdateEditorViewports(*g_editor_world, GetDeltaTime());
 
     ShowCPUProfiler();
+    ShowGPUProfiler();
     ShowWorldInspector(*g_editor_world);
     ShowEntityOutliner(*g_editor_world);
     ShowMaterialEditor();

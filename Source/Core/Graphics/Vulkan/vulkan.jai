@@ -31,6 +31,10 @@ GetGfxLimits :: inline () -> GfxLimits {
     return g_gfx_context.limits;
 } @ModuleAPI @NoProfile
 
+GetGfxFrameStatistics :: () -> GfxFrameStatistics {
+    return g_gfx_context.last_frame_statistics;
+} @ModuleAPI @NoProfile
+
 BeginGfxFrame :: () {
     ctx := *g_gfx_context;
 

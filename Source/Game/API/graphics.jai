@@ -235,11 +235,11 @@ DirectionalLightComponent :: struct {
         p2 := position + up * 0.3;
         p3 := position - up * 0.3;
 
-        DebugDrawCircleOutline(.{1,1,1,1}, position, right, up, 0.3);
-        DebugDrawLine(.{1,1,1,1}, p0, p0 + direction);
-        DebugDrawLine(.{1,1,1,1}, p1, p1 + direction);
-        DebugDrawLine(.{1,1,1,1}, p2, p2 + direction);
-        DebugDrawLine(.{1,1,1,1}, p3, p3 + direction);
+        DebugDrawCircleOutline(.{rgb=light.color, a=1}, position, right, up, 0.3);
+        DebugDrawLine(.{rgb=light.color, a=1}, p0, p0 + direction);
+        DebugDrawLine(.{rgb=light.color, a=1}, p1, p1 + direction);
+        DebugDrawLine(.{rgb=light.color, a=1}, p2, p2 + direction);
+        DebugDrawLine(.{rgb=light.color, a=1}, p3, p3 + direction);
     }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) -> *Asset(Texture2D) {
