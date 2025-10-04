@@ -1,5 +1,3 @@
-Save and restore editor state
-Shadow maps
 Point shadow maps
 Shader reload should invalidate pipelines
 Shader reload failure message in the editor
