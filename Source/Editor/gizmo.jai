@@ -551,6 +551,9 @@ HandleEventForGizmos :: (world : *World, viewport : *EditorViewport, event : Edi
         if event.mouse_button == .Left {
             return ctx.hovered_id != 0; // Capture the event if we're hovering something
         }
+        if event.mouse_button == .Right {
+            return ctx.active_id != 0;
+        }
 
     case .MouseButtonRelease;
         if ctx.active_id != 0 {
