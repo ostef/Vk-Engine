@@ -172,12 +172,13 @@ void main() {
 
         float intensity = GetPointLightIntensity(light.source_radius, light.intensity, light.intensity_radius, distance);
 
-        float shadow = 1;
-        // if (light.shadow_map_index >= 0) {
-        //     shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_point_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
-        // } else {
-        //     shadow = 1;
-        // }
+        float shadow;
+        if (light.shadow_map_index >= 0) {
+            PointShadowMap shadow_map = u_point_shadow_maps[light.shadow_map_index];
+            shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, shadow_map, u_shadow_map_noise_texture, u_point_shadow_map_textures[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+        } else {
+            shadow = 1;
+        }
 
         if ((mesh.material.flags & MaterialFlags_HasDepthMap) != 0) {
             float3 tangent_light_dir = inv_TBN * L;

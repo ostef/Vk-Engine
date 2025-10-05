@@ -433,12 +433,25 @@ SubmitWorldToRenderer :: (world : *World) {
             continue;
         }
 
+        shadow_map_index := -1;
+        position := TranslationVector(it.world_transform);
+        if it.cast_shadows {
+            shadow_map := PointShadowMapToRender.{
+                resolution=Default_Point_Shadow_Map_Resolution,
+                position=position,
+                z_near=it.source_radius,
+                z_far=GetPointLightAttenuationDistance(it),
+            };
+            shadow_map_index = AddPointShadowMapToRender(shadow_map);
+        }
+
         to_render := PointLightToRender.{
-            position=TranslationVector(it.world_transform),
+            position=position,
             color=it.color,
             intensity=it.intensity,
             intensity_radius=GetPointLightAttenuationDistance(it) - it.source_radius,
             source_radius=it.source_radius,
+            shadow_map_index=shadow_map_index,
         };
         AddPointLightToRender(to_render);
     }

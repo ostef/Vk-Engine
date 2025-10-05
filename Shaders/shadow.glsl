@@ -89,48 +89,48 @@ float SampleShadowMap(
     return shadow_value / float(Num_Shadow_Map_Samples);
 }
 
-// float SamplePointShadowMap(
-//     ShadowMapParams params,
-//     PointLight shadow_map,
-//     sampler2DArray noise_texture,
-//     samplerCube shadow_map_texture,
-//     float3 world_position, float3 world_normal,
-//     float2 screen_position
-// ) {
-//     float2 shadow_map_texel_size = 1 / float2(shadow_map.resolution / 6);
-//     float2 noise_texel_size = 1 / float2(params.noise_resolution);
+float SamplePointShadowMap(
+    ShadowMapParams params,
+    PointShadowMap shadow_map,
+    sampler2DArray noise_texture,
+    samplerCube shadow_map_texture,
+    float3 world_position, float3 world_normal,
+    float2 screen_position
+) {
+    float2 shadow_map_texel_size = 1 / float2(shadow_map.resolution / 6);
+    float2 noise_texel_size = 1 / float2(params.noise_resolution);
 
-//     float filter_radius = shadow_map_texel_size.x * params.filter_radius / 10;
+    float filter_radius = shadow_map_texel_size.x * params.filter_radius / 10;
 
-//     float3 L = world_position - shadow_map.position;
-//     float current_depth = length(L);
-//     L /= current_depth;
+    float3 L = world_position - shadow_map.position;
+    float current_depth = length(L);
+    L /= current_depth;
 
-//     float NdotL = dot(world_normal, -L);
-//     float bias_factor = clamp(1.0 - NdotL, 0.0, 1.0);
-//     float depth_bias = lerp(params.depth_bias_min_max.x, params.depth_bias_min_max.y, bias_factor);
-//     depth_bias *= shadow_map_texel_size.x;
+    float NdotL = dot(world_normal, -L);
+    float bias_factor = clamp(1.0 - NdotL, 0.0, 1.0);
+    float depth_bias = lerp(params.depth_bias_min_max.x, params.depth_bias_min_max.y, bias_factor);
+    depth_bias *= shadow_map_texel_size.x;
 
-//     float shadow = 0;
-//     for (int x = 0; x < Num_Point_Shadow_Map_Cbrt_Samples; x += 1) {
-//         for (int y = 0; y < Num_Point_Shadow_Map_Cbrt_Samples; y += 1) {
-//             for (int z = 0; z < Num_Point_Shadow_Map_Cbrt_Samples; z += 1) {
-//                 float3 noise_coords = float3(screen_position * noise_texel_size, x * Num_Point_Shadow_Map_Cbrt_Samples * Num_Point_Shadow_Map_Cbrt_Samples + y * Num_Point_Shadow_Map_Cbrt_Samples + z);
+    float shadow = 0;
+    for (int x = 0; x < Num_Point_Shadow_Map_Cbrt_Samples; x += 1) {
+        for (int y = 0; y < Num_Point_Shadow_Map_Cbrt_Samples; y += 1) {
+            for (int z = 0; z < Num_Point_Shadow_Map_Cbrt_Samples; z += 1) {
+                float3 noise_coords = float3(screen_position * noise_texel_size, x * Num_Point_Shadow_Map_Cbrt_Samples * Num_Point_Shadow_Map_Cbrt_Samples + y * Num_Point_Shadow_Map_Cbrt_Samples + z);
 
-//                 float3 offset = texture(noise_texture, noise_coords).xyz;
-//                 offset *= filter_radius;
+                float3 offset = texture(noise_texture, noise_coords).xyz;
+                offset *= filter_radius;
 
-//                 float closest_depth = texture(shadow_map_texture, L + offset).r;
-//                 closest_depth *= shadow_map.viewpoints[0].z_far;
+                float closest_depth = texture(shadow_map_texture, L + offset).r;
+                closest_depth *= shadow_map.viewpoints[0].z_far;
 
-//                 shadow += float(closest_depth < shadow_map.viewpoints[0].z_far && current_depth - depth_bias > closest_depth);
-//             }
-//         }
-//     }
+                shadow += float(closest_depth < shadow_map.viewpoints[0].z_far && current_depth - depth_bias > closest_depth);
+            }
+        }
+    }
 
-//     shadow /= float(Num_Point_Shadow_Map_Samples);
+    shadow /= float(Num_Point_Shadow_Map_Samples);
 
-//     return shadow;
-// }
+    return shadow;
+}
 
 #endif

@@ -1,7 +1,5 @@
 Make sure the graphical memory debugger works
-Point shadow maps
 Shader reload should invalidate pipelines
 Shader reload failure message in the editor
-GPU profiler window
 Engine settings window
 Editor settings window

@@ -56,6 +56,7 @@ g_point_lights_to_render : [..]PointLightToRender;
 g_shadow_maps_to_render : [..]ShadowMapToRender;
 g_shadow_map_render_targets : [..]GfxTexture;
 g_point_shadow_maps_to_render : [..]PointShadowMapToRender;
+g_point_shadow_map_render_targets : [..]PointShadowMapRenderTargets;
 
 g_final_texture : GfxTexture;
 
@@ -165,6 +166,7 @@ ShutdownRenderer :: () {
 
     DestroyMaterialRenderPass(*g_forward_material_pass);
     DestroyMaterialRenderPass(*g_shadow_map_material_pass);
+    DestroyMaterialRenderPass(*g_point_shadow_map_material_pass);
     DestroyMaterialRenderPass(*g_entity_guid_material_pass);
 
     DestroyGfxComputePipeline(*g_populate_cluster_grid_pipeline);
@@ -217,6 +219,7 @@ ShutdownRenderer :: () {
     ArrayFree(*g_shadow_maps_to_render);
     ArrayFree(*g_shadow_map_render_targets);
     ArrayFree(*g_point_shadow_maps_to_render);
+    ArrayFree(*g_point_shadow_map_render_targets);
 
     for g_viewpoint_render_targets {
         DestroyViewpointRenderTargets(it);
@@ -235,6 +238,16 @@ ShutdownRenderer :: () {
         DestroyGfxTexture(it);
     }
     ArrayFree(*g_used_shadow_map_render_targets);
+
+    for * g_unused_point_shadow_map_render_targets {
+        DestroyPointShadowMapRenderTargets(it);
+    }
+    ArrayFree(*g_unused_point_shadow_map_render_targets);
+
+    for * g_used_point_shadow_map_render_targets {
+        DestroyPointShadowMapRenderTargets(it);
+    }
+    ArrayFree(*g_used_point_shadow_map_render_targets);
 
     DestroyRenderTargets();
 
@@ -546,6 +559,27 @@ RenderFrame :: () {
         ArrayPush(*g_shadow_map_render_targets, texture);
     }
 
+    point_shadow_maps := AllocArray(PointShadowMap, g_point_shadow_maps_to_render.count ,, Temp);
+    for * g_point_shadow_maps_to_render {
+        point_shadow_maps[it_index] = .{
+            resolution=it.resolution,
+            position=it.position,
+            z_near=it.z_near,
+            z_far=it.z_far,
+        };
+
+        for * viewpoint, face : point_shadow_maps[it_index].viewpoints {
+            viewpoint.* = GetPointShadowMapViewpoint(it, xx face);
+        }
+    }
+
+    point_shadow_maps_offset, point_shadow_maps_size := AllocAndPackStorageFrameData(point_shadow_maps);
+
+    for g_point_shadow_maps_to_render {
+        render_targets := GetPointShadowMapRenderTarget(it.resolution);
+        ArrayPush(*g_point_shadow_map_render_targets, render_targets);
+    }
+
     frame_bindings := FrameBindingSet.{
         frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
         directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
@@ -553,10 +587,15 @@ RenderFrame :: () {
         brdf_lut=.{texture=*g_brdf_lut, sampler=*g_linear_clamp_sampler},
         shadow_map_noise=.{texture=*g_shadow_map_noise_texture, sampler=*g_shadow_map_noise_sampler},
         shadow_maps=.{buffer=FrameDataBuffer(), offset=xx shadow_maps_offset, size=xx shadow_maps_size},
+        point_shadow_maps=.{buffer=FrameDataBuffer(), offset=xx point_shadow_maps_offset, size=xx point_shadow_maps_size},
     };
 
     for * g_shadow_map_render_targets {
         frame_bindings.shadow_map_textures[it_index] = .{texture=it, sampler=*g_shadow_map_sampler};
+    }
+
+    for * g_point_shadow_map_render_targets {
+        frame_bindings.point_shadow_map_textures[it_index] = .{texture=*it.texture, sampler=*g_shadow_map_sampler};
     }
 
     ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
@@ -569,6 +608,10 @@ RenderFrame :: () {
 
     for * g_shadow_maps_to_render {
         RenderShadowMap(*ctx, it, *g_shadow_map_render_targets[it_index]);
+    }
+
+    for * g_point_shadow_maps_to_render {
+        RenderPointShadowMap(*ctx, it, *g_point_shadow_map_render_targets[it_index]);
     }
 
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
@@ -617,8 +660,10 @@ RenderFrame :: () {
     ArrayClear(*g_shadow_maps_to_render);
     ArrayClear(*g_shadow_map_render_targets);
     ArrayClear(*g_point_shadow_maps_to_render);
+    ArrayClear(*g_point_shadow_map_render_targets);
 
     RecycleShadowMapRenderTargets();
+    RecyclePointShadowMapRenderTargets();
 }
 
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {

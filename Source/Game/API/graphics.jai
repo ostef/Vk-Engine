@@ -271,11 +271,6 @@ PointLightComponent :: struct {
     intensity_radius : float = 0; @Serialize(5) @FloatRange(0,100)
     source_radius : float = 0.05; @Serialize(6) @FloatRange(0.001,100)
     cast_shadows : bool; @Serialize(4)
-    // shadow_map : PointShadowMap;
-
-    // OnDestroy :: (world : *World, using component : *PointLightComponent) {
-    //     DestroyShadowMap(*shadow_map);
-    // }
 
     OnDebugDraw :: (world : *World, entity : *Entity, light : *PointLightComponent) {
         position := TranslationVector(light.world_transform);
