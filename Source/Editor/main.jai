@@ -18,7 +18,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #load "world.jai";
 #load "entity_outliner.jai";
 #load "entity_inspector.jai";
-#load "material.jai";
+#load "material_editor.jai";
 #load "cpu_profiler.jai";
 #load "gpu_profiler.jai";
 #load "misc.jai";
