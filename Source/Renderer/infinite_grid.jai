@@ -21,8 +21,7 @@ CreateInfiniteGridPipeline :: () {
     desc.depth_state = .{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op};
     desc.blend_states[0] = .{enabled=true};
 
-    g_infinite_grid_pipeline = CreateGfxGraphicsPipeline("Infinite Grid", desc);
-    Assert(!IsNull(*g_infinite_grid_pipeline), "Could not create infinite grid pipeline");
+    CreateGfxGraphicsPipeline(*g_infinite_grid_pipeline, "Infinite Grid", desc);
 }
 
 InfiniteGridPass :: (using ctx : *RenderContext) {

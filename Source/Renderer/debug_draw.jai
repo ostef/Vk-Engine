@@ -240,8 +240,7 @@ CreateDebugLinesPipeline :: () {
     desc.blend_states[0] = .{enabled=true};
     desc.depth_state = .{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op};
 
-    g_debug_lines_pipeline = CreateGfxGraphicsPipeline("Debug Lines", desc);
-    Assert(!IsNull(*g_debug_lines_pipeline), "Could not create debug lines pipeline");
+    CreateGfxGraphicsPipeline(*g_debug_lines_pipeline, "Debug Lines", desc);
 }
 
 DebugLinesPass :: (using ctx : *RenderContext) {

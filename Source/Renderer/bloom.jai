@@ -115,8 +115,7 @@ CreateBloomFilterComputePipeline :: () {
         g_binding_set_layouts.BloomComputeBindingSet,
     ];
 
-    g_bloom_filter_compute_pipeline = CreateGfxComputePipeline("Bloom Filter", desc);
-    Assert(!IsNull(*g_bloom_filter_compute_pipeline), "Could not create bloom filter compute pipeline");
+    CreateGfxComputePipeline(*g_bloom_filter_compute_pipeline, "Bloom Filter", desc);
 }
 
 CreateBloomDownsampleComputePipeline :: () {
@@ -127,8 +126,7 @@ CreateBloomDownsampleComputePipeline :: () {
         g_binding_set_layouts.BloomComputeBindingSet,
     ];
 
-    g_bloom_downsample_compute_pipeline = CreateGfxComputePipeline("Bloom Downsample", desc);
-    Assert(!IsNull(*g_bloom_downsample_compute_pipeline), "Could not create bloom downsample compute pipeline");
+    CreateGfxComputePipeline(*g_bloom_downsample_compute_pipeline, "Bloom Downsample", desc);
 }
 
 CreateBloomUpsampleComputePipeline :: () {
@@ -139,8 +137,7 @@ CreateBloomUpsampleComputePipeline :: () {
         g_binding_set_layouts.BloomUpsampleComputeBindingSet,
     ];
 
-    g_bloom_upsample_compute_pipeline = CreateGfxComputePipeline("Bloom Upsample", desc);
-    Assert(!IsNull(*g_bloom_upsample_compute_pipeline), "Could not create bloom upsample compute pipeline");
+    CreateGfxComputePipeline(*g_bloom_upsample_compute_pipeline, "Bloom Upsample", desc);
 }
 
 ComputeBloom :: (using ctx : *RenderContext) {

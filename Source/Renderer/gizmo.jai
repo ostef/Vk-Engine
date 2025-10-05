@@ -33,8 +33,7 @@ CreateGizmoPipeline :: () {
         g_binding_set_layouts.GizmoBindingSet,
     ];
 
-    g_gizmo_pipeline = CreateGfxGraphicsPipeline("Gizmo", desc);
-    Assert(!IsNull(*g_gizmo_pipeline), "Could not create gizmo pipeline");
+    CreateGfxGraphicsPipeline(*g_gizmo_pipeline, "Gizmo", desc);
 }
 
 GizmoPass :: (using ctx : *RenderContext) {
@@ -123,8 +122,7 @@ CreateGizmoLinesPipeline :: () {
     desc.blend_states[0] = .{enabled=true};
     desc.depth_state = .{test_enabled=true, write_enabled=true, compare_op=Depth_Compare_Op};
 
-    g_gizmo_lines_pipeline = CreateGfxGraphicsPipeline("Gizmo Lines", desc);
-    Assert(!IsNull(*g_gizmo_lines_pipeline), "Could not create gizmo lines pipeline");
+    CreateGfxGraphicsPipeline(*g_gizmo_lines_pipeline, "Gizmo Lines", desc);
 }
 
 GizmoLinesPass :: (using ctx : *RenderContext) {

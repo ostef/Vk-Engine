@@ -25,8 +25,7 @@ CreateSkyboxPipeline :: () {
         g_binding_set_layouts.SkyboxBindingSet,
     ];
 
-    g_skybox_pipeline = CreateGfxGraphicsPipeline("Skybox", desc);
-    Assert(!IsNull(*g_skybox_pipeline), "Could not create skybox pipeline");
+    CreateGfxGraphicsPipeline(*g_skybox_pipeline, "Skybox", desc);
 }
 
 SkyboxPass :: (using ctx : *RenderContext, skybox_texture : *GfxTexture) {

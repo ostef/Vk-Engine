@@ -16,8 +16,7 @@ CreateIrradianceMapPipeline :: () {
         g_binding_set_layouts.EnvironmentMapBindingSet,
     ];
 
-    g_irradiance_map_pipeline = CreateGfxGraphicsPipeline("Irradiance Map", desc);
-    Assert(!IsNull(*g_irradiance_map_pipeline), "Could not create irradiance map pipeline");
+    CreateGfxGraphicsPipeline(*g_irradiance_map_pipeline, "Irradiance Map", desc);
 }
 
 CreateEnvironmentMapPipeline :: () {
@@ -31,8 +30,7 @@ CreateEnvironmentMapPipeline :: () {
         g_binding_set_layouts.EnvironmentMapBindingSet,
     ];
 
-    g_environment_map_pipeline = CreateGfxGraphicsPipeline("Environment Map", desc);
-    Assert(!IsNull(*g_environment_map_pipeline), "Could not create environment map pipeline");
+    CreateGfxGraphicsPipeline(*g_environment_map_pipeline, "Environment Map", desc);
 }
 
 GenerateEnvironmentMaps :: (cmd_buffer : *GfxCommandBuffer) {
@@ -131,8 +129,7 @@ GenerateBRDFLUT :: (cmd_buffer : *GfxCommandBuffer) {
         g_binding_set_layouts.BRDFLUTBindingSet,
     ];
 
-    g_brdf_lut_compute_pipeline = CreateGfxComputePipeline("BRDF LUT", pipeline_desc);
-    Assert(!IsNull(*g_brdf_lut_compute_pipeline), "Could not create BRDF LUT pipeline");
+    CreateGfxComputePipeline(*g_brdf_lut_compute_pipeline, "BRDF LUT", pipeline_desc);
 
     AddTextureBarrier(cmd_buffer, .Undefined, .General, *g_brdf_lut);
 

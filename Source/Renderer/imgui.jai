@@ -174,8 +174,7 @@ InitImGuiPipeline :: () {
 
     AddColorAttachment(*pipeline_desc, .RGBA8UNorm);
 
-    g_imgui_pipeline = CreateGfxGraphicsPipeline("ImGui", pipeline_desc);
-    Assert(!IsNull(*g_imgui_pipeline), "Could not create ImGui graphics pipeline");
+    CreateGfxGraphicsPipeline(*g_imgui_pipeline, "ImGui", pipeline_desc);
 }
 
 g_imgui_draw_data : ImGui.ImDrawData;

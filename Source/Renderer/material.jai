@@ -133,8 +133,7 @@ CreateMaterialPipelines :: (pipelines : *MaterialPipelines, name : string, templ
             g_binding_set_layouts.MeshBindingSet,
         ];
 
-        it.* = CreateGfxGraphicsPipeline(TPrint("% (%)", name, flags), desc);
-        Assert(!IsNull(it), "Could not create material pipeline (%, %)", name, flags);
+        CreateGfxGraphicsPipeline(it, TPrint("% (%)", name, flags), desc);
     }
 }
 

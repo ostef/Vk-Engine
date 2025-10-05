@@ -1,3 +1,7 @@
+// @Todo: find a way to auto remove pipelines from g_graphics_pipelines and g_compute_pipelines when destroying
+// a pipeline. Currently we only destroy them when shutting down the renderer so this is mostly fine, but
+// if we end up managing pipeline lifetimes that are shorter this might be a problem.
+
 #import "File_Watcher";
 
 Log_Shaders :: Log_Section.{name="Graphics/Shaders"};
@@ -41,14 +45,8 @@ g_shaders := LoadedShader.[
     .{name="alpha_cutoff_depth_only"},
 ];
 
-ShaderReloadCallback :: struct {
-    proc : #type (shader : *LoadedShader, data : *void);
-    data : *void;
-}
-
-operator== :: (a : ShaderReloadCallback, b : ShaderReloadCallback) -> bool {
-    return a.proc == b.proc && a.data == b.data;
-}
+g_graphics_pipelines : [..]*GfxGraphicsPipeline;
+g_compute_pipelines : [..]*GfxComputePipeline;
 
 GetVertexShader :: (name : string) -> *GfxShader {
     for * g_shaders {
@@ -261,7 +259,36 @@ ReloadShader :: (shader : *LoadedShader) -> bool {
     Swap(*shader.fragment_shader, *fragment_shader);
     Swap(*shader.compute_shader, *compute_shader);
 
+    for g_graphics_pipelines {
+        if it.desc.vertex_shader == *shader.vertex_shader
+        || it.desc.fragment_shader == *shader.fragment_shader {
+            DestroyGfxGraphicsPipeline(it);
+            remove it;
+        }
+    }
+
+    for g_compute_pipelines {
+        if it.desc.shader == *shader.compute_shader {
+            DestroyGfxComputePipeline(it);
+            remove it;
+        }
+    }
+
     LogMessage("Loaded shader '%'", shader.name);
 
     return true;
+}
+
+CreateGfxGraphicsPipeline :: (pipeline : *GfxGraphicsPipeline, name : string, desc : GfxGraphicsPipelineDesc) {
+    pipeline.* = CreateGfxGraphicsPipeline(name, desc);
+    Assert(!IsNull(pipeline), "Could not create graphics pipeline '%'", name);
+
+    ArrayPushUnique(*g_graphics_pipelines, pipeline);
+}
+
+CreateGfxComputePipeline :: (pipeline : *GfxComputePipeline, name : string, desc : GfxComputePipelineDesc) {
+    pipeline.* = CreateGfxComputePipeline(name, desc);
+    Assert(!IsNull(pipeline), "Could not create compute pipeline '%'", name);
+
+    ArrayPushUnique(*g_compute_pipelines, pipeline);
 }

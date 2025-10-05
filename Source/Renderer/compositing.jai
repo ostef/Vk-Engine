@@ -21,8 +21,7 @@ CreateCompositingPipeline :: () {
         g_binding_set_layouts.CompositingBindingSet,
     ];
 
-    g_compositing_pipeline = CreateGfxGraphicsPipeline("Compositing", desc);
-    Assert(!IsNull(*g_compositing_pipeline), "Could not create compositing pipeline");
+    CreateGfxGraphicsPipeline(*g_compositing_pipeline, "Compositing", desc);
 }
 
 CompositingPass :: (using ctx : *RenderContext) {

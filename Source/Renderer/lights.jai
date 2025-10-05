@@ -45,8 +45,7 @@ CreateBuildClusterGridPipeline :: () {
         g_binding_set_layouts.ClusterGridBindingSet,
     ];
 
-    g_build_cluster_grid_pipeline = CreateGfxComputePipeline("Build Cluster Grid", desc);
-    Assert(!IsNull(*g_build_cluster_grid_pipeline), "Could not create build cluster grid pipeline");
+    CreateGfxComputePipeline(*g_build_cluster_grid_pipeline, "Build Cluster Grid", desc);
 }
 
 BuildClusterGrid :: (using ctx : *RenderContext) {
@@ -73,8 +72,7 @@ CreatePopulateClusterGridPipeline :: () {
         g_binding_set_layouts.ClusterGridBindingSet,
     ];
 
-    g_populate_cluster_grid_pipeline = CreateGfxComputePipeline("Populate Cluster Grid", desc);
-    Assert(!IsNull(*g_populate_cluster_grid_pipeline), "Could not create populate cluster grid pipeline");
+    CreateGfxComputePipeline(*g_populate_cluster_grid_pipeline, "Populate Cluster Grid", desc);
 }
 
 PopulateClusterGrid :: (using ctx : *RenderContext) {
