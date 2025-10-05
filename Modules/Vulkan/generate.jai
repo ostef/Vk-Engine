@@ -212,7 +212,7 @@ vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
     if decl.kind == .TYPEDEF && decl.type.type_of_typedef &&  decl.type.type_of_typedef.name == "VkFlags" {
         //print("TYPEDEF(VkFlags):%\n", << decl.name);
         flags_name := replace(decl.name, "Flags", "FlagBits");
-        enum_decl, found := table_find(*available_flag_bits, flags_name);
+        found, enum_decl := table_find_new(*available_flag_bits, flags_name);
         if found {
             type := New(CType);
             type.type_of_enum = enum_decl;
@@ -259,8 +259,8 @@ vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
         if enum_value_name == "VIDEO_DECODE_H_265_DPB_SLOT_INFO_KHR" then enum_value_name = "VIDEO_DECODE_H265_DPB_SLOT_INFO_KHR";
         if enum_value_name == "VIDEO_DECODE_H_265_PROFILE_INFO_KHR" then enum_value_name = "VIDEO_DECODE_H265_PROFILE_INFO_KHR";
 
-        enum_value: *Enum.Enumerate;
-        for * struct_type_decl.enumerates {
+        enum_value: *Declaration;
+        for struct_type_decl.enumerates {
             if it.output_name == enum_value_name {
                 enum_value = it;
                 break;
