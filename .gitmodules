@@ -1,0 +1,6 @@
+[submodule "Modules/Win32"]
+	path = Modules/Win32
+	url = git@github.com:ostef/Jai-Win32.git
+[submodule "Modules/Linalg"]
+	path = Modules/Linalg
+	url = git@github.com:ostef/Linalg.git
