@@ -271,6 +271,8 @@ SaveState :: () -> []u8 {
     serializer : Serializer;
     SerializeAny(*serializer, all_state);
 
+    ImGui.SaveIniSettingsToDisk("imgui.ini");
+
     return xx StringBuilderBuild(*serializer);
 }
 

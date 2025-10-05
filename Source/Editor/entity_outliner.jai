@@ -1,5 +1,5 @@
 EntityOutlinerState :: struct {
-    opened := true; @Serialize(1)
+    opened := false; @Serialize(1)
 
     filter_text : [100]u8; @Serialize(2)
     filter_case_sensitive : bool; @Serialize(3)

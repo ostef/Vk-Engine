@@ -1,4 +1,4 @@
-g_show_world_inspector := true;
+g_show_world_inspector := false;
 
 #scope_file
 

@@ -1,5 +1,5 @@
 MaterialEditorState :: struct {
-    opened := true; @Serialize(1)
+    opened := false; @Serialize(1)
     selected_material : *Asset(Material); @Serialize(2)
 }
 

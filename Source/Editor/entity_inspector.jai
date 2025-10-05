@@ -1,4 +1,4 @@
-g_show_entity_inspector := true;
+g_show_entity_inspector := false;
 
 ShowEntityInspector :: (world : *World, entity : *Entity) {
     if !g_show_entity_inspector {
