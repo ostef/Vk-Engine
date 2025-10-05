@@ -115,17 +115,13 @@ DeselectEntity :: (entity : EntityGUID) {
     }
 }
 
-SelectEntity :: (entity : EntityGUID, add_to_selection := false, focus := true) {
+SelectEntity :: (entity : EntityGUID, add_to_selection := false) {
     if !add_to_selection {
         ArrayClear(*g_editor_selected_entities);
     }
 
     if entity != Null_Entity_GUID {
         ArrayPushUnique(*g_editor_selected_entities, entity, CompareEntityGUIDs);
-    }
-
-    if focus {
-        ImGui.FocusWindow(null);
     }
 }
 

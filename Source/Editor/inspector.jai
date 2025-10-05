@@ -206,7 +206,7 @@ InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, not
 
         ImGui.BeginDisabled(guid.* == Null_Entity_GUID);
         if ImGui.MenuItem("Open In Inspector") {
-            SelectEntity(guid, focus=false);
+            SelectEntity(guid);
         }
         ImGui.EndDisabled();
 
