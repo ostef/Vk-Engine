@@ -8,6 +8,8 @@
 
 // See: Kawase blur filter
 
+// @Todo: make downsample levels scale with resolution
+
 BloomParams :: struct {
     resolution_factor := Bloom_Resolution_Factor;
     brightness_threshold := 1.4; @ShowInInspector @FloatRange(0,10) @Step(0.01)
