@@ -1,3 +1,5 @@
+g_show_world_inspector := false;
+
 #scope_file
 
 g_quick_load_scene_files : [..]string;
@@ -25,6 +27,7 @@ WorldMenu :: (world : *World) {
         if ImGui.MenuItem("New") {
             DestroyWorld(world);
         }
+
         if ImGui.MenuItem("Load") {
             Callback :: (browser : *FileBrowser, event : FileBrowserEvent, user_data : *void) {
                 if event.kind == .Submit {
@@ -50,7 +53,7 @@ WorldMenu :: (world : *World) {
                 }
                 ArrayClear(*g_quick_load_scene_files);
 
-                files := ListDirectories(g_data_directory_absolute_path, recursive=true ,, Temp);
+                files := ListDirectories(GetDataDirectoryAbsolutePath(), recursive=true ,, Temp);
                 for files {
                     if path_extension(it) == "scene" {
                         ArrayPush(*g_quick_load_scene_files, StringClone(it));
@@ -62,8 +65,8 @@ WorldMenu :: (world : *World) {
 
             for g_quick_load_scene_files {
                 label := it;
-                if StringStartsWith(label, g_data_directory_absolute_path) {
-                    StringAdvance(*label, g_data_directory_absolute_path.count);
+                if StringStartsWith(label, GetDataDirectoryAbsolutePath()) {
+                    StringAdvance(*label, GetDataDirectoryAbsolutePath().count);
 
                     if label.count > 0 && label[0] == #char "/" {
                         StringAdvance(*label, 1);
@@ -178,14 +181,6 @@ WorldShowMenu :: (world : *World) {
     if ImGui.BeginMenu("Show") {
         defer ImGui.EndMenu();
 
-        if ImGui.MenuItem("Debug Draw", selected=g_editor_show_debug_drawings) {
-            g_editor_show_debug_drawings = !g_editor_show_debug_drawings;
-        }
-
-        if ImGui.MenuItem("Grid", selected=g_editor_show_grid) {
-            g_editor_show_grid = !g_editor_show_grid;
-        }
-
         if ImGui.BeginMenu("Icons") {
             defer ImGui.EndMenu();
 
@@ -246,10 +241,55 @@ WorldShowMenu :: (world : *World) {
     }
 } @EditorMainMenu
 
+WorldEditMenu :: (world : *World) {
+    if ImGui.BeginMenu("Edit") {
+        defer ImGui.EndMenu();
+
+        if ImGui.MenuItem("Select All Entities") {
+            ArrayClear(*g_editor_selected_entities);
+
+            for _, guid : world.entities_by_guid {
+                ArrayPush(*g_editor_selected_entities, guid);
+            }
+        }
+
+        if ImGui.MenuItem("Invert Selection") {
+            new_selected_entities : [..]EntityGUID;
+            new_selected_entities.allocator = g_editor_selected_entities.allocator;
+
+            for _, guid : world.entities_by_guid {
+                if ArrayFindFirst(g_editor_selected_entities, guid, CompareEntityGUIDs) < 0 {
+                    ArrayPush(*new_selected_entities, guid);
+                }
+            }
+
+            Swap(*new_selected_entities, *g_editor_selected_entities);
+            ArrayFree(*new_selected_entities);
+        }
+    }
+} @EditorMainMenu
+
 ShouldShowEntityEditorIcon :: inline (type : EntityTypeId) -> bool {
     return !g_entity_hide_editor_icon[type];
 }
 
 ShouldShowComponentEditorIcon :: inline (type : ComponentTypeId) -> bool {
     return !g_component_hide_editor_icon[type];
+}
+
+ShowWorldInspector :: (world : *World) {
+    if !g_show_world_inspector {
+        return;
+    }
+
+    defer ImGui.End();
+
+    ImGui.SetNextWindowSize(.{350, 500}, .FirstUseEver);
+    if !ImGui.Begin("World Settings", *g_show_world_inspector) {
+        return;
+    }
+
+    ImGui.SeparatorText(CStringClone(world.loaded_from_directory));
+
+    ShowInspector("", world, world, .["InspectorNoTree"]);
 }

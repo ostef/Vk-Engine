@@ -5,7 +5,6 @@
 
 #define BRDF_LUT_Compute_Work_Group_Size 16
 #define Bloom_Compute_Work_Group_Size 16
-#define Kawase_Bur_Compute_Work_Group_Size 16
 #define Max_Lights_Per_Clusters 100
 #define Max_Point_Shadow_Maps 20
 #define Max_Shadow_Maps 2
@@ -39,64 +38,17 @@ struct DebugLine {
     float4 color;
 };
 
-struct Viewpoint {
-    float3 position;
-    float3 direction;
-    float3 right;
-    float3 up;
-    float4x4 transform;
-    float4x4 view;
-    float4x4 projection;
-    float4x4 inv_projection;
-    float4x4 view_projection;
-    float4x4 inv_view_projection;
-    float2 viewport_size;
-    float fov;
-    float z_near;
-    float z_far;
-};
-
 struct DirectionalLight {
     float3 direction;
     float3 color;
     float intensity;
     int shadow_map_index;
-    uint shadow_map_resolution;
-    float shadow_map_cascade_sizes[4];
-    Viewpoint shadow_map_viewpoints[4];
-};
-
-struct EditorBackgroundBlurSettings {
-    bool enabled;
-    float resolution_factor;
-    int num_iterations;
-};
-
-struct EditorColors {
-    float4 emphasis_button;
-    float4 emphasis_button_hovered;
-    float4 emphasis_button_active;
-    float4 submit_good_button;
-    float4 submit_good_button_hovered;
-    float4 submit_good_button_active;
-    float4 submit_bad_button;
-    float4 submit_bad_button_hovered;
-    float4 submit_bad_button_active;
-    float4 cancel_button;
-    float4 cancel_button_hovered;
-    float4 cancel_button_active;
 };
 
 struct EntityOutlineParams {
     float thickness;
     float covered_alpha;
     float4 color;
-};
-
-struct EditorSettings {
-    EntityOutlineParams entity_outline;
-    EditorBackgroundBlurSettings background_blur;
-    EditorColors colors;
 };
 
 struct ShadowMapParams {
@@ -114,28 +66,13 @@ struct FrameInfo {
     float skybox_light_intensity;
     ShadowMapParams shadow_map_params;
     BloomParams bloom_params;
-    EditorSettings editor_settings;
+    EntityOutlineParams entity_outline_params;
 };
 
-#define GizmoMesh int
-#define GizmoMesh_Cube 0
-#define GizmoMesh_Sphere 1
-#define GizmoMesh_SphereQuarter 2
-#define GizmoMesh_Plane 3
-#define GizmoMesh_TranslatePlane 4
-#define GizmoMesh_Arrow 5
-#define GizmoMesh_SquareArrow 6
-#define GizmoMesh_RotateFullThin 7
-#define GizmoMesh_RotateFull 8
-#define GizmoMesh_RotateHalf 9
-#define GizmoMesh_RotateQuarter 10
-
 struct GizmoWidget {
-    uint id;
-    GizmoMesh mesh_id;
-    float4 color;
     float4x4 transform;
     bool shaded;
+    float4 color;
 };
 
 struct LightCluster {
@@ -180,8 +117,38 @@ struct PointLight {
     float intensity_radius;
     float source_radius;
     int shadow_map_index;
-    uint shadow_map_resolution;
-    Viewpoint shadow_map_viewpoints[6];
+};
+
+struct Viewpoint {
+    float3 position;
+    float3 direction;
+    float3 right;
+    float3 up;
+    float4x4 transform;
+    float4x4 view;
+    float4x4 projection;
+    float4x4 inv_projection;
+    float4x4 view_projection;
+    float4x4 inv_view_projection;
+    float2 viewport_size;
+    float fov;
+    float z_near;
+    float z_far;
+};
+
+struct PointShadowMap {
+    uint resolution;
+    float z_near;
+    float z_far;
+    float3 position;
+    Viewpoint viewpoints[6];
+};
+
+struct ShadowMap {
+    uint resolution;
+    float3 direction;
+    float cascade_sizes[4];
+    Viewpoint viewpoints[4];
 };
 
 struct ViewpointsData {

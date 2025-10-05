@@ -3,15 +3,15 @@
 
 #include "common.glsl"
 
-int GetShadowCascadeIndex(ShadowMapParams params, DirectionalLight light, float3 position, float3 normal, out float3 coords) {
-    float3 normal_offset = normal / float(light.shadow_map_resolution) * params.normal_bias;
+int GetShadowCascadeIndex(ShadowMapParams params, ShadowMap shadow_map, float3 position, float3 normal, out float3 coords) {
+    float3 normal_offset = normal / float(shadow_map.resolution) * params.normal_bias;
     #if Shadow_Map_Reverse_Depth_Range
         normal_offset = -normal_offset;
     #endif
 
     int cascade_index = 0;
     for (; cascade_index < Num_Shadow_Map_Cascades; cascade_index += 1) {
-        float4 light_space_pos = light.shadow_map_viewpoints[cascade_index].view_projection * float4(position + normal_offset, 1);
+        float4 light_space_pos = shadow_map.viewpoints[cascade_index].view_projection * float4(position + normal_offset, 1);
         coords = light_space_pos.xyz / light_space_pos.w;
         coords.xy = coords.xy * 0.5 + float2(0.5);
 
@@ -25,9 +25,9 @@ int GetShadowCascadeIndex(ShadowMapParams params, DirectionalLight light, float3
     return -1;
 }
 
-float4 GetShadowCascadeColor(ShadowMapParams params, DirectionalLight light, float3 position, float3 normal) {
+float4 GetShadowCascadeColor(ShadowMapParams params, ShadowMap shadow_map, float3 position, float3 normal) {
     float3 coords;
-    int cascade_index = GetShadowCascadeIndex(params, light, position, normal, coords);
+    int cascade_index = GetShadowCascadeIndex(params, shadow_map, position, normal, coords);
     if (cascade_index < 0) {
         return float4(0);
     }
@@ -37,17 +37,17 @@ float4 GetShadowCascadeColor(ShadowMapParams params, DirectionalLight light, flo
 
 float SampleShadowMap(
     ShadowMapParams params,
-    DirectionalLight light,
+    ShadowMap shadow_map,
     sampler2DArray noise_texture,
     sampler2DArrayShadow shadow_map_texture,
     float3 world_position, float3 world_normal,
     float2 screen_position
 ) {
-    float2 shadow_map_texel_size = 1 / float2(light.shadow_map_resolution);
+    float2 shadow_map_texel_size = 1 / float2(shadow_map.resolution);
     float2 noise_texel_size = 1 / float2(params.noise_resolution);
 
     float3 coords;
-    int cascade_index = GetShadowCascadeIndex(params, light, world_position, world_normal, coords);
+    int cascade_index = GetShadowCascadeIndex(params, shadow_map, world_position, world_normal, coords);
     if (cascade_index < 0) {
         return 0;
     }
@@ -56,13 +56,13 @@ float SampleShadowMap(
     coords.y = 1 - coords.y;
 #endif
 
-    float2 shadow_map_size = float2(light.shadow_map_cascade_sizes[cascade_index]);
+    float2 shadow_map_size = float2(shadow_map.cascade_sizes[cascade_index]);
 
-    float NdotL = dot(world_normal, -light.direction);
+    float NdotL = dot(world_normal, -shadow_map.direction);
     float bias_factor = clamp(1.0 - NdotL, 0.0, 1.0);
     float depth_bias = lerp(params.depth_bias_min_max.x, params.depth_bias_min_max.y, bias_factor);
     depth_bias *= shadow_map_texel_size.x;
-    depth_bias /= light.shadow_map_cascade_sizes[cascade_index] / 20;
+    depth_bias /= shadow_map.cascade_sizes[cascade_index] / 20;
     #if Shadow_Map_Reverse_Depth_Range
         depth_bias = -depth_bias;
     #endif
@@ -71,7 +71,7 @@ float SampleShadowMap(
     float3 right = cross(world_normal, forward);
     forward = cross(right, world_normal);
 
-    float filter_radius = shadow_map_texel_size.x * params.filter_radius / light.shadow_map_cascade_sizes[cascade_index] * 20;
+    float filter_radius = shadow_map_texel_size.x * params.filter_radius / shadow_map.cascade_sizes[cascade_index] * 20;
 
     float shadow_value = 0;
     for (int x = 0; x < Num_Shadow_Map_Sqrt_Samples; x += 1) {
@@ -91,18 +91,18 @@ float SampleShadowMap(
 
 float SamplePointShadowMap(
     ShadowMapParams params,
-    PointLight light,
+    PointShadowMap shadow_map,
     sampler2DArray noise_texture,
     samplerCube shadow_map_texture,
     float3 world_position, float3 world_normal,
     float2 screen_position
 ) {
-    float2 shadow_map_texel_size = 1 / float2(light.shadow_map_resolution / 6);
+    float2 shadow_map_texel_size = 1 / float2(shadow_map.resolution / 6);
     float2 noise_texel_size = 1 / float2(params.noise_resolution);
 
     float filter_radius = shadow_map_texel_size.x * params.filter_radius / 10;
 
-    float3 L = world_position - light.position;
+    float3 L = world_position - shadow_map.position;
     float current_depth = length(L);
     L /= current_depth;
 
@@ -121,9 +121,9 @@ float SamplePointShadowMap(
                 offset *= filter_radius;
 
                 float closest_depth = texture(shadow_map_texture, L + offset).r;
-                closest_depth *= light.shadow_map_viewpoints[0].z_far;
+                closest_depth *= shadow_map.viewpoints[0].z_far;
 
-                shadow += float(closest_depth < light.shadow_map_viewpoints[0].z_far && current_depth - depth_bias > closest_depth);
+                shadow += float(closest_depth < shadow_map.viewpoints[0].z_far && current_depth - depth_bias > closest_depth);
             }
         }
     }

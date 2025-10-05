@@ -1,14 +1,4 @@
-g_show_entity_inspector := true;
-
-g_editor_last_copied_entity_guid : EntityGUID;
-g_editor_has_copied_entity_guid : bool;
-
-EditorCopyEntityGUID :: inline (guid : EntityGUID) {
-    g_editor_last_copied_entity_guid = guid;
-    g_editor_has_copied_entity_guid = true;
-
-    SDL_SetClipboardText(CTPrint("%", guid));
-}
+g_show_entity_inspector := false;
 
 ShowEntityInspector :: (world : *World, entity : *Entity) {
     if !g_show_entity_inspector {
@@ -139,8 +129,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
-    ImGui.SetNextItemWidth(-1);
-    if ImGui.BeginCombo("###add_component", "Add Component") {
+    if BeginButtonCombo("Add Component", size=.{-1,0}) {
         defer ImGui.EndCombo();
 
         ImGui.PushFont(g_editor_base_font);

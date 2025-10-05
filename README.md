@@ -1,20 +1,24 @@
 # Jai Game Engine
+### &#9888;&#65039; This project is under active development &#9888;&#65039;
+
 *Warning*: you might not be able to clone the project if all my GitHub LFS bandwidth has been used. I have to find a solution to put assets outside of the main repository.
 
 Started as a toy engine project to learn Vulkan and advanced rendering techniques, this is now taking the direction of a fully fledged game engine.
 
-There is still a lot to do on the graphics side of things, but currently I am directing my efforts on game stuff.
+There is still a lot to do on the graphics side of things, but currently I am directing my efforts on game/core engine stuff.
 
 Supports Linux and Windows.
 
 ## Features:
 * No "big idea" (e.g. ECS), simple and pragmatic entity system
+* Hot reloadable engine modules
+* Custom gizmos
+* Multi editor viewports
 * Graphics abstraction layer
 * Shader hot reloading
 * Ref counted asset system
 * Asset hot reloading
 * Highly backward and forward compatible serialization system using manual indices
-* Simple editor with gizmos
 * Simple CPU profiler
 * Simple GPU profiler
 * Skinned meshes
@@ -38,11 +42,11 @@ Supports Linux and Windows.
 * Variance shadow maps
 * Particle system
 ### Editor:
+* Undo/Redo
 * Gizmo interaction improvements and rework
 * Texture viewer
 ### Core:
 * Pipelining
-* Hot reloading code
 * Input system
 ### Animation:
 * Animation system
@@ -57,6 +61,7 @@ Supports Linux and Windows.
 * Sponza running at 155 FPS with all point lights casting shadows
 
 ## Gallery
+![General Showcase](Screenshots/general_showcase2.png)
 ![General Showcase](Screenshots/general_showcase.png)
 ### Custom editor gizmos
 ![Gizmos](Screenshots/gizmo.gif)

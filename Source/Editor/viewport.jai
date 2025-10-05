@@ -1,93 +1,147 @@
-g_editor_show_debug_drawings := true;
-g_editor_show_grid := true;
+EditorViewport :: struct {
+    unique_id : u64;
 
-Camera :: struct {
-    position := #run Normalized(Vec3f.{-1,1,-1}) * 10;
-    target_yaw := #run ToRads(30.0);
-    target_pitch := #run ToRads(30.0);
-    yaw := #run ToRads(30.0);
-    pitch := #run ToRads(30.0);
-    rotation : Quatf;
-    fov_in_degrees := 80.0;
-    z_near := 0.1;
-    z_far := 1000.0;
+    visible : bool;
+    position : Vec2f;
+    size : Vec2f;
+    mouse_position : Vec2f;
+
+    is_hovered : bool;
+
+    had_mouse_input_previous_frame : bool;
+    has_mouse_input : bool;
+    has_keyboard_input : bool;
+
+    event_callbacks : [..]EditorViewportEventCallback;
+
+    render_targets : *ViewpointRenderTargets;
+
+    camera : EditorCamera;
+    gizmo_ctx : GizmoContext;
+
+    show_debug_drawings := true;
+    show_grid := true;
+
+    is_box_selecting : bool;
+    box_selection_start : Vec2i;
+}
+
+g_editor_viewport_id_counter : u64 = 1;
+g_editor_viewports : [..]*EditorViewport;
+g_main_editor_viewport : *EditorViewport;
+
+EditorViewportState :: struct {
+    unique_id : u64; @Serialize(1)
+    camera : EditorCamera; @Serialize(2)
+    gizmo_ctx : GizmoContextState; @Serialize(3)
+    show_grid : bool; @Serialize(4)
+    show_debug_drawings : bool; @Serialize(5)
+}
+
+MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewportState {
+    return .{
+        unique_id=viewport.unique_id,
+        camera=viewport.camera,
+        gizmo_ctx=MakeGizmoContextState(*viewport.gizmo_ctx),
+        show_grid=viewport.show_grid,
+        show_debug_drawings=viewport.show_debug_drawings,
+    };
+}
+
+CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
+    viewport := CreateEditorViewport();
+    viewport.unique_id = state.unique_id;
+
+    viewport.camera = state.camera;
+    viewport.camera.viewport = viewport;
+
+    viewport.show_grid = state.show_grid;
+    viewport.show_debug_drawings = state.show_debug_drawings;
+
+    SetGizmoContextState(*viewport.gizmo_ctx, state.gizmo_ctx);
+
+    return viewport;
+}
+
+CreateEditorViewport :: () -> *EditorViewport {
+    viewport := Alloc(EditorViewport);
+    viewport.unique_id = g_editor_viewport_id_counter;
+    g_editor_viewport_id_counter += 1;
+
+    viewport.camera.viewport = viewport;
+    InitGizmoContext(*viewport.gizmo_ctx, viewport);
+
+    ArrayPush(*g_editor_viewports, viewport);
+
+    RegisterEventCallback(viewport, HandleEventForCameraMovement);
+    RegisterEventCallback(viewport, HandleEventForGizmos);
+    RegisterEventCallback(viewport, HandleEventForEntitySelection);
+
+    if !g_main_editor_viewport {
+        g_main_editor_viewport = viewport;
+    }
+
+    LogMessage("Created editor viewport %", viewport.unique_id);
+
+    return viewport;
+}
+
+DestroyEditorViewport :: (viewport : *EditorViewport) {
+    index := ArrayFindFirst(g_editor_viewports, viewport);
+    if index >= 0 {
+        ArrayOrderedRemove(*g_editor_viewports, index);
+    }
+
+    if g_main_editor_viewport == viewport {
+        if g_editor_viewports.count > 0 {
+            g_main_editor_viewport = g_editor_viewports[0];
+        } else {
+            g_main_editor_viewport = null;
+        }
+    }
+
+    DestroyGizmoContext(*viewport.gizmo_ctx);
+
+    ArrayFree(*viewport.event_callbacks);
+
+    LogMessage("Destroyed editor viewport %", viewport.unique_id);
+
+    Free(viewport);
+}
+
+EditorCamera :: struct {
+    viewport : *EditorViewport;
+
+    is_moving : bool;
+
+    position := #run Normalized(Vec3f.{-1,1,-1}) * 10; @Serialize(1)
+    rotation : Quatf; @Serialize(2)
+
+    target_yaw := #run ToRads(30.0); @Serialize(3)
+    target_pitch := #run ToRads(30.0); @Serialize(4)
+
+    yaw := #run ToRads(30.0); @Serialize(5)
+    pitch := #run ToRads(30.0); @Serialize(6)
+
+    fov_in_degrees := 80.0; @Serialize(7)
+    z_near := 0.1; @Serialize(8)
+    z_far := 1000.0; @Serialize(9)
+
+    speed_mult := 1.0; @Serialize(10)
+    base_speed := 0.1; @Serialize(11)
+    fast_speed := 1.0; @Serialize(12)
+    rotation_speed := 0.2; @Serialize(13)
+    rotation_smoothing := 0.3; @Serialize(14)
+
     transform : Mat4f;
     view : Mat4f;
     projection : Mat4f;
     inv_projection : Mat4f;
     ortho_projection : Mat4f;
     inv_ortho_projection : Mat4f;
-
-    speed_mult := 1.0;
-    base_speed := 0.1;
-    fast_speed := 1.0;
-    rotation_speed := 0.2;
-    rotation_smoothing := 0.3;
 }
 
-g_editor_camera : Camera;
-
-UpdateCamera :: (using camera : *Camera) {
-    is_moving_camera := IsMouseButtonDown(.Right) && !IsMouseButtonDown(.Left);
-    is_moving_camera &= !ImGui.GetIO().WantCaptureMouse;
-    is_moving_camera &= !ImGui.GetIO().WantCaptureKeyboard;
-    is_moving_camera &= g_gizmo_ctx.active_id == 0;
-    if is_moving_camera {
-        SDL_SetRelativeMouseMode(SDL_TRUE);
-
-        if !IsKeyDown(.Ctrl) {
-            movement_input : Vec3f;
-            movement_input.x = GetKeyAxisValue(.A, .D);
-            movement_input.y = GetKeyAxisValue(.Q, .E);
-            movement_input.z = GetKeyAxisValue(.S, .W);
-            movement_input = Normalized(movement_input);
-
-            speed := ifx IsKeyDown(.Shift) then fast_speed else base_speed;
-
-            speed *= speed_mult;
-
-            // @Todo: delta timing
-            position += speed * (
-                RightVector(rotation) * movement_input.x +
-                UpVector(rotation) * movement_input.y +
-                ForwardVector(rotation) * movement_input.z
-            );
-        }
-
-        rotation_delta := GetRawMouseDelta() * rotation_speed;
-
-        target_yaw += ToRads(rotation_delta.x);
-        target_pitch += ToRads(rotation_delta.y);
-    } else {
-        SDL_SetRelativeMouseMode(SDL_FALSE);
-    }
-
-    target_pitch = Clamp(target_pitch, ToRads(-90), ToRads(90));
-    yaw = Lerp(yaw, target_yaw, rotation_smoothing);
-    pitch = Lerp(pitch, target_pitch, rotation_smoothing);
-
-    rotation = QuatfFromEulerAnglesYXZ(.{x=pitch,y=yaw});
-
-    transform = Mat4fTranslate(position) * Mat4fFromQuat(rotation);
-    view = Inverse(transform);
-
-    w, h := GetWindowPixelSize(g_window);
-
-    aspect := w / cast(float, h);
-
-    if Reverse_Depth_Range {
-        projection = Mat4fPerspectiveProjection(fov_in_degrees, aspect, z_far, z_near);
-    } else {
-        projection = Mat4fPerspectiveProjection(fov_in_degrees, aspect, z_near, z_far);
-    }
-
-    inv_projection = Inverse(projection);
-
-    ortho_projection = Mat4fOrthographicProjection(0, xx w, xx h, 0, -1, 1);
-    inv_ortho_projection = Inverse(ortho_projection);
-}
-
-RayFromScreenPoint :: (camera : *Camera, point : Vec2f) -> origin : Vec3f, direction : Vec3f {
+RayFromViewportPoint :: (camera : *EditorCamera, point : Vec2f) -> origin : Vec3f, direction : Vec3f {
     clip_space := (camera.ortho_projection * Vec4f.{point.x , point.y, 0, 1}).xy;
 
     view_space := camera.inv_projection * Vec4f.{xy=clip_space,z=0,w=1};
@@ -100,14 +154,13 @@ RayFromScreenPoint :: (camera : *Camera, point : Vec2f) -> origin : Vec3f, direc
     return origin, direction;
 }
 
-RayFromMouse :: inline (camera : *Camera) -> origin : Vec3f, direction : Vec3f {
-    mouse_x, mouse_y := GetMousePointPosition(g_window);
-    origin, direction := RayFromScreenPoint(camera, .{xx mouse_x, xx mouse_y});
+RayFromMouse :: inline (viewport : *EditorViewport) -> origin : Vec3f, direction : Vec3f {
+    origin, direction := RayFromViewportPoint(*viewport.camera, viewport.mouse_position);
 
     return origin, direction;
 }
 
-WorldToCamera :: (camera : *Camera, point : Vec3f) -> is_behind : bool, Vec2f {
+WorldToCamera :: (camera : *EditorCamera, point : Vec3f) -> is_behind : bool, Vec2f {
     proj := camera.projection * camera.view * Vec4f.{xyz=point,w=1};
     if proj.w < 0 {
         return true, .{};
@@ -119,60 +172,386 @@ WorldToCamera :: (camera : *Camera, point : Vec3f) -> is_behind : bool, Vec2f {
     return false, proj.xy;
 }
 
-g_editor_is_box_selecting_entities : bool;
-g_editor_box_selection_start : Vec2i;
-
-IsBoxSelectingEntities :: inline () -> bool {
-    Selection_Threshold :: 4;
-    mouse_x, mouse_y := GetMousePixelPosition(g_window);
-
-    return g_editor_is_box_selecting_entities
-        && Abs(g_editor_box_selection_start.x - mouse_x) >= Selection_Threshold
-        && Abs(g_editor_box_selection_start.y - mouse_y) >= Selection_Threshold;
+UpdateEditorViewports :: (world : *World, delta_time : float) {
+    for g_editor_viewports {
+        UpdateEditorViewport(world, it, delta_time);
+    }
 }
 
-UpdateEntitySelection :: (world : *World) {
-    // Entity selection
-    if ImGui.GetIO().WantCaptureMouse || GizmoHasMouse(*g_gizmo_ctx) || IsMouseButtonDown(.Right) {
+RegisterEventCallback :: (viewport : *EditorViewport, callback : EditorViewportEventCallback) {
+    ArrayPushUnique(*viewport.event_callbacks, callback);
+}
+
+UnregisterEventCallback :: (viewport : *EditorViewport, callback : EditorViewportEventCallback) {
+    index := ArrayFindFirst(viewport.event_callbacks, callback);
+    if index >= 0 {
+        ArrayOrderedRemove(*viewport.event_callbacks, index);
+    }
+}
+
+EditorViewportEvent :: struct {
+    Kind :: enum {
+        MousePosition;
+        MouseButtonPress;
+        MouseButtonRelease;
+        MouseWheel;
+
+        Keyboard;
+    }
+
+    kind : Kind;
+    mouse_position : Vec2f;
+    mouse_button : MouseButton;
+    mouse_wheel : Vec2f;
+    key_mods : KeyMods;
+}
+
+EditorViewportEventCallback :: #type (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool;
+
+ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -> opened : bool {
+    opened := true;
+
+    defer ImGui.End();
+
+    {
+        id := ifx g_main_editor_viewport == viewport
+            then CTPrint("Viewport (Main)###viewport_%", unique_id)
+            else CTPrint("Viewport###viewport_%", unique_id);
+
+        ImGui.PushStyleVar(.WindowPadding, Vec2f.{0,0});
+        defer ImGui.PopStyleVar();
+
+        ImGui.SetNextWindowSize(.{1000, 700}, .FirstUseEver);
+        visible = ImGui.Begin(id, *opened, flags=.MenuBar);
+        if !visible {
+            return opened;
+        }
+    }
+
+    has_keyboard_input = ImGui.IsWindowFocused();
+
+    if ImGui.BeginMenuBar() {
+        defer ImGui.EndMenuBar();
+
+        for g_editor_viewport_menus {
+            if it_index != 0  {
+                ImGui.Separator();
+            }
+
+            it(world, viewport);
+        }
+    }
+
+    size = ImGui.GetContentRegionAvail();
+    render_targets = GetViewpointRenderTargets(unique_id, .{xx Max(size.x, 0), xx Max(size.y, 0)});
+
+    uv0 := Vec2f.{0,0};
+    uv1 := Vec2f.{1,1};
+    // #if Gfx_Texture_Origin_Bottom_Left {
+    //     uv0.y = 1 - uv0.y;
+    //     uv1.y = 1 - uv1.y;
+    // }
+
+    window := ImGui.GetCurrentWindow();
+    if window.SkipItems {
+        return opened;
+    }
+
+    content_id := ImGui.GetID("viewport_content");
+    position = ImGui.GetCursorScreenPos();
+    mouse_position = ImGui.GetMousePos() - position;
+    bb := ImGui.ImRect.{position, position + size};
+    ImGui.ItemSize(size);
+    if !ImGui.ItemAdd(bb, content_id) {
+        return opened;
+    }
+
+    ImGui.ButtonBehavior(bb, content_id, *is_hovered, *has_mouse_input, .MouseButtonLeft | .MouseButtonRight | .MouseButtonMiddle);
+
+    draw_list := ImGui.GetWindowDrawList();
+    if render_targets {
+        draw_list.AddImage(draw_list, *render_targets.final_color_texture, bb.Min, bb.Max, uv0, uv1, 0xffffffff);
+    }
+
+    if IsBoxSelecting(viewport, mouse_position) {
+        mouse_x := cast(s32, mouse_position.x + position.x);
+        mouse_y := cast(s32, mouse_position.y + position.y);
+
+        x1 := Min(box_selection_start.x + cast(s32, position.x), mouse_x);
+        y1 := Min(box_selection_start.y + cast(s32, position.y), mouse_y);
+        x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
+        y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
+
+        Bg_Color :: Vec4f.{1,1,1,0.2};
+        Outline_Color :: Vec4f.{1,1,1,1};
+        Outline_Dash_Length :: 5.0;
+        Outline_Dash_Space :: 5.0;
+        Outline_Dash_Thickness :: 1.0;
+
+        draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, U32Color(Bg_Color));
+
+        AddDashedLine(draw_list,
+            .{xx x1, xx y1}, .{xx x2, xx y1},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x1, xx y2}, .{xx x2, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x1, xx y1}, .{xx x1, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+        AddDashedLine(draw_list,
+            .{xx x2, xx y1}, .{xx x2, xx y2},
+            Outline_Dash_Length, Outline_Dash_Space,
+            U32Color(Outline_Color),
+            Outline_Dash_Thickness
+        );
+    }
+
+    return opened;
+}
+
+UpdateEditorViewport :: (world : *World, using viewport : *EditorViewport, delta_time : float) {
+    had_mouse_input_previous_frame = has_mouse_input;
+
+    if !ShowEditorViewportWindow(world, viewport) {
+        DestroyEditorViewport(viewport);
         return;
     }
 
-    if IsMouseButtonPressed(.Left) {
-        g_editor_is_box_selecting_entities = true;
-        g_editor_box_selection_start.x, g_editor_box_selection_start.y = GetMousePixelPosition(g_window);
+    SendEditorViewportEvents(world, viewport);
+
+    CalculateCameraTransforms(*camera);
+
+    UpdateGizmos(world, *gizmo_ctx);
+
+    EntityGizmo(world, *gizmo_ctx);
+}
+
+SendEditorViewportEvents :: (world : *World, viewport : *EditorViewport) {
+    MouseButtonEventHelper :: (button : MouseButton, event : EditorViewportEvent.Kind, $func : (MouseButton) -> bool) #expand {
+        if func(button) {
+            HandleEditorViewportEvent(world, viewport, .{
+                kind=event,
+                mouse_position=viewport.mouse_position,
+                mouse_button=button,
+                key_mods=GetModState(),
+            });
+        }
     }
 
-    if IsMouseButtonReleased(.Left) {
-        if g_editor_is_box_selecting_entities{
-            mouse_x, mouse_y := GetMousePixelPosition(g_window);
+    if viewport.is_hovered || viewport.has_mouse_input {
+        HandleEditorViewportEvent(world, viewport, .{
+            kind=.MousePosition,
+            mouse_position=viewport.mouse_position,
+        });
+
+        MouseButtonEventHelper(.Left, .MouseButtonPress, IsMouseButtonPressed);
+        MouseButtonEventHelper(.Right, .MouseButtonPress, IsMouseButtonPressed);
+        MouseButtonEventHelper(.Middle, .MouseButtonPress, IsMouseButtonPressed);
+
+        if GetMouseWheel() != .{} {
+            HandleEditorViewportEvent(world, viewport, .{
+                kind=.MouseWheel,
+                mouse_position=viewport.mouse_position,
+                mouse_wheel=GetMouseWheel(),
+                key_mods=GetModState(),
+            });
+        }
+    }
+
+    if viewport.is_hovered || viewport.has_mouse_input || viewport.had_mouse_input_previous_frame {
+        MouseButtonEventHelper(.Left, .MouseButtonRelease, IsMouseButtonReleased);
+        MouseButtonEventHelper(.Right, .MouseButtonRelease, IsMouseButtonReleased);
+        MouseButtonEventHelper(.Middle, .MouseButtonRelease, IsMouseButtonReleased);
+    }
+
+    if viewport.has_keyboard_input {
+        HandleEditorViewportEvent(world, viewport, .{
+            kind=.Keyboard,
+            key_mods=GetModState(),
+        });
+    }
+}
+
+HandleEditorViewportEvent :: (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> captured : bool {
+    for viewport.event_callbacks {
+        callback := it;
+        capture := callback(world, viewport, event);
+
+        if capture {
+            ArrayOrderedRemove(*viewport.event_callbacks, it_index);
+            ArrayOrderedInsert(*viewport.event_callbacks, 0, callback);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+CalculateCameraTransforms :: (camera : *EditorCamera) {
+    camera.yaw = Lerp(camera.yaw, camera.target_yaw, camera.rotation_smoothing);
+    camera.pitch = Lerp(camera.pitch, camera.target_pitch, camera.rotation_smoothing);
+
+    camera.rotation = QuatfFromEulerAnglesYXZ(.{x=camera.pitch,y=camera.yaw});
+
+    camera.transform = Mat4fTranslate(camera.position) * Mat4fFromQuat(camera.rotation);
+    camera.view = Inverse(camera.transform);
+
+    aspect := camera.viewport.size.x / cast(float, camera.viewport.size.y);
+
+    if Reverse_Depth_Range {
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_far, camera.z_near);
+    } else {
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_near, camera.z_far);
+    }
+
+    camera.inv_projection = Inverse(camera.projection);
+
+    camera.ortho_projection = Mat4fOrthographicProjection(0, camera.viewport.size.x, camera.viewport.size.y, 0, -1, 1);
+    camera.inv_ortho_projection = Inverse(camera.ortho_projection);
+}
+
+HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
+    defer CalculateCameraTransforms(*camera);
+
+    if event.kind == {
+    case .Keyboard;
+        if camera.is_moving && !IsKeyDown(.Ctrl) {
+            movement_input : Vec3f;
+            movement_input.x = GetKeyAxisValue(.A, .D);
+            movement_input.y = GetKeyAxisValue(.Q, .E);
+            movement_input.z = GetKeyAxisValue(.S, .W);
+            movement_input = Normalized(movement_input);
+
+            speed := ifx IsKeyDown(.Shift)
+                then camera.fast_speed
+                else camera.base_speed;
+
+            speed *= camera.speed_mult;
+
+            // @Todo: delta timing
+            camera.position += speed * (
+                RightVector(camera.rotation) * movement_input.x +
+                UpVector(camera.rotation) * movement_input.y +
+                ForwardVector (camera.rotation) * movement_input.z
+            );
+
+            return true;
+        }
+
+    case .MousePosition;
+        if camera.is_moving {
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+
+            rotation_delta := GetRawMouseDelta() * camera.rotation_speed;
+
+            camera.target_yaw += ToRads(rotation_delta.x);
+            camera.target_pitch += ToRads(rotation_delta.y);
+            camera.target_pitch = Clamp(camera.target_pitch, ToRads(-90), ToRads(90));
+
+            return true;
+        }
+
+    case .MouseWheel;
+        if camera.is_moving {
+            if event.mouse_wheel.y < 0 {
+                camera.speed_mult -= 0.2;
+            } else if event.mouse_wheel.y > 0 {
+                camera.speed_mult += 0.2;
+            }
+            camera.speed_mult = Clamp(camera.speed_mult, 0.2, 100);
+
+            return true;
+        }
+
+    case .MouseButtonPress;
+        if event.mouse_button == .Right {
+            camera.is_moving = true;
+        }
+
+        return camera.is_moving;
+
+    case .MouseButtonRelease;
+        was_moving_camera := camera.is_moving;
+        if event.mouse_button == .Right {
+            camera.is_moving = false;
+
+            if was_moving_camera {
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+            }
+        }
+
+        // Just in case, if we were moving the camera then don't propagate event this time
+        return was_moving_camera;
+    }
+
+    return false;
+}
+
+IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
+    return viewport.is_box_selecting
+        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 4)
+        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 4));
+}
+
+HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
+    if event.kind == {
+    case .MousePosition;
+        if is_box_selecting {
+            return true;
+        }
+
+    case .MouseButtonPress;
+        if event.mouse_button == .Left {
+            is_box_selecting = true;
+            box_selection_start = .{xx event.mouse_position.x, xx event.mouse_position.y};
+        }
+
+        // Also capture mouse right and middle buttons when selecting
+        return is_box_selecting;
+
+    case .MouseButtonRelease;
+        was_box_selecting := is_box_selecting;
+        if is_box_selecting && event.mouse_button == .Left {
             x1, y1, x2, y2 : s32;
-            if IsBoxSelectingEntities() {
-                x1 = Min(g_editor_box_selection_start.x, mouse_x);
-                x2 = Max(g_editor_box_selection_start.x, mouse_x);
-                y1 = Min(g_editor_box_selection_start.y, mouse_y);
-                y2 = Max(g_editor_box_selection_start.y, mouse_y);
+
+            if IsBoxSelecting(viewport, event.mouse_position) {
+                x1 = Min(box_selection_start.x, xx event.mouse_position.x);
+                y1 = Min(box_selection_start.y, xx event.mouse_position.y);
+                x2 = Max(box_selection_start.x, xx event.mouse_position.x);
+                y2 = Max(box_selection_start.y, xx event.mouse_position.y);
             } else {
-                x1 = mouse_x;
-                x2 = mouse_x;
-                y1 = mouse_y;
-                y2 = mouse_y;
+                x1 = xx event.mouse_position.x;
+                x2 = xx event.mouse_position.x;
+                y1 = xx event.mouse_position.y;
+                y2 = xx event.mouse_position.y;
             }
 
-            scale_factor := GetWindowScaleFactor(g_window);
+            scale_factor := GetWindowScaleFactor(GetWindow());
             x1 = xx (x1 * scale_factor);
             x2 = xx (x2 * scale_factor);
             y1 = xx (y1 * scale_factor);
             y2 = xx (y2 * scale_factor);
 
-            if GetModState() != .Shift && GetModState() != .Ctrl | .Shift {
+            if GetModState() != .Shift && GetModState() != (.Ctrl | .Shift) {
                 ArrayClear(*g_editor_selected_entities);
             }
 
             for y : y1..y2 {
                 for x : x1..x2 {
-                    guid := GetEntityGUIDAtPoint(x, y);
+                    guid := GetEntityGUIDAtPoint(viewport, xx x, xx y);
                     if guid != Null_Entity_GUID {
-                        if GetModState() == .Ctrl | .Shift {
+                        if GetModState() == (.Ctrl | .Shift) {
                             DeselectEntity(guid);
                         } else {
                             SelectEntity(guid, add_to_selection=true);
@@ -181,73 +560,47 @@ UpdateEntitySelection :: (world : *World) {
                 }
             }
 
-            g_editor_is_box_selecting_entities = false;
+            is_box_selecting = false;
         }
-    }
-}
 
-UpdateEditorViewport :: (world : *World) {
-    UpdateCamera(*g_editor_camera);
-    // Update after camera, because this is where we check for mouse interaction
-    UpdateGizmos(world, *g_gizmo_ctx);
-    UpdateEntitySelection(world);
-
-    EntityGizmo(world, *g_gizmo_ctx);
-
-    w, h := GetWindowPointSize(g_window);
-    window_flags := ImGui.WindowFlags.NoTitleBar | .NoResize | .NoScrollbar | .NoBackground
-        | .NoInputs | .NoSavedSettings | .NoFocusOnAppearing | .NoBringToFrontOnFocus;
-    ImGui.SetNextWindowPos(.{0,0});
-    ImGui.SetNextWindowSize(.{xx w, xx h});
-    if ImGui.Begin("Editor Overlay", flags=window_flags) {
-        if IsBoxSelectingEntities() {
-            mouse_x, mouse_y := GetMousePixelPosition(g_window);
-
-            x1 := Min(g_editor_box_selection_start.x, mouse_x);
-            y1 := Min(g_editor_box_selection_start.y, mouse_y);
-            x2 := Max(g_editor_box_selection_start.x, mouse_x);
-            y2 := Max(g_editor_box_selection_start.y, mouse_y);
-
-            DrawSelectionBox(x1, x2, y1, y2);
-        }
+        return was_box_selecting;
     }
 
-    ImGui.End();
+    return false;
 }
 
-DrawSelectionBox :: (x1 : s32, x2 : s32, y1 : s32, y2 : s32) {
-    draw_list := ImGui.GetWindowDrawList();
+MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
+    view_projection := camera.projection * camera.view;
 
-    Bg_Color :: Vec4f.{1,1,1,0.2};
-    Outline_Color :: Vec4f.{1,1,1,1};
-    Outline_Dash_Length :: 5.0;
-    Outline_Dash_Space :: 5.0;
-    Outline_Dash_Thickness :: 1.0;
-
-    draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, ImGui.ColorConvertFloat4ToU32(Bg_Color));
-
-    AddDashedLine(draw_list,
-        .{xx x1, xx y1}, .{xx x2, xx y1},
-        Outline_Dash_Length, Outline_Dash_Space,
-        ImGui.ColorConvertFloat4ToU32(Outline_Color),
-        Outline_Dash_Thickness
-    );
-    AddDashedLine(draw_list,
-        .{xx x1, xx y2}, .{xx x2, xx y2},
-        Outline_Dash_Length, Outline_Dash_Space,
-        ImGui.ColorConvertFloat4ToU32(Outline_Color),
-        Outline_Dash_Thickness
-    );
-    AddDashedLine(draw_list,
-        .{xx x1, xx y1}, .{xx x1, xx y2},
-        Outline_Dash_Length, Outline_Dash_Space,
-        ImGui.ColorConvertFloat4ToU32(Outline_Color),
-        Outline_Dash_Thickness
-    );
-    AddDashedLine(draw_list,
-        .{xx x2, xx y1}, .{xx x2, xx y2},
-        Outline_Dash_Length, Outline_Dash_Space,
-        ImGui.ColorConvertFloat4ToU32(Outline_Color),
-        Outline_Dash_Thickness
-    );
+    return .{
+        position=camera.position,
+        right=RightVector(camera.transform),
+        up=UpVector(camera.transform),
+        direction=ForwardVector(camera.transform),
+        transform=camera.transform,
+        view=camera.view,
+        projection=camera.projection,
+        inv_projection=camera.inv_projection,
+        view_projection=view_projection,
+        inv_view_projection=Inverse(view_projection),
+        fov=ToRads(camera.fov_in_degrees),
+        z_near=camera.z_near,
+        z_far=camera.z_far,
+        resolution=.{cast(u32, size.x), cast(u32, size.y)},
+        frustum=MakePerspectiveFrustum(camera.transform, camera.fov_in_degrees, size.x / cast(float, size.y), camera.z_near, camera.z_far),
+    };
 }
+
+DefaultViewportMenu :: (world : *World, viewport : *EditorViewport) {
+    if ImGui.MenuItem(CTPrint("%###show_grid", ifx viewport.show_grid then Icon_Grid_MDI else Icon_Grid_Off_MDI), selected=viewport.show_grid) {
+        viewport.show_grid = !viewport.show_grid;
+    }
+
+    ImGui.SetItemTooltip(ifx viewport.show_grid then "Hide grid" else "Show grid");
+
+    if ImGui.MenuItem(CTPrint("%##show_debug_drawings", Icon_Shape_Outline_MDI), selected=viewport.show_debug_drawings) {
+        viewport.show_debug_drawings = !viewport.show_debug_drawings;
+    }
+
+    ImGui.SetItemTooltip(ifx viewport.show_debug_drawings then "Hide debug drawings" else "Show debug drawings");
+} @EditorViewportMenu

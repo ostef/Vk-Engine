@@ -1,3 +1,5 @@
+U32Color :: ImGui.ColorConvertFloat4ToU32;
+
 InteractionState :: enum_flags {
     Started;
     Interacting;
@@ -702,4 +704,92 @@ SetEditorStyleForBlurredBackground :: () {
     style.Colors[ImGui.Col.ScrollbarGrabHovered].a = 0.78;
     style.Colors[ImGui.Col.ScrollbarGrabActive].a = 0.78;
     style.Colors[ImGui.Col.DockingEmptyBg].a = 0.78;
+}
+
+BeginButtonCombo :: (label : *u8, size : Vec2f = .{0,0}, flags : ImGui.ComboFlags = 0) -> bool {
+    window := ImGui.GetCurrentWindow();
+
+    backup_next_window_data_flags := ImGui.GImGui.NextWindowData_.Flags;
+    ImGui.GImGui.NextWindowData_.Flags = 0; // We behave like Begin() and need to consume those values
+    if window.SkipItems {
+        return false;
+    }
+
+    id := ImGui.GetID(label);
+    pressed := ImGui.Button(label, size=size);
+    popup_id := ImGui.ImHashStr("##ComboPopup", 0, id);
+    bb := ImGui.ImRect.{
+        ImGui.GetItemRectMin(),
+        ImGui.GetItemRectMax(),
+    };
+
+    popup_open := ImGui.IsPopupOpen(popup_id, 0);
+    if pressed && !popup_open {
+        ImGui.OpenPopupEx(popup_id, 0);
+        popup_open = true;
+    }
+
+    if !popup_open {
+        return false;
+    }
+
+    ImGui.GImGui.NextWindowData_.Flags = backup_next_window_data_flags;
+
+    return ImGui.BeginComboPopup(popup_id, bb, flags);
+}
+
+EnumCombo :: (label : *u8, value : Any) -> InteractionState {
+    type := Devariantize(value.type);
+    ptr := value.value_pointer;
+
+    enum_info := cast(*Type_Info_Enum, type);
+    is_flags := enum_info.enum_type_flags & .FLAGS != 0;
+
+    current_value := 0;
+    if enum_info.runtime_size == {
+    case 1; current_value = cast(s64, cast(*s8,  ptr).*);
+    case 2; current_value = cast(s64, cast(*s16, ptr).*);
+    case 4; current_value = cast(s64, cast(*s32, ptr).*);
+    case 8; current_value = cast(s64, cast(*s64, ptr).*);
+    }
+
+    state : InteractionState;
+    if ImGui.BeginCombo(label, CTPrint("%", value)) {
+        for enum_info.values {
+            name := enum_info.names[it_index];
+            selected := ifx is_flags then current_value & it == it else current_value == it;
+            if ImGui.MenuItem(CStringClone(name ,, Temp), selected=selected) {
+                if enum_info.enum_type_flags & .FLAGS {
+                    if !selected {
+                        if enum_info.runtime_size == {
+                        case 1; cast(*s8,  ptr).* |= xx it;
+                        case 2; cast(*s16, ptr).* |= xx it;
+                        case 4; cast(*s32, ptr).* |= xx it;
+                        case 8; cast(*s64, ptr).* |= xx it;
+                        }
+                    } else {
+                        if enum_info.runtime_size == {
+                        case 1; cast(*s8,  ptr).* &= ~cast(s8,  it);
+                        case 2; cast(*s16, ptr).* &= ~cast(s16, it);
+                        case 4; cast(*s32, ptr).* &= ~cast(s32, it);
+                        case 8; cast(*s64, ptr).* &= ~cast(s64, it);
+                        }
+                    }
+                } else {
+                    if enum_info.runtime_size == {
+                    case 1; cast(*s8,  ptr).* = xx it;
+                    case 2; cast(*s16, ptr).* = xx it;
+                    case 4; cast(*s32, ptr).* = xx it;
+                    case 8; cast(*s64, ptr).* = xx it;
+                    }
+                }
+            }
+
+            state |= LastItemInteractionState();
+        }
+
+        ImGui.EndCombo();
+    }
+
+    return state;
 }

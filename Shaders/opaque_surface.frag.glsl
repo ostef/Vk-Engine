@@ -133,7 +133,8 @@ void main() {
 
         float shadow;
         if (light.shadow_map_index >= 0) {
-            shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+            ShadowMap shadow_map = u_shadow_maps[light.shadow_map_index];
+            shadow = 1 - SampleShadowMap(u_frame_info.shadow_map_params, shadow_map, u_shadow_map_noise_texture, u_shadow_map_textures[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
         } else {
             shadow = 1;
         }
@@ -156,7 +157,11 @@ void main() {
         Lo += CalculateBRDF(base_color, metallic, roughness, N, V, L, light_color * light.intensity * shadow);
     }
 
-    // out_color = float4(cluster.num_lights / float(Max_Lights_Per_Clusters), 0, 0, 1);
+    // if (cluster.num_lights >= Max_Lights_Per_Clusters) {
+    //     out_color = float4(1, 0, 0, 1);
+    // } else {
+    //     out_color = float4(0, cluster.num_lights / float(Max_Lights_Per_Clusters), 0, 1);
+    // }
     // return;
 
     for (uint i = 0; i < cluster.num_lights; i += 1) {
@@ -173,7 +178,8 @@ void main() {
 
         float shadow;
         if (light.shadow_map_index >= 0) {
-            shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, light, u_shadow_map_noise_texture, u_point_shadow_maps[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
+            PointShadowMap shadow_map = u_point_shadow_maps[light.shadow_map_index];
+            shadow = 1 - SamplePointShadowMap(u_frame_info.shadow_map_params, shadow_map, u_shadow_map_noise_texture, u_point_shadow_map_textures[light.shadow_map_index], in_position, N, gl_FragCoord.xy);
         } else {
             shadow = 1;
         }

@@ -105,7 +105,7 @@ InitBigFileIconsFont :: () {
 
     io := ImGui.GetIO();
 
-    scale_factor := GetWindowScaleFactor(g_window);
+    scale_factor := GetWindowScaleFactor(GetWindow());
     g_big_file_icon_font = io.Fonts.AddFontFromFileTTF(io.Fonts, Font_Icon_Filename_MDI, Font_Size * scale_factor, null, MDI_Ranges.data);
 
     g_big_file_icon_font.Scale = 1 / scale_factor;
@@ -218,6 +218,7 @@ RefreshDirectoryTree :: (using browser : *FileBrowser) {
 
         if show_system_roots || root_directories.count <= 0 {
             #if OS == .WINDOWS {
+                Win32 :: #import "Win32"(File_System=true);
                 drives := Win32.GetLogicalDrives();
                 for i : 0..size_of(u32) - 1 {
                     exists := drives & (1 << i);
@@ -481,7 +482,7 @@ FileBrowserPopup :: (using browser : *FileBrowser) {
         SetDirectory(browser, params.initial_directory);
     }
 
-    window_w, window_h := GetWindowPointSize(g_window);
+    window_w, window_h := GetWindowPointSize(GetWindow());
 
     popup_size := Vec2f.{
         Min(700.0, window_w * 0.8),

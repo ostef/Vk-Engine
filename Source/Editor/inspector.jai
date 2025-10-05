@@ -118,6 +118,52 @@ UnregisterCustomInspector :: (type : *Type_Info) -> bool {
     return HashMapRemove(*g_custom_inspectors, type);
 }
 
+InspectGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
+    guid := cast(*GUID) any.value_pointer;
+
+    g := ImGui.GetCurrentContext();
+
+    not_editable := ArrayFindFirst(notes, "NotEditable") != -1;
+
+    BeginInspectorLine(label);
+
+    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", guid.*);
+
+    state := LastItemInteractionState();
+
+    if !not_editable {
+        ImGui.SetItemTooltip("Drag and drop GUID");
+    }
+
+    if ImGui.BeginDragDropSource() {
+        ImGui.Text("%", guid.*);
+
+        ImGui.SetDragDropPayload("GUID", guid, size_of(GUID));
+        ImGui.EndDragDropSource();
+    }
+
+    if !not_editable && !(g.LastItemData_.InFlags & .Disabled) && ImGui.BeginDragDropTarget() {
+        payload := ImGui.AcceptDragDropPayload("GUID");
+        if payload {
+            Assert(payload.DataSize == size_of(GUID));
+            guid.* = (cast(*GUID) payload.Data).*;
+
+            state |= .Started;
+            state |= .Submitted;
+        }
+
+        ImGui.EndDragDropTarget();
+    }
+
+    if !not_editable {
+        state |= EndInspectorLineWithReset(ctx, any);
+    } else {
+        EndInspectorLine();
+    }
+
+    return state;
+}
+
 InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
     guid := cast(*EntityGUID) any.value_pointer;
 
@@ -160,7 +206,7 @@ InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, not
 
         ImGui.BeginDisabled(guid.* == Null_Entity_GUID);
         if ImGui.MenuItem("Open In Inspector") {
-            SelectEntity(guid, focus=false);
+            SelectEntity(guid);
         }
         ImGui.EndDisabled();
 
@@ -416,6 +462,11 @@ InspectQuaternionAsEulerAngles :: (label : *u8, using ctx : *InspectorContext, q
 }
 
 InitCustomInspectors :: () {
+    if g_custom_inspectors_initialized {
+        return;
+    }
+
+    RegisterCustomInspector(GUID, InspectGUID, null);
     RegisterCustomInspector(EntityGUID, InspectEntityGUID, null);
     RegisterCustomInspector(SpatialComponent, InspectSpatialComponent, null);
     RegisterCustomInspector(TypeGetSourcePolymorph(type_info(Asset(struct{}))), InspectAsset, null);
@@ -872,58 +923,9 @@ ShowInspector :: (label : *u8, using ctx : *InspectorContext, any : Any, notes :
         return state;
 
     case .ENUM;
-        enum_info := cast(*Type_Info_Enum, type);
-        is_flags := enum_info.enum_type_flags & .FLAGS != 0;
-
-        current_value := 0;
-        if enum_info.runtime_size == {
-        case 1; current_value = cast(s64) (cast(*s8)  ptr).*;
-        case 2; current_value = cast(s64) (cast(*s16) ptr).*;
-        case 4; current_value = cast(s64) (cast(*s32) ptr).*;
-        case 8; current_value = cast(s64) (cast(*s64) ptr).*;
-        }
-
-        BeginInspectorLine(label);
         id := CTPrint("###inspector.%", MakeString(label));
-
-        state : InteractionState;
-        if ImGui.BeginCombo(id, CTPrint("%", any)) {
-            for enum_info.values {
-                name := enum_info.names[it_index];
-                selected := ifx is_flags then current_value & it == it else current_value == it;
-                if ImGui.MenuItem(CStringClone(name ,, Temp), selected=selected) {
-                    if enum_info.enum_type_flags & .FLAGS {
-                        if !selected {
-                            if enum_info.runtime_size == {
-                            case 1; cast(*s8,  ptr).* |= xx it;
-                            case 2; cast(*s16, ptr).* |= xx it;
-                            case 4; cast(*s32, ptr).* |= xx it;
-                            case 8; cast(*s64, ptr).* |= xx it;
-                            }
-                        } else {
-                            if enum_info.runtime_size == {
-                            case 1; cast(*s8,  ptr).* &= ~cast(s8,  it);
-                            case 2; cast(*s16, ptr).* &= ~cast(s16, it);
-                            case 4; cast(*s32, ptr).* &= ~cast(s32, it);
-                            case 8; cast(*s64, ptr).* &= ~cast(s64, it);
-                            }
-                        }
-                    } else {
-                        if enum_info.runtime_size == {
-                        case 1; cast(*s8,  ptr).* = xx it;
-                        case 2; cast(*s16, ptr).* = xx it;
-                        case 4; cast(*s32, ptr).* = xx it;
-                        case 8; cast(*s64, ptr).* = xx it;
-                        }
-                    }
-                }
-
-                state |= LastItemInteractionState();
-            }
-
-            ImGui.EndCombo();
-        }
-
+        BeginInspectorLine(label);
+        state := EnumCombo(id, any);
         state |= EndInspectorLineWithReset(ctx, any);
 
         return state;

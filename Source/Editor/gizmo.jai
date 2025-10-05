@@ -2,6 +2,8 @@
 // @Todo: allow drawing meshes that are generated on the fly
 // @Todo: use a different method to draw gizmo lines as we want to control the thickness
 
+#import "Hash";
+
 GizmoKey :: enum {
     XAxis;
     YAxis;
@@ -53,7 +55,7 @@ GizmoPivot :: enum {
 
 // Just in case we want to have multiple viewports in the future, we have this struct
 GizmoContext :: struct {
-    camera : *Camera;
+    viewport : *EditorViewport;
     mouse_position : Vec2f;
 
     wants_to_hide_cursor : bool;
@@ -115,7 +117,28 @@ GizmoContext :: struct {
     depth_texture : GfxTexture;
 }
 
-g_gizmo_ctx : GizmoContext;
+GizmoContextState :: struct {
+    global_size : float; @Serialize(1)
+    gizmo_type : GizmoType; @Serialize(2)
+    gizmo_local : bool; @Serialize(3)
+    gizmo_pivot : GizmoPivot; @Serialize(4)
+}
+
+MakeGizmoContextState :: inline (ctx : *GizmoContext) -> GizmoContextState {
+    return .{
+        global_size=ctx.global_size,
+        gizmo_type=ctx.gizmo_type,
+        gizmo_local=ctx.gizmo_local,
+        gizmo_pivot=ctx.gizmo_pivot,
+    };
+}
+
+SetGizmoContextState :: inline (ctx : *GizmoContext, state : GizmoContextState) {
+    ctx.global_size = state.global_size;
+    ctx.gizmo_type = state.gizmo_type;
+    ctx.gizmo_local = state.gizmo_local;
+    ctx.gizmo_pivot = state.gizmo_pivot;
+}
 
 GizmoStyleColor :: enum {
     Origin;
@@ -232,9 +255,10 @@ GizmoMesh :: enum u8 {
     RotateQuarter;
 } @ShaderType
 
-InitGizmoContext :: (ctx : *GizmoContext) {
+InitGizmoContext :: (ctx : *GizmoContext, viewport : *EditorViewport) {
     using ctx.meshes;
 
+    ctx.viewport = viewport;
     cube = LoadAsset(StaticMesh, "Editor/Gizmos/Cube.mesh");
     sphere = LoadAsset(StaticMesh, "Editor/Gizmos/Sphere.mesh");
     sphere_quarter = LoadAsset(StaticMesh, "Editor/Gizmos/SphereQuarter.mesh");
@@ -267,10 +291,6 @@ SetGizmoKeyboardFocus :: inline (ctx : *GizmoContext, id : string) {
 SetGizmoKeyboardFocus :: inline (ctx : *GizmoContext, id : u32) {
     ctx.keyboard_focus_id = id;
     ctx.next_keyboard_focus_id = id;
-}
-
-GizmoHasMouse :: inline (ctx : *GizmoContext) -> bool {
-    return g_gizmo_ctx.hovered_id != 0 || g_gizmo_ctx.active_id != 0;
 }
 
 GizmoType :: enum {
@@ -355,9 +375,11 @@ AddGizmoWidget :: (ctx : *GizmoContext, id : u32, mesh_id : GizmoMesh, color : V
     ArrayPush(*ctx.widgets, GizmoWidget.{id, mesh_id, color, transform, shaded});
 }
 
+Max_Gizmo_Lines :: 1000;
+
 // @Todo: control thickness
 GizmoDrawLine :: (ctx : *GizmoContext, color : Vec3f, start : Vec3f, end : Vec3f, thickness : float) {
-    if ctx.lines_to_draw.count >= Max_Debug_Lines {
+    if ctx.lines_to_draw.count >= Max_Gizmo_Lines {
         return;
     }
 
@@ -493,14 +515,57 @@ KeyboardBehavior :: (ctx : *GizmoContext, id : u32, type : KeyboardInteractionTy
     // return state;
 }
 
-SetCamera :: (ctx : *GizmoContext, camera : *Camera) {
-    ctx.camera = camera;
+// This is event driven approach adds complexity for gizmos, because we have an immediate mode
+// approach, and we don't necessarily know upon receiving an event what we want to do with said
+// event. So we don't know if we want to capture it or not for example.
+// We make the (sane) assumption that if a gizmo is hovered and a mouse button is pressed then
+// we do want to capture the event. This may not be the case later on when we handle gizmo
+// interactions in an immediate mode way, but I think it's probably not going to cause any major
+// problem.
+HandleEventForGizmos :: (world : *World, viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
+    ctx := *viewport.gizmo_ctx;
+
+    if event.kind == {
+    case .MousePosition;
+        closest_hit_dist := F32_Inf;
+
+        ctx.hovered_id = 0;
+
+        if ctx.active_id == 0 {
+            ray_origin, ray_direction := RayFromMouse(viewport);
+            for ctx.widgets {
+                mesh := ctx.meshes.all[it.mesh_id];
+                hit, point, dist, normal
+                    := RayIntersectsMesh(ray_origin, ray_direction, F32_Inf, mesh, it.transform);
+
+                if hit && dist < closest_hit_dist {
+                    closest_hit_dist = dist;
+                    ctx.hovered_id = it.id;
+                }
+            }
+        }
+
+        return ctx.hovered_id != 0;
+
+    case .MouseButtonPress;
+        if event.mouse_button == .Left {
+            return ctx.hovered_id != 0; // Capture the event if we're hovering something
+        }
+        if event.mouse_button == .Right {
+            return ctx.active_id != 0;
+        }
+
+    case .MouseButtonRelease;
+        if ctx.active_id != 0 {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 UpdateGizmos :: (world : *World, ctx : *GizmoContext) {
-    ctx.mouse_position = GetMousePointPositionVector(g_window);
-
-    ctx.hovered_id = 0;
+    ctx.mouse_position = ctx.viewport.mouse_position;
 
     // Make sure we set active_id to 0 if the widget does not exist this frame
     // Otherwise we won't be able to select anything else
@@ -520,24 +585,9 @@ UpdateGizmos :: (world : *World, ctx : *GizmoContext) {
         ctx.active_id = 0;
     }
 
-    if !IsMouseButtonDown(.Right) && ctx.active_id == 0 {
-        closest_hit_dist := F32_Inf;
-
-        ray_origin, ray_direction := RayFromMouse(ctx.camera);
-        for ctx.widgets {
-            mesh := ctx.meshes.all[it.mesh_id];
-            hit, point, dist, normal
-                := RayIntersectsMesh(ray_origin, ray_direction, F32_Inf, mesh, it.transform);
-
-            if hit && dist < closest_hit_dist {
-                closest_hit_dist = dist;
-                ctx.hovered_id = it.id;
-            }
-        }
-    }
-
     // Reset the widgets for this frame
     ArrayClear(*ctx.widgets);
+    ArrayClear(*ctx.lines_to_draw);
 }
 
 CalculateGizmoWidgetSize :: inline (ctx : *GizmoContext, camera_transform : Mat4f, position : Vec3f) -> float {
@@ -579,10 +629,10 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
     transform := GetGizmoTransform(ctx);
     rotation := RotationMatrix(transform);
 
-    camera_forward := ForwardVector(ctx.camera.transform);
-    camera_right := RightVector(ctx.camera.transform);
-    camera_up := UpVector(ctx.camera.transform);
-    widget_size := CalculateGizmoWidgetSize(ctx, ctx.camera.transform, translation.*);
+    camera_forward := ForwardVector(ctx.viewport.camera.transform);
+    camera_right := RightVector(ctx.viewport.camera.transform);
+    camera_up := UpVector(ctx.viewport.camera.transform);
+    widget_size := CalculateGizmoWidgetSize(ctx, ctx.viewport.camera.transform, translation.*);
 
     axes_ids := u32.[
         GetGizmoID(ctx, "translate_x"),
@@ -630,7 +680,7 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
     view_id := GetGizmoID(ctx, "translate_view");
 
     if ctx.active_id != view_id && ArrayFindFirst(axes_ids, ctx.active_id) < 0 {
-        DrawOrigin(ctx, ctx.camera.transform, translation.*);
+        DrawOrigin(ctx, ctx.viewport.camera.transform, translation.*);
     }
 
     ignore_view := flags & .NoViewAxis != 0;
@@ -661,7 +711,7 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
             }
 
             origin := ctx.drag_start_translation;
-            ray_origin, ray_dir := RayFromMouse(ctx.camera);
+            ray_origin, ray_dir := RayFromMouse(ctx.viewport);
             intersects, point := RayIntersectsPlane(ray_origin, ray_dir, F32_Inf, origin, -camera_forward);
 
             if intersects {
@@ -683,7 +733,7 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
                 result = point + ctx.drag_start_translation_offset;
             }
 
-            // _, proj_center := WorldToCamera(ctx.camera, ctx.drag_start_translation);
+            // _, proj_center := WorldToCamera(*ctx.viewport.camera, ctx.drag_start_translation);
             // DrawText(
             //     tprint("X: % Y: % Z: %", result.x, result.y, result.z),
             //     proj_center + .{10, 10},
@@ -737,8 +787,8 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
                 ctx.drag_start_translation = translation.*;
             }
 
-            center_behind, proj_center := WorldToCamera(ctx.camera, ctx.drag_start_translation);
-            axis_behind, proj_axis := WorldToCamera(ctx.camera, ctx.drag_start_translation + axes_vectors[i]);
+            center_behind, proj_center := WorldToCamera(*ctx.viewport.camera, ctx.drag_start_translation);
+            axis_behind, proj_axis := WorldToCamera(*ctx.viewport.camera, ctx.drag_start_translation + axes_vectors[i]);
             if !center_behind && !axis_behind {
                 mouse_offset := ctx.mouse_position - ctx.mouse_drag_start;
                 proj_axis = Normalized(proj_axis - proj_center);
@@ -824,7 +874,7 @@ GizmoTranslate :: (world : *World, ctx : *GizmoContext, id : string, translation
             }
 
             origin := ctx.drag_start_translation;
-            ray_origin, ray_dir := RayFromMouse(ctx.camera);
+            ray_origin, ray_dir := RayFromMouse(ctx.viewport);
             intersects, point := RayIntersectsPlane(ray_origin, ray_dir, F32_Inf, origin, axes_vectors[axis2]);
 
             if intersects {
@@ -916,11 +966,11 @@ GizmoRotate :: (world : *World, ctx : *GizmoContext, id : string, rotation : *Qu
     PushGizmoID(ctx, id);
     defer PopGizmoID(ctx);
 
-    camera_forward := ForwardVector(ctx.camera.transform);
-    camera_right   := RightVector(ctx.camera.transform);
-    camera_up      := UpVector(ctx.camera.transform);
-    widget_size := CalculateGizmoWidgetSize(ctx, ctx.camera.transform, translation);
-    gizmo_to_camera := Normalized(TranslationVector(ctx.camera.transform) - translation);
+    camera_forward := ForwardVector(ctx.viewport.camera.transform);
+    camera_right   := RightVector(ctx.viewport.camera.transform);
+    camera_up      := UpVector(ctx.viewport.camera.transform);
+    widget_size := CalculateGizmoWidgetSize(ctx, ctx.viewport.camera.transform, translation);
+    gizmo_to_camera := Normalized(TranslationVector(ctx.viewport.camera.transform) - translation);
 
     trackball_id := GetGizmoID(ctx, "rotate_trackball");
     axes_ids := u32.[
@@ -969,7 +1019,7 @@ GizmoRotate :: (world : *World, ctx : *GizmoContext, id : string, rotation : *Qu
     ];
 
     if ctx.active_id != gizmo_id && ArrayFindFirst(axes_ids, ctx.active_id) < 0 {
-        DrawOrigin(ctx, ctx.camera.transform, translation);
+        DrawOrigin(ctx, ctx.viewport.camera.transform, translation);
     }
 
     for i : 0..3 {
@@ -1022,13 +1072,13 @@ GizmoRotate :: (world : *World, ctx : *GizmoContext, id : string, rotation : *Qu
             }
 
             origin := translation;
-            ray_origin, ray_dir := RayFromMouse(ctx.camera);
+            ray_origin, ray_dir := RayFromMouse(ctx.viewport);
             intersects, point := RayIntersectsPlane(ray_origin, ray_dir, F32_Inf, origin, ctx.drag_start_rotation_axis);
             if drag_state & .Started {
                 ctx.drag_start_rotation_point = point;
             }
 
-            is_behind, proj_center := WorldToCamera(ctx.camera, translation);
+            is_behind, proj_center := WorldToCamera(*ctx.viewport.camera, translation);
             if !is_behind {
                 begin := Normalized(proj_center - ctx.mouse_drag_start);
                 end := Normalized(proj_center - ctx.mouse_position);
@@ -1129,10 +1179,10 @@ GizmoScale :: (world : *World, ctx : *GizmoContext, id : string, scale : *Vec3f,
     PushGizmoID(ctx, id);
     defer PopGizmoID(ctx);
 
-    camera_forward := ForwardVector(ctx.camera.transform);
-    camera_right := RightVector(ctx.camera.transform);
-    camera_up := UpVector(ctx.camera.transform);
-    widget_size := CalculateGizmoWidgetSize(ctx, ctx.camera.transform, translation);
+    camera_forward := ForwardVector(ctx.viewport.camera.transform);
+    camera_right := RightVector(ctx.viewport.camera.transform);
+    camera_up := UpVector(ctx.viewport.camera.transform);
+    widget_size := CalculateGizmoWidgetSize(ctx, ctx.viewport.camera.transform, translation);
 
     all_id := GetGizmoID(ctx, "scale_all");
     axes_ids := u32.[
@@ -1190,7 +1240,7 @@ GizmoScale :: (world : *World, ctx : *GizmoContext, id : string, scale : *Vec3f,
     ];
 
     if ArrayFindFirst(axes_ids, ctx.active_id) < 0 {
-        DrawOrigin(ctx, ctx.camera.transform, translation);
+        DrawOrigin(ctx, ctx.viewport.camera.transform, translation);
     }
 
     for i : 0..2 {
@@ -1224,7 +1274,7 @@ GizmoScale :: (world : *World, ctx : *GizmoContext, id : string, scale : *Vec3f,
                 ctx.drag_start_scale = scale.*;
             }
 
-            is_behind, proj_center := WorldToCamera(ctx.camera, translation);
+            is_behind, proj_center := WorldToCamera(*ctx.viewport.camera, translation);
             if !is_behind {
                 t1 := Distance(proj_center, ctx.mouse_drag_start);
                 t2 := Distance(proj_center, ctx.mouse_position);
@@ -1334,7 +1384,7 @@ GizmoScale :: (world : *World, ctx : *GizmoContext, id : string, scale : *Vec3f,
                 ctx.drag_start_scale = scale.*;
             }
 
-            is_behind, proj_center := WorldToCamera(ctx.camera, translation);
+            is_behind, proj_center := WorldToCamera(*ctx.viewport.camera, translation);
             if !is_behind {
                 t1 := Distance(proj_center, ctx.mouse_drag_start);
                 t2 := Distance(proj_center, ctx.mouse_position);
@@ -1452,7 +1502,7 @@ GizmoScale :: (world : *World, ctx : *GizmoContext, id : string, scale : *Vec3f,
                 ctx.drag_start_scale = scale;
             }
 
-            is_behind, proj_center := WorldToCamera(ctx.camera, translation);
+            is_behind, proj_center := WorldToCamera(*ctx.viewport.camera, translation);
             if !is_behind {
                 t1 := Distance(proj_center, ctx.mouse_drag_start);
                 t2 := Distance(proj_center, ctx.mouse_position);
@@ -1582,7 +1632,7 @@ GizmoTransform :: (
 
     case .None;
         translation := TranslationVector(GetGizmoTransform(ctx));
-        DrawOrigin(ctx, ctx.camera.transform, translation);
+        DrawOrigin(ctx, ctx.viewport.camera.transform, translation);
     }
 
     return 0;
@@ -1657,7 +1707,7 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
             position += entity_position;
         }
 
-        DrawOrigin(ctx, ctx.camera.transform, entity_position);
+        DrawOrigin(ctx, ctx.viewport.camera.transform, entity_position);
     }
 
     if ctx.gizmo_pivot != .Active {
@@ -1783,3 +1833,40 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
         }
     }
 }
+
+GizmoViewportMenu :: (world : *World, viewport : *EditorViewport) {
+    ctx := *viewport.gizmo_ctx;
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_none", Icon_Select_MDI), selected=ctx.gizmo_type == .None) {
+        ctx.gizmo_type = .None;
+    }
+
+    ImGui.SetItemTooltip("No gizmo");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_translate", Icon_Cursor_Move_MDI), selected=ctx.gizmo_type == .Translate) {
+        ctx.gizmo_type = .Translate;
+    }
+
+    ImGui.SetItemTooltip("Translate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_rotate", Icon_Rotate_Orbit_MDI), selected=ctx.gizmo_type == .Rotate) {
+        ctx.gizmo_type = .Rotate;
+    }
+
+    ImGui.SetItemTooltip("Rotate");
+
+    if ImGui.MenuItem(CTPrint("%##gizmo_scale", Icon_Resize_MDI), selected=ctx.gizmo_type == .Scale) {
+        ctx.gizmo_type = .Scale;
+    }
+
+    ImGui.SetItemTooltip("Scale");
+
+    ImGui.Separator();
+
+    ImGui.Text("Local:");
+    ImGui.Checkbox("##local", *ctx.gizmo_local);
+
+    ImGui.Text("Pivot:");
+    ImGui.SetNextItemWidth(80);
+    ImGui_Ext.EnumCombo("##pivot", *ctx.gizmo_pivot);
+} @EditorViewportMenu
