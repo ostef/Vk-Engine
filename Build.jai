@@ -170,6 +170,40 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
     return false;
 }
 
+Bindings_To_Generate :: string.[
+    "Modules/ImGui",
+    "Modules/Vulkan",
+];
+
+GenerateBindings :: (module_name : string) {
+    ws := compiler_create_workspace(module_name);
+
+    options := get_build_options(ws);
+    compiler_begin_intercept(ws);
+
+    add_build_file(SPrint("%/generate.jai", module_name), ws);
+
+    working_dir := Basic.get_working_directory();
+    defer Basic.set_working_directory(working_dir);
+
+    Basic.set_working_directory(SPrint("%/%", working_dir, module_name));
+
+    while true {
+        msg := compiler_wait_for_message();
+        if msg.workspace == ws && msg.kind == .COMPLETE {
+            if cast(*Message_Complete, msg).error_code != .NONE {
+                LogError("Could not generate bindings for %", module_name);
+            } else {
+                LogMessage("Generated bindings for %", module_name);
+            }
+
+            break;
+        }
+    }
+
+    compiler_end_intercept(ws);
+}
+
 Build :: () {
     Log_Metaprogram :: Log_Section.{name="Metaprogram"};
     LogSectionScope(*Log_Metaprogram);
@@ -180,6 +214,7 @@ Build :: () {
 
     auto_detect : bool;
     modules_to_build : u64;
+    generate_bindings : bool;
 
     start_time := Basic.current_time_monotonic();
     defer if modules_to_build {
@@ -201,6 +236,8 @@ Build :: () {
             auto_detect = true;
         case "all";
             modules_to_build = 0xffffffffffffffff;
+        case "generate_bindings";
+            generate_bindings = true;
         case;
             found_module := false;
             for type_info(ModuleID).names {
@@ -218,19 +255,34 @@ Build :: () {
         }
     }
 
-    if !auto_detect && !modules_to_build {
+    if !auto_detect && !modules_to_build && !generate_bindings {
         LogError("Nothing to build");
-Usage :: #string End
-Usage: % [default options] [- options or modules to build]
-Valid options:
-  all:  build all modules
-  auto: auto detect modules to build
-End
-        Println(Usage, ifx OS == .WINDOWS then "Build" else "./Build.sh");
+
+        Println("Usage: % [default metaprogram option(s)] [- option(s) or module(s) to build]", ifx OS == .WINDOWS then "Build" else "./Build.sh");
+        Print("\nModules: ");
+        for type_info(ModuleID).names {
+            if it_index > 0 {
+                Print(", ");
+            }
+            Print("%", it);
+        }
+        Println("\n");
+
+        Println("Valid options:");
+        Println("  all:               build all modules");
+        Println("  auto:              auto detect modules to build");
+        Println("  generate_bindings: (re)generate all bindings");
+
         Basic.exit(1);
     }
 
     make_directory_if_it_does_not_exist("ModuleLibs");
+
+    if generate_bindings {
+        for Bindings_To_Generate {
+            GenerateBindings(it);
+        }
+    }
 
     #insert -> string {
         builder : StringBuilder;
@@ -247,6 +299,10 @@ End
         }
 
         return StringBuilderBuild(*builder);
+    }
+
+    #if OS == .WINDOWS {
+        copy_file("Modules/ImGui/win/ImGui.dll", "ImGui.dll");
     }
 }
 
