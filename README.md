@@ -61,7 +61,6 @@ Supports Linux and Windows.
 * Sponza running at 155 FPS with all point lights casting shadows
 
 ## Gallery
-![General Showcase](Screenshots/general_showcase2.png)
 ![General Showcase](Screenshots/general_showcase.png)
 ### Custom editor gizmos
 ![Gizmos](Screenshots/gizmo.gif)
@@ -69,7 +68,5 @@ Supports Linux and Windows.
 ![Parallax Occlusion Mapping With Self Shadowing](Screenshots/parallax_occlusion_mapping_with_shadows.gif)
 ### Custom file browser
 ![File Browser](Screenshots/file_browser.png)
-### 1000 moving point lights running at 100 FPS (1080p)
-> 60 FPS because of V-Sync, but GPU time varies between 10 to 11 ms, which is 90-100 FPS
-
+### 500 moving point lights
 ![Light Ballet](Screenshots/light_ballet.png)
