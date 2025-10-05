@@ -302,7 +302,9 @@ Build :: () {
     }
 
     #if OS == .WINDOWS {
-        copy_file("Modules/ImGui/win/ImGui.dll", "ImGui.dll");
+        if !file_exists("ImGui.dll") {
+            copy_file("Modules/ImGui/win/ImGui.dll", "ImGui.dll");
+        }
     }
 }
 
