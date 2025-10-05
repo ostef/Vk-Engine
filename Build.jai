@@ -220,6 +220,13 @@ Build :: () {
 
     if !auto_detect && !modules_to_build {
         LogError("Nothing to build");
+Usage :: #string End
+Usage: % [default options] [- options or modules to build]
+Valid options:
+  all:  build all modules
+  auto: auto detect modules to build
+End
+        Println(Usage, ifx OS == .WINDOWS then "Build" else "./Build.sh");
         Basic.exit(1);
     }
 
