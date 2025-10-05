@@ -238,6 +238,8 @@ AllEditorState :: struct {
     main_editor_viewport_id : u64; @Serialize(12)
     cpu_profiler_window : CPUProfilerWindowState; @Serialize(13)
     show_gpu_profiler : bool; @Serialize(14)
+    entity_hide_editor_icon : [Entity_Types.count]bool; @Serialize(15)
+    component_hide_editor_icon : [Component_Types.count]bool; @Serialize(16)
 }
 
 SaveState :: () -> []u8 {
@@ -258,6 +260,9 @@ SaveState :: () -> []u8 {
         show_gpu_profiler=g_show_gpu_profiler,
     };
     defer Free(all_state.loaded_world.data);
+
+    memcpy(*all_state.entity_hide_editor_icon, *g_entity_hide_editor_icon, size_of(type_of(g_entity_hide_editor_icon)));
+    memcpy(*all_state.component_hide_editor_icon, *g_component_hide_editor_icon, size_of(type_of(g_component_hide_editor_icon)));
 
     make_directory_if_it_does_not_exist(".EditorState");
     SaveWorldToDirectory(*g_editor_world, ".EditorState/World");
@@ -314,7 +319,9 @@ LoadState :: (state : []u8) {
 
     g_cpu_profiler_window = cpu_profiler_window;
     g_show_gpu_profiler = show_gpu_profiler;
-}
+
+    memcpy(*g_entity_hide_editor_icon, *entity_hide_editor_icon, size_of(type_of(entity_hide_editor_icon)));
+    memcpy(*g_component_hide_editor_icon, *component_hide_editor_icon, size_of(type_of(component_hide_editor_icon)));}
 
 OnEvent :: (event : SDL_Event) {
     ImGui_SDL.HandleWindowEvent(event);
