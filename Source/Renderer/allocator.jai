@@ -1,3 +1,5 @@
+// @Todo: do not crash when we reach the memory limit
+
 // Thread safe, lock free frame data allocator
 Frame_Data_Capacity :: 10 * 1024 * 1024;
 
