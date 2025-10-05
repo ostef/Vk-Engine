@@ -48,6 +48,19 @@ g_shaders := LoadedShader.[
 g_graphics_pipelines : [..]*GfxGraphicsPipeline;
 g_compute_pipelines : [..]*GfxComputePipeline;
 
+GetShadersThatFailedToReload :: () -> []string {
+    result : [..]string;
+    result.allocator = Temp;
+
+    for g_shaders {
+        if it.failed_to_reload {
+            ArrayPush(*result, it.name);
+        }
+    }
+
+    return result;
+} @ModuleAPI
+
 GetVertexShader :: (name : string) -> *GfxShader {
     for * g_shaders {
         if it.name == name {

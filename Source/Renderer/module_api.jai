@@ -20,6 +20,7 @@ RendererModule :: struct {
     DebugDrawLine : (color : Vector(N=4, T=float32), start : Vector(N=3, T=float32), end : Vector(N=3, T=float32));
     DebugDrawSphereOutline : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30);
     DestroyImGuiRenderer : ();
+    GetShadersThatFailedToReload : () -> []string;
     GetViewpointRenderTargets : (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets;
     InitImGuiRenderer : ();
     StopRenderThread : ();
@@ -118,6 +119,11 @@ DebugDrawSphereOutline :: inline (color : Vector(N=4, T=float32), center : Vecto
 DestroyImGuiRenderer :: inline () {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.DestroyImGuiRenderer();
+} @NoProfile
+
+GetShadersThatFailedToReload :: inline () -> []string {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.GetShadersThatFailedToReload();
 } @NoProfile
 
 GetViewpointRenderTargets :: inline (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets {

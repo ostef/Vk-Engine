@@ -371,6 +371,22 @@ UpdateEditor :: () {
             cast(int, GetDeltaTime() * 1000)
         );
 
+        shaders_that_failed_to_reload := GetShadersThatFailedToReload();
+
+        if shaders_that_failed_to_reload.count > 0 {
+            ImGui.Separator();
+
+            ImGui.PushStyleColor(.Text, .{1,0,0,1});
+
+            if shaders_that_failed_to_reload.count == 1 {
+                ImGui.Text("There were errors reloading shader '%'", shaders_that_failed_to_reload[0]);
+            } else {
+                ImGui.Text("There were errors reloading multiple shaders");
+            }
+
+            ImGui.PopStyleColor();
+        }
+
         if ImGui.BeginMenu("Window") {
             defer ImGui.EndMenu();
 
