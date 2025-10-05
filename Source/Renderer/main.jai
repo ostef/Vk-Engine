@@ -679,6 +679,10 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
         return IsNull(texture) || texture.desc.width != desired_resolution.x || texture.desc.height != desired_resolution.y;
     }
 
+    if desired_resolution.x == 0 || desired_resolution.y == 0 {
+        return null;
+    }
+
     ptr := HashMapInsert(*g_viewpoint_render_targets, id);
     if !ptr.* {
         ptr.* = Alloc(ViewpointRenderTargets);
@@ -836,6 +840,10 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     billboard_rotation := Mat4fFromRightUpForwardOrigin(-viewpoint.right, viewpoint.up, -viewpoint.direction, .{});
     ctx.viewpoint = viewpoint;
     ctx.render_targets = GetViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution);
+
+    if !ctx.render_targets {
+        return;
+    }
 
     mesh_buffer : MeshBuffer;
     mesh_buffer.meshes.allocator = Temp;

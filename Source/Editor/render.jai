@@ -138,7 +138,7 @@ SubmitEditorWorldToRenderer :: (world : *World) {
     }
 
     for g_editor_viewports {
-        if it.size.x == 0 || it.size.y == 0 {
+        if it.size.x <= 0 || it.size.y <= 0 {
             continue;
         }
 

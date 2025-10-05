@@ -26,6 +26,7 @@ EditorViewport :: struct {
     box_selection_start : Vec2i;
 }
 
+g_editor_viewport_id_counter : u64 = 1;
 g_editor_viewports : [..]*EditorViewport;
 g_main_editor_viewport : *EditorViewport;
 
@@ -63,10 +64,9 @@ CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
 }
 
 CreateEditorViewport :: () -> *EditorViewport {
-    #import "Random";
-
     viewport := Alloc(EditorViewport);
-    viewport.unique_id = random_get();
+    viewport.unique_id = g_editor_viewport_id_counter;
+    g_editor_viewport_id_counter += 1;
 
     viewport.camera.viewport = viewport;
     InitGizmoContext(*viewport.gizmo_ctx, viewport);
@@ -80,6 +80,8 @@ CreateEditorViewport :: () -> *EditorViewport {
     if !g_main_editor_viewport {
         g_main_editor_viewport = viewport;
     }
+
+    LogMessage("Created editor viewport %", viewport.unique_id);
 
     return viewport;
 }
@@ -101,6 +103,8 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     DestroyGizmoContext(*viewport.gizmo_ctx);
 
     ArrayFree(*viewport.event_callbacks);
+
+    LogMessage("Destroyed editor viewport %", viewport.unique_id);
 
     Free(viewport);
 }
@@ -239,7 +243,7 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     }
 
     size = ImGui.GetContentRegionAvail();
-    render_targets = GetViewpointRenderTargets(unique_id, .{xx size.x, xx size.y});
+    render_targets = GetViewpointRenderTargets(unique_id, .{xx Max(size.x, 0), xx Max(size.y, 0)});
 
     uv0 := Vec2f.{0,0};
     uv1 := Vec2f.{1,1};
