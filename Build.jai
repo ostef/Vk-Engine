@@ -46,7 +46,7 @@ BuildModule :: ($module : ModuleID) -> bool {
         options.output_executable_name = "Vk";
     } else {
         options.output_type = .DYNAMIC_LIBRARY;
-        options.output_path = "Libs";
+        options.output_path = "ModuleLibs";
         options.output_executable_name = name;
     }
     options.import_path = get_build_options().import_path;
@@ -143,7 +143,7 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
     if module == .Core {
         lib_file = ifx OS == .WINDOWS then "Vk.exe" else "Vk";
     } else {
-        lib_file = TPrint("Libs/%.%", module, Lib_Ext);
+        lib_file = TPrint("ModuleLibs/%.%", module, Lib_Ext);
     }
 
     if CompareFileTimes(lib_file, source_dir) {
@@ -223,7 +223,7 @@ Build :: () {
         Basic.exit(1);
     }
 
-    make_directory_if_it_does_not_exist("Libs");
+    make_directory_if_it_does_not_exist("ModuleLibs");
 
     #insert -> string {
         builder : StringBuilder;

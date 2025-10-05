@@ -1,4 +1,4 @@
-Libs/
+ModuleLibs/
 *.log
 __pycache__/
 *.blend1
