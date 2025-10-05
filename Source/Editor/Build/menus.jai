@@ -41,6 +41,9 @@ GenerateEditorMenuCode :: (workspace : Workspace, target : *Message) {
 
     builder : StringBuilder;
 
+    QuickSort(editor_main_menus, StringCompare);
+    QuickSort(editor_viewport_menus, StringCompare);
+
     Appendln(*builder, "InitEditorMainMenus :: () {");
 
     for editor_main_menus {
