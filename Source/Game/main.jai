@@ -4,10 +4,6 @@
 #load "world.jai";
 
 g_module := GameModule.{
-    base.Initialize=InitializeGame,
-    base.Shutdown=ShutdownGame,
-    base.MainLoop=GameLoop,
-    base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
 };
 
@@ -29,20 +25,4 @@ OnModuleLoad :: (id : ModuleID) {
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
     }
-}
-
-InitializeGame :: () {
-    Remap_Context();
-}
-
-ShutdownGame :: () {
-    Remap_Context();
-}
-
-GameLoop :: () {
-    Remap_Context();
-}
-
-OnEvent :: (event : SDL_Event) {
-    Remap_Context();
 }
