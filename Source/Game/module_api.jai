@@ -17,36 +17,36 @@ g_Game : *GameModule;
 CopyWorld :: inline (dest : *World, src : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.CopyWorld(dest, src);
-}
+} @NoProfile
 
 DestroyKilledEntities :: inline (world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.DestroyKilledEntities(world);
-}
+} @NoProfile
 
 DestroyWorld :: inline (world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.DestroyWorld(world);
-}
+} @NoProfile
 
 GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetDefaultMaterial();
-}
+} @NoProfile
 
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.LoadWorldFromDirectory(world, directory);
-}
+} @NoProfile
 
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SaveWorldToDirectory(world, output_directory);
-}
+} @NoProfile
 
 SubmitWorldToRenderer :: inline (world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SubmitWorldToRenderer(world);
-}
+} @NoProfile
 
 }
