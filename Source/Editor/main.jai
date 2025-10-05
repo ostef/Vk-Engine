@@ -431,34 +431,54 @@ UpdateEditor :: () {
     ShowEntityInspector(*g_editor_world, entity_to_inspect);
 
     {
-        ProfileBlock(GetCPUFrameProfiler(), "Entity.OnEditorUpdate+OnDebugDraw");
+        ProfileBlock(GetCPUFrameProfiler(), "Entity.OnEditorUpdate");
 
-        for :AllEntities entity : g_editor_world {
+        AllEntitiesWithOnEditorUpdate :: #bake_arguments AllEntitiesWithCallback(Callback="OnEditorUpdate");
+
+        for :AllEntitiesWithOnEditorUpdate entity : g_editor_world {
             CallEntityCallback(*g_editor_world, entity, "OnEditorUpdate");
-
-            if entity.flags & .Hidden {
-                continue;
-            }
-
-            CallEntityCallback(*g_editor_world, entity, "OnDebugDraw");
         }
     }
 
     {
-        ProfileBlock(GetCPUFrameProfiler(), "Component.OnEditorUpdate+OnDebugDraw");
+        ProfileBlock(GetCPUFrameProfiler(), "Component.OnEditorUpdate");
 
-        for :AllComponents component : g_editor_world {
+        AllComponentsWithOnEditorUpdate :: #bake_arguments AllComponentsWithCallback(Callback="OnEditorUpdate");
+
+        for :AllComponentsWithOnEditorUpdate component : g_editor_world {
             entity := GetEntity(*g_editor_world, component.entity_index);
-
-            CallComponentCallback(*g_editor_world, entity, component, "OnEditorUpdate");
-
-            if !entity || entity.flags & .Hidden {
+            if !entity {
                 continue;
             }
 
-            CallComponentCallback(*g_editor_world, entity, component, "OnDebugDraw");
+            CallComponentCallback(*g_editor_world, entity, component, "OnEditorUpdate");
         }
     }
+
+    // {
+    //     ProfileBlock(GetCPUFrameProfiler(), "Entity.OnDebugDraw");
+
+    //     AllEntitiesWithOnDebugDraw :: #bake_arguments AllEntitiesWithCallback(Callback="OnDebugDraw");
+
+    //     for :AllEntitiesWithOnDebugDraw entity : g_editor_world {
+    //         CallEntityCallback(*g_editor_world, entity, "OnDebugDraw");
+    //     }
+    // }
+
+    // {
+    //     ProfileBlock(GetCPUFrameProfiler(), "Component.OnDebugDraw");
+
+    //     AllComponentsWithOnDebugDraw :: #bake_arguments AllComponentsWithCallback(Callback="OnDebugDraw");
+
+    //     for :AllComponentsWithOnDebugDraw component : g_editor_world {
+    //         entity := GetEntity(*g_editor_world, component.entity_index);
+    //         if !entity {
+    //             continue;
+    //         }
+
+    //         CallComponentCallback(*g_editor_world, null, component, "OnDebugDraw");
+    //     }
+    // }
 
     UpdateAllFileBrowsers();
 
