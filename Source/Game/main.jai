@@ -2,6 +2,7 @@
 #import "Remap_Context"(false);
 
 #load "world.jai";
+#load "physics.jai";
 
 g_module := GameModule.{
     base.OnModuleLoad=OnModuleLoad,

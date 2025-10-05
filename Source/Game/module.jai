@@ -23,6 +23,7 @@
 #load "API/entity.jai";
 #load "API/component.jai";
 #load "API/graphics.jai";
+#load "API/physics.jai";
 #load "API/misc.jai";
 
 #if Import_Mode == .Foreign {
