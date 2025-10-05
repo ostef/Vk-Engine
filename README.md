@@ -5,7 +5,7 @@
 
 Started as a toy engine project to learn Vulkan and advanced rendering techniques, this is now taking the direction of a fully fledged game engine.
 
-There is still a lot to do on the graphics side of things, but currently I am directing my efforts on game stuff.
+There is still a lot to do on the graphics side of things, but currently I am directing my efforts on game/core engine stuff.
 
 Supports Linux and Windows.
 
