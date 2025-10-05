@@ -241,6 +241,34 @@ WorldShowMenu :: (world : *World) {
     }
 } @EditorMainMenu
 
+WorldEditMenu :: (world : *World) {
+    if ImGui.BeginMenu("Edit") {
+        defer ImGui.EndMenu();
+
+        if ImGui.MenuItem("Select All Entities") {
+            ArrayClear(*g_editor_selected_entities);
+
+            for _, guid : world.entities_by_guid {
+                ArrayPush(*g_editor_selected_entities, guid);
+            }
+        }
+
+        if ImGui.MenuItem("Invert Selection") {
+            new_selected_entities : [..]EntityGUID;
+            new_selected_entities.allocator = g_editor_selected_entities.allocator;
+
+            for _, guid : world.entities_by_guid {
+                if ArrayFindFirst(g_editor_selected_entities, guid, CompareEntityGUIDs) < 0 {
+                    ArrayPush(*new_selected_entities, guid);
+                }
+            }
+
+            Swap(*new_selected_entities, *g_editor_selected_entities);
+            ArrayFree(*new_selected_entities);
+        }
+    }
+} @EditorMainMenu
+
 ShouldShowEntityEditorIcon :: inline (type : EntityTypeId) -> bool {
     return !g_entity_hide_editor_icon[type];
 }
