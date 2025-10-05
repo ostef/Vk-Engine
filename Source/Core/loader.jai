@@ -168,7 +168,7 @@ LoaderMain :: () {
         UnloadModule(cast(ModuleID, i));
     }
 
-    init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=3);
+    init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=1);
     defer deinit(*g_modules_watcher);
     add_directories(*g_modules_watcher, "Libs");
 
