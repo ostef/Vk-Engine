@@ -83,7 +83,7 @@ LoadDefaultAssets :: () {
     g_default_material = LoadAssetPermanent(Material, "Default_Material.mat");
 }
 
-InitializeRenderer :: () {
+InitializeRenderer :: (global_init : bool) {
     Remap_Context();
 
     if !LoadAllShaders() {
@@ -145,7 +145,7 @@ InitializeRenderer :: () {
     InitGPUFrameProfiler(GetGPUFrameProfiler(), 1000);
 }
 
-ShutdownRenderer :: () {
+ShutdownRenderer :: (global_shutdown : bool) {
     Remap_Context();
 
     WaitForRenderThread();

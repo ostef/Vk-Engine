@@ -30,9 +30,9 @@ ReloadModule :: (id : ModuleID) -> bool {
         LogMessage("Saved state for module %", id);
     }
 
-    UnloadModule(id);
+    UnloadModule(id, false);
 
-    if !LoadModule(id) {
+    if !LoadModule(id, false) {
         return false;
     }
 
@@ -44,7 +44,7 @@ ReloadModule :: (id : ModuleID) -> bool {
     return true;
 }
 
-LoadModule :: (id : ModuleID) -> bool {
+LoadModule :: (id : ModuleID, first_time : bool) -> bool {
     LogSectionScope(*Log_Loader);
 
     handshake : ModuleHandshakeProc;
@@ -90,7 +90,7 @@ LoadModule :: (id : ModuleID) -> bool {
     LogMessage("Loaded module %", id);
 
     if g_modules[id].Initialize {
-        g_modules[id].Initialize(,, log_section=null);
+        g_modules[id].Initialize(first_time,, log_section=null);
         LogMessage("Initialized module %", id);
     }
 
@@ -103,7 +103,7 @@ LoadModule :: (id : ModuleID) -> bool {
     return true;
 }
 
-UnloadModule :: (id : ModuleID) {
+UnloadModule :: (id : ModuleID, last_time : bool) {
     LogSectionScope(*Log_Loader);
 
     for g_modules {
@@ -113,7 +113,7 @@ UnloadModule :: (id : ModuleID) {
     }
 
     if g_modules[id].Shutdown {
-        g_modules[id].Shutdown(,, log_section=null);
+        g_modules[id].Shutdown(last_time,, log_section=null);
         LogMessage("Shut down module %", id);
     }
 
@@ -159,13 +159,13 @@ LoaderMain :: () {
     context.allocator.data = DefaultAllocator.allocator_default_heap;
 
     for i : 0..Num_Modules - 1 {
-        if !LoadModule(cast(ModuleID, i)) {
+        if !LoadModule(cast(ModuleID, i), true) {
             Basic.exit(1);
         }
     }
 
     defer for #v2 < i : 0..Num_Modules - 1 {
-        UnloadModule(cast(ModuleID, i));
+        UnloadModule(cast(ModuleID, i), true);
     }
 
     init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=1);

@@ -142,7 +142,7 @@ EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
     return false;
 }
 
-InitializeEditor :: () {
+InitializeEditor :: (global_init : bool) {
     Remap_Context();
 
     LogSectionScope(*Log_Editor);
@@ -194,11 +194,24 @@ InitializeEditor :: () {
     InitEditorMainMenus();
     InitEditorViewportMenus();
 
-    CreateEditorViewport();
+    if global_init {
+        if file_exists(".EditorState/editor.txt") {
+            state := read_entire_file(".EditorState/editor.txt");
+            LoadState(xx state);
+        } else {
+            CreateEditorViewport();
+        }
+    }
 }
 
-ShutdownEditor :: () {
+ShutdownEditor :: (global_shutdown : bool) {
     Remap_Context();
+
+    if global_shutdown {
+        state := SaveState();
+        write_entire_file(".EditorState/editor.txt", cast(string, state));
+        Free(state.data);
+    }
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
 

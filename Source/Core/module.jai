@@ -48,8 +48,8 @@ ModuleID :: enum {
 Num_Modules :: #run type_info(ModuleID).values.count;
 
 Module :: struct {
-    Initialize : ();
-    Shutdown : ();
+    Initialize : (global_init : bool);
+    Shutdown : (global_shutdown : bool);
     MainLoop : ();
     OnEvent : (event : SDL_Event);
     SaveState : () -> []u8;

@@ -74,7 +74,7 @@ GetDefaultNumWorkerThreads :: inline () -> s32 {
     return g_default_num_worker_threads;
 }
 
-InitializeCore :: () {
+InitializeCore :: (global_init : bool) {
     context.print_style.struct_printer = CoreStructPrinter;
 
     g_num_cpus = get_number_of_processors(.ALL_LOGICAL);
@@ -93,7 +93,7 @@ InitializeCore :: () {
     InitAssets();
 }
 
-ShutdownCore :: () {
+ShutdownCore :: (global_shutdown : bool) {
     DestroyAllAssetCaches();
 
     CleanupTextureUpload();
