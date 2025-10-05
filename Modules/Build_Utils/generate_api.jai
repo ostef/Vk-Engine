@@ -520,7 +520,7 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
             Appendln(*builder, ";");
         }
 
-        Appendln(*builder, "}");
+        Appendln(*builder, "} @NoProfile");
         Append(*builder, "\n");
     }
 
@@ -541,7 +541,7 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
     for api_procedures {
         Appendln(*builder, "    module.% = %;", it.name, it.decl.name);
     }
-    Appendln(*builder, "}");
+    Appendln(*builder, "} @NoProfile");
 
     initialize_api := StringBuilderBuild(*builder);
 
