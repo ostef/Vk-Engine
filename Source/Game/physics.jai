@@ -16,7 +16,7 @@ RayIntersection :: (world : *World, sphere : *SphereColliderComponent, ray_origi
         dist=dist,
         normal=normal,
     };
-}
+} @ModuleAPI
 
 RayIntersection :: (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
     entity := GetEntity(world, capsule.entity_index);
@@ -39,7 +39,7 @@ RayIntersection :: (world : *World, capsule : *CapsuleColliderComponent, ray_ori
         dist=dist,
         normal=normal,
     };
-}
+} @ModuleAPI
 
 RayIntersection :: (world : *World, box : *BoxColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
     entity := GetEntity(world, box.entity_index);
@@ -57,7 +57,7 @@ RayIntersection :: (world : *World, box : *BoxColliderComponent, ray_origin : Ve
         dist=dist,
         normal=normal,
     };
-}
+} @ModuleAPI
 
 RayIntersection :: (world : *World, mesh : *MeshColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
     entity := GetEntity(world, mesh.entity_index);
@@ -75,16 +75,7 @@ RayIntersection :: (world : *World, mesh : *MeshColliderComponent, ray_origin : 
         dist=dist,
         normal=normal,
     };
-}
-
-RaycastResult :: struct {
-    hit : bool;
-    point : Vec3f;
-    normal : Vec3f;
-    dist := F32_Inf;
-    entity : *Entity;
-    collider : *Component;
-}
+} @ModuleAPI
 
 RaycastAll :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RaycastResult) -> bool {
     original_count := results.count;
@@ -115,7 +106,7 @@ RaycastAll :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_le
     }
 
     return results.count > original_count;
-}
+} @ModuleAPI
 
 Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
     closest_hit : RaycastResult;
@@ -145,4 +136,4 @@ Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     }
 
     return closest_hit;
-}
+} @ModuleAPI

@@ -1,3 +1,12 @@
+RaycastResult :: struct {
+    hit : bool;
+    point : Vec3f;
+    normal : Vec3f;
+    dist := F32_Inf;
+    entity : *Entity;
+    collider : *Component;
+}
+
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
