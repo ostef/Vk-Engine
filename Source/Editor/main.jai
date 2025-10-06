@@ -264,7 +264,7 @@ SaveState :: () -> []u8 {
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
         loaded_world=StringClone(g_editor_world.loaded_from_directory),
-        main_editor_viewport_id=ifx g_main_editor_viewport.unique_id,
+        main_editor_viewport_id=ifx g_main_editor_viewport then g_main_editor_viewport.unique_id,
         cpu_profiler_window=g_cpu_profiler_window,
         show_gpu_profiler=g_show_gpu_profiler,
     };
