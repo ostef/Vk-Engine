@@ -1,9 +1,13 @@
 MaterialEditorState :: struct {
     opened := false; @Serialize(1)
+    visible : bool;
     selected_material : *Asset(Material); @Serialize(2)
+    preview_mesh : *Asset(StaticMesh); @Serialize(3)
 }
 
 using g_material_editor : MaterialEditorState;
+
+Material_Editor_Preview_Viewport_ID : u64 : 0xcafe;
 
 OpenMaterialEditor :: (material : *Asset(Material)) {
     g_material_editor.opened = true;
@@ -18,6 +22,8 @@ OpenMaterialEditor :: (material : *Asset(Material)) {
 }
 
 ShowMaterialEditor :: () {
+    g_material_editor.visible = false;
+
     if !g_material_editor.opened {
         return;
     }
@@ -29,8 +35,11 @@ ShowMaterialEditor :: () {
         return;
     }
 
+    g_material_editor.visible = true;
+
     world : *World;
     ShowInspector("Selected Material", world, g_material_editor.selected_material, .["AllowCreateAsset"]);
+    ShowInspector("Preview Mesh", world, g_material_editor.preview_mesh);
 
     if g_material_editor.selected_material {
         available := ImGui.GetContentRegionAvail();
@@ -41,6 +50,12 @@ ShowMaterialEditor :: () {
 
         if ImGui.BeginChild("material", size=size, child_flags=.Border) {
             ShowInspector("", world, g_material_editor.selected_material.asset_data, .["InspectorNoTree"]);
+
+            render_targets := GetViewpointRenderTargets(Material_Editor_Preview_Viewport_ID, .{300,300});
+            if render_targets {
+                ImGui.Image(*render_targets.final_color_texture, Vec2f.{300,300});
+            }
+
             ImGui.EndChild();
         } else {
             ImGui.EndChild();
