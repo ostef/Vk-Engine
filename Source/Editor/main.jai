@@ -295,7 +295,10 @@ LoadState :: (state : []u8) {
     defer Free(state.data);
 
     using all_state : AllEditorState;
-    DeserializeAny(cast(string, state), all_state);
+    result := DeserializeAny(cast(string, state), all_state);
+    if !result.ok {
+        LogError("At line %, character %: %", result.line_index + 1, result.byte_index + 1, result.error_msg);
+    }
 
     for selected_entities {
         ArrayPush(*g_editor_selected_entities, it);

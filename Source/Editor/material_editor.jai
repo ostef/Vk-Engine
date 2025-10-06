@@ -3,10 +3,10 @@ MaterialEditorState :: struct {
     preview_visible : bool;
     selected_material : *Asset(Material); @Serialize(2)
     preview_mesh : *Asset(StaticMesh); @Serialize(3)
-    preview_use_world_skybox := true; @Serialize(5)
+    preview_use_world_skybox := true; @Serialize(4)
     preview_size : Vec2f;
-    preview_camera : EditorOrbitCamera; @Serialize(4)
-    preview_mesh_rotation : Quatf; @Serialize(5)
+    preview_camera : EditorOrbitCamera; @Serialize(5)
+    preview_mesh_rotation : Quatf; @Serialize(6)
 }
 
 EditorOrbitCamera :: struct {
