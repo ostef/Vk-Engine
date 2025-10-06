@@ -3,9 +3,10 @@ MaterialEditorState :: struct {
     preview_visible : bool;
     selected_material : *Asset(Material); @Serialize(2)
     preview_mesh : *Asset(StaticMesh); @Serialize(3)
-    use_world_skybox : bool; @Serialize(5)
+    preview_use_world_skybox := true; @Serialize(5)
     preview_size : Vec2f;
     preview_camera : EditorOrbitCamera; @Serialize(4)
+    preview_mesh_rotation : Quatf; @Serialize(5)
 }
 
 EditorOrbitCamera :: struct {
@@ -49,56 +50,51 @@ ShowMaterialEditor :: () {
     world : *World;
     ShowInspector("Selected Material", world, g_material_editor.selected_material, .["AllowCreateAsset"]);
 
-    if g_material_editor.selected_material {
-        available := ImGui.GetContentRegionAvail();
-        size := available;
-        size.y -= 2 * ImGui.GetFrameHeightWithSpacing();
-        size.x = Max(size.x, 0);
-        size.y = Max(size.y, 0);
+    if !g_material_editor.selected_material {
+        ImGui.Text("No material selected");
+        return;
+    }
 
-        if ImGui.BeginChild("material", size=size, child_flags=.Border | .ResizeY) {
+    available := ImGui.GetContentRegionAvail();
+    size := available;
+    size.y -= 2 * ImGui.GetFrameHeightWithSpacing();
+    size.x = Max(size.x, 0);
+    size.y = Max(size.y, 0);
+
+    if ImGui.BeginChild("main", size=size) {
+        if ImGui.BeginChild("material", child_flags=.Border | .ResizeY) {
             ShowInspector("", world, g_material_editor.selected_material.asset_data, .["InspectorNoTree"]);
-            ImGui.EndChild();
-        } else {
-            ImGui.EndChild();
-            return;
         }
+        ImGui.EndChild();
 
         ShowMaterialPreview();
-
-        PushButtonColor(.CancelButton);
-        if ImGui.Button("Reload", size=.{-1, 0}) {
-            reloaded, asset := TryReloadAsset(*GetAssets().Material_cache, g_material_editor.selected_material.asset_name);
-            RemoveRef(asset); // TryReloadAsset adds a ref
-        }
-        PopButtonColor();
-
-        PushButtonColor(.SubmitGoodButton);
-        if ImGui.Button("Save", size=.{-1, 0}) {
-            SaveAsset(g_material_editor.selected_material);
-        }
-        PopButtonColor();
-    } else {
-        ImGui.Text("No material selected");
     }
+    ImGui.EndChild();
+
+    PushButtonColor(.CancelButton);
+    if ImGui.Button("Reload", size=.{-1, 0}) {
+        reloaded, asset := TryReloadAsset(*GetAssets().Material_cache, g_material_editor.selected_material.asset_name);
+        RemoveRef(asset); // TryReloadAsset adds a ref
+    }
+    PopButtonColor();
+
+    PushButtonColor(.SubmitGoodButton);
+    if ImGui.Button("Save", size=.{-1, 0}) {
+        SaveAsset(g_material_editor.selected_material);
+    }
+    PopButtonColor();
 }
 
 ShowMaterialPreview :: () {
     g_material_editor.preview_visible = false;
 
-    available := ImGui.GetContentRegionAvail();
-    child_size := available;
-    child_size.y -= 2 * ImGui.GetFrameHeightWithSpacing();
-    child_size.x = Max(child_size.x, 0);
-    child_size.y = Max(child_size.y, 0);
-
     defer ImGui.EndChild();
-    if ImGui.BeginChild("material_preview", size=child_size) {
+    if ImGui.BeginChild("material_preview", child_flags=.Border) {
         world : *World;
         ShowInspector("Preview Mesh", world, g_material_editor.preview_mesh);
-        ShowInspector("Use World Skybox", world, g_material_editor.use_world_skybox);
+        ShowInspector("Use World Skybox", world, g_material_editor.preview_use_world_skybox);
 
-        available = ImGui.GetContentRegionAvail();
+        available := ImGui.GetContentRegionAvail();
         width := Min(available.x, available.y);
         g_material_editor.preview_size = Vec2f.{width, width};
 
@@ -117,6 +113,8 @@ ShowMaterialPreview :: () {
         content_id := ImGui.GetID("viewport_content");
         position := ImGui.GetCursorScreenPos();
         bb := ImGui.ImRect.{position, position + g_material_editor.preview_size};
+        bb.Min += (available - g_material_editor.preview_size) * 0.5;
+        bb.Max += (available - g_material_editor.preview_size) * 0.5;
 
         ImGui.ItemSize(g_material_editor.preview_size);
         if !ImGui.ItemAdd(bb, content_id) {
@@ -124,7 +122,7 @@ ShowMaterialPreview :: () {
         }
 
         is_hovered, has_mouse_input : bool;
-        ImGui.ButtonBehavior(bb, content_id, *is_hovered, *has_mouse_input, .MouseButtonLeft);
+        ImGui.ButtonBehavior(bb, content_id, *is_hovered, *has_mouse_input, .MouseButtonLeft | .MouseButtonRight);
 
         if has_mouse_input {
             ImGui.SetItemKeyOwner(.MouseWheelY);
@@ -155,11 +153,17 @@ UpdateOrbitCamera :: (camera : *EditorOrbitCamera, has_mouse_input : bool) {
     if has_mouse_input {
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
-        rotation_delta := GetRawMouseDelta() * camera.rotation_speed;
+        if IsMouseButtonDown(.Left) {
+            rotation_delta := GetRawMouseDelta() * camera.rotation_speed;
 
-        camera.target_yaw += ToRads(rotation_delta.x);
-        camera.target_pitch += ToRads(rotation_delta.y);
-        camera.target_pitch = Clamp(camera.target_pitch, ToRads(-90), ToRads(90));
+            camera.target_yaw += ToRads(rotation_delta.x);
+            camera.target_pitch += ToRads(rotation_delta.y);
+            camera.target_pitch = Clamp(camera.target_pitch, ToRads(-90), ToRads(90));
+        } else if IsMouseButtonDown(.Right) {
+            rotation_delta := GetRawMouseDelta() * 0.1;
+            rotation := QuatFromAxisAngle(Vec3f.{0,1,0}, ToRads(rotation_delta.x));
+            g_material_editor.preview_mesh_rotation *= rotation;
+        }
 
         mouse_wheel := GetMouseWheel();
         camera.distance_from_target -= mouse_wheel.y * 0.1;

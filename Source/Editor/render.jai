@@ -195,13 +195,13 @@ SubmitMaterialEditorPreviewToRenderer :: (world : *World) {
 
     world_to_render : WorldToRender;
 
-    if g_material_editor.use_world_skybox {
+    if g_material_editor.preview_use_world_skybox {
         world_to_render.skybox = world.skybox;
         world_to_render.skybox_light_intensity = world.skybox_light_intensity;
     }
 
     light : DirectionalLightToRender;
-    light.direction = Normalized(Vec3f.{-1,-1,-1});
+    light.direction = Normalized(Vec3f.{1,-1,1});
     light.intensity = 1;
     light.color = .{1,1,1};
     AddDirectionalLightToRender(*world_to_render, light);
@@ -212,6 +212,7 @@ SubmitMaterialEditorPreviewToRenderer :: (world : *World) {
     mesh.index_buffer = *g_material_editor.preview_mesh.index_buffer;
     mesh.index_count = g_material_editor.preview_mesh.index_count;
     mesh.static_bounds = g_material_editor.preview_mesh.static_bounds;
+    mesh.transform = Mat4fFromQuat(g_material_editor.preview_mesh_rotation);
     mesh.material = g_material_editor.selected_material;
 
     AddMeshToRender(*world_to_render, mesh);
