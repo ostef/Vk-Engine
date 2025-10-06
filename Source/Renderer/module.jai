@@ -39,6 +39,7 @@ ViewpointToRender :: struct {
 
     unique_id : u64;
     flags : Flags;
+    world_index := -1;
 
     position : Vec3f;
     right, up, direction : Vec3f;
@@ -54,9 +55,6 @@ ViewpointToRender :: struct {
     z_far : float;
 
     frustum : Frustum;
-
-    skybox : *Asset(EnvironmentMap);
-    skybox_light_intensity : float;
 
     gizmo_widgets : [..]GizmoWidgetToRender;
     gizmo_lines : [..]DebugLine;
@@ -94,6 +92,61 @@ BloomTextures :: struct {
 GetFinalBloomTexture :: inline (using bloom : *BloomTextures) -> *GfxTexture {
     return *upsample_levels[0];
 }
+
+using _ :: struct {
+    Max_Shadow_Maps :: 2;
+    Max_Point_Shadow_Maps :: 20;
+} @ShaderType
+
+WorldToRender :: struct {
+    skybox_light_intensity : float;
+    skybox : *Asset(EnvironmentMap);
+
+    meshes : [..]MeshToRender;
+    selected_meshes : [..]MeshToRender;
+    point_lights : [..]PointLightToRender;
+    directional_lights : [..]DirectionalLightToRender;
+    shadow_maps : [..]ShadowMapToRender;
+    point_shadow_maps : [..]PointShadowMapToRender;
+    shadow_map_render_targets : [..]GfxTexture;
+    point_shadow_map_render_targets : [..]PointShadowMapRenderTargets;
+}
+
+AddMeshToRender :: inline (using world : *WorldToRender, mesh : MeshToRender) {
+    ArrayPush(*meshes, mesh);
+} @NoProfile
+
+AddSelectedMeshToRender :: inline (using world : *WorldToRender, mesh : MeshToRender) {
+    ArrayPush(*selected_meshes, mesh);
+} @NoProfile
+
+AddDirectionalLightToRender :: inline (using world : *WorldToRender, light : DirectionalLightToRender) {
+    ArrayPush(*directional_lights, light);
+} @NoProfile
+
+AddPointLightToRender :: inline (using world : *WorldToRender, light : PointLightToRender) {
+    ArrayPush(*point_lights, light);
+} @NoProfile
+
+AddShadowMapToRender :: inline (using world : *WorldToRender, shadow_map : ShadowMapToRender) -> int {
+    if shadow_maps.count >= Max_Shadow_Maps {
+        return -1;
+    }
+
+    ArrayPush(*shadow_maps, shadow_map);
+
+    return shadow_maps.count - 1;
+} @NoProfile
+
+AddPointShadowMapToRender :: inline (using world : *WorldToRender, shadow_map : PointShadowMapToRender) -> int {
+    if point_shadow_maps.count >= Max_Point_Shadow_Maps {
+        return -1;
+    }
+
+    ArrayPush(*point_shadow_maps, shadow_map);
+
+    return point_shadow_maps.count - 1;
+} @NoProfile
 
 MeshToRender :: struct {
     entity_guid : GUID;
@@ -152,6 +205,11 @@ PointShadowMapToRender :: struct {
     position : Vec3f;
     z_near, z_far : float;
     resolution : u32;
+}
+
+PointShadowMapRenderTargets :: struct {
+    texture : GfxTexture;
+    face_views : [6]GfxTexture;
 }
 
 GizmoWidgetToRender :: struct {

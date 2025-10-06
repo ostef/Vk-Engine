@@ -8,11 +8,6 @@ PointShadowMap :: struct {
     viewpoints : [6]Viewpoint;
 } @ShaderType
 
-PointShadowMapRenderTargets :: struct {
-    texture : GfxTexture;
-    face_views : [6]GfxTexture;
-}
-
 g_unused_point_shadow_map_render_targets : [..]PointShadowMapRenderTargets;
 g_used_point_shadow_map_render_targets : [..]PointShadowMapRenderTargets;
 
@@ -134,7 +129,7 @@ GetPointShadowMapFrustum :: (using shadow_map : *PointShadowMapToRender, face : 
     return MakePerspectiveFrustum(transform, 90, 1, z_near, z_far);
 }
 
-PopulateShadowMapMeshBuffer :: (shadow_map : *PointShadowMapToRender, mesh_buffer : *MeshBuffer, face : CubeMapFace) {
+PopulateShadowMapMeshBuffer :: (world : *WorldToRender, shadow_map : *PointShadowMapToRender, mesh_buffer : *MeshBuffer, face : CubeMapFace) {
     ClearMeshBuffer(mesh_buffer);
 
     frustum := GetPointShadowMapFrustum(shadow_map, face);
@@ -145,7 +140,7 @@ PopulateShadowMapMeshBuffer :: (shadow_map : *PointShadowMapToRender, mesh_buffe
     direction := viewpoint.direction;
     billboard_rotation := Mat4fFromRightUpForwardOrigin(-right, up, -direction, .{});
 
-    for g_meshes_to_render {
+    for world.meshes {
         mesh := it;
 
         if mesh.is_billboard {
@@ -187,7 +182,7 @@ g_point_shadow_map_material_pass := MaterialRenderPass.{
 };
 
 PointShadowMapPass :: (using ctx : *RenderContext, shadow_map : *PointShadowMapToRender, render_target : *GfxTexture, mesh_buffer : *MeshBuffer, face : CubeMapFace) {
-    PopulateShadowMapMeshBuffer(shadow_map, mesh_buffer, face);
+    PopulateShadowMapMeshBuffer(world, shadow_map, mesh_buffer, face);
 
     viewpoints : ViewpointsData;
     viewpoints.viewpoints[0] = GetPointShadowMapViewpoint(shadow_map, xx face);

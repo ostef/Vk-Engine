@@ -32,9 +32,9 @@ ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
         clusters=.{buffer=FrameDataBuffer(), offset=xx clusters_offset, size=xx clusters_size},
     };
 
-    if viewpoint.skybox {
-        pass_bindings.irradiance_map.texture = *viewpoint.skybox.irradiance_map;
-        pass_bindings.environment_map.texture = *viewpoint.skybox.environment_map;
+    if world.skybox {
+        pass_bindings.irradiance_map.texture = *world.skybox.irradiance_map;
+        pass_bindings.environment_map.texture = *world.skybox.environment_map;
     } else {
         pass_bindings.irradiance_map.texture = *g_default_environment_map.irradiance_map;
         pass_bindings.environment_map.texture = *g_default_environment_map.environment_map;

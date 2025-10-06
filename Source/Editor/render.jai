@@ -57,7 +57,9 @@ InitBillboardVertexBuffer :: () {
 }
 
 SubmitEditorWorldToRenderer :: (world : *World) {
-    SubmitWorldToRenderer(world);
+    world_to_render : WorldToRender;
+
+    SubmitWorldToRenderer(*world_to_render, world);
 
     for :AllEntitiesWithEditorIcon world {
         if !ShouldShowEntityEditorIcon(GetEntityTypeId(it.index)) {
@@ -81,10 +83,10 @@ SubmitEditorWorldToRenderer :: (world : *World) {
                 is_billboard=true,
             };
 
-            AddMeshToRender(mesh);
+            AddMeshToRender(*world_to_render, mesh);
 
             if EntityOrParentIsSelected(world, it) {
-                AddSelectedMeshToRender(mesh);
+                AddSelectedMeshToRender(*world_to_render, mesh);
             }
         }
     }
@@ -118,10 +120,10 @@ SubmitEditorWorldToRenderer :: (world : *World) {
                 is_billboard=true,
             };
 
-            AddMeshToRender(mesh);
+            AddMeshToRender(*world_to_render, mesh);
 
             if EntityOrParentIsSelected(world, entity) {
-                AddSelectedMeshToRender(mesh);
+                AddSelectedMeshToRender(*world_to_render, mesh);
             }
         }
     }
@@ -133,9 +135,11 @@ SubmitEditorWorldToRenderer :: (world : *World) {
         }
 
         for :AllMeshesToRender entity {
-            AddSelectedMeshToRender(it);
+            AddSelectedMeshToRender(*world_to_render, it);
         }
     }
+
+    world_index := AddWorldToRender(world_to_render);
 
     for g_editor_viewports {
         if it.size.x <= 0 || it.size.y <= 0 {
@@ -148,8 +152,7 @@ SubmitEditorWorldToRenderer :: (world : *World) {
 
         viewpoint := MakeViewpointToRender(it);
         viewpoint.unique_id = it.unique_id;
-        viewpoint.skybox = world.skybox;
-        viewpoint.skybox_light_intensity = world.skybox_light_intensity;
+        viewpoint.world_index = world_index;
 
         if !it.show_debug_drawings {
             viewpoint.flags |= .NoDebugLines;

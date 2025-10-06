@@ -394,11 +394,14 @@ GetDefaultMaterial :: inline () -> *Asset(Material) {
     return g_default_material;
 } @ModuleAPI
 
-SubmitWorldToRenderer :: (world : *World) {
+SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
     Remap_Context();
 
+    world_to_render.skybox = world.skybox;
+    world_to_render.skybox_light_intensity = world.skybox_light_intensity;
+
     for :AllMeshesToRender world {
-        AddMeshToRender(it);
+        AddMeshToRender(world_to_render, it);
     }
 
     for * world.DirectionalLightComponent_storage {
@@ -415,7 +418,7 @@ SubmitWorldToRenderer :: (world : *World) {
                 direction=direction,
                 target_transform=Mat4f.{},
             };
-            shadow_map_index = AddShadowMapToRender(shadow_map);
+            shadow_map_index = AddShadowMapToRender(world_to_render, shadow_map);
         }
 
         to_render := DirectionalLightToRender.{
@@ -424,7 +427,7 @@ SubmitWorldToRenderer :: (world : *World) {
             intensity=it.intensity,
             shadow_map_index=shadow_map_index,
         };
-        AddDirectionalLightToRender(to_render);
+        AddDirectionalLightToRender(world_to_render, to_render);
     }
 
     for * world.PointLightComponent_storage {
@@ -442,7 +445,7 @@ SubmitWorldToRenderer :: (world : *World) {
                 z_near=it.source_radius,
                 z_far=GetPointLightAttenuationDistance(it),
             };
-            shadow_map_index = AddPointShadowMapToRender(shadow_map);
+            shadow_map_index = AddPointShadowMapToRender(world_to_render, shadow_map);
         }
 
         to_render := PointLightToRender.{
@@ -453,6 +456,6 @@ SubmitWorldToRenderer :: (world : *World) {
             source_radius=it.source_radius,
             shadow_map_index=shadow_map_index,
         };
-        AddPointLightToRender(to_render);
+        AddPointLightToRender(world_to_render, to_render);
     }
 } @ModuleAPI

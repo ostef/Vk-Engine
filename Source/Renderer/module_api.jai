@@ -2,13 +2,8 @@
 
 RendererModule :: struct {
     #as base : Module;
-    AddDirectionalLightToRender : (light : DirectionalLightToRender);
-    AddMeshToRender : (mesh : MeshToRender);
-    AddPointLightToRender : (light : PointLightToRender);
-    AddPointShadowMapToRender : (shadow_map : PointShadowMapToRender) -> s64;
-    AddSelectedMeshToRender : (mesh : MeshToRender);
-    AddShadowMapToRender : (shadow_map : ShadowMapToRender) -> s64;
     AddViewpointToRender : (viewpoint : ViewpointToRender);
+    AddWorldToRender : (world : WorldToRender) -> s64;
     DebugDrawBoxOutline_1 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32));
     DebugDrawBoxOutline_2 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32) = Quat(T=float32).{});
     DebugDrawCapsuleOutline : (color : Vector(N=4, T=float32), base : Vector(N=3, T=float32), tip : Vector(N=3, T=float32), radius : float, resolution : s64 = 30, num_divisions : s64 = 4);
@@ -31,39 +26,14 @@ RendererModule :: struct {
 #if Import_Mode == .Foreign {
 g_Renderer : *RendererModule;
 
-AddDirectionalLightToRender :: inline (light : DirectionalLightToRender) {
-    Assert(g_Renderer != null, "Renderer module is null");
-    g_Renderer.AddDirectionalLightToRender(light);
-} @NoProfile
-
-AddMeshToRender :: inline (mesh : MeshToRender) {
-    Assert(g_Renderer != null, "Renderer module is null");
-    g_Renderer.AddMeshToRender(mesh);
-} @NoProfile
-
-AddPointLightToRender :: inline (light : PointLightToRender) {
-    Assert(g_Renderer != null, "Renderer module is null");
-    g_Renderer.AddPointLightToRender(light);
-} @NoProfile
-
-AddPointShadowMapToRender :: inline (shadow_map : PointShadowMapToRender) -> s64 {
-    Assert(g_Renderer != null, "Renderer module is null");
-    return g_Renderer.AddPointShadowMapToRender(shadow_map);
-} @NoProfile
-
-AddSelectedMeshToRender :: inline (mesh : MeshToRender) {
-    Assert(g_Renderer != null, "Renderer module is null");
-    g_Renderer.AddSelectedMeshToRender(mesh);
-} @NoProfile
-
-AddShadowMapToRender :: inline (shadow_map : ShadowMapToRender) -> s64 {
-    Assert(g_Renderer != null, "Renderer module is null");
-    return g_Renderer.AddShadowMapToRender(shadow_map);
-} @NoProfile
-
 AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {
     Assert(g_Renderer != null, "Renderer module is null");
     g_Renderer.AddViewpointToRender(viewpoint);
+} @NoProfile
+
+AddWorldToRender :: inline (world : WorldToRender) -> s64 {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.AddWorldToRender(world);
 } @NoProfile
 
 DebugDrawBoxOutline :: inline (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32)) {

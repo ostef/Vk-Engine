@@ -49,14 +49,7 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 
 g_viewpoint_render_targets : HashMap(u64, *ViewpointRenderTargets);
 g_viewpoints_to_render : [..]ViewpointToRender;
-g_meshes_to_render : [..]MeshToRender;
-g_selected_meshes_to_render : [..]MeshToRender;
-g_directional_lights_to_render : [..]DirectionalLightToRender;
-g_point_lights_to_render : [..]PointLightToRender;
-g_shadow_maps_to_render : [..]ShadowMapToRender;
-g_shadow_map_render_targets : [..]GfxTexture;
-g_point_shadow_maps_to_render : [..]PointShadowMapToRender;
-g_point_shadow_map_render_targets : [..]PointShadowMapRenderTargets;
+g_worlds_to_render : [..]WorldToRender;
 
 g_final_texture : GfxTexture;
 
@@ -200,15 +193,8 @@ ShutdownRenderer :: (global_shutdown : bool) {
     DerefAsset(*g_default_environment_map);
     DerefAsset(*g_default_material);
 
+    ArrayFree(*g_worlds_to_render);
     ArrayFree(*g_viewpoints_to_render);
-    ArrayFree(*g_meshes_to_render);
-    ArrayFree(*g_selected_meshes_to_render);
-    ArrayFree(*g_directional_lights_to_render);
-    ArrayFree(*g_point_lights_to_render);
-    ArrayFree(*g_shadow_maps_to_render);
-    ArrayFree(*g_shadow_map_render_targets);
-    ArrayFree(*g_point_shadow_maps_to_render);
-    ArrayFree(*g_point_shadow_map_render_targets);
 
     for g_viewpoint_render_targets {
         DestroyViewpointRenderTargets(it);
@@ -268,52 +254,12 @@ AddViewpointToRender :: (viewpoint : ViewpointToRender) {
     ArrayPush(*g_viewpoints_to_render, viewpoint);
 } @ModuleAPI
 
-AddMeshToRender :: (mesh : MeshToRender) {
+AddWorldToRender :: (world : WorldToRender) -> int {
     Remap_Context();
 
-    ArrayPush(*g_meshes_to_render, mesh);
-} @ModuleAPI
+    ArrayPush(*g_worlds_to_render, world);
 
-AddSelectedMeshToRender :: (mesh : MeshToRender) {
-    Remap_Context();
-
-    ArrayPush(*g_selected_meshes_to_render, mesh);
-} @ModuleAPI
-
-AddDirectionalLightToRender :: (light : DirectionalLightToRender) {
-    Remap_Context();
-
-    ArrayPush(*g_directional_lights_to_render, light);
-} @ModuleAPI
-
-AddPointLightToRender :: (light : PointLightToRender) {
-    Remap_Context();
-
-    ArrayPush(*g_point_lights_to_render, light);
-} @ModuleAPI
-
-AddShadowMapToRender :: (shadow_map : ShadowMapToRender) -> int {
-    Remap_Context();
-
-    if g_shadow_maps_to_render.count >= Max_Shadow_Maps {
-        return -1;
-    }
-
-    ArrayPush(*g_shadow_maps_to_render, shadow_map);
-
-    return g_shadow_maps_to_render.count - 1;
-} @ModuleAPI
-
-AddPointShadowMapToRender :: (shadow_map : PointShadowMapToRender) -> int {
-    Remap_Context();
-
-    if g_point_shadow_maps_to_render.count >= Max_Point_Shadow_Maps {
-        return -1;
-    }
-
-    ArrayPush(*g_point_shadow_maps_to_render, shadow_map);
-
-    return g_point_shadow_maps_to_render.count - 1;
+    return g_worlds_to_render.count - 1;
 } @ModuleAPI
 
 WaitForRenderThread :: () {
@@ -385,11 +331,6 @@ EntityOutlineParams :: struct {
     color : Vec4f = .{0.972, 1, 0.498, 1}; @ShowInInspector @ColorEdit
 } @ShaderType
 
-using _ :: struct {
-    Max_Shadow_Maps :: 2;
-    Max_Point_Shadow_Maps :: 20;
-} @ShaderType
-
 ShadowMapParams :: struct {
     noise_resolution : u32;
     depth_bias_min_max : Vec2f;
@@ -399,7 +340,6 @@ ShadowMapParams :: struct {
 
 FrameInfo :: struct {
     time : float;
-    window_pixel_size : Vec2f;
     num_directional_lights : u32;
     num_point_lights : u32;
     skybox_light_intensity := 1.0;
@@ -456,6 +396,7 @@ ViewpointsData :: struct {
 RenderContext :: struct {
     cmd_buffer : *GfxCommandBuffer;
 
+    world : *WorldToRender;
     viewpoint : *ViewpointToRender;
     render_targets : *ViewpointRenderTargets;
 
@@ -480,133 +421,13 @@ RenderFrame :: () {
         GenerateBRDFLUT(*cmd_buffer);
     }
 
-    ctx : RenderContext;
-    ctx.cmd_buffer = *cmd_buffer;
-
-    w, h := GetWindowPixelSize(GetWindow());
-    frame_info := FrameInfo.{
-        time=xx Basic.to_float64_seconds(Basic.current_time_monotonic()),
-        window_pixel_size=.{xx w, xx h},
-        num_directional_lights=xx g_directional_lights_to_render.count,
-        num_point_lights=xx g_point_lights_to_render.count,
-        skybox_light_intensity=ifx g_viewpoints_to_render.count > 0 then g_viewpoints_to_render[0].skybox_light_intensity,
-        shadow_map_params=.{
-            noise_resolution=Shadow_Map_Noise_Size,
-            depth_bias_min_max=.{1, 5},
-            normal_bias=10,
-            filter_radius=1,
-        },
-        bloom_params=g_bloom_params,
-    };
-    frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
-
-    directional_lights := AllocArray(DirectionalLight, g_directional_lights_to_render.count ,, Temp);
-    for g_directional_lights_to_render {
-        directional_lights[it_index] = .{
-            direction=it.direction,
-            color=it.color,
-            intensity=it.intensity,
-            shadow_map_index=xx it.shadow_map_index,
-        };
-    }
-    directional_lights_offset, directional_lights_size := AllocAndPackStorageFrameData(directional_lights);
-
-    point_lights := AllocArray(PointLight, g_point_lights_to_render.count ,, Temp);
-    for g_point_lights_to_render {
-        point_lights[it_index] = .{
-            position=it.position,
-            color=it.color,
-            intensity=it.intensity,
-            intensity_radius=it.intensity_radius,
-            source_radius=it.source_radius,
-            shadow_map_index=xx it.shadow_map_index,
-        };
-    }
-
-    point_lights_offset, point_lights_size := AllocAndPackStorageFrameData(point_lights);
-
-    shadow_maps := AllocArray(ShadowMap, g_shadow_maps_to_render.count ,, Temp);
-    for * g_shadow_maps_to_render {
-        shadow_maps[it_index] = .{
-            resolution=it.resolution,
-            direction=it.direction,
-        };
-
-        for * size, level : shadow_maps[it_index].cascade_sizes {
-            size.* = it.cascade_sizes[level];
-        }
-
-        for * viewpoint, level : shadow_maps[it_index].viewpoints {
-            viewpoint.* = GetShadowMapViewpoint(it, level);
-        }
-    }
-
-    shadow_maps_offset, shadow_maps_size := AllocAndPackStorageFrameData(shadow_maps);
-
-    for g_shadow_maps_to_render {
-        texture := GetShadowMapRenderTarget(it.resolution);
-        ArrayPush(*g_shadow_map_render_targets, texture);
-    }
-
-    point_shadow_maps := AllocArray(PointShadowMap, g_point_shadow_maps_to_render.count ,, Temp);
-    for * g_point_shadow_maps_to_render {
-        point_shadow_maps[it_index] = .{
-            resolution=it.resolution,
-            position=it.position,
-            z_near=it.z_near,
-            z_far=it.z_far,
-        };
-
-        for * viewpoint, face : point_shadow_maps[it_index].viewpoints {
-            viewpoint.* = GetPointShadowMapViewpoint(it, xx face);
-        }
-    }
-
-    point_shadow_maps_offset, point_shadow_maps_size := AllocAndPackStorageFrameData(point_shadow_maps);
-
-    for g_point_shadow_maps_to_render {
-        render_targets := GetPointShadowMapRenderTarget(it.resolution);
-        ArrayPush(*g_point_shadow_map_render_targets, render_targets);
-    }
-
-    frame_bindings := FrameBindingSet.{
-        frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
-        directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
-        point_lights=.{buffer=FrameDataBuffer(), offset=xx point_lights_offset, size=xx point_lights_size},
-        brdf_lut=.{texture=*g_brdf_lut, sampler=*g_linear_clamp_sampler},
-        shadow_map_noise=.{texture=*g_shadow_map_noise_texture, sampler=*g_shadow_map_noise_sampler},
-        shadow_maps=.{buffer=FrameDataBuffer(), offset=xx shadow_maps_offset, size=xx shadow_maps_size},
-        point_shadow_maps=.{buffer=FrameDataBuffer(), offset=xx point_shadow_maps_offset, size=xx point_shadow_maps_size},
-    };
-
-    for * g_shadow_map_render_targets {
-        frame_bindings.shadow_map_textures[it_index] = .{texture=it, sampler=*g_shadow_map_sampler};
-    }
-
-    for * g_point_shadow_map_render_targets {
-        frame_bindings.point_shadow_map_textures[it_index] = .{texture=*it.texture, sampler=*g_shadow_map_sampler};
-    }
-
-    ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
-
-    BindGraphicsBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
-    BindComputeBindingSet(*cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
-
     TextureUploadPass(*cmd_buffer);
     GenerateEnvironmentMaps(*cmd_buffer);
 
-    for * g_shadow_maps_to_render {
-        RenderShadowMap(*ctx, it, *g_shadow_map_render_targets[it_index]);
-    }
-
-    for * g_point_shadow_maps_to_render {
-        RenderPointShadowMap(*ctx, it, *g_point_shadow_map_render_targets[it_index]);
-    }
-
     AddTextureBarrier(*cmd_buffer, .Undefined, .ColorAttachment, *g_final_texture);
 
-    for * g_viewpoints_to_render {
-        RenderViewpoint(*ctx, it);
+    for * g_worlds_to_render {
+        RenderWorld(*cmd_buffer, it);
     }
 
     ImGuiPass(*cmd_buffer, *g_imgui_draw_data);
@@ -640,19 +461,151 @@ RenderFrame :: () {
         ArrayFree(*it.gizmo_lines);
     }
 
-    ArrayClear(*g_debug_lines);
     ArrayClear(*g_viewpoints_to_render);
-    ArrayClear(*g_meshes_to_render);
-    ArrayClear(*g_selected_meshes_to_render);
-    ArrayClear(*g_directional_lights_to_render);
-    ArrayClear(*g_point_lights_to_render);
-    ArrayClear(*g_shadow_maps_to_render);
-    ArrayClear(*g_shadow_map_render_targets);
-    ArrayClear(*g_point_shadow_maps_to_render);
-    ArrayClear(*g_point_shadow_map_render_targets);
+
+    ArrayClear(*g_worlds_to_render);
 
     RecycleShadowMapRenderTargets();
     RecyclePointShadowMapRenderTargets();
+}
+
+RenderWorld :: (cmd_buffer : *GfxCommandBuffer, world : *WorldToRender) {
+    ctx : RenderContext;
+    ctx.cmd_buffer = cmd_buffer;
+    ctx.world = world;
+
+    frame_info := FrameInfo.{
+        time=xx Basic.to_float64_seconds(Basic.current_time_monotonic()),
+        num_directional_lights=xx world.directional_lights.count,
+        num_point_lights=xx world.point_lights.count,
+        skybox_light_intensity=world.skybox_light_intensity,
+        shadow_map_params=.{
+            noise_resolution=Shadow_Map_Noise_Size,
+            depth_bias_min_max=.{1, 5},
+            normal_bias=10,
+            filter_radius=1,
+        },
+        bloom_params=g_bloom_params,
+    };
+    frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
+
+    directional_lights := AllocArray(DirectionalLight, world.directional_lights.count ,, Temp);
+    for world.directional_lights {
+        directional_lights[it_index] = .{
+            direction=it.direction,
+            color=it.color,
+            intensity=it.intensity,
+            shadow_map_index=xx it.shadow_map_index,
+        };
+    }
+    directional_lights_offset, directional_lights_size := AllocAndPackStorageFrameData(directional_lights);
+
+    point_lights := AllocArray(PointLight, world.point_lights.count ,, Temp);
+    for world.point_lights {
+        point_lights[it_index] = .{
+            position=it.position,
+            color=it.color,
+            intensity=it.intensity,
+            intensity_radius=it.intensity_radius,
+            source_radius=it.source_radius,
+            shadow_map_index=xx it.shadow_map_index,
+        };
+    }
+
+    point_lights_offset, point_lights_size := AllocAndPackStorageFrameData(point_lights);
+
+    shadow_maps := AllocArray(ShadowMap, world.shadow_maps.count ,, Temp);
+    for * world.shadow_maps {
+        shadow_maps[it_index] = .{
+            resolution=it.resolution,
+            direction=it.direction,
+        };
+
+        for * size, level : shadow_maps[it_index].cascade_sizes {
+            size.* = it.cascade_sizes[level];
+        }
+
+        for * viewpoint, level : shadow_maps[it_index].viewpoints {
+            viewpoint.* = GetShadowMapViewpoint(it, level);
+        }
+    }
+
+    shadow_maps_offset, shadow_maps_size := AllocAndPackStorageFrameData(shadow_maps);
+
+    for world.shadow_maps {
+        texture := GetShadowMapRenderTarget(it.resolution);
+        ArrayPush(*world.shadow_map_render_targets, texture);
+    }
+
+    point_shadow_maps := AllocArray(PointShadowMap, world.point_shadow_maps.count ,, Temp);
+    for * world.point_shadow_maps {
+        point_shadow_maps[it_index] = .{
+            resolution=it.resolution,
+            position=it.position,
+            z_near=it.z_near,
+            z_far=it.z_far,
+        };
+
+        for * viewpoint, face : point_shadow_maps[it_index].viewpoints {
+            viewpoint.* = GetPointShadowMapViewpoint(it, xx face);
+        }
+    }
+
+    point_shadow_maps_offset, point_shadow_maps_size := AllocAndPackStorageFrameData(point_shadow_maps);
+
+    for world.point_shadow_maps {
+        render_targets := GetPointShadowMapRenderTarget(it.resolution);
+        ArrayPush(*world.point_shadow_map_render_targets, render_targets);
+    }
+
+    frame_bindings := FrameBindingSet.{
+        frame_info=.{buffer=FrameDataBuffer(), offset=xx frame_info_offset, size=xx frame_info_size},
+        directional_lights=.{buffer=FrameDataBuffer(), offset=xx directional_lights_offset, size=xx directional_lights_size},
+        point_lights=.{buffer=FrameDataBuffer(), offset=xx point_lights_offset, size=xx point_lights_size},
+        brdf_lut=.{texture=*g_brdf_lut, sampler=*g_linear_clamp_sampler},
+        shadow_map_noise=.{texture=*g_shadow_map_noise_texture, sampler=*g_shadow_map_noise_sampler},
+        shadow_maps=.{buffer=FrameDataBuffer(), offset=xx shadow_maps_offset, size=xx shadow_maps_size},
+        point_shadow_maps=.{buffer=FrameDataBuffer(), offset=xx point_shadow_maps_offset, size=xx point_shadow_maps_size},
+    };
+
+    for * world.shadow_map_render_targets {
+        frame_bindings.shadow_map_textures[it_index] = .{texture=it, sampler=*g_shadow_map_sampler};
+    }
+
+    for * world.point_shadow_map_render_targets {
+        frame_bindings.point_shadow_map_textures[it_index] = .{texture=*it.texture, sampler=*g_shadow_map_sampler};
+    }
+
+    ctx.frame_binding_set = CreateGfxBindingSet(GlobalBindingSetAllocator(), frame_bindings);
+
+    BindGraphicsBindingSet(cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
+    BindComputeBindingSet(cmd_buffer, *g_dummy_frame_pipeline_layout, 0, *ctx.frame_binding_set);
+
+    for * world.shadow_maps {
+        RenderShadowMap(*ctx, it, *world.shadow_map_render_targets[it_index]);
+    }
+
+    for * world.point_shadow_maps {
+        RenderPointShadowMap(*ctx, it, *world.point_shadow_map_render_targets[it_index]);
+    }
+
+    for * g_viewpoints_to_render {
+        if it.world_index != ArrayGetIndex(g_worlds_to_render, world) {
+            continue;
+        }
+
+        RenderViewpoint(*ctx, it);
+    }
+
+    // ArrayFree(*world.debug_lines);
+    ArrayFree(*world.meshes);
+    ArrayFree(*world.selected_meshes);
+    ArrayFree(*world.directional_lights);
+    ArrayFree(*world.point_lights);
+    ArrayFree(*world.shadow_maps);
+    ArrayFree(*world.shadow_map_render_targets);
+    ArrayFree(*world.point_shadow_maps);
+    ArrayFree(*world.point_shadow_map_render_targets);
 }
 
 DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
@@ -853,7 +806,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     selected_mesh_buffer.meshes.allocator = Temp;
     selected_mesh_buffer.draw_calls.allocator = Temp;
 
-    for g_meshes_to_render {
+    for ctx.world.meshes {
         mesh := it;
 
         if mesh.is_billboard {
@@ -873,7 +826,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         PushMesh(*mesh_buffer, key, mesh);
     }
 
-    for g_selected_meshes_to_render {
+    for ctx.world.selected_meshes {
         mesh := it;
 
         if mesh.is_billboard {
@@ -916,10 +869,10 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
         AddTextureBarrier(ctx.cmd_buffer, .TransferSrc, .ShaderReadOnly, *ctx.render_targets.entity_guids_texture);
     }
 
-    // DepthPrepass(ctx, *mesh_buffer);
     PrepareClusters(ctx);
+    // DepthPrepass(ctx, *mesh_buffer);
     ForwardPass(ctx, *mesh_buffer);
-    SkyboxPass(ctx, ifx viewpoint.skybox && viewpoint.skybox.base_texture then *viewpoint.skybox.base_texture.texture);
+    SkyboxPass(ctx, ifx ctx.world.skybox && ctx.world.skybox.base_texture then *ctx.world.skybox.base_texture.texture);
 
     if !(viewpoint.flags & .NoDebugLines) {
         DebugLinesPass(ctx);

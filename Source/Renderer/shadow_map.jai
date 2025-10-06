@@ -168,7 +168,7 @@ GetShadowMapFrustum :: (using shadow_map : *ShadowMapToRender, level : int) -> F
     );
 }
 
-PopulateShadowMapMeshBuffer :: (using shadow_map : *ShadowMapToRender, mesh_buffer : *MeshBuffer) {
+PopulateShadowMapMeshBuffer :: (world : *WorldToRender, using shadow_map : *ShadowMapToRender, mesh_buffer : *MeshBuffer) {
     frustums : [Num_Shadow_Map_Cascades]Frustum = ---;
     for * frustums {
         it.* = GetShadowMapFrustum(shadow_map, it_index);
@@ -183,7 +183,7 @@ PopulateShadowMapMeshBuffer :: (using shadow_map : *ShadowMapToRender, mesh_buff
     up := viewpoints[0].up;
     billboard_rotation := Mat4fFromRightUpForwardOrigin(-right, up, -direction, .{});
 
-    for g_meshes_to_render {
+    for world.meshes {
         mesh := it;
 
         if mesh.is_billboard {
@@ -240,7 +240,7 @@ RenderShadowMap :: (using ctx : *RenderContext, shadow_map : *ShadowMapToRender,
     mesh_buffer : MeshBuffer;
     mesh_buffer.meshes.allocator = Temp;
     mesh_buffer.draw_calls.allocator = Temp;
-    PopulateShadowMapMeshBuffer(shadow_map, *mesh_buffer);
+    PopulateShadowMapMeshBuffer(world, shadow_map, *mesh_buffer);
 
     AddTextureBarrier(cmd_buffer, .Undefined, .DepthStencilAttachment, render_target);
 
