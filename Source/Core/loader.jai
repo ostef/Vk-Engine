@@ -42,7 +42,7 @@ ReloadModule :: (id : ModuleID) -> bool {
     }
 
     return true;
-}
+} @NoProfile
 
 LoadModule :: (id : ModuleID, first_time : bool) -> bool {
     LogSectionScope(*Log_Loader);
@@ -101,7 +101,7 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
     }
 
     return true;
-}
+} @NoProfile
 
 UnloadModule :: (id : ModuleID, last_time : bool) {
     LogSectionScope(*Log_Loader);
@@ -133,7 +133,7 @@ UnloadModule :: (id : ModuleID, last_time : bool) {
     g_modules[id] = null;
 
     LogMessage("Unloaded module %", id);
-}
+} @NoProfile
 
 ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, data : *void) {
     LogSectionScope(*Log_Loader);
@@ -147,7 +147,7 @@ ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, 
             }
         }
     }
-}
+} @NoProfile
 
 LoaderMain :: () {
     InitConsoleLogger(*g_console_logger);
@@ -207,13 +207,13 @@ LoaderMain :: () {
 
     LoadLibrary :: (filename : *u8) -> LibraryHandle {
         return Posix.dlopen(filename, Posix.RTLD_NOW | Posix.RTLD_GLOBAL);
-    }
+    } @NoProfile
 
     FreeLibrary :: (library : LibraryHandle) {
         Posix.dlclose(library);
-    }
+    } @NoProfile
 
     GetProcAddress :: (library : LibraryHandle, name : *u8) -> *void {
         return Posix.dlsym(library, name);
-    }
+    } @NoProfile
 }
