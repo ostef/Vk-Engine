@@ -60,7 +60,6 @@ struct ShadowMapParams {
 
 struct FrameInfo {
     float time;
-    float2 window_pixel_size;
     uint num_directional_lights;
     uint num_point_lights;
     float skybox_light_intensity;
