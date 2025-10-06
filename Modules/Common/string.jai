@@ -58,6 +58,11 @@ StringCompare :: inline (a : string, b : string) -> int
 
 StringClone :: inline (str : string) -> string
 {
+    if str.count <= 0
+    {
+        return "";
+    }
+
     data := cast(*u8) Alloc(str.count);
     memcpy(data, str.data, str.count);
 
