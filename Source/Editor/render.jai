@@ -185,17 +185,26 @@ SubmitEditorWorldToRenderer :: (world : *World) {
         AddViewpointToRender(viewpoint);
     }
 
-    SubmitMaterialEditorToRenderer(world);
+    SubmitMaterialEditorPreviewToRenderer(world);
 }
 
-SubmitMaterialEditorToRenderer :: (world : *World) {
-    if !g_material_editor.visible || !g_material_editor.selected_material || !g_material_editor.preview_mesh {
+SubmitMaterialEditorPreviewToRenderer :: (world : *World) {
+    if !g_material_editor.preview_visible || !g_material_editor.selected_material || !g_material_editor.preview_mesh {
         return;
     }
 
     world_to_render : WorldToRender;
-    world_to_render.skybox = world.skybox;
-    world_to_render.skybox_light_intensity = world.skybox_light_intensity;
+
+    if g_material_editor.use_world_skybox {
+        world_to_render.skybox = world.skybox;
+        world_to_render.skybox_light_intensity = world.skybox_light_intensity;
+    }
+
+    light : DirectionalLightToRender;
+    light.direction = Normalized(Vec3f.{-1,-1,-1});
+    light.intensity = 1;
+    light.color = .{1,1,1};
+    AddDirectionalLightToRender(*world_to_render, light);
 
     mesh : MeshToRender;
     mesh.vertex_buffer = *g_material_editor.preview_mesh.vertex_buffer;
@@ -209,27 +218,9 @@ SubmitMaterialEditorToRenderer :: (world : *World) {
 
     world_index := AddWorldToRender(world_to_render);
 
-    fov := 80.0;
-    viewpoint : ViewpointToRender;
+    viewpoint := MakeViewpointToRender(g_material_editor.preview_camera, .{xx Max(g_material_editor.preview_size.x, 0), xx Max(g_material_editor.preview_size.y, 0)});
     viewpoint.unique_id = Material_Editor_Preview_Viewport_ID;
     viewpoint.flags = .NoGrids;
     viewpoint.world_index = world_index;
-    viewpoint.transform = Mat4fTranslate(.{0,0,-1});
-    viewpoint.view = Inverse(viewpoint.transform);
-    viewpoint.position = TranslationVector(viewpoint.transform);
-    viewpoint.right = RightVector(viewpoint.transform);
-    viewpoint.up = UpVector(viewpoint.transform);
-    viewpoint.direction = ForwardVector(viewpoint.transform);
-    viewpoint.resolution = .{300, 300};
-    viewpoint.z_near = 0.1;
-    viewpoint.z_far = 10;
-    viewpoint.fov = ToRads(fov);
-    viewpoint.projection = Mat4fPerspectiveProjection(fov, viewpoint.resolution.x / cast(float, viewpoint.resolution.y), viewpoint.z_near, viewpoint.z_far);
-    viewpoint.inv_projection = Inverse(viewpoint.projection);
-    viewpoint.view_projection = viewpoint.projection * viewpoint.view;
-    viewpoint.inv_view_projection = Inverse(viewpoint.view_projection);
-
-    viewpoint.frustum = MakePerspectiveFrustum(viewpoint.transform, fov, viewpoint.resolution.x / cast(float, viewpoint.resolution.y), viewpoint.z_near, viewpoint.z_far);
-
     AddViewpointToRender(viewpoint);
 }

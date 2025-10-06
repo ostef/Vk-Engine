@@ -16,7 +16,7 @@ EditorViewport :: struct {
 
     render_targets : *ViewpointRenderTargets;
 
-    camera : EditorCamera;
+    camera : EditorViewportCamera;
     gizmo_ctx : GizmoContext;
 
     show_debug_drawings := true;
@@ -32,7 +32,7 @@ g_main_editor_viewport : *EditorViewport;
 
 EditorViewportState :: struct {
     unique_id : u64; @Serialize(1)
-    camera : EditorCamera; @Serialize(2)
+    camera : EditorViewportCamera; @Serialize(2)
     gizmo_ctx : GizmoContextState; @Serialize(3)
     show_grid : bool; @Serialize(4)
     show_debug_drawings : bool; @Serialize(5)
@@ -109,11 +109,18 @@ DestroyEditorViewport :: (viewport : *EditorViewport) {
     Free(viewport);
 }
 
-EditorCamera :: struct {
+EditorViewportCamera :: struct {
+    #as using _ : EditorCamera; @Serialize(1)
+
     viewport : *EditorViewport;
 
     is_moving : bool;
+    speed_mult := 1.0; @Serialize(10)
+    base_speed := 0.1; @Serialize(11)
+    fast_speed := 1.0; @Serialize(12)
+}
 
+EditorCamera :: struct {
     position := #run Normalized(Vec3f.{-1,1,-1}) * 10; @Serialize(1)
     rotation : Quatf; @Serialize(2)
 
@@ -123,15 +130,12 @@ EditorCamera :: struct {
     yaw := #run ToRads(30.0); @Serialize(5)
     pitch := #run ToRads(30.0); @Serialize(6)
 
+    rotation_speed := 0.2; @Serialize(13)
+    rotation_smoothing := 0.3; @Serialize(14)
+
     fov_in_degrees := 80.0; @Serialize(7)
     z_near := 0.1; @Serialize(8)
     z_far := 1000.0; @Serialize(9)
-
-    speed_mult := 1.0; @Serialize(10)
-    base_speed := 0.1; @Serialize(11)
-    fast_speed := 1.0; @Serialize(12)
-    rotation_speed := 0.2; @Serialize(13)
-    rotation_smoothing := 0.3; @Serialize(14)
 
     transform : Mat4f;
     view : Mat4f;
@@ -329,7 +333,7 @@ UpdateEditorViewport :: (world : *World, using viewport : *EditorViewport, delta
 
     SendEditorViewportEvents(world, viewport);
 
-    CalculateCameraTransforms(*camera);
+    CalculateCameraTransforms(*camera, .{xx size.x, xx size.y});
 
     UpdateGizmos(world, *gizmo_ctx);
 
@@ -398,7 +402,7 @@ HandleEditorViewportEvent :: (world : *World, viewport : *EditorViewport, event 
     return false;
 }
 
-CalculateCameraTransforms :: (camera : *EditorCamera) {
+CalculateCameraTransforms :: (camera : *EditorCamera, size : Vec2f) {
     camera.yaw = Lerp(camera.yaw, camera.target_yaw, camera.rotation_smoothing);
     camera.pitch = Lerp(camera.pitch, camera.target_pitch, camera.rotation_smoothing);
 
@@ -407,22 +411,20 @@ CalculateCameraTransforms :: (camera : *EditorCamera) {
     camera.transform = Mat4fTranslate(camera.position) * Mat4fFromQuat(camera.rotation);
     camera.view = Inverse(camera.transform);
 
-    aspect := camera.viewport.size.x / cast(float, camera.viewport.size.y);
-
     if Reverse_Depth_Range {
-        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_far, camera.z_near);
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, size.x / size.y, camera.z_far, camera.z_near);
     } else {
-        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, aspect, camera.z_near, camera.z_far);
+        camera.projection = Mat4fPerspectiveProjection(camera.fov_in_degrees, size.x / size.y, camera.z_near, camera.z_far);
     }
 
     camera.inv_projection = Inverse(camera.projection);
 
-    camera.ortho_projection = Mat4fOrthographicProjection(0, camera.viewport.size.x, camera.viewport.size.y, 0, -1, 1);
+    camera.ortho_projection = Mat4fOrthographicProjection(0, size.x, size.y, 0, -1, 1);
     camera.inv_ortho_projection = Inverse(camera.ortho_projection);
 }
 
 HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
-    defer CalculateCameraTransforms(*camera);
+    defer CalculateCameraTransforms(*camera, .{xx size.x, xx size.y});
 
     if event.kind == {
     case .Keyboard;
@@ -569,7 +571,7 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
     return false;
 }
 
-MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
+MakeViewpointToRender :: (camera : *EditorCamera, size : Vec2u) -> ViewpointToRender {
     view_projection := camera.projection * camera.view;
 
     return .{
@@ -586,9 +588,13 @@ MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender 
         fov=ToRads(camera.fov_in_degrees),
         z_near=camera.z_near,
         z_far=camera.z_far,
-        resolution=.{cast(u32, size.x), cast(u32, size.y)},
+        resolution=size,
         frustum=MakePerspectiveFrustum(camera.transform, camera.fov_in_degrees, size.x / cast(float, size.y), camera.z_near, camera.z_far),
     };
+}
+
+MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
+    return MakeViewpointToRender(*camera, .{xx Max(size.x, 0), xx Max(size.y, 0)});
 }
 
 DefaultViewportMenu :: (world : *World, viewport : *EditorViewport) {
