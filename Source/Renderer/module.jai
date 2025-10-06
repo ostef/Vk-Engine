@@ -80,17 +80,17 @@ ViewpointRenderTargets :: struct {
 }
 
 Bloom_Resolution_Factor :: 0.75;
-Bloom_Num_Downsample_Passes :: 7;
+Bloom_Max_Downsample_Passes :: 7;
 
 BloomTextures :: struct {
     downsample_texture : GfxTexture;
-    downsample_levels : [Bloom_Num_Downsample_Passes + 1]GfxTexture;
+    downsample_levels : []GfxTexture;
     upsample_texture : GfxTexture;
-    upsample_levels : [Bloom_Num_Downsample_Passes]GfxTexture;
+    upsample_levels : []GfxTexture;
 }
 
 GetFinalBloomTexture :: inline (using bloom : *BloomTextures) -> *GfxTexture {
-    return *upsample_levels[0];
+    return ifx downsample_texture.desc.num_mipmap_levels > 1 then *upsample_levels[0] else *downsample_texture;
 }
 
 using _ :: struct {

@@ -8,8 +8,6 @@
 
 // See: Kawase blur filter
 
-// @Todo: make downsample levels scale with resolution
-
 BloomParams :: struct {
     resolution_factor := Bloom_Resolution_Factor;
     brightness_threshold := 1.4; @ShowInInspector @FloatRange(0,10) @Step(0.01)
@@ -35,11 +33,40 @@ CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u
             DestroyBloomTextures(bloom);
         }
 
+        num_downsample_passes := GetNumMipmapLevelsForTextureSize(resolution.x, resolution.y);
+        num_downsample_passes = Min(num_downsample_passes, Bloom_Max_Downsample_Passes + 1);
+
+        // Special case for very small resolution: we cannot create more than one downsample texture so kawase
+        // blur cannot be done. We'll create only one texture and compute the bloom using a different method
+        if num_downsample_passes <= 1 {
+            desc : GfxTextureDesc;
+            desc.type = .Texture2D;
+            desc.width = resolution.x;
+            desc.height = resolution.y;
+            desc.pixel_format = .RGBA16Float;
+            desc.usage = .Sampled | .Storage;
+
+            downsample_texture = CreateGfxTexture("Bloom", desc);
+            Assert(!IsNull(*downsample_texture), "Could not create bloom texture");
+
+            view_desc : GfxTextureViewDesc;
+            view_desc.type = .Texture2D;
+            view_desc.pixel_format = .RGBA16Float;
+            view_desc.first_mipmap_level = 0;
+            view_desc.num_mipmap_levels = 1;
+
+            downsample_levels = AllocArray(GfxTexture, desc.num_mipmap_levels);
+            downsample_levels[0] = CreateGfxTextureView("Bloom", view_desc, *downsample_texture);
+            Assert(!IsNull(*downsample_levels[0]), "Could not create bloom texture view");
+
+            return;
+        }
+
         desc : GfxTextureDesc;
         desc.type = .Texture2D;
         desc.width = resolution.x;
         desc.height = resolution.y;
-        desc.num_mipmap_levels = Bloom_Num_Downsample_Passes + 1;
+        desc.num_mipmap_levels = xx num_downsample_passes;
 
         desc.pixel_format = .RGBA16Float;
         desc.usage = .Sampled | .Storage;
@@ -47,6 +74,7 @@ CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u
         downsample_texture = CreateGfxTexture("Bloom Downsample", desc);
         Assert(!IsNull(*downsample_texture), "Could not create bloom downsample texture");
 
+        downsample_levels = AllocArray(GfxTexture, desc.num_mipmap_levels);
         for * downsample_levels {
             view_desc : GfxTextureViewDesc;
             view_desc.type = .Texture2D;
@@ -58,11 +86,12 @@ CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u
             Assert(!IsNull(it), "Could not create bloom downsample texture view for level %", it_index);
         }
 
-        desc.num_mipmap_levels = Bloom_Num_Downsample_Passes;
+        desc.num_mipmap_levels -= 1;
 
         upsample_texture = CreateGfxTexture("Bloom Upsample", desc);
         Assert(!IsNull(*upsample_texture), "Could not create bloom upsample texture");
 
+        upsample_levels = AllocArray(GfxTexture, desc.num_mipmap_levels);
         for * upsample_levels {
             view_desc : GfxTextureViewDesc;
             view_desc.type = .Texture2D;
@@ -80,14 +109,18 @@ DestroyBloomTextures :: (using bloom : *BloomTextures) {
     for * downsample_levels {
         DestroyGfxTextureView(it);
     }
+    Free(downsample_levels.data);
 
     DestroyGfxTexture(*downsample_texture);
 
     for * upsample_levels {
         DestroyGfxTextureView(it);
     }
+    Free(upsample_levels.data);
 
     DestroyGfxTexture(*upsample_texture);
+
+    bloom.* = .{};
 }
 
 using _ :: struct {
@@ -160,7 +193,11 @@ ComputeBloom :: (using ctx : *RenderContext) {
 
     using render_targets.bloom_textures;
 
-    AddTextureBarriers(cmd_buffer, .Undefined, .General, .[*downsample_texture, *upsample_texture]);
+    if upsample_levels.count > 0 {
+        AddTextureBarriers(cmd_buffer, .Undefined, .General, .[*downsample_texture, *upsample_texture]);
+    } else {
+        AddTextureBarrier(cmd_buffer, .Undefined, .General, *downsample_texture);
+    }
 
     pass := BeginGfxComputePass(cmd_buffer, "Bloom Filter");
     {
@@ -183,11 +220,15 @@ ComputeBloom :: (using ctx : *RenderContext) {
     }
     EndGfxComputePass(*pass);
 
+    if downsample_levels.count == 1 {
+        return;
+    }
+
     pass = BeginGfxComputePass(cmd_buffer, "Bloom Downsample");
     {
         BindComputePipeline(*pass, *g_bloom_downsample_compute_pipeline);
 
-        for i : 0..Bloom_Num_Downsample_Passes - 1 {
+        for i : 0..downsample_levels.count - 2 {
             AddTextureBarrier(cmd_buffer, .Undefined, .General, *downsample_levels[i + 1]);
 
             bindings := BloomComputeBindingSet.{
@@ -211,7 +252,7 @@ ComputeBloom :: (using ctx : *RenderContext) {
     {
         BindComputePipeline(*pass, *g_bloom_upsample_compute_pipeline);
 
-        for #v2 < i : 0..Bloom_Num_Downsample_Passes - 1 {
+        for #v2 < i : 0..upsample_levels.count - 1 {
             AddTextureBarrier(cmd_buffer, .Undefined, .General, *upsample_levels[i]);
 
             bindings := BloomUpsampleComputeBindingSet.{
