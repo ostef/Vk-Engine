@@ -3,7 +3,7 @@
 #import "Type_Utils";
 #import "File_Watcher";
 
-Track_Asset_Reference_Locations :: true;
+Track_Asset_Reference_Locations :: false; // @Todo: this causes a crash when reporting the locations
 Default_Number_Of_Frames_Before_Unloading_Unreferenced_Assets :: 60;
 Max_Assets_To_Unload_Per_Frame :: 2;
 
