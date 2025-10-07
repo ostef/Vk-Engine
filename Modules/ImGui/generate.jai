@@ -101,10 +101,12 @@ CompileCppSource :: () -> bool {
             array_add(*extra, tprint("-D%", it));
         }
 
+        array_add(*extra, "-fPIC");
+
         success &&= build_cpp_dynamic_lib("linux/ImGui", ..src_files, extra=extra, debug=Compile_Debug);
 
-        array_add(*extra, "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics");
-        success &&= build_cpp_static_lib("linux/ImGui", ..src_files, extra=extra, debug=Compile_Debug);
+        // array_add(*extra, "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics");
+        // success &&= build_cpp_static_lib("linux/ImGui", ..src_files, extra=extra, debug=Compile_Debug);
     } else #if OS == .MACOS {
         #import "Process";
 

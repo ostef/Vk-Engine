@@ -13,8 +13,7 @@ FILE :: void;
 
 #scope_export
 
-#if OS ==
-{
+#if OS == {
 case .WINDOWS;
     #load "imgui_windows.jai";
 
@@ -38,23 +37,19 @@ ImVec2 :: Linalg.Vec2f;
 ImVec4 :: Linalg.Vec4f;
 ImColor:: Linalg.Vec4f;
 
-ImRect :: struct
-{
+ImRect :: struct {
     Min : ImVec2; // Upper-left
     Max : ImVec2; // Lower-right
 
-    GetWidth :: inline (using this : *ImRect) -> float
-    {
+    GetWidth :: inline (using this : *ImRect) -> float {
         return Max.x - Min.x;
     }
 
-    GetHeight :: inline (using this : *ImRect) -> float
-    {
+    GetHeight :: inline (using this : *ImRect) -> float {
         return Max.y - Min.y;
     }
 
-    GetSize :: inline (using this : *ImRect) -> ImVec2
-    {
+    GetSize :: inline (using this : *ImRect) -> ImVec2 {
         return .{
             Max.x - Min.x,
             Max.y - Min.y,
@@ -64,37 +59,33 @@ ImRect :: struct
 
 // Helper: ImBitArray class (wrapper over ImBitArray functions)
 // Store 1-bit per value.
-ImBitArray :: struct (BITCOUNT: s32, OFFSET: s32 = 0)
-{
+ImBitArray :: struct (BITCOUNT: s32, OFFSET: s32 = 0) {
     Storage : [(BITCOUNT + 31) >> 5]ImU32;
 }
 
 ImBitArrayForNamedKeys :: ImBitArray(cast(s32) Key.NamedKey_COUNT, -cast(s32) Key.NamedKey_BEGIN);
 
-ImVector :: struct (T : Type)
-{
+ImVector :: struct (T : Type) {
     Size     : s32;
     Capacity : s32;
     Data     : *T;
 
-    Free :: inline (using vec : *ImVector)
-    {
+    Free :: inline (using vec : *ImVector) {
         MemFree(Data);
         Data = null;
         Size = 0;
         Capacity = 0;
     }
 
-    Reserve :: inline (using vec : *ImVector, new_capacity : s32)
-    {
-        if new_capacity < Capacity
+    Reserve :: inline (using vec : *ImVector, new_capacity : s32) {
+        if new_capacity < Capacity {
             return;
+        }
 
         new_data := MemAlloc(xx (new_capacity * size_of(T)));
         assert(new_data != null);
 
-        if Data
-        {
+        if Data {
             memcpy(new_data, Data, Size * size_of(T));
             MemFree(Data);
         }
@@ -103,25 +94,23 @@ ImVector :: struct (T : Type)
         Capacity = new_capacity;
     }
 
-    Push :: inline (using vec : *ImVector, val : T)
-    {
-        if Size >= Capacity
+    Push :: inline (using vec : *ImVector, val : T) {
+        if Size >= Capacity {
             Reserve(vec, Capacity * 2 + 8);
+        }
 
         Data[Size] = val;
         Size += 1;
     }
 
-    Pop :: inline (using vec : *ImVector)
-    {
+    Pop :: inline (using vec : *ImVector) {
         assert(Size > 0);
 
         Size -= 1;
     }
 }
 
-operator *[] :: inline (vec : *ImVector, index : s64) -> *vec.T
-{
+operator *[] :: inline (vec : *ImVector, index : s64) -> *vec.T {
     assert(index >= 0 && index < vec.Size);
 
     return *vec.Data[index];
@@ -132,13 +121,11 @@ ImDrawCallback_ResetRenderState :: -1;
 
 // Inlined functions are not generated so we need to write them ourselves
 
-GetCurrentWindowRead :: inline () -> *Window #no_context
-{
+GetCurrentWindowRead :: inline () -> *Window #no_context {
     return GImGui.CurrentWindow;
 }
 
-GetCurrentWindow :: inline () -> *Window #no_context
-{
+GetCurrentWindow :: inline () -> *Window #no_context {
     GImGui.CurrentWindow.WriteAccessed = true;
 
     return GImGui.CurrentWindow;

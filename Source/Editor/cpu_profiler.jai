@@ -115,13 +115,24 @@ SortEvents :: (specs : ImGui.TableSortSpecs) {
                 }
             }
 
-            if delta > 0 {
-                return ifx column_spec.SortDirection_ == xx ImGui.SortDirection.Ascending
-                    then 1 else -1;
-            }
-            if delta < 0 {
-                return ifx column_spec.SortDirection_ == xx ImGui.SortDirection.Ascending
-                    then -1 else 1;
+            #if OS == .WINDOWS {
+                if delta > 0 {
+                    return ifx column_spec.SortDirection_ == xx ImGui.SortDirection.Ascending
+                        then 1 else -1;
+                }
+                if delta < 0 {
+                    return ifx column_spec.SortDirection_ == xx ImGui.SortDirection.Ascending
+                        then -1 else 1;
+                }
+            } else {
+                if delta > 0 {
+                    return ifx column_spec.SortDirection == xx ImGui.SortDirection.Ascending
+                        then 1 else -1;
+                }
+                if delta < 0 {
+                    return ifx column_spec.SortDirection == xx ImGui.SortDirection.Ascending
+                        then -1 else 1;
+                }
             }
         }
 

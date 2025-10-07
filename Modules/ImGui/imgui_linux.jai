@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai
+// jai Modules Source Build.jai - generate_bindings
 //
 
 
@@ -1610,7 +1610,7 @@ BeginChildEx :: (name: *u8, id: ID, size_arg: *ImVec2, child_flags: ChildFlags, 
 BeginChildEx :: (name: *u8, id: ID, size_arg: ImVec2, child_flags: ChildFlags, window_flags: WindowFlags) -> bool #no_context {
     return BeginChildEx(name, id, *size_arg, child_flags, window_flags);
 }
-OpenPopupEx :: (id: ID, popup_flags: PopupFlags = .None) -> void #foreign imgui "_ZN5ImGui11OpenPopupExEji";
+OpenPopupEx :: (id: ID, popup_flags: PopupFlags = cast(PopupFlags).None) -> void #foreign imgui "_ZN5ImGui11OpenPopupExEji";
 ClosePopupToLevel :: (remaining: s32, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "_ZN5ImGui17ClosePopupToLevelEib";
 ClosePopupsOverWindow :: (ref_window: *Window, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "_ZN5ImGui21ClosePopupsOverWindowEP11ImGuiWindowb";
 ClosePopupsExceptModals :: () -> void #foreign imgui "_ZN5ImGui23ClosePopupsExceptModalsEv";
@@ -1813,7 +1813,7 @@ RenderDragDropTargetRect :: (bb: ImRect, item_clip_rect: ImRect) #no_context {
 }
 
 // Typing-Select API
-GetTypingSelectRequest :: (flags: TypingSelectFlags = .None) -> *TypingSelectRequest #foreign imgui "_ZN5ImGui22GetTypingSelectRequestEi";
+GetTypingSelectRequest :: (flags: TypingSelectFlags = cast(TypingSelectFlags).None) -> *TypingSelectRequest #foreign imgui "_ZN5ImGui22GetTypingSelectRequestEi";
 TypingSelectFindMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "_ZN5ImGui21TypingSelectFindMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_i";
 TypingSelectFindNextSingleCharMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "_ZN5ImGui35TypingSelectFindNextSingleCharMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_i";
 TypingSelectFindBestLeadingMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void) -> s32 #foreign imgui "_ZN5ImGui32TypingSelectFindBestLeadingMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_";
@@ -1945,8 +1945,8 @@ RenderTextEllipsis :: (draw_list: *ImDrawList, pos_min: ImVec2, pos_max: ImVec2,
 RenderFrame :: (p_min: ImVec2, p_max: ImVec2, fill_col: ImU32, border := true, rounding: float = 0.0) -> void #foreign imgui "_ZN5ImGui11RenderFrameE6ImVec2S0_jbf";
 RenderFrameBorder :: (p_min: ImVec2, p_max: ImVec2, rounding: float = 0.0) -> void #foreign imgui "_ZN5ImGui17RenderFrameBorderE6ImVec2S0_f";
 RenderColorRectWithAlphaCheckerboard :: (draw_list: *ImDrawList, p_min: ImVec2, p_max: ImVec2, fill_col: ImU32, grid_step: float, grid_off: ImVec2, rounding: float = 0.0, flags: ImDrawFlags = .None) -> void #foreign imgui "_ZN5ImGui36RenderColorRectWithAlphaCheckerboardEP10ImDrawList6ImVec2S2_jfS2_fi";
-RenderNavHighlight :: (bb: *ImRect, id: ID, flags: NavHighlightFlags = .None) -> void #foreign imgui "_ZN5ImGui18RenderNavHighlightERK6ImRectji";
-RenderNavHighlight :: (bb: ImRect, id: ID, flags: NavHighlightFlags = .None) #no_context {
+RenderNavHighlight :: (bb: *ImRect, id: ID, flags: NavHighlightFlags = cast(NavHighlightFlags).None) -> void #foreign imgui "_ZN5ImGui18RenderNavHighlightERK6ImRectji";
+RenderNavHighlight :: (bb: ImRect, id: ID, flags: NavHighlightFlags = cast(NavHighlightFlags).None) #no_context {
     RenderNavHighlight(*bb, id, flags);
 }
 FindRenderedTextEnd :: (text: *u8, text_end: *u8 = null) -> *u8 #foreign imgui "_ZN5ImGui19FindRenderedTextEndEPKcS1_";
@@ -7011,4 +7011,3 @@ ImFontAtlasBuildMultiplyRectAlpha8 :: (table: *[256] u8, pixels: *u8, x: s32, y:
 
 #import "Basic"; // For push_context
 
-imgui :: #library "linux/ImGui";

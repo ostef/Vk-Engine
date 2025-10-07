@@ -102,6 +102,8 @@ compile_vulkan_memory_allocator :: () -> bool {
         // provide path to vulkan.h
         array_add(*extra_args, include);
 
+        array_add(*extra_args, "-fPIC");
+
         success &= build_cpp_static_lib("libs/linux/VkMemAlloc_DEBUG", src_path, extra=extra_args, debug=true);
 
         array_add(*extra_args, "-DNDEBUG");

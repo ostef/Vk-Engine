@@ -167,7 +167,7 @@ UpdateOrbitCamera :: (camera : *EditorOrbitCamera, has_mouse_input : bool) {
 
         mouse_wheel := GetMouseWheel();
         camera.distance_from_target -= mouse_wheel.y * 0.1;
-        camera.distance_from_target = Max(camera.distance_from_target, 1);
+        camera.distance_from_target = Max(camera.distance_from_target, 0.1);
     } else if had_mouse_input {
         SDL_SetRelativeMouseMode(SDL_FALSE);
     }

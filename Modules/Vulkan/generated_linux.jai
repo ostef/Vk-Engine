@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai
+// jai Modules Source Build.jai - generate_bindings
 //
 
 
@@ -10698,7 +10698,7 @@ VkVideoSessionParametersKHR_T :: struct {}
 VkVideoSessionParametersKHR :: *VkVideoSessionParametersKHR_T;
 
 VkQueryResultStatusKHR :: enum u32 {
-    ERROR_KHR     :: 4294967295;
+    ERROR_KHR     :: 0xffff_ffff;
     NOT_READY_KHR :: 0;
     COMPLETE_KHR  :: 1;
     MAX_ENUM_KHR  :: 2147483647;
@@ -16981,10 +16981,10 @@ VkOpacityMicromapFormatEXT :: enum u32 {
 }
 
 VkOpacityMicromapSpecialIndexEXT :: enum u32 {
-    FULLY_TRANSPARENT_EXT         :: 4294967295;
-    FULLY_OPAQUE_EXT              :: 4294967294;
-    FULLY_UNKNOWN_TRANSPARENT_EXT :: 4294967293;
-    FULLY_UNKNOWN_OPAQUE_EXT      :: 4294967292;
+    FULLY_TRANSPARENT_EXT         :: 0xffff_ffff;
+    FULLY_OPAQUE_EXT              :: 0xffff_fffe;
+    FULLY_UNKNOWN_TRANSPARENT_EXT :: 0xffff_fffd;
+    FULLY_UNKNOWN_OPAQUE_EXT      :: 0xffff_fffc;
     MAX_ENUM_EXT                  :: 2147483647;
 
     VK_OPACITY_MICROMAP_SPECIAL_INDEX_FULLY_TRANSPARENT_EXT         :: FULLY_TRANSPARENT_EXT;
