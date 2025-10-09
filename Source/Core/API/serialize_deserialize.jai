@@ -1023,10 +1023,6 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
             }
         }
 
-        // if struct_info == type_info(SpatialComponent) {
-        //     UpdateTransforms(xx ptr);
-        // }
-
         return DeserializeOk(parser);
 
     case .ARRAY;
@@ -1073,25 +1069,26 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
 
         case .VIEW;
             array_data = Alloc(elem_type.runtime_size * count);
-            (cast(*Array_View_64) ptr).count = count;
-            (cast(*Array_View_64) ptr).data = array_data;
+            cast(*Array_View_64, ptr).count = count;
+            cast(*Array_View_64, ptr).data = array_data;
 
         case .RESIZABLE;
-            allocator := (cast(*Resizable_Array) ptr).allocator;
+            allocator := cast(*Resizable_Array, ptr).allocator;
             if !allocator.proc {
                 allocator = context.allocator;
             }
 
             array_data = Alloc(elem_type.runtime_size * count ,, allocator);
-            (cast(*Resizable_Array) ptr).count = count;
-            (cast(*Resizable_Array) ptr).data = array_data;
-            (cast(*Resizable_Array) ptr).allocated = count;
-            (cast(*Resizable_Array) ptr).allocator = allocator;
+            cast(*Resizable_Array, ptr).count = count;
+            cast(*Resizable_Array, ptr).data = array_data;
+            cast(*Resizable_Array, ptr).allocated = count;
+            cast(*Resizable_Array, ptr).allocator = allocator;
         }
 
         single_line := IsTypeSerializeSingleLine(elem_type);
         line := StringAdvance(lines[line_index], byte_index);
         array_index := 0;
+        initializer := ifx elem_type.type == .STRUCT then cast(*Type_Info_Struct, elem_type).initializer;
         while line_index < lines.count && indent_level >= original_indent_level {
             line = StringAdvance(lines[line_index], byte_index);
             if line.count == 0 || line[0] != #char "*" {
@@ -1108,6 +1105,11 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
                 type=elem_type,
                 value_pointer=array_data + array_index * elem_type.runtime_size,
             };
+
+            if initializer {
+                initializer(elem.value_pointer);
+            }
+
             result := DeserializeAny(parser, elem);
 
             if !result.ok {
