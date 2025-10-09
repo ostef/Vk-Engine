@@ -26,6 +26,7 @@ void main() {
     float2 uv = CartesianToSphericalUV(ray_direction);
     uv.y = 1 - uv.y;
 
+
     float3 color = textureLod(u_skybox, uv, 0).rgb;
     color *= u_frame_info.skybox_light_intensity;
 

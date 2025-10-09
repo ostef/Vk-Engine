@@ -862,12 +862,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     AddTextureBarrier(ctx.cmd_buffer, .Undefined, .DepthStencilAttachment, *ctx.render_targets.depth_texture);
 
     if !(viewpoint.flags & .NoEntitySelection) {
-        EntityGUIDsPass(ctx, *ctx.render_targets.entity_guids_texture, *ctx.render_targets.depth_texture, *mesh_buffer);
-        EntityGUIDsPass(ctx, *ctx.render_targets.selected_entity_guids_texture, *ctx.render_targets.depth_texture, *selected_mesh_buffer);
-
-        AddTextureBarrier(ctx.cmd_buffer, .ColorAttachment, .TransferSrc, *ctx.render_targets.entity_guids_texture);
-        TransferEntityGUIDsForReadback(ctx);
-        AddTextureBarrier(ctx.cmd_buffer, .TransferSrc, .ShaderReadOnly, *ctx.render_targets.entity_guids_texture);
+        RenderEntitySelection(ctx, *mesh_buffer, *selected_mesh_buffer);
     }
 
     PrepareClusters(ctx);

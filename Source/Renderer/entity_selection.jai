@@ -83,3 +83,12 @@ TransferEntityGUIDsForReadback :: (using ctx : *RenderContext) {
     }
     EndGfxCopyPass(*pass);
 }
+
+RenderEntitySelection :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer, selected_mesh_buffer : *MeshBuffer) {
+    EntityGUIDsPass(ctx, *render_targets.entity_guids_texture, *render_targets.depth_texture, mesh_buffer);
+    EntityGUIDsPass(ctx, *render_targets.selected_entity_guids_texture, *render_targets.depth_texture, selected_mesh_buffer);
+
+    AddTextureBarrier(cmd_buffer, .ColorAttachment, .TransferSrc, *render_targets.entity_guids_texture);
+    TransferEntityGUIDsForReadback(ctx);
+    AddTextureBarrier(cmd_buffer, .TransferSrc, .ShaderReadOnly, *render_targets.entity_guids_texture);
+}
