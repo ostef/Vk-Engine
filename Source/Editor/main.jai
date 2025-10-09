@@ -215,6 +215,8 @@ ShutdownEditor :: (global_shutdown : bool) {
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
+    UnreferenceAllAssets(*g_material_editor);
+
     WaitForRenderThread();
     WaitForGPUIdle();
 
@@ -341,16 +343,7 @@ OnEvent :: (event : SDL_Event) {
     ImGui_SDL.HandleWindowEvent(event);
 }
 
-UpdateEditor :: () {
-    Remap_Context();
-
-    DestroyKilledEntities(*g_editor_world);
-
-    ImGui_SDL.NewFrame();
-    ImGui.NewFrame();
-
-    ImGui.DockSpaceOverViewport();
-
+ShowMainMenuBar :: () {
     if ImGui.BeginMainMenuBar() {
         defer ImGui.EndMainMenuBar();
 
@@ -440,6 +433,19 @@ UpdateEditor :: () {
             }
         }
     }
+}
+
+UpdateEditor :: () {
+    Remap_Context();
+
+    DestroyKilledEntities(*g_editor_world);
+
+    ImGui_SDL.NewFrame();
+    ImGui.NewFrame();
+
+    ImGui.DockSpaceOverViewport();
+
+    ShowMainMenuBar();
 
     if g_show_imgui_demo {
         ImGui.ShowDemoWindow(*g_show_imgui_demo);
@@ -467,59 +473,15 @@ UpdateEditor :: () {
 
     ShowEntityInspector(*g_editor_world, entity_to_inspect);
 
-    {
-        ProfileBlock(GetCPUFrameProfiler(), "Entity.OnEditorUpdate");
-
-        AllEntitiesWithOnEditorUpdate :: #bake_arguments AllEntitiesWithCallback(Callback="OnEditorUpdate");
-
-        for :AllEntitiesWithOnEditorUpdate entity : g_editor_world {
-            CallEntityCallback(*g_editor_world, entity, "OnEditorUpdate");
-        }
-    }
-
-    {
-        ProfileBlock(GetCPUFrameProfiler(), "Component.OnEditorUpdate");
-
-        AllComponentsWithOnEditorUpdate :: #bake_arguments AllComponentsWithCallback(Callback="OnEditorUpdate");
-
-        for :AllComponentsWithOnEditorUpdate component : g_editor_world {
-            entity := GetEntity(*g_editor_world, component.entity_index);
-            if !entity {
-                continue;
-            }
-
-            CallComponentCallback(*g_editor_world, entity, component, "OnEditorUpdate");
-        }
-    }
-
-    // {
-    //     ProfileBlock(GetCPUFrameProfiler(), "Entity.OnDebugDraw");
-
-    //     AllEntitiesWithOnDebugDraw :: #bake_arguments AllEntitiesWithCallback(Callback="OnDebugDraw");
-
-    //     for :AllEntitiesWithOnDebugDraw entity : g_editor_world {
-    //         CallEntityCallback(*g_editor_world, entity, "OnDebugDraw");
-    //     }
-    // }
-
-    // {
-    //     ProfileBlock(GetCPUFrameProfiler(), "Component.OnDebugDraw");
-
-    //     AllComponentsWithOnDebugDraw :: #bake_arguments AllComponentsWithCallback(Callback="OnDebugDraw");
-
-    //     for :AllComponentsWithOnDebugDraw component : g_editor_world {
-    //         entity := GetEntity(*g_editor_world, component.entity_index);
-    //         if !entity {
-    //             continue;
-    //         }
-
-    //         CallComponentCallback(*g_editor_world, null, component, "OnDebugDraw");
-    //     }
-    // }
+    ExecuteEntityCallback(*g_editor_world, "OnEditorUpdate");
+    ExecuteComponentCallback(*g_editor_world, "OnEditorUpdate");
 
     UpdateAllFileBrowsers();
 
-    ImGui.Render();
+    {
+        ProfileBlock(GetCPUFrameProfiler(), "ImGui.Render");
+        ImGui.Render();
+    }
 
     WaitForRenderThread();
 

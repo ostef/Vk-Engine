@@ -448,7 +448,26 @@ GetEntity :: (using world : *World, index : EntityIndex) -> *Entity, GetEntityEr
     return null, .InvalidEntityIndex;
 }
 
-CallEntityCallback :: inline (world : *World, entity : *$T, $Callback : string)
+ExecuteEntityCallback :: (world : *World, $Callback : string) {
+    #insert -> string {
+        builder : StringBuilder;
+
+        Appendln(*builder, "ProfileBlock(GetCPUFrameProfiler(), \"Entity.%\");", Callback);
+
+        for i : 1..Entity_Types.count - 1 {
+            type := Entity_Types[i];
+            Appendln(*builder, "#if #exists(%1.%2) {", type, Callback);
+            Appendln(*builder, "    for * world.%1_storage {", type);
+            Appendln(*builder, "        it.%1(world, it);", Callback);
+            Appendln(*builder, "    }");
+            Appendln(*builder, "}");
+        }
+
+        return StringBuilderBuild(*builder);
+    }
+}
+
+ExecuteEntityCallback :: inline (world : *World, entity : *$T, $Callback : string)
 #modify { return T == Entity || IsInEntityTypesArray(T); } {
     #if T == Entity {
         #insert -> string {
@@ -512,7 +531,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     }
 
     UpdateWorldTransform(world, entity);
-    CallEntityCallback(world, entity, "OnAttach");
+    ExecuteEntityCallback(world, entity, "OnAttach");
 
     LogMessage("Attached entity % to %", entity.guid, to.guid, flags=.VERBOSE_ONLY);
 }
@@ -524,7 +543,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
         return;
     }
 
-    CallEntityCallback(world, entity, "OnDetach");
+    ExecuteEntityCallback(world, entity, "OnDetach");
 
     parent := GetEntity(world, *entity.parent);
     Assert(parent != null);
@@ -645,7 +664,7 @@ SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := N
         SetEntityName(world, entity, name);
     }
 
-    CallEntityCallback(world, entity, "OnSpawn");
+    ExecuteEntityCallback(world, entity, "OnSpawn");
 
     if name {
         LogMessage("Spawned entity % (%, %)",

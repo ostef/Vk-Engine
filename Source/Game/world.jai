@@ -336,7 +336,7 @@ DestroyKilledEntities :: (using world : *World) {
             }
         }
 
-        CallEntityCallback(world, entity, "OnDespawn");
+        ExecuteEntityCallback(world, entity, "OnDespawn");
 
         ArrayFree(*entity.children);
 

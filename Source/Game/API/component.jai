@@ -247,7 +247,30 @@ GetComponent :: inline (entity : *$E, $T : Type) -> *T
     }
 }
 
-CallComponentCallback :: inline (world : *World, component : *$T, $Callback : string)
+ExecuteComponentCallback :: (world : *World, $Callback : string) {
+    #insert -> string {
+        builder : StringBuilder;
+
+        Appendln(*builder, "ProfileBlock(GetCPUFrameProfiler(), \"Component.%\");", Callback);
+
+        for i : 1..Component_Types.count - 1 {
+            type := Component_Types[i];
+            Appendln(*builder, "#if #exists(%1.%2) {", type, Callback);
+            Appendln(*builder, "    for * world.%1_storage {", type);
+            Appendln(*builder, "        entity := GetEntity(world, it.entity);");
+            Appendln(*builder, "        if !entity {");
+            Appendln(*builder, "            continue;");
+            Appendln(*builder, "        }");
+            Appendln(*builder, "        it.%1(world, entity, it);", Callback);
+            Appendln(*builder, "    }");
+            Appendln(*builder, "}");
+        }
+
+        return StringBuilderBuild(*builder);
+    }
+}
+
+ExecuteComponentCallback :: inline (world : *World, component : *$T, $Callback : string)
 #modify { return T == Component || IsInComponentTypesArray(T); } {
     #if T == Component {
         #insert -> string {
@@ -267,7 +290,7 @@ CallComponentCallback :: inline (world : *World, component : *$T, $Callback : st
     }
 }
 
-CallComponentCallback :: inline (world : *World, entity : *Entity, component : *$T, $Callback : string)
+ExecuteComponentCallback :: inline (world : *World, entity : *Entity, component : *$T, $Callback : string)
 #modify { return T == Component || IsInComponentTypesArray(T); } {
     #if T == Component {
         #insert -> string {
