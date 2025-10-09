@@ -235,11 +235,9 @@ ShowEntityOutliner :: (world : *World) {
 
         HashSetInsert(already_shown_entities, entity.guid);
 
-        label := ifx entity.name
-            then CStringClone(entity.name ,, Temp)
-            else CTPrint("<%>##%", GetNiceEntityTypeName(entity), entity.guid);
+        label := CTPrint("%##%", ifx entity.name then entity.name else "Unnamed", entity.guid);
 
-        flags := ImGui.TreeNodeFlags.OpenOnArrow | .SpanFullWidth;
+        flags := ImGui.TreeNodeFlags.OpenOnArrow | .SpanFullWidth | .SpanAllColumns;
         if entity.children.count == 0 {
             flags |= .Leaf;
         }
@@ -255,7 +253,20 @@ ShowEntityOutliner :: (world : *World) {
 
         opened : bool;
         if pass_filter {
+            ImGui.TableNextRow();
+            ImGui.TableSetColumnIndex(0);
+
+            disabled_color := ImGui.GetColorU32(.TextDisabled);
+            if !entity.name {
+                ImGui.PushStyleColor(.Text, disabled_color);
+            }
+
             opened = ImGui.TreeNodeEx(label, flags);
+
+            if !entity.name {
+                ImGui.PopStyleColor();
+            }
+
             if entity.name {
                 ImGui.SetItemTooltip("<%> % %", GetNiceEntityTypeName(entity), entity.name, entity.guid);
             } else {
@@ -313,6 +324,9 @@ ShowEntityOutliner :: (world : *World) {
 
                 ImGui.EndDragDropTarget();
             }
+
+            ImGui.TableSetColumnIndex(1);
+            ImGui.Text(GetNiceEntityTypeName(entity));
         }
 
         if opened {
@@ -332,11 +346,21 @@ ShowEntityOutliner :: (world : *World) {
         }
     } @NoProfile
 
-    for :AllEntities entity : world {
-        if entity.parent != Null_Entity_GUID {
-            continue;
-        }
+    table_flags := ImGui.TableFlags.Resizable | .RowBg | .PadOuterX;
+    if ImGui.BeginTable("entity_list", 2, table_flags) {
+        defer ImGui.EndTable();
 
-        ShowEntity(world, entity, *already_shown_entities);
+        ImGui.TableSetupColumn("Name", .WidthStretch, 0.6);
+        ImGui.TableSetupColumn("Type", .WidthStretch | .NoResize, 0.4);
+        ImGui.TableSetupScrollFreeze(0, 1); // Keep headers visible when scrolling
+        ImGui.TableHeadersRow();
+
+        for :AllEntities entity : world {
+            if entity.parent != Null_Entity_GUID {
+                continue;
+            }
+
+            ShowEntity(world, entity, *already_shown_entities);
+        }
     }
 }
