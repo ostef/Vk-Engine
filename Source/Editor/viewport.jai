@@ -49,6 +49,8 @@ MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewport
 }
 
 CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
+    LogSectionScope(*Log_Editor);
+
     viewport := CreateEditorViewport();
     viewport.unique_id = state.unique_id;
 
@@ -64,6 +66,8 @@ CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
 }
 
 CreateEditorViewport :: () -> *EditorViewport {
+    LogSectionScope(*Log_Editor);
+
     viewport := Alloc(EditorViewport);
     viewport.unique_id = g_editor_viewport_id_counter;
     g_editor_viewport_id_counter += 1;
@@ -87,6 +91,8 @@ CreateEditorViewport :: () -> *EditorViewport {
 }
 
 DestroyEditorViewport :: (viewport : *EditorViewport) {
+    LogSectionScope(*Log_Editor);
+
     index := ArrayFindFirst(g_editor_viewports, viewport);
     if index >= 0 {
         ArrayOrderedRemove(*g_editor_viewports, index);
@@ -177,6 +183,8 @@ WorldToCamera :: (camera : *EditorCamera, point : Vec3f) -> is_behind : bool, Ve
 }
 
 UpdateEditorViewports :: (world : *World, delta_time : float) {
+    LogSectionScope(*Log_Editor);
+
     for g_editor_viewports {
         UpdateEditorViewport(world, it, delta_time);
     }
