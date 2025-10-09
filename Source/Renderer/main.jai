@@ -17,6 +17,7 @@
 #load "skybox.jai";
 #load "entity_selection.jai";
 #load "forward_pass.jai";
+#load "depth_prepass.jai";
 #load "compositing.jai";
 #load "bloom.jai";
 #load "debug_draw.jai";
@@ -870,7 +871,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     }
 
     PrepareClusters(ctx);
-    // DepthPrepass(ctx, *mesh_buffer);
+    DepthPrepass(ctx, *mesh_buffer);
     ForwardPass(ctx, *mesh_buffer);
     SkyboxPass(ctx, ifx ctx.world.skybox && ctx.world.skybox.base_texture then *ctx.world.skybox.base_texture.texture);
 
