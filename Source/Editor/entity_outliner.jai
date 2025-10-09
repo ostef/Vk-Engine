@@ -226,7 +226,7 @@ ShowEntityOutliner :: (world : *World) {
             child := GetEntity(world, it);
             VisitEntity(world, child, already_shown_entities);
         }
-    }
+    } @NoProfile
 
     ShowEntity :: (world : *World, entity : *Entity, already_shown_entities : *EntityGUIDSet) {
         if HashSetGetPtr(already_shown_entities, entity.guid) {
@@ -330,7 +330,7 @@ ShowEntityOutliner :: (world : *World) {
                 VisitEntity(world, child, already_shown_entities);
             }
         }
-    }
+    } @NoProfile
 
     for :AllEntities entity : world {
         if entity.parent != Null_Entity_GUID {
