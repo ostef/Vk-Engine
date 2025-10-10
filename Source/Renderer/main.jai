@@ -171,6 +171,7 @@ ShutdownRenderer :: (global_shutdown : bool) {
     ArrayFree(*g_compute_pipelines);
 
     DestroyMaterialRenderPass(*g_forward_material_pass);
+    DestroyMaterialRenderPass(*g_depth_only_material_pass);
     DestroyMaterialRenderPass(*g_shadow_map_material_pass);
     DestroyMaterialRenderPass(*g_point_shadow_map_material_pass);
     DestroyMaterialRenderPass(*g_entity_guid_material_pass);
