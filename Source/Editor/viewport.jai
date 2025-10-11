@@ -294,38 +294,7 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
         x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
         y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
 
-        Bg_Color :: Vec4f.{1,1,1,0.2};
-        Outline_Color :: Vec4f.{1,1,1,1};
-        Outline_Dash_Length :: 5.0;
-        Outline_Dash_Space :: 5.0;
-        Outline_Dash_Thickness :: 1.0;
-
-        draw_list.AddRectFilled(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2}, U32Color(Bg_Color));
-
-        AddDashedLine(draw_list,
-            .{xx x1, xx y1}, .{xx x2, xx y1},
-            Outline_Dash_Length, Outline_Dash_Space,
-            U32Color(Outline_Color),
-            Outline_Dash_Thickness
-        );
-        AddDashedLine(draw_list,
-            .{xx x1, xx y2}, .{xx x2, xx y2},
-            Outline_Dash_Length, Outline_Dash_Space,
-            U32Color(Outline_Color),
-            Outline_Dash_Thickness
-        );
-        AddDashedLine(draw_list,
-            .{xx x1, xx y1}, .{xx x1, xx y2},
-            Outline_Dash_Length, Outline_Dash_Space,
-            U32Color(Outline_Color),
-            Outline_Dash_Thickness
-        );
-        AddDashedLine(draw_list,
-            .{xx x2, xx y1}, .{xx x2, xx y2},
-            Outline_Dash_Length, Outline_Dash_Space,
-            U32Color(Outline_Color),
-            Outline_Dash_Thickness
-        );
+        AddSelectionBox(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2});
     }
 
     return opened;

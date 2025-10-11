@@ -534,6 +534,40 @@ AddDashedLine :: (
     }
 }
 
+AddSelectionBox :: (
+    draw_list : *ImGui.ImDrawList,
+    min : Vec2f, max : Vec2f,
+    bg_color := Vec4f.{1,1,1,0.2}, outline_color := Vec4f.{1,1,1,1},
+    dash_length := 5.0, dash_space := 5.0, dash_thickness := 1.0
+) {
+    draw_list.AddRectFilled(draw_list, min, max, U32Color(bg_color));
+
+    AddDashedLine(draw_list,
+        .{xx min.x, xx min.y}, .{xx max.x, xx min.y},
+        dash_length, dash_space,
+        U32Color(outline_color),
+        dash_thickness
+    );
+    AddDashedLine(draw_list,
+        .{xx min.x, xx max.y}, .{xx max.x, xx max.y},
+        dash_length, dash_space,
+        U32Color(outline_color),
+        dash_thickness
+    );
+    AddDashedLine(draw_list,
+        .{xx min.x, xx min.y}, .{xx min.x, xx max.y},
+        dash_length, dash_space,
+        U32Color(outline_color),
+        dash_thickness
+    );
+    AddDashedLine(draw_list,
+        .{xx max.x, xx min.y}, .{xx max.x, xx max.y},
+        dash_length, dash_space,
+        U32Color(outline_color),
+        dash_thickness
+    );
+}
+
 SetEditorStyleBasic :: () {
     style := ImGui.GetStyle();
     style.Constructor(style);
