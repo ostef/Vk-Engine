@@ -206,11 +206,6 @@ ShowEntityOutliner :: (world : *World) {
     PopButtonColor();
     ImGui.PopFont();
 
-    defer ImGui.EndChild();
-    if !ImGui.BeginChild("Outliner", child_flags=.Border, window_flags=.HorizontalScrollbar) {
-        return;
-    }
-
     EntityGUIDSet :: HashSet(
         EntityGUID,
         hash_func = HashEntityGUID,
@@ -347,7 +342,7 @@ ShowEntityOutliner :: (world : *World) {
         }
     } @NoProfile
 
-    table_flags := ImGui.TableFlags.Resizable | .RowBg | .PadOuterX;
+    table_flags := ImGui.TableFlags.Resizable | .RowBg | .PadOuterX | .ScrollY;
     if ImGui.BeginTable("entity_list", 2, table_flags) {
         defer ImGui.EndTable();
 
