@@ -52,17 +52,23 @@ BeginGfxFrame :: () {
         Assert(wait_result == .SUCCESS, "vkWaitForFences failed: %", wait_result);
     }
 
-    while true {
-        acquire_result := vkAcquireNextImageKHR(ctx.device, ctx.swapchain, Frame_Max_Wait, ctx.swapchain_image_acquired_semaphores[ctx.frame_in_flight], null, *ctx.frame_swapchain_image_index);
+    {
+        ProfileBlock(*g_cpu_profiler, "AcquireNextImage");
 
-        // If we get SUBOPTIMAL_KHR then semaphore has been signaled so we cannot
-        // ask again with the same semaphore.
-        // Continue rendering as normal, we'll recreate the swapchain later
-        if acquire_result == .ERROR_OUT_OF_DATE_KHR {
-            RecreateSwapchain();
-        } else {
-            Assert(acquire_result == .SUCCESS || acquire_result == .SUBOPTIMAL_KHR, "vkAcquireNextImageKHR failed: %", acquire_result);
-            break;
+        while true {
+            acquire_result := vkAcquireNextImageKHR(ctx.device, ctx.swapchain, Frame_Max_Wait, ctx.swapchain_image_acquired_semaphores[ctx.frame_in_flight], null, *ctx.frame_swapchain_image_index);
+
+            // If we get SUBOPTIMAL_KHR then semaphore has been signaled so we cannot
+            // ask again with the same semaphore.
+            // Continue rendering as normal, we'll recreate the swapchain later
+            if acquire_result == .SUBOPTIMAL_KHR || acquire_result == .SUCCESS {
+                break;
+            } else if acquire_result == .ERROR_OUT_OF_DATE_KHR {
+                RecreateSwapchain();
+            } else {
+                Panic("vkAcquireNextImageKHR failed: %", acquire_result);
+                break;
+            }
         }
     }
 
