@@ -251,6 +251,7 @@ AllEditorState :: struct {
     show_gpu_profiler : bool; @Serialize(14)
     entity_hide_editor_icon : [Entity_Types.count]bool; @Serialize(15)
     component_hide_editor_icon : [Component_Types.count]bool; @Serialize(16)
+    profiler_running : bool; @Serialize(17)
 }
 
 SaveState :: () -> []u8 {
@@ -269,6 +270,7 @@ SaveState :: () -> []u8 {
         main_editor_viewport_id=ifx g_main_editor_viewport then g_main_editor_viewport.unique_id,
         cpu_profiler_window=g_cpu_profiler_window,
         show_gpu_profiler=g_show_gpu_profiler,
+        profiler_running=!GetCPUFrameProfiler().paused,
     };
     defer Free(all_state.loaded_world.data);
 
@@ -337,7 +339,13 @@ LoadState :: (state : []u8) {
     g_show_gpu_profiler = show_gpu_profiler;
 
     memcpy(*g_entity_hide_editor_icon, *entity_hide_editor_icon, size_of(type_of(entity_hide_editor_icon)));
-    memcpy(*g_component_hide_editor_icon, *component_hide_editor_icon, size_of(type_of(component_hide_editor_icon)));}
+    memcpy(*g_component_hide_editor_icon, *component_hide_editor_icon, size_of(type_of(component_hide_editor_icon)));
+
+    if profiler_running {
+        ClearProfilingData(GetCPUFrameProfiler());
+        ResumeProfiler(GetCPUFrameProfiler());
+    }
+}
 
 OnEvent :: (event : SDL_Event) {
     ImGui_SDL.HandleWindowEvent(event);
