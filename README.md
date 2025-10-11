@@ -46,6 +46,7 @@ Supports Linux and Windows.
 * Gizmo interaction improvements and rework
 * Texture viewer
 ### Core:
+* Async asset loading/asset streaming
 * Pipelining
 * Input system
 ### Animation:
