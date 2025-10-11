@@ -111,6 +111,8 @@ InitializeRenderer :: (global_init : bool) {
     sampler_desc.mipmap_filter = .Linear;
     sampler_desc.u_address_mode = .Repeat;
     sampler_desc.v_address_mode = .Repeat;
+    sampler_desc.anisotropy_enabled = true;
+    sampler_desc.max_anisotropy = 8;
 
     g_material_texture_sampler = CreateGfxSampler("Material Texture", sampler_desc);
     Assert(!IsNull(*g_material_texture_sampler), "Could not create material texture sampler");
