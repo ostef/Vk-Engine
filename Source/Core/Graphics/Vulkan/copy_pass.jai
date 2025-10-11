@@ -1,8 +1,8 @@
-BeginGfxCopyPass :: (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass {
+BeginGfxCopyPass :: (cmd_buffer : *GfxCommandBuffer, name : string, location := #caller_location) -> GfxCopyPass {
     LogSectionScope(*Log_Vulkan);
 
     BeginGfxDebugMarker(cmd_buffer, name);
-    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name);
+    profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name, location);
 
     return .{cmd_buffer=cmd_buffer, profiling_event=profiling_event, name=name};
 } @ModuleAPI @NoProfile

@@ -92,7 +92,7 @@ ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
     profiler.current_event = null;
 } @ModuleAPI @NoProfile
 
-ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent {
+ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string, location := #caller_location) -> *GPUProfilingEvent {
     if profiler.num_events_for_frame[GetFrameInFlight()] >= profiler.events_for_frame[GetFrameInFlight()].count {
         return null;
     }
@@ -102,6 +102,7 @@ ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfi
     event.name = StringClone(name);
     event.index = profiler.num_events_for_frame[GetFrameInFlight()];
     event.parent = profiler.current_event;
+    event.location = location;
     profiler.current_event = event;
 
     vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .TOP_OF_PIPE_BIT, profiler.query_pools[GetFrameInFlight()], xx (event.index * 2));

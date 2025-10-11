@@ -16,6 +16,7 @@ GPUProfilingEvent :: struct {
     start_gpu_tick : u64 = 0xffffffffffffffff;
     end_gpu_tick : u64 = 0xffffffffffffffff;
     elapsed_time_ms : float64;
+    location : Source_Code_Location;
 
     parent : *GPUProfilingEvent;
     first_child : *GPUProfilingEvent;
@@ -23,7 +24,7 @@ GPUProfilingEvent :: struct {
     next_sibling : *GPUProfilingEvent;
 }
 
-ProfileGPUZone :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) #expand {
-    event := ProfilerBeginEvent(cmd_buffer, profiler, name);
+ProfileGPUZone :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string, location := #caller_location) #expand {
+    event := ProfilerBeginEvent(cmd_buffer, profiler, name, location);
     `defer ProfilerEndEvent(cmd_buffer, profiler, event);
 } @NoProfile

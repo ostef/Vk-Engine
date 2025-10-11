@@ -223,7 +223,7 @@ AppendExpression :: (builder : *StringBuilder, expr : *Code_Node) {
         case #char "~"; Append(builder, " ~ ");
         case #char "<"; Append(builder, " < ");
         case #char ">"; Append(builder, " > ");
-        case xx Operator_Type.IS_EQUAL; Append(builder, " == ");
+        case xx Operator_Type.IS_EQUAL;         Append(builder, " == ");
         case xx Operator_Type.IS_NOT_EQUAL;     Append(builder, " != ");
         case xx Operator_Type.LESS_OR_EQUAL;    Append(builder, " <= ");
         case xx Operator_Type.GREATER_OR_EQUAL; Append(builder, " >= ");
@@ -248,6 +248,17 @@ AppendExpression :: (builder : *StringBuilder, expr : *Code_Node) {
             compiler_report("Non implicit casts are not handled", make_location(expr));
         }
 
+    case .DIRECTIVE_LOCATION;
+        location := cast(*Code_Directive_Location, expr);
+        if location.is_caller_location {
+            Append(builder, "#caller_location");
+        } else {
+            Append(builder, "#location(");
+            if location.expression {
+                AppendExpression(builder, location.expression);
+            }
+            Append(builder, ")");
+        }
     case;
         compiler_report(TPrint("Unhandled expression kind %", expr.kind), make_location(expr));
     }

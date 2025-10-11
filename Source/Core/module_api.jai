@@ -10,12 +10,12 @@ CoreModule :: struct {
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture);
     AllocGfxBindingSet : (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult;
-    BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass;
-    BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass;
+    BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxComputePass;
+    BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxCopyPass;
     BeginGfxDebugMarker_1 : (name : string);
     BeginGfxDebugMarker_2 : (cmd_buffer : *GfxCommandBuffer, name : string);
     BeginGfxFrame : ();
-    BeginGfxRenderPass : (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass;
+    BeginGfxRenderPass : (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc, location : Source_Code_Location = #caller_location) -> GfxRenderPass;
     BindComputeBindingSet_1 : (pass : *GfxComputePass, index : u32, set : *GfxBindingSet);
     BindComputeBindingSet_2 : (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet);
     BindComputePipeline : (pass : *GfxComputePass, pipeline : *GfxComputePipeline);
@@ -115,7 +115,7 @@ CoreModule :: struct {
     LoadPendingAssets : ();
     PointIsInsideBox : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     PointIsOnTriangle : (point : Vector(N=3, T=float32), triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), epsilon : float = 0.00001) -> bool;
-    ProfilerBeginEvent : (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent;
+    ProfilerBeginEvent : (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string, location : Source_Code_Location = #caller_location) -> *GPUProfilingEvent;
     ProfilerBeginFrame : (profiler : *GPUFrameProfiler);
     ProfilerEndEvent : (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, event : *GPUProfilingEvent);
     ProjectPointOnBox_1 : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
@@ -210,14 +210,14 @@ AllocGfxBindingSet :: inline (pool : *GfxBindingPool, layout : *GfxBindingSetLay
     return _ret0, _ret1;
 } @NoProfile
 
-BeginGfxComputePass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxComputePass {
+BeginGfxComputePass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxComputePass {
     Assert(g_Core != null, "Core module is null");
-    return g_Core.BeginGfxComputePass(cmd_buffer, name);
+    return g_Core.BeginGfxComputePass(cmd_buffer, name, location);
 } @NoProfile
 
-BeginGfxCopyPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string) -> GfxCopyPass {
+BeginGfxCopyPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxCopyPass {
     Assert(g_Core != null, "Core module is null");
-    return g_Core.BeginGfxCopyPass(cmd_buffer, name);
+    return g_Core.BeginGfxCopyPass(cmd_buffer, name, location);
 } @NoProfile
 
 BeginGfxDebugMarker :: inline (name : string) {
@@ -235,9 +235,9 @@ BeginGfxFrame :: inline () {
     g_Core.BeginGfxFrame();
 } @NoProfile
 
-BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc) -> GfxRenderPass {
+BeginGfxRenderPass :: inline (cmd_buffer : *GfxCommandBuffer, name : string, desc : GfxRenderPassDesc, location : Source_Code_Location = #caller_location) -> GfxRenderPass {
     Assert(g_Core != null, "Core module is null");
-    return g_Core.BeginGfxRenderPass(cmd_buffer, name, desc);
+    return g_Core.BeginGfxRenderPass(cmd_buffer, name, desc, location);
 } @NoProfile
 
 BindComputeBindingSet :: inline (pass : *GfxComputePass, index : u32, set : *GfxBindingSet) {
@@ -746,9 +746,9 @@ PointIsOnTriangle :: inline (point : Vector(N=3, T=float32), triangle_A : Vector
     return g_Core.PointIsOnTriangle(point, triangle_A, triangle_B, triangle_C, epsilon);
 } @NoProfile
 
-ProfilerBeginEvent :: inline (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string) -> *GPUProfilingEvent {
+ProfilerBeginEvent :: inline (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string, location : Source_Code_Location = #caller_location) -> *GPUProfilingEvent {
     Assert(g_Core != null, "Core module is null");
-    return g_Core.ProfilerBeginEvent(cmd_buffer, profiler, name);
+    return g_Core.ProfilerBeginEvent(cmd_buffer, profiler, name, location);
 } @NoProfile
 
 ProfilerBeginFrame :: inline (profiler : *GPUFrameProfiler) {

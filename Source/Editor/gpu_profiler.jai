@@ -8,7 +8,10 @@ ShowGPUProfilerTimings :: () {
             flags |= .Leaf;
         }
 
-        if ImGui.TreeNodeEx(label, flags) {
+        opened := ImGui.TreeNodeEx(label, flags);
+        ImGui.SetItemTooltip("%:%:%", event.location.fully_pathed_filename, event.location.line_number, event.location.character_number);
+
+        if opened {
             defer ImGui.TreePop();
 
             child := event.first_child;
@@ -125,4 +128,3 @@ ShowGPUProfiler :: () {
         ImGui.EndTabBar();
     }
 }
-
