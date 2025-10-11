@@ -154,6 +154,10 @@ SubmitEditorWorldToRenderer :: (world : *World) {
         viewpoint.unique_id = it.unique_id;
         viewpoint.world_index = world_index;
 
+        if it.show_wireframe {
+            viewpoint.flags |= .ShowWireframe;
+        }
+
         if !it.show_debug_drawings {
             viewpoint.flags |= .NoDebugLines;
         }

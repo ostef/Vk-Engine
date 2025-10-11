@@ -21,6 +21,7 @@ EditorViewport :: struct {
 
     show_debug_drawings := true;
     show_grid := true;
+    show_wireframe := false;
 
     is_box_selecting : bool;
     box_selection_start : Vec2i;
@@ -36,6 +37,7 @@ EditorViewportState :: struct {
     gizmo_ctx : GizmoContextState; @Serialize(3)
     show_grid : bool; @Serialize(4)
     show_debug_drawings : bool; @Serialize(5)
+    show_wireframe : bool; @Serialize(6)
 }
 
 MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewportState {
@@ -45,6 +47,7 @@ MakeEditorViewportState :: inline (viewport : *EditorViewport) -> EditorViewport
         gizmo_ctx=MakeGizmoContextState(*viewport.gizmo_ctx),
         show_grid=viewport.show_grid,
         show_debug_drawings=viewport.show_debug_drawings,
+        show_wireframe=viewport.show_wireframe,
     };
 }
 
@@ -59,6 +62,7 @@ CreateEditorViewport :: (state : EditorViewportState) -> *EditorViewport {
 
     viewport.show_grid = state.show_grid;
     viewport.show_debug_drawings = state.show_debug_drawings;
+    viewport.show_wireframe = state.show_wireframe;
 
     SetGizmoContextState(*viewport.gizmo_ctx, state.gizmo_ctx);
 
@@ -571,10 +575,61 @@ MakeViewpointToRender :: (camera : *EditorCamera, size : Vec2u) -> ViewpointToRe
 }
 
 MakeViewpointToRender :: (using viewport : EditorViewport) -> ViewpointToRender {
-    return MakeViewpointToRender(*camera, .{xx Max(size.x, 0), xx Max(size.y, 0)});
+    viewpoint := MakeViewpointToRender(*camera, .{xx Max(size.x, 0), xx Max(size.y, 0)});
+    viewpoint.unique_id = unique_id;
+
+    if show_wireframe {
+        viewpoint.flags |= .ShowWireframe;
+    }
+
+    if !show_debug_drawings {
+        viewpoint.flags |= .NoDebugLines;
+    }
+
+    if !show_grid {
+        viewpoint.flags |= .NoGrids;
+    }
+
+    for widget : gizmo_ctx.widgets {
+        mesh := gizmo_ctx.meshes.all[widget.mesh_id];
+
+        to_render := GizmoWidgetToRender.{
+            transform=widget.transform,
+            color=widget.color,
+            shaded=widget.shaded,
+            vertex_buffer=*mesh.vertex_buffer,
+            index_buffer=*mesh.index_buffer,
+            vertex_count=mesh.vertex_count,
+            index_count=mesh.index_count,
+        };
+
+        ArrayPush(*viewpoint.gizmo_widgets, to_render);
+    }
+
+    for line : gizmo_ctx.lines_to_draw {
+        ArrayPush(*viewpoint.gizmo_lines, line);
+    }
+
+    return viewpoint;
 }
 
 DefaultViewportMenu :: (world : *World, viewport : *EditorViewport) {
+    if ImGui.BeginMenu("Options") {
+        defer ImGui.EndMenu();
+
+        if ImGui.MenuItem("Show Debug Lines", selected=viewport.show_debug_drawings) {
+            viewport.show_debug_drawings = !viewport.show_debug_drawings;
+        }
+
+        if ImGui.MenuItem("Show Grid", selected=viewport.show_grid) {
+            viewport.show_grid = !viewport.show_grid;
+        }
+
+        if ImGui.MenuItem("Show Wireframe", selected=viewport.show_wireframe) {
+            viewport.show_wireframe = !viewport.show_wireframe;
+        }
+    }
+
     if ImGui.MenuItem(CTPrint("%###show_grid", ifx viewport.show_grid then Icon_Grid_MDI else Icon_Grid_Off_MDI), selected=viewport.show_grid) {
         viewport.show_grid = !viewport.show_grid;
     }

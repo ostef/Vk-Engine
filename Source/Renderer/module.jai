@@ -35,6 +35,7 @@ ViewpointToRender :: struct {
         NoGrids;
         NoEntitySelection;
         NoGizmos;
+        ShowWireframe;
     }
 
     unique_id : u64;

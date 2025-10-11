@@ -81,6 +81,7 @@ g_material_descs : [Num_Material_Types]MaterialDesc = .[
 // MaterialPipelines stores pipelines for one material depending on variations (e.g. skinned, wireframe, skinned and wireframe)
 MaterialPipelineFlags :: enum_flags {
     Skinned;
+    Wireframe;
 }
 
 Num_Material_Pipelines :: #run -> int {
@@ -117,6 +118,11 @@ CreateMaterialPipelines :: (pipelines : *MaterialPipelines, name : string, templ
         }
 
         desc.rasterizer_state = template.rasterizer_state;
+
+        if flags & .Wireframe {
+            desc.rasterizer_state.fill_mode = .Lines;
+        }
+
         desc.depth_state = template.depth_state;
         desc.stencil_state = template.stencil_state;
         memcpy(desc.blend_states.data, template.blend_states.data, size_of(type_of(template.blend_states)));

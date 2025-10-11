@@ -209,6 +209,7 @@ InitGfxContext :: (window : *SDL_Window) {
     }
 
     device_features : VkPhysicalDeviceFeatures;
+    device_features.fillModeNonSolid = VK_TRUE;
     device_features.samplerAnisotropy = VK_TRUE;
     // Make out of bounds reads return 0s and out of bounds writes a noop
     device_features.robustBufferAccess = VK_TRUE;

@@ -56,8 +56,13 @@ ForwardPass :: (using ctx : *RenderContext, mesh_buffer : *MeshBuffer) {
 
         BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 1, *binding_set);
 
+        pipeline_flags : MaterialPipelineFlags;
+        if viewpoint.flags & .ShowWireframe {
+            pipeline_flags |= .Wireframe;
+        }
+
         for mesh_buffer.draw_calls {
-            pipeline := GetPipeline(*g_forward_material_pass, it);
+            pipeline := GetPipeline(*g_forward_material_pass, it, pipeline_flags);
             BindGraphicsPipeline(*pass, pipeline);
 
             BindGraphicsBindingSet(cmd_buffer, *g_forward_material_pass.pipeline_layout, 2, *it.binding_set);
