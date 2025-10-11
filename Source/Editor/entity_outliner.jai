@@ -192,6 +192,7 @@ ShowEntityOutliner :: (world : *World) {
 
         ImGui.PushFont(g_editor_base_font);
         defer ImGui.PopFont();
+
         for i : 1..Entity_Types.count - 1 {
             type_id := cast(EntityTypeId, i);
             name := GetNiceEntityTypeName(type_id);
