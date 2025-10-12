@@ -1047,7 +1047,8 @@ FileType :: enum {
     Image;
     Audio;
     Video;
-    MeshOrAnim;
+    Mesh;
+    Animation;
     Material;
     Archive;
     Font;
@@ -1079,8 +1080,10 @@ GetFileTypeString :: (ext : string, directory : bool) -> string {
         return "Audio";
     case .Video;
         return "Video";
-    case .MeshOrAnim;
-        return "";
+    case .Mesh;
+        return "Mesh";
+    case .Animation;
+        return "Animation";
     case .Material;
         return "Material";
     case .Archive;
@@ -1135,10 +1138,13 @@ GetFileType :: (ext : string, directory : bool) -> FileType {
     case "fbx"; #through;
     case "gltf"; #through;
     case "glb"; #through;
-    case "dae"; #through;
-    case "mesh"; #through;
+    case "dae";
+        return .Unknown;
+    case "mesh";
+        return .Mesh;
+
     case "anim";
-        return .MeshOrAnim;
+        return .Animation;
 
     case "mat";
         return .Material;
@@ -1246,7 +1252,9 @@ GetFileIconByType :: (type : FileType) -> string {
         return Icon_File_Music_Outline_MDI;
     case .Video;
         return Icon_File_Video_Outline_MDI;
-    case .MeshOrAnim;
+    case .Mesh;
+        return Icon_File_Outline_MDI;
+    case .Animation;
         return Icon_File_Outline_MDI;
     case .Material;
         return Icon_File_Outline_MDI;
