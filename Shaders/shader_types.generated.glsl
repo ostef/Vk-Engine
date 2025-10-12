@@ -26,6 +26,7 @@
 
 struct BloomParams {
     float resolution_factor;
+    uint max_downsample_passes;
     float brightness_threshold;
     float brightness_soft_threshold;
     float blend_intensity;

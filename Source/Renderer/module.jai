@@ -80,9 +80,6 @@ ViewpointRenderTargets :: struct {
     gizmo_depth_texture : GfxTexture;
 }
 
-Bloom_Resolution_Factor :: 0.75;
-Bloom_Max_Downsample_Passes :: 7;
-
 BloomTextures :: struct {
     downsample_texture : GfxTexture;
     downsample_levels : []GfxTexture;
@@ -102,6 +99,7 @@ using _ :: struct {
 WorldToRender :: struct {
     skybox_light_intensity : float;
     skybox : *Asset(EnvironmentMap);
+    bloom_params : BloomParams;
 
     meshes : [..]MeshToRender;
     selected_meshes : [..]MeshToRender;
@@ -225,4 +223,13 @@ DebugLine :: struct {
     start : Vec3f;
     end : Vec3f;
     color : Vec4f;
+} @ShaderType
+
+BloomParams :: struct {
+    resolution_factor := 0.75; @Serialize(1) @FloatRange(0,1)
+    max_downsample_passes : u32 = 7; @Serialize(2)
+    brightness_threshold := 1.4; @Serialize(3) @FloatRange(0,10) @Step(0.01)
+    brightness_soft_threshold := 0.5; @Serialize(4) @FloatRange(0,1) @Step(0.01)
+    blend_intensity := 0.5; @Serialize(5) @FloatRange(0,10) @Step(0.01)
+    filter_radius := 1.0; @Serialize(6) @FloatRange(0,10) @Step(0.01)
 } @ShaderType

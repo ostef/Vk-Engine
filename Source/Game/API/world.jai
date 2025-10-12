@@ -26,6 +26,8 @@ World :: struct {
 
     skybox : *Asset(EnvironmentMap); @Serialize(1)
     skybox_light_intensity := 1.0; @Serialize(2) @FloatRange(0,10) @Step(0.01)
+
+    bloom_params : BloomParams; @Serialize(3)
 }
 
 // for_expansion

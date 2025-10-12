@@ -489,7 +489,7 @@ RenderWorld :: (cmd_buffer : *GfxCommandBuffer, world : *WorldToRender) {
             normal_bias=10,
             filter_radius=1,
         },
-        bloom_params=g_bloom_params,
+        bloom_params=world.bloom_params,
     };
     frame_info_offset, frame_info_size := AllocAndPackUniformFrameData(frame_info);
 
@@ -631,7 +631,11 @@ DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     }
 }
 
-GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *ViewpointRenderTargets {
+GetViewpointRenderTargets :: (id : u64) -> *ViewpointRenderTargets {
+    return HashMapGet(*g_viewpoint_render_targets, id);
+} @ModuleAPI
+
+CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_params : BloomParams) -> *ViewpointRenderTargets {
     ShouldRecreate :: inline (texture : *GfxTexture, desired_resolution : Vec2u) -> bool {
         return IsNull(texture) || texture.desc.width != desired_resolution.x || texture.desc.height != desired_resolution.y;
     }
@@ -647,7 +651,7 @@ GetViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u) -> *Viewpoin
 
     using rt := ptr.*;
 
-    CreateBloomTextures(*bloom_textures, desired_resolution);
+    CreateBloomTextures(*bloom_textures, desired_resolution, bloom_params);
 
     if ShouldRecreate(*final_color_texture, desired_resolution) {
         if !IsNull(*final_color_texture) {
@@ -796,7 +800,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
 
     billboard_rotation := Mat4fFromRightUpForwardOrigin(-viewpoint.right, viewpoint.up, -viewpoint.direction, .{});
     ctx.viewpoint = viewpoint;
-    ctx.render_targets = GetViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution);
+    ctx.render_targets = CreateViewpointRenderTargets(viewpoint.unique_id, viewpoint.resolution, ctx.world.bloom_params);
 
     if !ctx.render_targets {
         return;

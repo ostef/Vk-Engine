@@ -400,6 +400,8 @@ SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
     world_to_render.skybox = world.skybox;
     world_to_render.skybox_light_intensity = world.skybox_light_intensity;
 
+    world_to_render.bloom_params = world.bloom_params;
+
     for :AllMeshesToRender world {
         AddMeshToRender(world_to_render, it);
     }

@@ -199,6 +199,8 @@ SubmitMaterialEditorPreviewToRenderer :: (world : *World) {
 
     world_to_render : WorldToRender;
 
+    world_to_render.bloom_params = world.bloom_params;
+
     if g_material_editor.preview_use_world_skybox {
         world_to_render.skybox = world.skybox;
         world_to_render.skybox_light_intensity = world.skybox_light_intensity;

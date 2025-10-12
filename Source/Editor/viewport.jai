@@ -259,7 +259,7 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
     }
 
     size = ImGui.GetContentRegionAvail();
-    render_targets = GetViewpointRenderTargets(unique_id, .{xx Max(size.x, 0), xx Max(size.y, 0)});
+    render_targets = GetViewpointRenderTargets(unique_id);
 
     uv0 := Vec2f.{0,0};
     uv1 := Vec2f.{1,1};

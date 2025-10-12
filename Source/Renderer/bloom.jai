@@ -8,37 +8,28 @@
 
 // See: Kawase blur filter
 
-BloomParams :: struct {
-    resolution_factor := Bloom_Resolution_Factor;
-    brightness_threshold := 1.4; @ShowInInspector @FloatRange(0,10) @Step(0.01)
-    brightness_soft_threshold := 0.5; @ShowInInspector @FloatRange(0,1) @Step(0.01)
-    blend_intensity := 0.5; @ShowInInspector @FloatRange(0,10) @Step(0.01)
-    filter_radius := 1.0; @ShowInInspector @FloatRange(0,10) @Step(0.01)
-} @ShaderType
-
-g_bloom_params : BloomParams;
-
-CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u) {
+CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u, params : BloomParams) {
     ShouldRecreate :: inline (texture : *GfxTexture, desired_resolution : Vec2u) -> bool {
         return IsNull(texture) || texture.desc.width != desired_resolution.x || texture.desc.height != desired_resolution.y;
     }
 
-    resolution := desired_resolution * g_bloom_params.resolution_factor;
+    resolution := desired_resolution * params.resolution_factor;
     resolution.x = Max(resolution.x, 1);
     resolution.y = Max(resolution.y, 1);
 
-    if ShouldRecreate(*downsample_texture, resolution) {
+    num_downsample_levels := GetNumMipmapLevelsForTextureSize(resolution.x, resolution.y);
+    num_downsample_levels = Min(num_downsample_levels, params.max_downsample_passes + 1);
+    num_downsample_levels = Max(num_downsample_levels, 1);
+
+    if ShouldRecreate(*downsample_texture, resolution) || downsample_texture.desc.num_mipmap_levels != xx num_downsample_levels {
         if !IsNull(*downsample_texture) {
             WaitForGPUIdle();
             DestroyBloomTextures(bloom);
         }
 
-        num_downsample_passes := GetNumMipmapLevelsForTextureSize(resolution.x, resolution.y);
-        num_downsample_passes = Min(num_downsample_passes, Bloom_Max_Downsample_Passes + 1);
-
         // Special case for very small resolution: we cannot create more than one downsample texture so kawase
         // blur cannot be done. We'll create only one texture and compute the bloom using a different method
-        if num_downsample_passes <= 1 {
+        if num_downsample_levels <= 1 {
             desc : GfxTextureDesc;
             desc.type = .Texture2D;
             desc.width = resolution.x;
@@ -66,7 +57,7 @@ CreateBloomTextures :: (using bloom : *BloomTextures, desired_resolution : Vec2u
         desc.type = .Texture2D;
         desc.width = resolution.x;
         desc.height = resolution.y;
-        desc.num_mipmap_levels = xx num_downsample_passes;
+        desc.num_mipmap_levels = xx num_downsample_levels;
 
         desc.pixel_format = .RGBA16Float;
         desc.usage = .Sampled | .Storage;

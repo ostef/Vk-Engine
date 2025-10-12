@@ -135,7 +135,7 @@ ShowMaterialPreview :: () {
         draw_list := ImGui.GetWindowDrawList();
         render_targets : *ViewpointRenderTargets;
         if g_material_editor.selected_material && g_material_editor.preview_mesh {
-            render_targets = GetViewpointRenderTargets(Material_Editor_Preview_Viewport_ID, .{xx Max(g_material_editor.preview_size.x, 0), xx Max(g_material_editor.preview_size.y, 0)});
+            render_targets = GetViewpointRenderTargets(Material_Editor_Preview_Viewport_ID);
         }
 
         if render_targets {

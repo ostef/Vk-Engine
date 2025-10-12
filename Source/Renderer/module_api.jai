@@ -4,6 +4,7 @@ RendererModule :: struct {
     #as base : Module;
     AddViewpointToRender : (viewpoint : ViewpointToRender);
     AddWorldToRender : (world : WorldToRender) -> s64;
+    CreateViewpointRenderTargets : (id : u64, desired_resolution : Vector(N=2, T=u32), bloom_params : BloomParams) -> *ViewpointRenderTargets;
     DebugDrawBoxOutline_1 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32));
     DebugDrawBoxOutline_2 : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), orientation : Quat(T=float32) = Quat(T=float32).{});
     DebugDrawCapsuleOutline : (color : Vector(N=4, T=float32), base : Vector(N=3, T=float32), tip : Vector(N=3, T=float32), radius : float, resolution : s64 = 30, num_divisions : s64 = 4);
@@ -16,7 +17,7 @@ RendererModule :: struct {
     DebugDrawSphereOutline : (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30);
     DestroyImGuiRenderer : ();
     GetShadersThatFailedToReload : () -> []string;
-    GetViewpointRenderTargets : (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets;
+    GetViewpointRenderTargets : (id : u64) -> *ViewpointRenderTargets;
     InitImGuiRenderer : ();
     StopRenderThread : ();
     SubmitFrameToRenderThread : ();
@@ -34,6 +35,11 @@ AddViewpointToRender :: inline (viewpoint : ViewpointToRender) {
 AddWorldToRender :: inline (world : WorldToRender) -> s64 {
     Assert(g_Renderer != null, "Renderer module is null");
     return g_Renderer.AddWorldToRender(world);
+} @NoProfile
+
+CreateViewpointRenderTargets :: inline (id : u64, desired_resolution : Vector(N=2, T=u32), bloom_params : BloomParams) -> *ViewpointRenderTargets {
+    Assert(g_Renderer != null, "Renderer module is null");
+    return g_Renderer.CreateViewpointRenderTargets(id, desired_resolution, bloom_params);
 } @NoProfile
 
 DebugDrawBoxOutline :: inline (color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), half_extents : Vector(N=3, T=float32), transform : Matrix(M=4, N=4, T=float32)) {
@@ -96,9 +102,9 @@ GetShadersThatFailedToReload :: inline () -> []string {
     return g_Renderer.GetShadersThatFailedToReload();
 } @NoProfile
 
-GetViewpointRenderTargets :: inline (id : u64, desired_resolution : Vector(N=2, T=u32)) -> *ViewpointRenderTargets {
+GetViewpointRenderTargets :: inline (id : u64) -> *ViewpointRenderTargets {
     Assert(g_Renderer != null, "Renderer module is null");
-    return g_Renderer.GetViewpointRenderTargets(id, desired_resolution);
+    return g_Renderer.GetViewpointRenderTargets(id);
 } @NoProfile
 
 InitImGuiRenderer :: inline () {
