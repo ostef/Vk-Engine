@@ -474,6 +474,11 @@ RenderFrame :: () {
 }
 
 RenderWorld :: (cmd_buffer : *GfxCommandBuffer, world : *WorldToRender) {
+    BeginGfxDebugMarker(cmd_buffer, "RenderWorld");
+    defer EndGfxDebugMarker(cmd_buffer);
+
+    ProfileGPUZone(cmd_buffer, GetGPUFrameProfiler(), "RenderWorld");
+
     ctx : RenderContext;
     ctx.cmd_buffer = cmd_buffer;
     ctx.world = world;
@@ -795,6 +800,11 @@ CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_par
 } @ModuleAPI
 
 RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
+    BeginGfxDebugMarker(ctx.cmd_buffer, "RenderViewpoint");
+    defer EndGfxDebugMarker(ctx.cmd_buffer);
+
+    ProfileGPUZone(ctx.cmd_buffer, GetGPUFrameProfiler(), "RenderViewpoint");
+
     prev_ctx := ctx.*;
     defer ctx.* = prev_ctx;
 
