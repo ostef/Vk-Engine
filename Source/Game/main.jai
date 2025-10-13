@@ -1,5 +1,6 @@
 #import "SDL";
 #import "Remap_Context"(false);
+Jolt :: #import "JoltPhysics";
 
 #load "world.jai";
 #load "physics.jai";
