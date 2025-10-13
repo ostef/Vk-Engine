@@ -43,6 +43,8 @@ Supports Linux and Windows.
 * Automatic texture transition barriers
 * Variance shadow maps
 * Particle system
+* Only render point shadow maps when something changes
+* Use multiple GPU queues concurrently
 ### Editor:
 * Undo/Redo
 * Gizmo interaction improvements and rework
