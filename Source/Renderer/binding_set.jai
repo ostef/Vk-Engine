@@ -101,7 +101,7 @@ InitBindingSetAllocator :: (allocator : *BindingSetAllocator, name : string) -> 
 
     ArrayPush(*allocator.pools, pool);
 
-    allocator.name = name;
+    allocator.name = StringClone(name);
     allocator.current_pool_index = 0;
 
     return true;
@@ -114,6 +114,8 @@ DestroyBindingSetAllocator :: (using allocator : *BindingSetAllocator) {
     }
 
     ArrayFree(*pools);
+
+    Free(name.data);
 
     allocator.* = .{};
 }
