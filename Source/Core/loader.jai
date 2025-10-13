@@ -87,7 +87,11 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
         return false;
     }
 
-    LogMessage("Loaded module %", id);
+    if first_time {
+        LogMessage("Loaded module %", id);
+    } else {
+        LogMessage("Reloaded module %", id);
+    }
 
     if g_modules[id].Initialize {
         g_modules[id].Initialize(first_time,, log_section=null);

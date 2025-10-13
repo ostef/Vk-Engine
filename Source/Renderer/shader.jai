@@ -122,7 +122,7 @@ LoadAllShaders :: () -> bool {
 
     CleanupSPIRVFiles();
 
-    init(*g_shader_file_watcher, ShaderFileChangeCallback, events_to_watch=.MODIFIED);
+    init(*g_shader_file_watcher, ShaderFileChangeCallback, events_to_watch=.MODIFIED, merge_window_seconds=1);
 
     if !add_directories(*g_shader_file_watcher, "Shaders") {
         LogError("Could not watch Shaders directory for changes");
