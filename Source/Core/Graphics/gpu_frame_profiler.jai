@@ -47,6 +47,16 @@ DestroyGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     profiler.* = .{};
 } @ModuleAPI
 
+ClearGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
+    Assert(profiler.current_event == null, "Cannot clear GPU frame profiler while profiling is active");
+
+    for * profiler.num_events_for_frame {
+        it.* = 0;
+    }
+
+    profiler.latest_frame.count = 0;
+} @ModuleAPI
+
 ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
     profiler.frame_index += 1;
 

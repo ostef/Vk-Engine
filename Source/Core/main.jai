@@ -27,12 +27,19 @@ g_module := CoreModule.{
     base.Shutdown=ShutdownCore,
     base.MainLoop=CoreLoop,
     base.OnEvent=OnEvent,
+    base.OnModuleUnload=OnModuleUnload,
 };
 
 ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
     InitializeAPI(*g_module);
 
     return *g_module;
+}
+
+OnModuleUnload :: (id : ModuleID) {
+    // Profiling data potentially includes Source_Code_Locations from other modules,
+    // so we need to clear it to avoid a potential crash
+    ClearProfilingData(*g_cpu_profiler);
 }
 
 g_window : *SDL_Window;
@@ -88,6 +95,8 @@ InitializeCore :: (global_init : bool) {
 
     InitFrameProfiler(*g_cpu_profiler);
 
+    InitGPUFrameProfiler(*g_gpu_frame_profiler, 1000);
+
     InitTextureUpload();
 
     InitAssets();
@@ -97,6 +106,8 @@ ShutdownCore :: (global_shutdown : bool) {
     DestroyAllAssetCaches();
 
     CleanupTextureUpload();
+
+    DestroyGPUFrameProfiler(*g_gpu_frame_profiler);
 
     DestroyGfxContext();
 

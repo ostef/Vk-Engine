@@ -267,6 +267,7 @@ ReloadShader :: (shader : *LoadedShader) -> bool {
         }
     }
 
+    reloaded := !IsNull(*shader.vertex_shader) || !IsNull(*shader.fragment_shader) || !IsNull(*shader.compute_shader);
     Swap(*shader.dependencies, *dependencies);
     Swap(*shader.vertex_shader, *vertex_shader);
     Swap(*shader.fragment_shader, *fragment_shader);
@@ -287,7 +288,11 @@ ReloadShader :: (shader : *LoadedShader) -> bool {
         }
     }
 
-    LogMessage("Loaded shader '%'", shader.name);
+    if reloaded {
+        LogMessage("Reloaded shader '%'", shader.name);
+    } else {
+        LogMessage("Loaded shader '%'", shader.name);
+    }
 
     return true;
 }

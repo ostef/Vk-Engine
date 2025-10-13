@@ -2,7 +2,7 @@ CPUProfilerWindowState :: struct {
     opened := false; @Serialize(1)
     shown_events : [..]EditorProfilingEvent;
     sorted_events : []EditorProfilingEvent;
-    max_events : s32 = 50; @Serialize(2)
+    max_events : s32 = 15; @Serialize(2)
 }
 
 g_cpu_profiler_window : CPUProfilerWindowState;
@@ -31,6 +31,18 @@ GetSelfTime :: (event : EditorProfilingEvent) -> Basic.Apollo_Time {
     }
 
     return total_time - children_time;
+}
+
+ClearCPUProfilerWindowEventList :: () {
+    for * g_cpu_profiler_window.shown_events {
+        Free(it.name.data);
+        ArrayFree(*it.children);
+    }
+
+    ArrayClear(*g_cpu_profiler_window.shown_events);
+
+    Free(g_cpu_profiler_window.sorted_events.data);
+    g_cpu_profiler_window.sorted_events = .[];
 }
 
 #scope_file

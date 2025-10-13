@@ -29,6 +29,7 @@ CoreModule :: struct {
     CalculateSkinningMatrices : (pose : *ArmaturePose, matrices : *[]Matrix(M=4, N=4, T=float32));
     CancelTextureUpload : (texture : *Texture2D);
     ClearEnvironmentMapsToGenerate : ();
+    ClearGPUFrameProfiler : (profiler : *GPUFrameProfiler);
     CopyBufferToBuffer : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64);
     CopyBufferToTexture : (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture);
     CopyPose : (dest : *ArmaturePose, src : *ArmaturePose);
@@ -303,6 +304,11 @@ CancelTextureUpload :: inline (texture : *Texture2D) {
 ClearEnvironmentMapsToGenerate :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.ClearEnvironmentMapsToGenerate();
+} @NoProfile
+
+ClearGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.ClearGPUFrameProfiler(profiler);
 } @NoProfile
 
 CopyBufferToBuffer :: inline (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64) {

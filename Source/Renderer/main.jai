@@ -137,8 +137,6 @@ InitializeRenderer :: (global_init : bool) {
     CreateGlobalShadowMapObjects();
 
     LoadDefaultAssets();
-
-    InitGPUFrameProfiler(GetGPUFrameProfiler(), 1000);
 }
 
 ShutdownRenderer :: (global_shutdown : bool) {
@@ -148,7 +146,7 @@ ShutdownRenderer :: (global_shutdown : bool) {
     StopRenderThread();
     WaitForGPUIdle();
 
-    DestroyGPUFrameProfiler(GetGPUFrameProfiler());
+    ClearGPUFrameProfiler(GetGPUFrameProfiler());
 
     DestroyGlobalShadowMapObjects();
 

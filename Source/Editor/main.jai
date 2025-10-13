@@ -33,6 +33,7 @@ g_module := EditorModule.{
     base.LoadState=LoadState,
     base.OnEvent=OnEvent,
     base.OnModuleLoad=OnModuleLoad,
+    base.OnModuleUnload=OnModuleUnload,
 };
 
 #program_export
@@ -55,6 +56,12 @@ OnModuleLoad :: (id : ModuleID) {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
     case .Game; g_Game = xx GetModule(.Game);
     }
+}
+
+OnModuleUnload :: (id : ModuleID) {
+    Remap_Context();
+
+    ClearCPUProfilerWindowEventList();
 }
 
 Editor_Base_Font_Size :: 16.0;
