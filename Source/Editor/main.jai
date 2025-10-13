@@ -618,7 +618,7 @@ GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> Entity
     }
 
     return ptr[index];
-}
+} @NoProfile
 
 EditorSettings :: struct {
     colors : EditorColors; @ShowInInspector
