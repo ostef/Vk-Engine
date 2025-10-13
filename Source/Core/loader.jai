@@ -177,12 +177,12 @@ LoaderMain :: () {
     add_directories(*g_modules_watcher, "ModuleLibs");
 
     while !g_quit {
-        frame_event := ProfilerBeginFrame(*g_cpu_profiler);
-        defer ProfilerEndFrame(*g_cpu_profiler, frame_event);
-
         ResetTemporaryStorage();
 
         process_changes(*g_modules_watcher);
+
+        frame_event := ProfilerBeginFrame(*g_cpu_profiler);
+        defer ProfilerEndFrame(*g_cpu_profiler, frame_event);
 
         for g_modules {
             if it.MainLoop {
