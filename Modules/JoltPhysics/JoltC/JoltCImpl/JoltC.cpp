@@ -40,6 +40,10 @@
 
 #include <JoltC/JoltC.h>
 
+#ifndef JPH_DEBUG_RENDERER
+#error "Debug renderer not compiled in"
+#endif
+
 #define JPC_IMPL static
 
 #define OPAQUE_WRAPPER(c_type, cpp_type) \

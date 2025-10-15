@@ -29,6 +29,10 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
 
+#ifndef JPH_DEBUG_RENDERER
+#error "Debug renderer not compiled in"
+#endif
+
 template<typename E>
 constexpr auto to_integral(E e) -> typename std::underlying_type<E>::type
 {

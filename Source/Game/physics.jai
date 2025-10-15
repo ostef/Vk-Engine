@@ -1,3 +1,106 @@
+Jolt :: #import "JoltPhysics";
+
+PhysicsWorld :: struct {
+    system : *Jolt.PhysicsSystem;
+    temp_allocator : *Jolt.TempAllocatorImpl;
+    job_system : *Jolt.JobSystemThreadPool;
+    broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
+    object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
+    object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
+    body_interface : *Jolt.BodyInterface;
+}
+
+InitPhysics :: () {
+    Jolt.RegisterDefaultAllocator();
+    Jolt.FactoryInit();
+    Jolt.RegisterTypes();
+}
+
+ShutdownPhysics :: () {
+    Jolt.UnregisterTypes();
+    Jolt.FactoryDelete();
+}
+
+GetNumBroadPhaseLayers :: (self : *void) -> u32 #c_call {
+    return 1;
+}
+
+GetBroadPhaseLayer :: (self : *void, in_layer : Jolt.ObjectLayer) -> Jolt.BroadPhaseLayer #c_call {
+    return 0;
+}
+
+BPL_Interface :: Jolt.BroadPhaseLayerInterfaceFns.{
+    GetNumBroadPhaseLayers=GetNumBroadPhaseLayers,
+    GetBroadPhaseLayer=GetBroadPhaseLayer,
+};
+
+ObjectShouldCollideBroadPhase :: (self : *void, in_obj_layer : Jolt.ObjectLayer, in_broad_phase_layer : Jolt.BroadPhaseLayer) -> bool #c_call {
+    return true;
+}
+
+OvB_Interface :: Jolt.ObjectVsBroadPhaseLayerFilterFns.{
+    ShouldCollide=ObjectShouldCollideBroadPhase,
+};
+
+ObjectShouldCollideObject :: (self : *void, in_layer1 : Jolt.ObjectLayer, in_layer2 : Jolt.ObjectLayer) -> bool #c_call {
+    return true;
+}
+
+OvO_Interface :: Jolt.ObjectLayerPairFilterFns.{
+    ShouldCollide=ObjectShouldCollideObject,
+};
+
+InitPhysicsWorld :: (world : *World) {
+    Assert(world.physics == null, "Physics world has already been initialized");
+
+    using physics := Alloc(PhysicsWorld);
+    world.physics = physics;
+
+    temp_allocator = Jolt.TempAllocatorImpl_new(Physics_Temp_Allocator_Capacity);
+    job_system = Jolt.JobSystemThreadPool_new2(xx Jolt.JPC_MAX_PHYSICS_JOBS, xx Jolt.JPC_MAX_PHYSICS_BARRIERS);
+    broad_phase_layer_interface = Jolt.BroadPhaseLayerInterface_new(null, BPL_Interface);
+    object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilter_new(null, OvB_Interface);
+    object_vs_object_layer_filter = Jolt.ObjectLayerPairFilter_new(null, OvO_Interface);
+
+    system = Jolt.PhysicsSystem_new();
+    Jolt.PhysicsSystem_Init(
+        system,
+        Physics_Max_Bodies,
+        Physics_Num_Body_Mutexes,
+        Physics_Max_Body_Pairs,
+        Physics_Max_Contact_Constraints,
+        broad_phase_layer_interface,
+        object_vs_broad_phase_layer_filter,
+        object_vs_object_layer_filter
+    );
+
+    body_interface = Jolt.PhysicsSystem_GetBodyInterface(system);
+}
+
+DestroyPhysicsWorld :: (world : *World) {
+    using physics := cast(*PhysicsWorld, world.physics);
+    if !physics {
+        return;
+    }
+
+    Jolt.PhysicsSystem_delete(system);
+    Jolt.BroadPhaseLayerInterface_delete(broad_phase_layer_interface);
+    Jolt.ObjectVsBroadPhaseLayerFilter_delete(object_vs_broad_phase_layer_filter);
+    Jolt.ObjectLayerPairFilter_delete(object_vs_object_layer_filter);
+
+    Jolt.JobSystemThreadPool_delete(job_system);
+    Jolt.TempAllocatorImpl_delete(temp_allocator);
+
+    Free(world.physics);
+    world.physics = null;
+}
+
+UpdatePhysicsWorld :: (world : *World) {
+    using world.physics;
+
+    Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, temp_allocator, cast(*Jolt.JobSystem, job_system));
+}
+
 RayIntersection :: (world : *World, sphere : *SphereColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
     entity := GetEntity(world, sphere.entity_index);
     if !entity {

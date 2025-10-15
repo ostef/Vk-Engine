@@ -1,3 +1,12 @@
+Physics_Temp_Allocator_Capacity :: 10 * 1024 * 1024;
+Physics_Max_Bodies :: 1024;
+Physics_Num_Body_Mutexes :: 0;
+Physics_Max_Body_Pairs :: 1024;
+Physics_Max_Contact_Constraints :: 1024;
+Physics_Num_Updates_Per_Second :: 60;
+Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
+Physics_Num_Collision_Steps :: 1;
+
 RaycastResult :: struct {
     hit : bool;
     point : Vec3f;
@@ -6,6 +15,10 @@ RaycastResult :: struct {
     entity : *Entity;
     collider : *Component;
 }
+
+RigidBodyComponent :: struct {
+    #as using _ : Component; @Serialize(1) @InspectorNoTree
+} @Component @Category(Physics)
 
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
@@ -16,7 +29,7 @@ SphereColliderComponent :: struct {
         center := TranslationVector(world_transform);
         DebugDrawSphereOutline(.{0,1,0,1}, center, radius);
     }
-} @Component @Category(Colliders)
+} @Component @Category(Physics/Colliders)
 
 CapsuleColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
@@ -29,7 +42,7 @@ CapsuleColliderComponent :: struct {
         up := UpVector(world_transform);
         DebugDrawCapsuleOutline(.{0,1,0,1}, center - up * height * 0.5, center + up * height * 0.5, radius);
     }
-} @Component @Category(Colliders)
+} @Component @Category(Physics/Colliders)
 
 BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
@@ -39,10 +52,10 @@ BoxColliderComponent :: struct {
     OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
         DebugDrawBoxOutline(.{0,1,0,1}, .{0,0,0}, half_extents, world_transform);
     }
-} @Component @Category(Colliders)
+} @Component @Category(Physics/Colliders)
 
 MeshColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
     mesh : *Asset(StaticMesh); @Serialize(2)
-} @Component @Category(Colliders)
+} @Component @Category(Physics/Colliders)

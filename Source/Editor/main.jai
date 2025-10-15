@@ -209,6 +209,10 @@ InitializeEditor :: (global_init : bool) {
             CreateEditorViewport();
         }
     }
+
+    if !g_editor_world.initialized {
+        InitWorld(*g_editor_world);
+    }
 }
 
 ShutdownEditor :: (global_shutdown : bool) {

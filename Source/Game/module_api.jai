@@ -6,6 +6,7 @@ GameModule :: struct {
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
     GetDefaultMaterial : () -> *Asset(DataType=Material);
+    InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
     RayIntersection_1 : (world : *World, box : *BoxColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RaycastResult;
     RayIntersection_2 : (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RaycastResult;
@@ -38,6 +39,11 @@ DestroyWorld :: inline (world : *World) {
 GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetDefaultMaterial();
+} @NoProfile
+
+InitWorld :: inline (world : *World) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.InitWorld(world);
 } @NoProfile
 
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {

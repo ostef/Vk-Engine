@@ -1,3 +1,9 @@
+InitWorld :: (world : *World) {
+    defer world.initialized = true;
+
+    InitPhysicsWorld(world);
+} @ModuleAPI
+
 DestroyWorld :: (using world : *World) {
     FreeEntity :: (world : *World, using entity : *Entity) {
         Free(name.data ,, world.entities_by_name.allocator);
@@ -57,6 +63,8 @@ DestroyWorld :: (using world : *World) {
     HashMapFree(*entities_by_name);
     ArrayFree(*entities_killed_this_frame);
 
+    DestroyPhysicsWorld(world);
+
     Initialize(world);
 } @ModuleAPI
 
@@ -90,6 +98,7 @@ CopyWorld :: (dest : *World, src : *World) {
     LogSectionScope(*Log_Entities);
 
     DestroyWorld(dest);
+    InitWorld(dest);
 
     for :AllEntities entity : src {
         CopyEntityOver(dest, src, entity);
@@ -119,6 +128,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
     loaded_entities := 0;
 
     DestroyWorld(world);
+    InitWorld(world);
 
     world.loaded_from_directory = StringClone(directory);
 

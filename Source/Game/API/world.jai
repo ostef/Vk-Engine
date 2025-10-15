@@ -1,4 +1,5 @@
 World :: struct {
+    initialized : bool;
     loaded_from_directory : string;
 
     #insert -> string {
@@ -23,6 +24,8 @@ World :: struct {
     );
 
     entities_killed_this_frame : [..]EntityIndex;
+
+    physics : *void;
 
     skybox : *Asset(EnvironmentMap); @Serialize(1)
     skybox_light_intensity := 1.0; @Serialize(2) @FloatRange(0,10) @Step(0.01)

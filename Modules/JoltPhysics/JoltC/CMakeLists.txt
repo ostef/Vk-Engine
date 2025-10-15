@@ -9,6 +9,16 @@ option(DOUBLE_PRECISION "Use double precision math" OFF)
 # Number of bits to use in ObjectLayer. Can be 16 or 32.
 option(OBJECT_LAYER_BITS "Number of bits in ObjectLayer" 16)
 
+# Enable the debug renderer in the Debug and Release builds. Note that DEBUG_RENDERER_IN_DISTRIBUTION will override this setting.
+option(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE "Enable debug renderer in Debug and Release builds" ON)
+
+# Setting to enable the debug renderer in all builds.
+# Note that enabling this reduces the performance of the library even if you're not drawing anything.
+option(DEBUG_RENDERER_IN_DISTRIBUTION "Enable debug renderer in all builds" ON)
+
+# When turning this option on, Jolt will be compiled as a shared library and public symbols will be exported.
+option(BUILD_SHARED_LIBS "Compile Jolt as a shared library" ON)
+
 include(CMakeDependentOption)
 
 # Ability to toggle between the static and DLL versions of the MSVC runtime library
@@ -28,7 +38,7 @@ project(JoltC VERSION 0.1
     DESCRIPTION "C Wrapper for Jolt Physics"
     LANGUAGES C CXX)
 
-add_library(joltc STATIC
+add_library(joltc SHARED
     # C Interface
     JoltC/JoltC.h
     JoltC/Enums.h
