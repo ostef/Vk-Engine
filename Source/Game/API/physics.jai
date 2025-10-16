@@ -27,7 +27,7 @@ SphereColliderComponent :: struct {
 
     OnDebugDraw :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
-        DebugDrawSphereOutline(.{0,1,0,1}, center, radius);
+        DebugDrawSphereOutline(world, .{0,1,0,1}, center, radius);
     }
 } @Component @Category(Physics/Colliders)
 
@@ -40,7 +40,7 @@ CapsuleColliderComponent :: struct {
     OnDebugDraw :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
         center := TranslationVector(world_transform);
         up := UpVector(world_transform);
-        DebugDrawCapsuleOutline(.{0,1,0,1}, center - up * height * 0.5, center + up * height * 0.5, radius);
+        DebugDrawCapsuleOutline(world, .{0,1,0,1}, center - up * height * 0.5, center + up * height * 0.5, radius);
     }
 } @Component @Category(Physics/Colliders)
 
@@ -50,7 +50,7 @@ BoxColliderComponent :: struct {
     half_extents : Vec3f = .{1,1,1}; @Serialize(2)
 
     OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        DebugDrawBoxOutline(.{0,1,0,1}, .{0,0,0}, half_extents, world_transform);
+        DebugDrawBoxOutline(world, .{0,1,0,1}, .{0,0,0}, half_extents, world_transform);
     }
 } @Component @Category(Physics/Colliders)
 

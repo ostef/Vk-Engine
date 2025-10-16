@@ -218,11 +218,6 @@ DirectionalLightComponent :: struct {
     color : Vec3f = .{1,1,1}; @Serialize(2) @ColorEdit
     intensity : float = 1; @Serialize(3) @FloatRange(0,1000)
     cast_shadows : bool; @Serialize(4)
-    // shadow_map : ShadowMap;
-
-    // OnDestroy :: (world : *World, using component : *DirectionalLightComponent) {
-    //     DestroyShadowMap(*shadow_map);
-    // }
 
     OnDebugDraw :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) {
         position := TranslationVector(light.world_transform);
@@ -235,11 +230,11 @@ DirectionalLightComponent :: struct {
         p2 := position + up * 0.3;
         p3 := position - up * 0.3;
 
-        DebugDrawCircleOutline(.{rgb=light.color, a=1}, position, right, up, 0.3);
-        DebugDrawLine(.{rgb=light.color, a=1}, p0, p0 + direction);
-        DebugDrawLine(.{rgb=light.color, a=1}, p1, p1 + direction);
-        DebugDrawLine(.{rgb=light.color, a=1}, p2, p2 + direction);
-        DebugDrawLine(.{rgb=light.color, a=1}, p3, p3 + direction);
+        DebugDrawCircleOutline(world, .{rgb=light.color, a=1}, position, right, up, 0.3);
+        DebugDrawLine(world, .{rgb=light.color, a=1}, p0, p0 + direction);
+        DebugDrawLine(world, .{rgb=light.color, a=1}, p1, p1 + direction);
+        DebugDrawLine(world, .{rgb=light.color, a=1}, p2, p2 + direction);
+        DebugDrawLine(world, .{rgb=light.color, a=1}, p3, p3 + direction);
     }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) -> *Asset(Texture2D) {
@@ -274,8 +269,8 @@ PointLightComponent :: struct {
 
     OnDebugDraw :: (world : *World, entity : *Entity, light : *PointLightComponent) {
         position := TranslationVector(light.world_transform);
-        DebugDrawSphereOutline(.{1,1,1,1}, position, light.source_radius);
-        DebugDrawSphereOutline(.{1,1,1,1}, position, GetPointLightAttenuationDistance(light));
+        DebugDrawSphereOutline(world, .{1,1,1,1}, position, light.source_radius);
+        DebugDrawSphereOutline(world, .{1,1,1,1}, position, GetPointLightAttenuationDistance(light));
     }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *PointLightComponent) -> *Asset(Texture2D) {

@@ -494,6 +494,8 @@ UpdateEditor :: () {
 
     ExecuteEntityCallback(*g_editor_world, "OnEditorUpdate");
     ExecuteComponentCallback(*g_editor_world, "OnEditorUpdate");
+    ExecuteEntityCallback(*g_editor_world, "OnDebugDraw");
+    ExecuteComponentCallback(*g_editor_world, "OnDebugDraw");
 
     UpdateAllFileBrowsers();
 

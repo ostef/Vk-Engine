@@ -257,7 +257,7 @@ ExecuteComponentCallback :: (world : *World, $Callback : string) {
             type := Component_Types[i];
             Appendln(*builder, "#if #exists(%1.%2) {", type, Callback);
             Appendln(*builder, "    for * world.%1_storage {", type);
-            Appendln(*builder, "        entity := GetEntity(world, it.entity);");
+            Appendln(*builder, "        entity := GetEntity(world, it.entity_index);");
             Appendln(*builder, "        if !entity {");
             Appendln(*builder, "            continue;");
             Appendln(*builder, "        }");
@@ -279,7 +279,7 @@ ExecuteComponentCallback :: inline (world : *World, component : *$T, $Callback :
             Appendln(*builder, "if GetComponentTypeId(component) == {");
             for i : 1..Component_Types.count - 1 {
                 type := Component_Types[i];
-                Appendln(*builder, "case .%1; #if #exists(%1.%2) { %1.%2(world, xx component); }", type, Callback);
+                Appendln(*builder, "case .%1; #if #exists(%1.%2) { entity := GetEntity(world, component.entity_index); if entity { %1.%2(world, entity, xx component); } }", type, Callback);
             }
             Appendln(*builder, "}");
 

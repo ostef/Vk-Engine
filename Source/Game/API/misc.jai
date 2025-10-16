@@ -87,7 +87,7 @@ TestShapeEntity :: struct {
         position := TranslationVector(world_transform);
         if #complete shape == {
         case .Point;
-            DebugDrawCross(.{1,1,1,1}, position, 0.1);
+            DebugDrawCross(world, .{1,1,1,1}, position, 0.1);
 
             for * world.TestShapeEntity_storage {
                 if it.shape == {
@@ -104,8 +104,8 @@ TestShapeEntity :: struct {
             }
         case .Ray;
             direction := ForwardVector(world_transform);
-            DebugDrawCross(.{1,1,1,1}, position, 0.1);
-            DebugDrawLine(.{1,1,1,1}, position, position + direction * ray_length);
+            DebugDrawCross(world, .{1,1,1,1}, position, 0.1);
+            DebugDrawLine(world, .{1,1,1,1}, position, position + direction * ray_length);
 
             intersects : bool;
             point : Vec3f;
@@ -140,17 +140,17 @@ TestShapeEntity :: struct {
                 }
 
                 if intersects {
-                    DebugDrawCross(.{1,0,0,1}, point, 0.1);
-                    DebugDrawLine(.{0,0,1,1}, point, point + normal * 0.2);
+                    DebugDrawCross(world, .{1,0,0,1}, point, 0.1);
+                    DebugDrawLine(world, .{0,0,1,1}, point, point + normal * 0.2);
                 }
             }
         case .Box;
-            DebugDrawBoxOutline(.{1,1,1,1}, .{0,0,0}, .{1,1,1}, world_transform);
+            DebugDrawBoxOutline(world, .{1,1,1,1}, .{0,0,0}, .{1,1,1}, world_transform);
         case .Sphere;
-            DebugDrawSphereOutline(.{1,1,1,1}, position, sphere_radius);
+            DebugDrawSphereOutline(world, .{1,1,1,1}, position, sphere_radius);
         case .Capsule;
             normal := UpVector(world_transform);
-            DebugDrawCapsuleOutline(.{1,1,1,1}, position - normal * capsule_height * 0.5, position + normal * capsule_height * 0.5, capsule_radius);
+            DebugDrawCapsuleOutline(world, .{1,1,1,1}, position - normal * capsule_height * 0.5, position + normal * capsule_height * 0.5, capsule_radius);
         case .Mesh;
         case .Plane;
         }
