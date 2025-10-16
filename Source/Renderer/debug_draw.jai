@@ -1,14 +1,5 @@
-g_debug_lines : [..]DebugLine;
-
-Max_Debug_Lines :: Frame_Data_Capacity / size_of(DebugLine) / 2;
-
-DebugDrawLine :: (color : Vec4f, start : Vec3f, end : Vec3f) {
-    if g_debug_lines.count >= Max_Debug_Lines {
-        LogWarning("Exceeding maximum number of debug lines");
-        return;
-    }
-
-    ArrayPush(*g_debug_lines, .{
+DebugDrawLine :: (renderer : *DebugRenderer, color : Vec4f, start : Vec3f, end : Vec3f) {
+    ArrayPush(*renderer.lines, .{
         start=start,
         end=end,
         color=color,
@@ -16,6 +7,7 @@ DebugDrawLine :: (color : Vec4f, start : Vec3f, end : Vec3f) {
 } @ModuleAPI
 
 DebugDrawGrid :: (
+    renderer : *DebugRenderer,
     color : Vec4f,
     origin : Vec3f, right : Vec3f, forward : Vec3f,
     size : int,
@@ -23,6 +15,7 @@ DebugDrawGrid :: (
 ) {
     for i : -size..size {
         DebugDrawLine(
+            renderer,
             color,
             origin + right * cell_size * i - forward * cell_size * size,
             origin + right * cell_size * i + forward * cell_size * size
@@ -31,6 +24,7 @@ DebugDrawGrid :: (
 
     for i : -size..size {
         DebugDrawLine(
+            renderer,
             color,
             origin + forward * cell_size * i - right * cell_size * size,
             origin + forward * cell_size * i + right * cell_size * size
@@ -38,13 +32,14 @@ DebugDrawGrid :: (
     }
 } @ModuleAPI
 
-DebugDrawCross :: (color : Vec4f, position : Vec3f, size : float) {
-    DebugDrawLine(color, position - .{size * 0.5,0,0}, position + .{size * 0.5,0,0});
-    DebugDrawLine(color, position - .{0,size * 0.5,0}, position + .{0,size * 0.5,0});
-    DebugDrawLine(color, position - .{0,0,size * 0.5}, position + .{0,0,size * 0.5});
+DebugDrawCross :: (renderer : *DebugRenderer, color : Vec4f, position : Vec3f, size : float) {
+    DebugDrawLine(renderer, color, position - .{size * 0.5,0,0}, position + .{size * 0.5,0,0});
+    DebugDrawLine(renderer, color, position - .{0,size * 0.5,0}, position + .{0,size * 0.5,0});
+    DebugDrawLine(renderer, color, position - .{0,0,size * 0.5}, position + .{0,0,size * 0.5});
 } @ModuleAPI
 
 DebugDrawCircleOutline :: (
+    renderer : *DebugRenderer,
     color : Vec4f,
     center : Vec3f,
     tangent : Vec3f, bitangent : Vec3f,
@@ -73,21 +68,21 @@ DebugDrawCircleOutline :: (
 
         start := center + (tangent * p1.x + bitangent * p1.y) * radius;
         end   := center + (tangent * p2.x + bitangent * p2.y) * radius;
-        DebugDrawLine(color, start, end);
+        DebugDrawLine(renderer, color, start, end);
     }
 } @ModuleAPI
 
-DebugDrawSphereOutline :: (color : Vec4f, center : Vec3f, radius : float, resolution := 30) {
-    DebugDrawCircleOutline(color, center, .{1,0,0}, .{0,0,1}, radius, resolution);
-    DebugDrawCircleOutline(color, center, .{1,0,0}, .{0,1,0}, radius, resolution);
-    DebugDrawCircleOutline(color, center, .{0,1,0}, .{0,0,1}, radius, resolution);
+DebugDrawSphereOutline :: (renderer : *DebugRenderer, color : Vec4f, center : Vec3f, radius : float, resolution := 30) {
+    DebugDrawCircleOutline(renderer, color, center, .{1,0,0}, .{0,0,1}, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, center, .{1,0,0}, .{0,1,0}, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, center, .{0,1,0}, .{0,0,1}, radius, resolution);
 } @ModuleAPI
 
-DebugDrawConeOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 6) {
+DebugDrawConeOutline :: (renderer : *DebugRenderer, color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 6) {
     direction := Normalized(tip - base);
     tangent, bitangent := UpToOrthonormalBasis(direction);
 
-    DebugDrawCircleOutline(color, base, tangent, bitangent, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, base, tangent, bitangent, radius, resolution);
 
     theta := -(Pi * 2) / cast(float) num_divisions;
     tan_factor := Math.tan(theta);
@@ -96,7 +91,7 @@ DebugDrawConeOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : floa
 
     for 0..num_divisions - 1 {
         start := base + (tangent * p.x + bitangent * p.y) * radius;
-        DebugDrawLine(color, start, tip);
+        DebugDrawLine(renderer, color, start, tip);
 
         t := Vec2f.{-p.y, p.x};
 
@@ -105,12 +100,12 @@ DebugDrawConeOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : floa
     }
 } @ModuleAPI
 
-DebugDrawCylinderOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 6) {
+DebugDrawCylinderOutline :: (renderer : *DebugRenderer, color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 6) {
     direction := Normalized(tip - base);
     tangent, bitangent := UpToOrthonormalBasis(direction);
 
-    DebugDrawCircleOutline(color, base, tangent, bitangent, radius, resolution);
-    DebugDrawCircleOutline(color, tip, tangent, bitangent, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, base, tangent, bitangent, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, tip, tangent, bitangent, radius, resolution);
 
     theta := -(Pi * 2) / cast(float) num_divisions;
     tan_factor := Math.tan(theta);
@@ -120,7 +115,7 @@ DebugDrawCylinderOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : 
     for 0..num_divisions - 1 {
         start := base + (tangent * p.x + bitangent * p.y) * radius;
         end   := tip  + (tangent * p.x + bitangent * p.y) * radius;
-        DebugDrawLine(color, start, end);
+        DebugDrawLine(renderer, color, start, end);
 
         t := Vec2f.{-p.y, p.x};
 
@@ -129,19 +124,19 @@ DebugDrawCylinderOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : 
     }
 } @ModuleAPI
 
-DebugDrawCapsuleOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 4) {
+DebugDrawCapsuleOutline :: (renderer : *DebugRenderer, color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 4) {
     direction := Normalized(tip - base);
     tangent, bitangent := UpToOrthonormalBasis(direction);
 
     a := base + direction * radius;
     b := tip  - direction * radius;
-    DebugDrawCircleOutline(color, a, tangent, bitangent, radius, resolution);
-    DebugDrawCircleOutline(color, b, tangent, bitangent, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, a, tangent, bitangent, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, b, tangent, bitangent, radius, resolution);
 
-    DebugDrawCircleOutline(color, a, direction, tangent, radius, resolution / 2, -Pi * 0.5, Pi);
-    DebugDrawCircleOutline(color, a, direction, bitangent, radius, resolution / 2, -Pi * 0.5, Pi);
-    DebugDrawCircleOutline(color, b, -direction, tangent, radius, resolution / 2, -Pi * 0.5, Pi);
-    DebugDrawCircleOutline(color, b, -direction, bitangent, radius, resolution / 2, -Pi * 0.5, Pi);
+    DebugDrawCircleOutline(renderer, color, a, direction, tangent, radius, resolution / 2, -Pi * 0.5, Pi);
+    DebugDrawCircleOutline(renderer, color, a, direction, bitangent, radius, resolution / 2, -Pi * 0.5, Pi);
+    DebugDrawCircleOutline(renderer, color, b, -direction, tangent, radius, resolution / 2, -Pi * 0.5, Pi);
+    DebugDrawCircleOutline(renderer, color, b, -direction, bitangent, radius, resolution / 2, -Pi * 0.5, Pi);
 
     theta := -(Pi * 2) / cast(float) num_divisions;
     tan_factor := Math.tan(theta);
@@ -151,7 +146,7 @@ DebugDrawCapsuleOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : f
     for 0..num_divisions - 1 {
         start := a + (tangent * p.x + bitangent * p.y) * radius;
         end   := b + (tangent * p.x + bitangent * p.y) * radius;
-        DebugDrawLine(color, start, end);
+        DebugDrawLine(renderer, color, start, end);
 
         t := Vec2f.{-p.y, p.x};
 
@@ -160,7 +155,7 @@ DebugDrawCapsuleOutline :: (color : Vec4f, base : Vec3f, tip : Vec3f, radius : f
     }
 } @ModuleAPI
 
-DebugDrawBoxOutline :: (color : Vec4f, center : Vec3f, half_extents : Vec3f, orientation := Quatf.{}) {
+DebugDrawBoxOutline :: (renderer : *DebugRenderer, color : Vec4f, center : Vec3f, half_extents : Vec3f, orientation := Quatf.{}) {
     right := RightVector(orientation);
     up := UpVector(orientation);
     forward := ForwardVector(orientation);
@@ -174,21 +169,21 @@ DebugDrawBoxOutline :: (color : Vec4f, center : Vec3f, half_extents : Vec3f, ori
     g := center - right * half_extents.x + up * half_extents.y + forward * half_extents.z;
     h := center + right * half_extents.x + up * half_extents.y + forward * half_extents.z;
 
-    DebugDrawLine(color, a, b);
-    DebugDrawLine(color, c, d);
-    DebugDrawLine(color, e, f);
-    DebugDrawLine(color, g, h);
-    DebugDrawLine(color, a, c);
-    DebugDrawLine(color, b, d);
-    DebugDrawLine(color, e, g);
-    DebugDrawLine(color, f, h);
-    DebugDrawLine(color, a, e);
-    DebugDrawLine(color, b, f);
-    DebugDrawLine(color, c, g);
-    DebugDrawLine(color, d, h);
+    DebugDrawLine(renderer, color, a, b);
+    DebugDrawLine(renderer, color, c, d);
+    DebugDrawLine(renderer, color, e, f);
+    DebugDrawLine(renderer, color, g, h);
+    DebugDrawLine(renderer, color, a, c);
+    DebugDrawLine(renderer, color, b, d);
+    DebugDrawLine(renderer, color, e, g);
+    DebugDrawLine(renderer, color, f, h);
+    DebugDrawLine(renderer, color, a, e);
+    DebugDrawLine(renderer, color, b, f);
+    DebugDrawLine(renderer, color, c, g);
+    DebugDrawLine(renderer, color, d, h);
 } @ModuleAPI
 
-DebugDrawBoxOutline :: (color : Vec4f, center : Vec3f, half_extents : Vec3f, transform : Mat4f) {
+DebugDrawBoxOutline :: (renderer : *DebugRenderer, color : Vec4f, center : Vec3f, half_extents : Vec3f, transform : Mat4f) {
     right := Vec3f.{1,0,0};
     up := Vec3f.{0,1,0};
     forward := Vec3f.{0,0,1};
@@ -202,18 +197,18 @@ DebugDrawBoxOutline :: (color : Vec4f, center : Vec3f, half_extents : Vec3f, tra
     g := TransformPoint(transform, center - right * half_extents.x + up * half_extents.y + forward * half_extents.z);
     h := TransformPoint(transform, center + right * half_extents.x + up * half_extents.y + forward * half_extents.z);
 
-    DebugDrawLine(color, a, b);
-    DebugDrawLine(color, c, d);
-    DebugDrawLine(color, e, f);
-    DebugDrawLine(color, g, h);
-    DebugDrawLine(color, a, c);
-    DebugDrawLine(color, b, d);
-    DebugDrawLine(color, e, g);
-    DebugDrawLine(color, f, h);
-    DebugDrawLine(color, a, e);
-    DebugDrawLine(color, b, f);
-    DebugDrawLine(color, c, g);
-    DebugDrawLine(color, d, h);
+    DebugDrawLine(renderer, color, a, b);
+    DebugDrawLine(renderer, color, c, d);
+    DebugDrawLine(renderer, color, e, f);
+    DebugDrawLine(renderer, color, g, h);
+    DebugDrawLine(renderer, color, a, c);
+    DebugDrawLine(renderer, color, b, d);
+    DebugDrawLine(renderer, color, e, g);
+    DebugDrawLine(renderer, color, f, h);
+    DebugDrawLine(renderer, color, a, e);
+    DebugDrawLine(renderer, color, b, f);
+    DebugDrawLine(renderer, color, c, g);
+    DebugDrawLine(renderer, color, d, h);
 } @ModuleAPI
 
 DebugLinesBindingSet :: struct {
@@ -248,7 +243,7 @@ DebugLinesPass :: (using ctx : *RenderContext) {
         CreateDebugLinesPipeline();
     }
 
-    if g_debug_lines.count <= 0 {
+    if world.debug_renderer.lines.count <= 0 {
         return;
     }
 
@@ -256,7 +251,7 @@ DebugLinesPass :: (using ctx : *RenderContext) {
 
     viewpoint_offset, viewpoint_size := AllocAndPackUniformFrameData(MakeViewpoint(viewpoint));
 
-    lines_offset, lines_size := AllocAndPackStorageFrameData(g_debug_lines);
+    lines_offset, lines_size := AllocAndPackStorageFrameData(world.debug_renderer.lines);
 
     bindings := DebugLinesBindingSet.{
         viewpoint=.{buffer=FrameDataBuffer(), offset=xx viewpoint_offset, size=xx viewpoint_size},
@@ -276,7 +271,7 @@ DebugLinesPass :: (using ctx : *RenderContext) {
 
         BindGraphicsBindingSet(*pass, 1, *binding_set);
 
-        Draw(*pass, vertex_count=2, instance_count=xx g_debug_lines.count);
+        Draw(*pass, vertex_count=2, instance_count=xx world.debug_renderer.lines.count);
     }
     EndGfxRenderPass(*pass);
 }

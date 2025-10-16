@@ -407,6 +407,9 @@ GetDefaultMaterial :: inline () -> *Asset(Material) {
 SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
     Remap_Context();
 
+    world_to_render.debug_renderer = world.debug_renderer;
+    world.debug_renderer = .{};
+
     world_to_render.skybox = world.skybox;
     world_to_render.skybox_light_intensity = world.skybox_light_intensity;
 

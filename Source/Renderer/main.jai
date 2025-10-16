@@ -158,8 +158,6 @@ ShutdownRenderer :: (global_shutdown : bool) {
 
     DestroyGfxTexture(*g_brdf_lut);
 
-    ArrayFree(*g_debug_lines);
-
     for g_graphics_pipelines {
         DestroyGfxGraphicsPipeline(it);
     }
@@ -604,7 +602,7 @@ RenderWorld :: (cmd_buffer : *GfxCommandBuffer, world : *WorldToRender) {
         RenderViewpoint(*ctx, it);
     }
 
-    // ArrayFree(*world.debug_lines);
+    ArrayFree(*world.debug_renderer.lines);
     ArrayFree(*world.meshes);
     ArrayFree(*world.selected_meshes);
     ArrayFree(*world.directional_lights);

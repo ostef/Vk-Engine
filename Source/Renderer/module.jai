@@ -101,6 +101,7 @@ WorldToRender :: struct {
     skybox : *Asset(EnvironmentMap);
     bloom_params : BloomParams;
 
+    debug_renderer : DebugRenderer;
     meshes : [..]MeshToRender;
     selected_meshes : [..]MeshToRender;
     point_lights : [..]PointLightToRender;
@@ -217,6 +218,10 @@ GizmoWidgetToRender :: struct {
     vertex_count, index_count : u32;
     shaded : bool;
     color : Vec4f;
+}
+
+DebugRenderer :: struct {
+    lines : [..]DebugLine;
 }
 
 DebugLine :: struct {
