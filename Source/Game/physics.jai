@@ -1,15 +1,3 @@
-Jolt :: #import "JoltPhysics";
-
-PhysicsWorld :: struct {
-    system : *Jolt.PhysicsSystem;
-    temp_allocator : *Jolt.TempAllocatorImpl;
-    job_system : *Jolt.JobSystemThreadPool;
-    broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
-    object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
-    object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
-    body_interface : *Jolt.BodyInterface;
-}
-
 InitPhysics :: () {
     Jolt.RegisterDefaultAllocator();
     Jolt.FactoryInit();
@@ -51,10 +39,7 @@ OvO_Interface :: Jolt.ObjectLayerPairFilterFns.{
 };
 
 InitPhysicsWorld :: (world : *World) {
-    Assert(world.physics == null, "Physics world has already been initialized");
-
-    using physics := Alloc(PhysicsWorld);
-    world.physics = physics;
+    using world.physics;;
 
     temp_allocator = Jolt.TempAllocatorImpl_new(Physics_Temp_Allocator_Capacity);
     job_system = Jolt.JobSystemThreadPool_new2(xx Jolt.JPC_MAX_PHYSICS_JOBS, xx Jolt.JPC_MAX_PHYSICS_BARRIERS);
@@ -78,10 +63,7 @@ InitPhysicsWorld :: (world : *World) {
 }
 
 DestroyPhysicsWorld :: (world : *World) {
-    using physics := cast(*PhysicsWorld, world.physics);
-    if !physics {
-        return;
-    }
+    using world.physics;
 
     Jolt.PhysicsSystem_delete(system);
     Jolt.BroadPhaseLayerInterface_delete(broad_phase_layer_interface);
@@ -90,9 +72,6 @@ DestroyPhysicsWorld :: (world : *World) {
 
     Jolt.JobSystemThreadPool_delete(job_system);
     Jolt.TempAllocatorImpl_delete(temp_allocator);
-
-    Free(world.physics);
-    world.physics = null;
 }
 
 UpdatePhysicsWorld :: (world : *World) {

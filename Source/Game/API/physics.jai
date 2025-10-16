@@ -1,3 +1,5 @@
+Jolt :: #import "JoltPhysics";
+
 Physics_Temp_Allocator_Capacity :: 10 * 1024 * 1024;
 Physics_Max_Bodies :: 1024;
 Physics_Num_Body_Mutexes :: 0;
@@ -6,6 +8,16 @@ Physics_Max_Contact_Constraints :: 1024;
 Physics_Num_Updates_Per_Second :: 60;
 Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
 Physics_Num_Collision_Steps :: 1;
+
+PhysicsWorld :: struct {
+    system : *Jolt.PhysicsSystem;
+    temp_allocator : *Jolt.TempAllocatorImpl;
+    job_system : *Jolt.JobSystemThreadPool;
+    broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
+    object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
+    object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
+    body_interface : *Jolt.BodyInterface;
+}
 
 RaycastResult :: struct {
     hit : bool;

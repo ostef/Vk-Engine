@@ -25,8 +25,8 @@ World :: struct {
 
     entities_killed_this_frame : [..]EntityIndex;
 
-    physics : *void;
     #as debug_renderer : DebugRenderer;
+    physics : PhysicsWorld;
 
     skybox : *Asset(EnvironmentMap); @Serialize(1)
     skybox_light_intensity := 1.0; @Serialize(2) @FloatRange(0,10) @Step(0.01)
