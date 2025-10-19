@@ -457,12 +457,12 @@ ShowMainMenuBar :: () {
 UpdateEditor :: () {
     Remap_Context();
 
-    DestroyKilledEntities(*g_editor_world);
-
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
 
     ImGui.DockSpaceOverViewport();
+
+    UpdateWorld(*g_editor_world);
 
     ShowMainMenuBar();
 
@@ -491,11 +491,6 @@ UpdateEditor :: () {
     }
 
     ShowEntityInspector(*g_editor_world, entity_to_inspect);
-
-    ExecuteEntityCallback(*g_editor_world, "OnEditorUpdate");
-    ExecuteComponentCallback(*g_editor_world, "OnEditorUpdate");
-    ExecuteEntityCallback(*g_editor_world, "OnDebugDraw");
-    ExecuteComponentCallback(*g_editor_world, "OnDebugDraw");
 
     UpdateAllFileBrowsers();
 

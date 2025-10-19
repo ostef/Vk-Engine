@@ -1,5 +1,11 @@
 // Jolt v5.3.0
 
+#import "Math";
+
+Vec3 :: Vector3;
+Vec4 :: Vector4;
+Quat :: Quaternion;
+
 #if OS == .WINDOWS {
     #load "jolt_windows.jai";
 

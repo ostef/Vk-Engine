@@ -487,7 +487,7 @@ ExecuteEntityCallback :: inline (world : *World, entity : *$T, $Callback : strin
     }
 }
 
-AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same_world_transform := false) {
+AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same_world_transform := true) {
     LogSectionScope(*Log_Entities);
 
     Assert(entity != null);
@@ -536,7 +536,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     LogMessage("Attached entity % to %", entity.guid, to.guid, flags=.VERBOSE_ONLY);
 }
 
-DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := false) {
+DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := true) {
     LogSectionScope(*Log_Entities);
 
     if entity.parent == Null_Entity_GUID {
@@ -570,6 +570,28 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
     UpdateWorldTransform(world, entity);
 
     LogMessage("Detached entity % from %", entity.guid, parent.guid, flags=.VERBOSE_ONLY);
+}
+
+SetWorldTransform :: (world : *World, entity : *Entity, transform : Mat4f) {
+    local_transform : Mat4f = ---;
+    if entity.parent != Null_Entity_GUID {
+        parent := GetEntity(world, entity.parent);
+        if parent {
+            local_transform = parent.inv_world_transform * transform;
+        } else {
+            local_transform = transform;
+        }
+    } else {
+        local_transform = transform;
+    }
+
+    local_position := TranslationVector(local_transform);
+    local_rotation := QuatfFromMatrix(local_transform);
+
+    entity.local_position = local_position;
+    entity.local_rotation = local_rotation;
+
+    UpdateWorldTransform(world, entity);
 }
 
 UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := true, update_components := true) {

@@ -1,3 +1,16 @@
+UpdateWorld :: (world : *World) {
+    Assert(world.initialized, "World has not been initialized");
+
+    DestroyKilledEntities(world);
+
+    ExecuteEntityCallback(world, "OnEditorUpdate");
+    ExecuteComponentCallback(world, "OnEditorUpdate");
+    ExecuteEntityCallback(world, "OnDebugDraw");
+    ExecuteComponentCallback(world, "OnDebugDraw");
+
+    UpdatePhysicsWorld(world);
+} @ModuleAPI
+
 InitWorld :: (world : *World) {
     defer world.initialized = true;
 

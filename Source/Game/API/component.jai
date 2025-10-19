@@ -107,7 +107,7 @@ CreateComponent :: (world : *World, storage : *ComponentStorage($T), entity : *E
     component.type_id = #run cast(int, GetComponentTypeId(T));
 
     #if #exists(T.OnCreate) {
-        T.OnCreate(world, component);
+        T.OnCreate(world, entity, component);
     }
 
     return component;

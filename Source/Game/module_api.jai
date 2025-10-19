@@ -16,6 +16,8 @@ GameModule :: struct {
     RaycastAll : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RaycastResult) -> bool;
     SaveWorldToDirectory : (world : *World, output_directory : string);
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
+    UpdatePhysicsWorld : (world : *World);
+    UpdateWorld : (world : *World);
 }
 
 #if Import_Mode == .Foreign {
@@ -89,6 +91,16 @@ SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
 SubmitWorldToRenderer :: inline (world_to_render : *WorldToRender, world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SubmitWorldToRenderer(world_to_render, world);
+} @NoProfile
+
+UpdatePhysicsWorld :: inline (world : *World) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.UpdatePhysicsWorld(world);
+} @NoProfile
+
+UpdateWorld :: inline (world : *World) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.UpdateWorld(world);
 } @NoProfile
 
 }

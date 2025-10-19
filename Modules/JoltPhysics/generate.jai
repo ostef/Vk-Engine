@@ -1,4 +1,6 @@
-// @Todo: compile Jolt
+// Jolt v5.4.0
+// @Todo: compile Jolt and JoltC automatically
+// @Todo: do not generate Vec3, Vec4 and Quat
 
 #run {
     set_build_options_dc(.{do_output=false});
@@ -29,10 +31,9 @@ GenerateBindings :: () -> bool {
     }
 
     // @Todo: prefixes not stripped for global const declarations
-    array_add(*strip_prefixes, "JPC_");
+    array_add(*strip_prefixes, "JPH_");
 
-    array_add(*include_paths, "JoltC");
-    array_add(*source_files, "JoltC/JoltC/JoltC.h");
+    array_add(*source_files, "JoltC/include/joltc.h");
 
     array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
 

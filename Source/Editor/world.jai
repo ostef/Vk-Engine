@@ -26,6 +26,7 @@ WorldMenu :: (world : *World) {
 
         if ImGui.MenuItem("New") {
             DestroyWorld(world);
+            InitWorld(world);
         }
 
         if ImGui.MenuItem("Load") {
