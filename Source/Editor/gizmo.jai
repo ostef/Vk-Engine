@@ -1668,6 +1668,9 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
     main_entity : *Entity;
     for < it, i : g_editor_selected_entities {
         entity := GetEntity(world, it);
+        if !entity {
+            continue;
+        }
 
         num_entities += 1;
 

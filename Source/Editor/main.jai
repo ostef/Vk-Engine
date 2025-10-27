@@ -107,6 +107,15 @@ g_editor_base_font : *ImGui.ImFont;
 g_editor_medium_font : *ImGui.ImFont;
 
 g_editor_world : World;
+g_game_world : World;
+g_world : *World;
+
+GameState :: enum {
+    Editor;
+    Playing;
+}
+
+g_game_state : GameState;
 
 g_show_imgui_demo := false;
 
@@ -147,6 +156,18 @@ EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
     }
 
     return false;
+}
+
+EnterPlayMode :: () {
+    CopyWorld(*g_game_world, *g_editor_world);
+    g_game_state = .Playing;
+    g_world = *g_game_world;
+}
+
+ExitPlayMode :: () {
+    DestroyWorld(*g_game_world);
+    g_game_state = .Editor;
+    g_world = *g_editor_world;
 }
 
 InitializeEditor :: (global_init : bool) {
@@ -213,6 +234,8 @@ InitializeEditor :: (global_init : bool) {
     if !g_editor_world.initialized {
         InitWorld(*g_editor_world);
     }
+
+    g_world = *g_editor_world;
 }
 
 ShutdownEditor :: (global_shutdown : bool) {
@@ -237,6 +260,9 @@ ShutdownEditor :: (global_shutdown : bool) {
         DestroyEditorViewport(g_editor_viewports[0]);
     }
 
+    if g_game_world.initialized {
+        DestroyWorld(*g_game_world);
+    }
     DestroyWorld(*g_editor_world);
 
     DestroyImGuiRenderer();
@@ -454,6 +480,18 @@ ShowMainMenuBar :: () {
     }
 }
 
+UpdateEditorWorld :: (world : *World) {
+    Assert(world.initialized, "World has not been initialized");
+
+    DestroyKilledEntities(world);
+
+    ExecuteEntityCallback(world, "OnEditorUpdate");
+    ExecuteComponentCallback(world, "OnEditorUpdate");
+
+    ExecuteEntityCallback(world, "OnDebugDraw");
+    ExecuteComponentCallback(world, "OnDebugDraw");
+}
+
 UpdateEditor :: () {
     Remap_Context();
 
@@ -462,7 +500,12 @@ UpdateEditor :: () {
 
     ImGui.DockSpaceOverViewport();
 
-    UpdateWorld(*g_editor_world);
+    if g_game_state == {
+    case .Playing;
+        UpdateWorld(g_world);
+    case .Editor;
+        UpdateEditorWorld(g_world);
+    }
 
     ShowMainMenuBar();
 
@@ -472,25 +515,25 @@ UpdateEditor :: () {
 
     // Make sure all selected entities are valid
     for * g_editor_selected_entities {
-        if !GetEntity(*g_editor_world, it.*) {
+        if !GetEntity(g_world, it.*) {
             remove it;
         }
     }
 
-    UpdateEditorViewports(*g_editor_world, GetDeltaTime());
+    UpdateEditorViewports(g_world, GetDeltaTime());
 
     ShowCPUProfiler();
     ShowGPUProfiler();
-    ShowWorldInspector(*g_editor_world);
-    ShowEntityOutliner(*g_editor_world);
+    ShowWorldInspector(g_world);
+    ShowEntityOutliner(g_world);
     ShowMaterialEditor();
 
     entity_to_inspect : *Entity;
     if g_editor_selected_entities.count == 1 {
-        entity_to_inspect = GetEntity(*g_editor_world, g_editor_selected_entities[0]);
+        entity_to_inspect = GetEntity(g_world, g_editor_selected_entities[0]);
     }
 
-    ShowEntityInspector(*g_editor_world, entity_to_inspect);
+    ShowEntityInspector(g_world, entity_to_inspect);
 
     UpdateAllFileBrowsers();
 
@@ -501,7 +544,7 @@ UpdateEditor :: () {
 
     WaitForRenderThread();
 
-    SubmitEditorWorldToRenderer(*g_editor_world);
+    SubmitEditorWorldToRenderer(g_world);
 
     SubmitFrameToRenderThread();
 }

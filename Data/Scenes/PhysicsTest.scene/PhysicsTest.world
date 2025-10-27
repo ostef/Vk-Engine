@@ -1,0 +1,9 @@
+@skybox 1: "Sky/BelfastSunsetPureSky.hdr"
+@skybox_light_intensity 2: 0.1
+@bloom_params 3:
+  @resolution_factor 1: 0.75
+  @max_downsample_passes 2: 7
+  @brightness_threshold 3: 1.4
+  @brightness_soft_threshold 4: 0.5
+  @blend_intensity 5: 0.5
+  @filter_radius 6: 1

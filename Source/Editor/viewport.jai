@@ -630,6 +630,15 @@ DefaultViewportMenu :: (world : *World, viewport : *EditorViewport) {
         }
     }
 
+    if ImGui.MenuItem(CTPrint("%###play_stop", ifx g_game_state == .Editor then Icon_Play_MDI else Icon_Stop_MDI)) {
+        if g_game_state == {
+        case .Editor;
+            EnterPlayMode();
+        case .Playing;
+            ExitPlayMode();
+        }
+    }
+
     if ImGui.MenuItem(CTPrint("%###show_grid", ifx viewport.show_grid then Icon_Grid_MDI else Icon_Grid_Off_MDI), selected=viewport.show_grid) {
         viewport.show_grid = !viewport.show_grid;
     }

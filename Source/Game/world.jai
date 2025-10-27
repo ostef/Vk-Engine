@@ -3,12 +3,12 @@ UpdateWorld :: (world : *World) {
 
     DestroyKilledEntities(world);
 
-    ExecuteEntityCallback(world, "OnEditorUpdate");
-    ExecuteComponentCallback(world, "OnEditorUpdate");
+    ExecuteEntityCallback(world, "OnUpdate");
+    ExecuteComponentCallback(world, "OnUpdate");
+    UpdatePhysicsWorld(world);
+
     ExecuteEntityCallback(world, "OnDebugDraw");
     ExecuteComponentCallback(world, "OnDebugDraw");
-
-    UpdatePhysicsWorld(world);
 } @ModuleAPI
 
 InitWorld :: (world : *World) {
@@ -112,6 +112,10 @@ CopyWorld :: (dest : *World, src : *World) {
 
     DestroyWorld(dest);
     InitWorld(dest);
+
+    dest.skybox = AddRef(src.skybox);
+    dest.skybox_light_intensity = src.skybox_light_intensity;
+    dest.bloom_params = src.bloom_params;
 
     for :AllEntities entity : src {
         CopyEntityOver(dest, src, entity);
