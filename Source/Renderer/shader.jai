@@ -176,6 +176,10 @@ ProcessShaderDirectoryChanges :: () {
 ShaderFileChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, user_data : *void) {
     LogSectionScope(*Log_Shaders);
 
+    if !file_exists(change.full_path) {
+        return;
+    }
+
     filename := get_absolute_path(change.full_path,, Temp);
     path_overwrite_separators(filename, #char "/");
 
