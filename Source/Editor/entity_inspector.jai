@@ -101,6 +101,9 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
         }
 
         if entity.components.count > 0 {
+            ImGui.PushStyleVar(.SeparatorTextAlign, .{0.5, 0.5});
+            defer ImGui.PopStyleVar();
+
             ImGui.SeparatorText("Added Components");
         }
 
