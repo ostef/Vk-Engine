@@ -246,6 +246,14 @@ RendererLoop :: () {
     Remap_Context();
 
     ProcessShaderDirectoryChanges();
+
+    if !(SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS) {
+        elapsed := GetDeltaTime();
+        sleep_time := cast(s32, 1000 * (1 / 10.0 - elapsed));
+        if sleep_time > 1 {
+            Basic.sleep_milliseconds(sleep_time);
+        }
+    }
 }
 
 AddViewpointToRender :: (viewpoint : ViewpointToRender) {
