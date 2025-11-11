@@ -104,11 +104,11 @@ StaticMeshEntity :: struct {
 
     mesh : *StaticMeshComponent; @Serialize(2)
 
-    OnSpawn :: (world : *World, entity : *StaticMeshEntity) {
+    OnCreate :: (world : *World, entity : *StaticMeshEntity) {
         entity.mesh = CreateComponent(world, StaticMeshComponent, entity);
     }
 
-    OnDespawn :: (world : *World, entity : *StaticMeshEntity) {
+    OnDestroy :: (world : *World, entity : *StaticMeshEntity) {
         DestroyComponent(world, entity.mesh);
     }
 } @Entity
@@ -123,11 +123,11 @@ AnimatedMeshEntity :: struct {
     animation_time : float;
     pose : ArmaturePose;
 
-    OnSpawn :: (world : *World, entity : *AnimatedMeshEntity) {
+    OnCreate :: (world : *World, entity : *AnimatedMeshEntity) {
         entity.mesh = CreateComponent(world, SkinnedMeshComponent, entity);
     }
 
-    OnDespawn :: (world : *World, using entity : *AnimatedMeshEntity) {
+    OnDestroy :: (world : *World, using entity : *AnimatedMeshEntity) {
         DestroyComponent(world, mesh);
         FreeArmaturePose(*pose);
     }
@@ -249,11 +249,11 @@ DirectionalLightEntity :: struct {
 
     light : *DirectionalLightComponent; @Serialize(2)
 
-    OnSpawn :: (world : *World, light : *DirectionalLightEntity) {
+    OnCreate :: (world : *World, light : *DirectionalLightEntity) {
         light.light = CreateComponent(world, DirectionalLightComponent, light);
     }
 
-    OnDespawn :: (world : *World, light : *DirectionalLightEntity) {
+    OnDestroy :: (world : *World, light : *DirectionalLightEntity) {
         DestroyComponent(world, light.light);
     }
 } @Entity
@@ -285,11 +285,11 @@ PointLightEntity :: struct {
 
     light : *PointLightComponent; @Serialize(2)
 
-    OnSpawn :: (world : *World, light : *PointLightEntity) {
+    OnCreate :: (world : *World, light : *PointLightEntity) {
         light.light = CreateComponent(world, PointLightComponent, light);
     }
 
-    OnDespawn :: (world : *World, light : *PointLightEntity) {
+    OnDestroy :: (world : *World, light : *PointLightEntity) {
         DestroyComponent(world, light.light);
     }
 } @Entity

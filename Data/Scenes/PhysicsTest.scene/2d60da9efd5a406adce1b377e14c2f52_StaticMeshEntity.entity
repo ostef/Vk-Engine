@@ -1,0 +1,30 @@
+@_ 1:
+  @guid 1: 0x2d60da9efd5a406adce1b377e14c2f52
+  @flags 7: 0x0
+  @name 2: ""
+  @local_position 3: [0, -2.23, 0]
+  @local_rotation 4: [0, 0, 0, 1]
+  @local_scale 5: [1, 1, 1]
+  @parent 6: 0x00000000000000000000000000000000
+@mesh 2:
+  @_ 1:
+    @local_position 2: [0, 0, 0]
+    @local_rotation 3: [0, 0, 0, 1]
+    @local_scale 4: [1, 1, 1]
+  @mesh 2: "Meshes/Plane.mesh"
+  @cast_shadows 4: true
+  @cast_point_shadows 5: false
+
+[BoxColliderComponent]
+@_ 1:
+  @local_position 2: [0, 0, 0]
+  @local_rotation 3: [0, 0, 0, 1]
+  @local_scale 4: [1, 1, 1]
+@half_extents 2: [1, 1, 1]
+@density 3: 1
+@margin 4: 0.01
+
+[RigidBodyComponent]
+@layer 2: Static
+@motion_type 3: Static
+@activate_on_create 4: true

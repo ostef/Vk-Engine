@@ -29,13 +29,13 @@ EmptyEntity :: struct {
         // If any component has an icon, or if it is drawable then don't set an icon
         for components {
             type := GetComponentTypeId(it);
-            // if type == .StaticMeshComponent || type == .SkinnedMeshComponent {
-            //     return null;
-            // }
+            if type == .StaticMeshComponent || type == .SkinnedMeshComponent {
+                return null;
+            }
 
-            // if GetEditorIcon(world, entity, it) {
-            //     return null;
-            // }
+            if GetEditorIcon(world, entity, it) {
+                return null;
+            }
         }
 
         return LoadAssetPermanent(Texture2D, "Editor/Icons/Default.png");
@@ -644,6 +644,30 @@ SpawnEntity :: (using world : *World, $T : Type, name := "", guid := Null_Entity
 }
 
 SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
+    entity := CreateEntity(world, type, name, guid);
+
+    ExecuteEntityCallback(world, entity, "OnSpawn");
+
+    for :AllEntityComponents entity {
+        ExecuteComponentCallback(world, entity, it, "OnSpawn");
+    }
+
+    if name {
+        LogMessage("Spawned entity % (%, %)",
+            name, type, entity.guid,
+            flags=.VERBOSE_ONLY
+        );
+    } else {
+        LogMessage("Spawned entity (%, %)",
+            type, entity.guid,
+            flags=.VERBOSE_ONLY
+        );
+    }
+
+    return entity;
+}
+
+CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
     LogSectionScope(*Log_Entities);
 
     if type == .Invalid {
@@ -686,25 +710,13 @@ SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := N
         SetEntityName(world, entity, name);
     }
 
-    ExecuteEntityCallback(world, entity, "OnSpawn");
-
-    if name {
-        LogMessage("Spawned entity % (%, %)",
-            name, type, entity.guid,
-            flags=.VERBOSE_ONLY
-        );
-    } else {
-        LogMessage("Spawned entity (%, %)",
-            type, entity.guid,
-            flags=.VERBOSE_ONLY
-        );
-    }
+    ExecuteEntityCallback(world, entity, "OnCreate");
 
     return entity;
 }
 
 SpawnAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
-    entity := SpawnEntity(world, type_id, guid=guid, name=name);
+    entity := CreateEntity(world, type_id, guid=guid, name=name);
     cached_name := entity.name;
 
     result := DeserializeEntity(text, world, entity);
@@ -736,6 +748,12 @@ SpawnAndDeserializeEntity :: (using world : *World, text : string, type_id : Ent
             LogError("In SpawnAndDeserializeEntity, when trying to attach entity, GetEntity failed for parent % (%)", entity.parent, err);
             entity.parent = .{};
         }
+    }
+
+    ExecuteEntityCallback(world, entity, "OnSpawn");
+
+    for :AllEntityComponents entity {
+        ExecuteComponentCallback(world, entity, it, "OnSpawn");
     }
 
     return entity;
@@ -863,4 +881,39 @@ KillEntity :: (using world : *World, index : EntityIndex) {
     }
 
     ArrayPush(*entities_killed_this_frame, index);
+}
+
+GetEditorIcon :: inline (world : *World, entity : *$T) -> *Asset(Texture2D), *Asset(Material)
+#modify { return T == Entity || IsInEntityTypesArray(T); } {
+    icon : *Asset(Texture2D);
+    #if T == Entity {
+        #insert -> string {
+            builder : StringBuilder;
+
+            Appendln(*builder, "if GetEntityTypeId(entity.index) == {");
+            for i : 1..Entity_Types.count - 1 {
+                type := Entity_Types[i];
+                Appendln(*builder, "case .%1; #if #exists(%1.GetEditorIcon) { icon = %1.GetEditorIcon(world, xx entity); }", type);
+            }
+            Appendln(*builder, "}");
+
+            return StringBuilderBuild(*builder);
+        }
+    } else {
+        #if #exists(T.GetEdiorIcon) {
+            icon = T.GetEditorIcon(world, entity);
+        }
+    }
+
+    if !icon {
+        return null, null;
+    }
+
+    material, is_new := AllocNewAsset(Material, TPrint("%.mat", icon.asset_name), .FromMemory | .Permanent);
+    if is_new {
+        material.type = .Unlit;
+        material.base_color = icon;
+    }
+
+    return icon, material;
 }

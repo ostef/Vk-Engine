@@ -1,5 +1,7 @@
 Jolt :: #import "JoltPhysics";
 
+Log_Physics :: Log_Section.{"Physics"};
+
 Physics_Temp_Allocator_Capacity :: 10 * 1024 * 1024;
 Physics_Max_Bodies :: 1024;
 Physics_Num_Body_Mutexes :: 0;
@@ -49,7 +51,9 @@ RigidBodyComponent :: struct {
     activate_on_create := true; @Serialize(4)
     jolt_body_id : Jolt.BodyID;
 
-    OnCreate :: (world : *World, entity : *Entity, using body : *RigidBodyComponent) {
+    OnSpawn :: (world : *World, entity : *Entity, using body : *RigidBodyComponent) {
+        LogSectionScope(*Log_Physics);
+
         shapes : [..]*Jolt.Shape;
         shapes.allocator = Temp;
 
@@ -61,10 +65,10 @@ RigidBodyComponent :: struct {
         //     shape := CreateJoltShape(world, entity, it);
         //     ArrayPush(*shapes, xx shape);
         // }
-        // for :AllBoxColliderComponents entity {
-        //     shape := CreateJoltShape(world, entity, it);
-        //     ArrayPush(*shapes, xx shape);
-        // }
+        for :AllBoxColliderComponents entity {
+            shape := CreateJoltShape(world, entity, it);
+            ArrayPush(*shapes, xx shape);
+        }
 
         final_shape : *Jolt.Shape;
         if shapes.count > 1 {
@@ -86,25 +90,33 @@ RigidBodyComponent :: struct {
 
         jolt_motion_type : Jolt.MotionType;
         if #complete motion_type == {
-        case .Static; jolt_motion_type = .Static;
+        case .Static;    jolt_motion_type = .Static;
         case .Kinematic; jolt_motion_type = .Kinematic;
-        case .Dynamic; jolt_motion_type = .Dynamic;
+        case .Dynamic;   jolt_motion_type = .Dynamic;
         }
 
         body_settings := Jolt.BodyCreationSettings_Create3(final_shape, *world_position, *world_rotation, jolt_motion_type, xx layer);
 
         jolt_body_id = Jolt.BodyInterface_CreateAndAddBody(world.physics.body_interface, body_settings, ifx activate_on_create then .Activate else .DontActivate);
+        LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, shapes.count);
     }
 
     OnDestroy :: (world : *World, using body : *RigidBodyComponent) {
-        Jolt.BodyInterface_RemoveAndDestroyBody(world.physics.body_interface, jolt_body_id);
+        LogSectionScope(*Log_Physics);
+
+        if jolt_body_id {
+            Jolt.BodyInterface_RemoveAndDestroyBody(world.physics.body_interface, jolt_body_id);
+            LogMessage("Destroyed rigid body %", jolt_body_id);
+        }
+
+        jolt_body_id = 0;
     }
 } @Component @Category(Physics)
 
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    radius : float = 1; @Serialize(2)
+    radius : float = 0.5; @Serialize(2)
     density : float = 1; @Serialize(3)
 
     // OnCreate :: (world : *World, entity : *Entity, sphere : *SphereColliderComponent) {
@@ -165,6 +177,13 @@ BoxColliderComponent :: struct {
 } @Component @Category(Physics/Colliders)
 
 AllBoxColliderComponents :: #bake_arguments AllEntityComponents(T=BoxColliderComponent);
+
+CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponent) -> *Jolt.BoxShape {
+    settings := Jolt.BoxShapeSettings_Create(*box.half_extents, box.margin);
+    Jolt.ConvexShapeSettings_SetDensity(xx settings, box.density);
+
+    return Jolt.BoxShapeSettings_CreateShape(settings);
+}
 
 MeshColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree

@@ -102,6 +102,7 @@ GetComponentType :: inline (component : *Component) -> Type {
 
 CreateComponent :: (world : *World, storage : *ComponentStorage($T), entity : *Entity) -> *T {
     component, index := PagedArrayFindSlot(storage);
+    Assert(component != null, "Could not create component %", T);
     component.entity_index = entity.index;
     component.index = index;
     component.type_id = #run cast(int, GetComponentTypeId(T));
@@ -386,4 +387,39 @@ AllEntityComponents :: (entity : *$E, body : Code, flags : For_Flags, $T : Type 
         it = cast(*T, comp);
         #insert body;
     }
+}
+
+GetEditorIcon :: inline (world : *World, entity : *Entity, component : *$T) -> *Asset(Texture2D), *Asset(Material)
+#modify { return T == Component || IsInComponentTypesArray(T); } {
+    icon : *Asset(Texture2D);
+    #if T == Component {
+        #insert -> string {
+            builder : StringBuilder;
+
+            Appendln(*builder, "if GetComponentTypeId(component) == {");
+            for i : 1..Component_Types.count - 1 {
+                type := Component_Types[i];
+                Appendln(*builder, "case .%1; #if #exists(%1.GetEditorIcon) { icon = %1.GetEditorIcon(world, entity, xx component); }", type);
+            }
+            Appendln(*builder, "}");
+
+            return StringBuilderBuild(*builder);
+        }
+    } else {
+        #if #exists(T.GetEdiorIcon) {
+            icon = T.GetEditorIcon(world, entity, component);
+        }
+    }
+
+    if !icon {
+        return null, null;
+    }
+
+    material, is_new := AllocNewAsset(Material, TPrint("%.mat", icon.asset_name), .FromMemory | .Permanent);
+    if is_new {
+        material.type = .Unlit;
+        material.base_color = icon;
+    }
+
+    return icon, material;
 }

@@ -83,7 +83,6 @@ DestroyWorld :: (using world : *World) {
 
 CopyWorld :: (dest : *World, src : *World) {
     CopyEntityOver :: (dest_world : *World, src_world : *World, entity : *Entity) -> *Entity {
-        // @Hack: we serialize then deserialize the entity to copy it, this is not ideal
         serializer : Serializer;
         serializer.builder.allocator = Temp;
 
@@ -91,19 +90,7 @@ CopyWorld :: (dest : *World, src : *World) {
 
         str := StringBuilderBuild(*serializer.builder ,, Temp);
 
-        new_entity := SpawnEntity(dest_world, GetEntityTypeId(entity.index), name=entity.name, guid=entity.guid);
-        cached_name := new_entity.name;
-
-        result := DeserializeEntity(str, dest_world, new_entity);
-        if !result.ok {
-            LogError("There were errors when deserializing for duplicating entity:\n%:%: %",
-                result.line_index + 1, result.byte_index + 1, result.error_msg);
-        }
-
-        UpdateWorldTransform(dest_world, new_entity);
-
-        Free(new_entity.name.data);
-        new_entity.name = cached_name;
+        new_entity := SpawnAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), name=entity.name, guid=entity.guid);
 
         return new_entity;
     }
@@ -248,22 +235,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
 
             defer Free(file_contents.data);
 
-            entity := SpawnEntity(world, type_id, guid=guid);
-
-            result := DeserializeEntity(file_contents, world, entity);
-            if !result.ok {
-                LogContentError("There were errors when deserializing entity:\n%:%:%: %",
-                    it, result.line_index + 1, result.byte_index + 1, result.error_msg);
-            }
-
-            UpdateWorldTransform(world, entity);
-
-            if entity.name {
-                name := entity.name;
-                entity.name = "";
-                SetEntityName(world, entity, name);
-                Free(name.data);
-            }
+            entity := SpawnAndDeserializeEntity(world, file_contents, type_id, guid=guid);
 
             loaded_entities += 1;
         }
