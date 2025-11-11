@@ -41,7 +41,7 @@ FlyingLightEntity :: struct {
         DestroyComponent(world, point_light);
     }
 
-    OnEditorUpdate :: (world : *World, using entity : *FlyingLightEntity) {
+    OnUpdate :: (world : *World, using entity : *FlyingLightEntity) {
         rotate := QuatfFromAxisAngle(rotation_axis, rotation_speed * GetDeltaTime());
         local_rotation *= rotate;
 
@@ -83,7 +83,7 @@ TestShapeEntity :: struct {
         DestroyComponent(world, mesh);
     }
 
-    OnDebugDraw :: (world : *World, using entity : *TestShapeEntity) {
+    OnEditorUpdate :: (world : *World, using entity : *TestShapeEntity, is_selected : bool) {
         position := TranslationVector(world_transform);
         if #complete shape == {
         case .Point;

@@ -6,6 +6,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #import "Hash_Map";
 #import "File";
 #import "File_Utilities";
+#import "Paged_Array";
 #import "Remap_Context"(false);
 
 #load "utils.jai";
@@ -485,11 +486,43 @@ UpdateEditorWorld :: (world : *World) {
 
     DestroyKilledEntities(world);
 
-    ExecuteEntityCallback(world, "OnEditorUpdate");
-    ExecuteComponentCallback(world, "OnEditorUpdate");
+    #insert -> string {
+        builder : StringBuilder;
 
-    ExecuteEntityCallback(world, "OnDebugDraw");
-    ExecuteComponentCallback(world, "OnDebugDraw");
+        Appendln(*builder, "{");
+        Appendln(*builder, "    ProfileBlock(GetCPUFrameProfiler(), \"Entity.OnEditorUpdate\");");
+
+        for i : 1..Entity_Types.count - 1 {
+            type := Entity_Types[i];
+            Appendln(*builder, "    #if #exists(%1.OnEditorUpdate) {", type);
+            Appendln(*builder, "        for * world.%1_storage {", type);
+            Appendln(*builder, "            it.OnEditorUpdate(world, it, EntityOrParentIsSelected(world, it.guid));");
+            Appendln(*builder, "        }");
+            Appendln(*builder, "    }");
+        }
+
+        Appendln(*builder, "}");
+
+        Appendln(*builder, "{");
+        Appendln(*builder, "    ProfileBlock(GetCPUFrameProfiler(), \"Component.OnEditorUpdate\");");
+
+        for i : 1..Component_Types.count - 1 {
+            type := Component_Types[i];
+            Appendln(*builder, "    #if #exists(%1.OnEditorUpdate) {", type);
+            Appendln(*builder, "        for * world.%1_storage {", type);
+            Appendln(*builder, "            entity := GetEntity(world, it.entity_index);");
+            Appendln(*builder, "            if !entity {");
+            Appendln(*builder, "                continue;");
+            Appendln(*builder, "            }");
+            Appendln(*builder, "            it.OnEditorUpdate(world, entity, it, EntityOrParentIsSelected(world, entity.guid));");
+            Appendln(*builder, "        }");
+            Appendln(*builder, "    }");
+        }
+
+        Appendln(*builder, "}");
+
+        return StringBuilderBuild(*builder);
+    }
 }
 
 UpdateEditor :: () {

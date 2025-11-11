@@ -133,7 +133,7 @@ SphereColliderComponent :: struct {
     //     }
     // }
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
+    OnEditorUpdate :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent, is_selected : bool) {
         center := TranslationVector(world_transform);
         DebugDrawSphereOutline(world, .{0,1,0,1}, center, radius);
     }
@@ -155,7 +155,7 @@ CapsuleColliderComponent :: struct {
     radius : float = 0.5; @Serialize(3)
     density : float = 1; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
+    OnEditorUpdate :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent, is_selected : bool) {
         center := TranslationVector(world_transform);
         up := UpVector(world_transform);
         DebugDrawCapsuleOutline(world, .{0,1,0,1}, center - up * height * 0.5, center + up * height * 0.5, radius);
@@ -171,7 +171,7 @@ BoxColliderComponent :: struct {
     density : float = 1; @Serialize(3)
     margin : float = 0.01; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
+    OnEditorUpdate :: (world : *World, entity : *Entity, using box : *BoxColliderComponent, is_selected : bool) {
         DebugDrawBoxOutline(world, .{0,1,0,1}, .{0,0,0}, half_extents, world_transform);
     }
 } @Component @Category(Physics/Colliders)

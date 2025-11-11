@@ -6,9 +6,6 @@ UpdateWorld :: (world : *World) {
     ExecuteEntityCallback(world, "OnUpdate");
     ExecuteComponentCallback(world, "OnUpdate");
     UpdatePhysicsWorld(world);
-
-    ExecuteEntityCallback(world, "OnDebugDraw");
-    ExecuteComponentCallback(world, "OnDebugDraw");
 } @ModuleAPI
 
 InitWorld :: (world : *World) {

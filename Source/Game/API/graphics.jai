@@ -94,6 +94,7 @@ SetPose :: (using component : *SkinnedMeshComponent, pose : *ArmaturePose) {
 
     if pose.mesh != mesh {
         LogError("Mismatching mesh when setting pose ('%' vs '%')", mesh.asset_name, pose.mesh.asset_name);
+        return;
     }
 
     CalculateSkinningMatrices(pose, *skinning_matrices);
@@ -132,7 +133,7 @@ AnimatedMeshEntity :: struct {
         FreeArmaturePose(*pose);
     }
 
-    OnEditorUpdate :: (world : *World, using entity : *AnimatedMeshEntity) {
+    OnUpdate :: (world : *World, using entity : *AnimatedMeshEntity) {
         if pose.mesh != mesh.mesh {
             FreeArmaturePose(*pose);
 
@@ -219,7 +220,11 @@ DirectionalLightComponent :: struct {
     intensity : float = 1; @Serialize(3) @FloatRange(0,1000)
     cast_shadows : bool; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) {
+    OnEditorUpdate :: (world : *World, entity : *Entity, light : *DirectionalLightComponent, is_selected : bool) {
+        if !is_selected {
+            return;
+        }
+
         position := TranslationVector(light.world_transform);
         right := RightVector(light.world_transform);
         up := UpVector(light.world_transform);
@@ -267,7 +272,11 @@ PointLightComponent :: struct {
     source_radius : float = 0.05; @Serialize(6) @FloatRange(0.001,100)
     cast_shadows : bool; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, light : *PointLightComponent) {
+    OnEditorUpdate :: (world : *World, entity : *Entity, light : *PointLightComponent, is_selected : bool) {
+        if !is_selected {
+            return;
+        }
+
         position := TranslationVector(light.world_transform);
         DebugDrawSphereOutline(world, .{1,1,1,1}, position, light.source_radius);
         DebugDrawSphereOutline(world, .{1,1,1,1}, position, GetPointLightAttenuationDistance(light));
