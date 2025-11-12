@@ -83,7 +83,7 @@ TestShapeEntity :: struct {
         DestroyComponent(world, mesh);
     }
 
-    OnEditorUpdate :: (world : *World, using entity : *TestShapeEntity, is_selected : bool) {
+    OnDebugDraw :: (world : *World, using entity : *TestShapeEntity) {
         position := TranslationVector(world_transform);
         if #complete shape == {
         case .Point;

@@ -531,7 +531,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     }
 
     UpdateWorldTransform(world, entity);
-    ExecuteEntityCallback(world, entity, "OnAttach");
+    ExecuteEntityCallback(world, entity, "OnAttached");
 
     LogMessage("Attached entity % to %", entity.guid, to.guid, flags=.VERBOSE_ONLY);
 }
@@ -715,7 +715,7 @@ CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := 
     return entity;
 }
 
-SpawnAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
+CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
     entity := CreateEntity(world, type_id, guid=guid, name=name);
     cached_name := entity.name;
 
@@ -745,15 +745,9 @@ SpawnAndDeserializeEntity :: (using world : *World, text : string, type_id : Ent
             entity.parent = .{};
             AttachEntity(world, entity, parent);
         } else {
-            LogError("In SpawnAndDeserializeEntity, when trying to attach entity, GetEntity failed for parent % (%)", entity.parent, err);
+            LogError("In CreateAndDeserializeEntity, when trying to attach entity, GetEntity failed for parent % (%)", entity.parent, err);
             entity.parent = .{};
         }
-    }
-
-    ExecuteEntityCallback(world, entity, "OnSpawn");
-
-    for :AllEntityComponents entity {
-        ExecuteComponentCallback(world, entity, it, "OnSpawn");
     }
 
     return entity;
@@ -852,7 +846,7 @@ KillEntity :: (using world : *World, guid : EntityGUID) {
     LogSectionScope(*Log_Entities);
 
     entity := GetEntity(world, guid);
-    if entity == null {
+    if !entity {
         LogError("Killing entity with GUID % but it does not exist", guid);
         return;
     }
@@ -864,12 +858,18 @@ KillEntity :: (using world : *World, guid : EntityGUID) {
     }
 
     ArrayPush(*entities_killed_this_frame, entity.index);
+
+    ExecuteEntityCallback(world, entity, "OnKilled");
+    for :AllEntityComponents entity {
+        ExecuteComponentCallback(world, entity, it, "OnKilled");
+    }
 }
 
 KillEntity :: (using world : *World, index : EntityIndex) {
     LogSectionScope(*Log_Entities);
 
-    if GetEntity(world, index) == null {
+    entity := GetEntity(world, index);
+    if !entity {
         LogError("Killing entity with index % but it does not exist", index);
         return;
     }
@@ -881,6 +881,12 @@ KillEntity :: (using world : *World, index : EntityIndex) {
     }
 
     ArrayPush(*entities_killed_this_frame, index);
+
+    ExecuteEntityCallback(world, entity, "OnKilled");
+    for :AllEntityComponents entity {
+        ExecuteComponentCallback(world, entity, it, "OnKilled");
+    }
+
 }
 
 GetEditorIcon :: inline (world : *World, entity : *$T) -> *Asset(Texture2D), *Asset(Material)

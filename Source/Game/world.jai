@@ -5,7 +5,11 @@ UpdateWorld :: (world : *World) {
 
     ExecuteEntityCallback(world, "OnUpdate");
     ExecuteComponentCallback(world, "OnUpdate");
+
     UpdatePhysicsWorld(world);
+
+    ExecuteEntityCallback(world, "OnDebugDraw");
+    ExecuteComponentCallback(world, "OnDebugDraw");
 } @ModuleAPI
 
 InitWorld :: (world : *World) {
@@ -31,17 +35,26 @@ DestroyWorld :: (using world : *World) {
             type := Entity_Types[i];
 
             Appendln(*builder, "for * %_storage {", type);
-            Appendln(*builder, "    #if #exists(%1.OnDespawn) {", type);
-            Appendln(*builder, "        it.parent = Null_Entity_GUID;");
-            Appendln(*builder, "        ArrayClear(*it.children);");
-            Appendln(*builder, "        it.OnDespawn(world, it);");
+            Appendln(*builder, "    it.parent = Null_Entity_GUID;");
+            Appendln(*builder, "    ArrayFree(*it.children);");
+
+            Appendln(*builder, "    while it.components.count > 0 {");
+            Appendln(*builder, "        DestroyComponent(world, it.components[it.components.count - 1]);");
+            Appendln(*builder, "        ArrayPop(*it.components);");
             Appendln(*builder, "    }");
+            Appendln(*builder, "    ArrayFree(*it.components);");
+
+            Appendln(*builder, "    #if #exists(%1.OnDestroy) {", type);
+            Appendln(*builder, "        it.OnDestroy(world, it);");
+            Appendln(*builder, "    }");
+
             Appendln(*builder, "    UnreferenceAllAssets(it);");
+
             Appendln(*builder, "    HashMapRemove(*world.entities_by_guid, it.guid);");
             Appendln(*builder, "    if it.name {");
             Appendln(*builder, "        HashMapRemove(*world.entities_by_name, it.name);");
             Appendln(*builder, "    }");
-            Appendln(*builder, "    FreeEntity(world, it);");
+
             Appendln(*builder, "    PagedArrayFreeSlot(*%_storage, GetSlotInfo(it.index));", type);
             Appendln(*builder, "}\n");
 
@@ -80,6 +93,8 @@ DestroyWorld :: (using world : *World) {
 
 CopyWorld :: (dest : *World, src : *World) {
     CopyEntityOver :: (dest_world : *World, src_world : *World, entity : *Entity) -> *Entity {
+        TemporaryStorageScope();
+
         serializer : Serializer;
         serializer.builder.allocator = Temp;
 
@@ -87,7 +102,7 @@ CopyWorld :: (dest : *World, src : *World) {
 
         str := StringBuilderBuild(*serializer.builder ,, Temp);
 
-        new_entity := SpawnAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), name=entity.name, guid=entity.guid);
+        new_entity := CreateAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), name=entity.name, guid=entity.guid);
 
         return new_entity;
     }
@@ -118,6 +133,14 @@ CopyWorld :: (dest : *World, src : *World) {
             }
 
             AttachEntity(dest, entity, parent);
+        }
+    }
+
+    for :AllEntities entity : dest {
+        ExecuteEntityCallback(dest, entity, "OnSpawn");
+
+        for :AllEntityComponents entity {
+            ExecuteComponentCallback(dest, entity, it, "OnSpawn");
         }
     }
 } @ModuleAPI
@@ -232,7 +255,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
 
             defer Free(file_contents.data);
 
-            entity := SpawnAndDeserializeEntity(world, file_contents, type_id, guid=guid);
+            entity := CreateAndDeserializeEntity(world, file_contents, type_id, guid=guid);
 
             loaded_entities += 1;
         }
@@ -251,6 +274,14 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
             }
 
             AttachEntity(world, entity, parent);
+        }
+    }
+
+    for :AllEntities entity : world {
+        ExecuteEntityCallback(world, entity, "OnSpawn");
+
+        for :AllEntityComponents entity {
+            ExecuteComponentCallback(world, entity, it, "OnSpawn");
         }
     }
 } @ModuleAPI
@@ -332,15 +363,16 @@ DestroyKilledEntities :: (using world : *World) {
             }
         }
 
-        ExecuteEntityCallback(world, entity, "OnDespawn");
-
         ArrayFree(*entity.children);
 
-        for entity.components {
-            DestroyComponent(world, it);
+        while entity.components.count > 0 {
+            DestroyComponent(world, entity.components[entity.components.count - 1]);
+            ArrayPop(*entity.components);
         }
 
         ArrayFree(*entity.components);
+
+        ExecuteEntityCallback(world, entity, "OnDestroy");
 
         if entity.name {
             Free(entity.name.data ,, entities_by_name.allocator);

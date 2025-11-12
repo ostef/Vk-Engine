@@ -20,7 +20,7 @@
   @local_position 2: [0, 0, 0]
   @local_rotation 3: [0, 0, 0, 1]
   @local_scale 4: [1, 1, 1]
-@half_extents 2: [1, 1, 1]
+@half_extents 2: [1, 0.01, 1]
 @density 3: 1
 @margin 4: 0.01
 

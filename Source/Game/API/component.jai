@@ -159,6 +159,8 @@ AddComponent :: (world : *World, $T : Type, entity : *Entity) -> *T
     component := CreateComponent(world, T, entity);
     ArrayPush(*entity.components, component);
 
+    // @Todo: call OnComponentAdded
+
     return component;
 }
 
@@ -193,6 +195,9 @@ RemoveComponent :: (world : *World, component : *$T, entity : *Entity)
     }
 
     ArrayOrderedRemove(*entity.components, index);
+
+    // @Todo: call OnComponentRemoved
+
     DestroyComponent(world, component);
 }
 
