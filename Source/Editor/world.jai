@@ -24,12 +24,12 @@ WorldMenu :: (world : *World) {
     if ImGui.BeginMenu("World") {
         defer ImGui.EndMenu();
 
-        if ImGui.MenuItem("New") {
+        if ImGui.MenuItem("New", enabled=g_game_state == .Editor) {
             DestroyWorld(world);
             InitWorld(world);
         }
 
-        if ImGui.MenuItem("Load") {
+        if ImGui.MenuItem("Load", enabled=g_game_state == .Editor) {
             Callback :: (browser : *FileBrowser, event : FileBrowserEvent, user_data : *void) {
                 if event.kind == .Submit {
                     LoadWorldFromDirectory(xx user_data, event.filename);
@@ -44,7 +44,7 @@ WorldMenu :: (world : *World) {
             }, Callback, world);
         }
 
-        if ImGui.BeginMenu("Quick Load") {
+        if ImGui.BeginMenu("Quick Load", enabled=g_game_state == .Editor) {
             defer ImGui.EndMenu();
 
             if g_quick_load_last_refreshed == .{}
@@ -82,10 +82,10 @@ WorldMenu :: (world : *World) {
             g_quick_load_last_refreshed = .{};
         }
 
-        if ImGui.MenuItem("Save", enabled=world.loaded_from_directory != "") {
+        if ImGui.MenuItem("Save", enabled=world.loaded_from_directory != "" && g_game_state == .Editor) {
             SaveWorldToDirectory(world, world.loaded_from_directory);
         }
-        if ImGui.MenuItem("Save As") {
+        if ImGui.MenuItem("Save As", enabled=g_game_state == .Editor) {
             Callback :: (browser : *FileBrowser, event : FileBrowserEvent, user_data : *void) {
                 if event.kind == .Submit {
                     SaveWorldToDirectory(xx user_data, event.filename);
