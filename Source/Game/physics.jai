@@ -28,7 +28,7 @@ InitPhysicsWorld :: (world : *World) {
     Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
 
     object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Body_Layers);
-    Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Static, xx PhysicsBodyLayer.Moving);
+    Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Moving);
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Static);
 
     broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable_Create(Physics_Num_Body_Layers, Physics_Num_Body_Layers);
@@ -82,7 +82,7 @@ UpdatePhysicsWorld :: (world : *World) {
         Jolt.BodyInterface_GetWorldTransform(body_interface, it.jolt_body_id, xx *world_transform);
 
         world_transform = Transposed(world_transform);
-        SetWorldTransform(world, entity, world_transform);
+        SetWorldTransformNoScale(world, entity, world_transform);
     }
 } @ModuleAPI
 
