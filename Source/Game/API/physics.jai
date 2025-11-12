@@ -54,32 +54,40 @@ RigidBodyComponent :: struct {
     OnSpawn :: (world : *World, entity : *Entity, using body : *RigidBodyComponent) {
         LogSectionScope(*Log_Physics);
 
+        shape_transforms : [..]struct{position : Vec3f; rotation : Quatf;};
+        shape_transforms.allocator = Temp;
         shapes : [..]*Jolt.Shape;
         shapes.allocator = Temp;
 
         for :AllSphereColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, xx shape);
+            ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
         }
-        // for :AllCapsuleColliderComponents entity {
-        //     shape := CreateJoltShape(world, entity, it);
-        //     ArrayPush(*shapes, xx shape);
-        // }
+        for :AllCapsuleColliderComponents entity {
+            shape := CreateJoltShape(world, entity, it);
+            ArrayPush(*shapes, xx shape);
+            ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
+        }
         for :AllBoxColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, xx shape);
+            ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
         }
 
         final_shape : *Jolt.Shape;
         if shapes.count > 1 {
             compound_shape_settings := Jolt.StaticCompoundShapeSettings_Create();
             for shapes {
-                Jolt.CompoundShapeSettings_AddShape2(xx compound_shape_settings, *(Vec3f.{}), *(Quatf.{}), it, 0);
+                transform := shape_transforms[it_index];
+                Jolt.CompoundShapeSettings_AddShape2(xx compound_shape_settings, *transform.position, *transform.rotation, it, 0);
             }
 
             final_shape = xx Jolt.StaticCompoundShape_Create(compound_shape_settings);
         } else if shapes.count > 0 {
-            final_shape = shapes[0];
+            transform := shape_transforms[0];
+            rotated_translated := Jolt.RotatedTranslatedShapeSettings_Create2(*transform.position, *transform.rotation, shapes[0]);
+            final_shape = xx Jolt.RotatedTranslatedShapeSettings_CreateShape(rotated_translated);
         } else {
             empty_settings := Jolt.EmptyShapeSettings_Create(*(Vec3f.{0,0,0}));
             final_shape = xx Jolt.EmptyShapeSettings_CreateShape(empty_settings);
@@ -113,6 +121,8 @@ RigidBodyComponent :: struct {
     }
 } @Component @Category(Physics)
 
+Collider_Color :: Vec4f.{0,1,0,1};
+
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
@@ -135,7 +145,10 @@ SphereColliderComponent :: struct {
 
     OnDebugDraw :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
-        DebugDrawSphereOutline(world, .{0,1,0,1}, center, radius);
+        right := RightVector(world_transform);
+        up := UpVector(world_transform);
+        forward := ForwardVector(world_transform);
+        DebugDrawSphereOutline(world, Collider_Color, center, radius, right=right, up=up, forward=forward);
     }
 } @Component @Category(Physics/Colliders)
 
@@ -158,11 +171,18 @@ CapsuleColliderComponent :: struct {
     OnDebugDraw :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
         center := TranslationVector(world_transform);
         up := UpVector(world_transform);
-        DebugDrawCapsuleOutline(world, .{0,1,0,1}, center - up * height * 0.5, center + up * height * 0.5, radius);
+        DebugDrawCapsuleOutline(world, Collider_Color, center - up * height * 0.5, center + up * height * 0.5, radius);
     }
 } @Component @Category(Physics/Colliders)
 
 AllCapsuleColliderComponents :: #bake_arguments AllEntityComponents(T=CapsuleColliderComponent);
+
+CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleColliderComponent) -> *Jolt.CapsuleShape {
+    settings := Jolt.CapsuleShapeSettings_Create(capsule.height * 0.5, capsule.radius);
+    Jolt.ConvexShapeSettings_SetDensity(xx settings, capsule.density);
+
+    return Jolt.CapsuleShapeSettings_CreateShape(settings);
+}
 
 BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
@@ -172,7 +192,7 @@ BoxColliderComponent :: struct {
     margin : float = 0.01; @Serialize(4)
 
     OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        DebugDrawBoxOutline(world, .{0,1,0,1}, .{0,0,0}, half_extents, world_transform);
+        DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
     }
 } @Component @Category(Physics/Colliders)
 

@@ -572,7 +572,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
     LogMessage("Detached entity % from %", entity.guid, parent.guid, flags=.VERBOSE_ONLY);
 }
 
-SetWorldTransform :: (world : *World, entity : *Entity, transform : Mat4f) {
+SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f) {
     local_transform : Mat4f = ---;
     if entity.parent != Null_Entity_GUID {
         parent := GetEntity(world, entity.parent);
@@ -585,11 +585,8 @@ SetWorldTransform :: (world : *World, entity : *Entity, transform : Mat4f) {
         local_transform = transform;
     }
 
-    local_position := TranslationVector(local_transform);
-    local_rotation := QuatfFromMatrix(local_transform);
-
-    entity.local_position = local_position;
-    entity.local_rotation = local_rotation;
+    entity.local_position = TranslationVector(local_transform);
+    entity.local_rotation = QuatfFromMatrix(local_transform);
 
     UpdateWorldTransform(world, entity);
 }
@@ -609,11 +606,11 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
         T := Mat4fTranslate(TranslationVector(entity.world_transform));
 
         entity.world_transform = T * ToMat4f(Q) * S2;
-        entity.inv_world_transform = Inverse(entity.world_transform);
     } else {
         entity.world_transform = local_transform;
-        entity.inv_world_transform = Inverse(local_transform);
     }
+
+    entity.inv_world_transform = Inverse(entity.world_transform);
 
     if update_components {
         for :AllEntityComponents entity {

@@ -72,10 +72,10 @@ DebugDrawCircleOutline :: (
     }
 } @ModuleAPI
 
-DebugDrawSphereOutline :: (renderer : *DebugRenderer, color : Vec4f, center : Vec3f, radius : float, resolution := 30) {
-    DebugDrawCircleOutline(renderer, color, center, .{1,0,0}, .{0,0,1}, radius, resolution);
-    DebugDrawCircleOutline(renderer, color, center, .{1,0,0}, .{0,1,0}, radius, resolution);
-    DebugDrawCircleOutline(renderer, color, center, .{0,1,0}, .{0,0,1}, radius, resolution);
+DebugDrawSphereOutline :: (renderer : *DebugRenderer, color : Vec4f, center : Vec3f, radius : float, resolution := 30, right := Vec3f.{1,0,0}, up := Vec3f.{0,1,0}, forward := Vec3f.{0,0,1}) {
+    DebugDrawCircleOutline(renderer, color, center, right, forward, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, center, right, up, radius, resolution);
+    DebugDrawCircleOutline(renderer, color, center, up, forward, radius, resolution);
 } @ModuleAPI
 
 DebugDrawConeOutline :: (renderer : *DebugRenderer, color : Vec4f, base : Vec3f, tip : Vec3f, radius : float, resolution := 30, num_divisions := 6) {

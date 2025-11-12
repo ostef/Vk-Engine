@@ -1,8 +1,8 @@
 @_ 1:
-  @guid 1: 0x041207c2a89af385c958705926de5534
+  @guid 1: 0x12a034dfde21994f30caec09e55ee0de
   @flags 7: 0x0
   @name 2: ""
-  @local_position 3: [0, 0, 0]
+  @local_position 3: [0, 1, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
   @parent 6: 0x00000000000000000000000000000000
@@ -27,12 +27,3 @@
   @local_scale 4: [1, 1, 1]
 @radius 2: 0.5
 @density 3: 1
-
-[BoxColliderComponent]
-@_ 1:
-  @local_position 2: [0, -0.66, 0]
-  @local_rotation 3: [0, 0, 0, 1]
-  @local_scale 4: [1, 1, 1]
-@half_extents 2: [0.34, 0.39, 0.2]
-@density 3: 1
-@margin 4: 0.01

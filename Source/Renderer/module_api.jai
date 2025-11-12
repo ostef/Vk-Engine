@@ -14,7 +14,7 @@ RendererModule :: struct {
     DebugDrawCylinderOutline : (renderer : *DebugRenderer, color : Vector(N=4, T=float32), base : Vector(N=3, T=float32), tip : Vector(N=3, T=float32), radius : float, resolution : s64 = 30, num_divisions : s64 = 6);
     DebugDrawGrid : (renderer : *DebugRenderer, color : Vector(N=4, T=float32), origin : Vector(N=3, T=float32), right : Vector(N=3, T=float32), forward : Vector(N=3, T=float32), size : s64, cell_size : float = 1);
     DebugDrawLine : (renderer : *DebugRenderer, color : Vector(N=4, T=float32), start : Vector(N=3, T=float32), end : Vector(N=3, T=float32));
-    DebugDrawSphereOutline : (renderer : *DebugRenderer, color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30);
+    DebugDrawSphereOutline : (renderer : *DebugRenderer, color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30, right : Vector(N=3, T=float32) = Vector(N=3, T=float32).{1, 0, 0}, up : Vector(N=3, T=float32) = Vector(N=3, T=float32).{0, 1, 0}, forward : Vector(N=3, T=float32) = Vector(N=3, T=float32).{0, 0, 1});
     DestroyImGuiRenderer : ();
     GetShadersThatFailedToReload : () -> []string;
     GetViewpointRenderTargets : (id : u64) -> *ViewpointRenderTargets;
@@ -87,9 +87,9 @@ DebugDrawLine :: inline (renderer : *DebugRenderer, color : Vector(N=4, T=float3
     g_Renderer.DebugDrawLine(renderer, color, start, end);
 } @NoProfile
 
-DebugDrawSphereOutline :: inline (renderer : *DebugRenderer, color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30) {
+DebugDrawSphereOutline :: inline (renderer : *DebugRenderer, color : Vector(N=4, T=float32), center : Vector(N=3, T=float32), radius : float, resolution : s64 = 30, right : Vector(N=3, T=float32) = Vector(N=3, T=float32).{1, 0, 0}, up : Vector(N=3, T=float32) = Vector(N=3, T=float32).{0, 1, 0}, forward : Vector(N=3, T=float32) = Vector(N=3, T=float32).{0, 0, 1}) {
     Assert(g_Renderer != null, "Renderer module is null");
-    g_Renderer.DebugDrawSphereOutline(renderer, color, center, radius, resolution);
+    g_Renderer.DebugDrawSphereOutline(renderer, color, center, radius, resolution, right, up, forward);
 } @NoProfile
 
 DestroyImGuiRenderer :: inline () {
