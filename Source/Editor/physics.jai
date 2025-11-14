@@ -8,7 +8,7 @@ ShowPhysicsDebugDrawSettings :: () {
     defer ImGui.End();
 
     ImGui.SetNextWindowSize(.{350, 500}, .FirstUseEver);
-    if !ImGui.Begin("Physics Debug Draw Settings", *g_show_world_inspector) {
+    if !ImGui.Begin("Physics Debug Draw Settings", *g_show_physics_debug_draw_settings) {
         return;
     }
 
