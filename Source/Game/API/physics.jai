@@ -178,7 +178,7 @@ CapsuleColliderComponent :: struct {
 AllCapsuleColliderComponents :: #bake_arguments AllEntityComponents(T=CapsuleColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleColliderComponent) -> *Jolt.CapsuleShape {
-    settings := Jolt.CapsuleShapeSettings_Create(capsule.height * 0.5, capsule.radius);
+    settings := Jolt.CapsuleShapeSettings_Create(capsule.height * 0.5 - capsule.radius, capsule.radius);
     Jolt.ConvexShapeSettings_SetDensity(xx settings, capsule.density);
 
     return Jolt.CapsuleShapeSettings_CreateShape(settings);
