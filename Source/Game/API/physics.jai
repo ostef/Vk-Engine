@@ -11,6 +11,18 @@ Physics_Num_Updates_Per_Second :: 60;
 Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
 Physics_Num_Collision_Steps :: 1;
 
+PhysicsDebugDrawSettings :: struct {
+    enabled := false; @Serialize(9)
+    draw_colliders := true; @Serialize(1)
+    draw_colliders_wireframe := true; @Serialize(2)
+    collider_color := Jolt.BodyManager_ShapeColor.MotionTypeColor; @Serialize(3)
+    draw_bounding_box := false; @Serialize(4)
+    draw_center_of_mass_transform := false; @Serialize(5)
+    draw_world_transform := false; @Serialize(6)
+    draw_velocity := false; @Serialize(7)
+    draw_mass_and_inertia := false; @Serialize(8)
+}
+
 PhysicsWorld :: struct {
     system : *Jolt.PhysicsSystem;
     job_system : *Jolt.JobSystem;
@@ -76,6 +88,11 @@ RigidBodyComponent :: struct {
             ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
         }
         for :AllBoxColliderComponents entity {
+            shape := CreateJoltShape(world, entity, it);
+            ArrayPush(*shapes, xx shape);
+            ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
+        }
+        for :AllPlaneColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, xx shape);
             ArrayPush(*shape_transforms, .{it.local_position, it.local_rotation});
@@ -202,6 +219,30 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
     Jolt.ConvexShapeSettings_SetDensity(xx settings, box.density);
 
     return Jolt.BoxShapeSettings_CreateShape(settings);
+}
+
+PlaneColliderComponent :: struct {
+    #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
+
+    half_extent : float = 1; @Serialize(2)
+    density : float = 1; @Serialize(3)
+
+    // OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
+    //     DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
+    // }
+} @Component @Category(Physics/Colliders)
+
+AllPlaneColliderComponents :: #bake_arguments AllEntityComponents(T=PlaneColliderComponent);
+
+CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComponent) -> *Jolt.PlaneShape {
+    normal := UpVector(plane.local_rotation);
+    distance := Dot(normal, plane.local_position);
+    p := Jolt.Plane.{normal, distance};
+
+    settings := Jolt.PlaneShapeSettings_Create(*p, null, plane.half_extent);
+    Jolt.ConvexShapeSettings_SetDensity(xx settings, plane.density);
+
+    return Jolt.PlaneShapeSettings_CreateShape(settings);
 }
 
 MeshColliderComponent :: struct {

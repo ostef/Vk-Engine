@@ -23,6 +23,7 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #load "cpu_profiler.jai";
 #load "gpu_profiler.jai";
 #load "misc.jai";
+#load "physics.jai";
 
 Log_Editor :: Log_Section.{name="Editor"};
 
@@ -290,6 +291,7 @@ AllEditorState :: struct {
     entity_hide_editor_icon : [Entity_Types.count]bool; @Serialize(15)
     component_hide_editor_icon : [Component_Types.count]bool; @Serialize(16)
     profiler_running : bool; @Serialize(17)
+    show_physics_debug_draw_settings : bool; @Serialize(18)
 }
 
 SaveState :: () -> []u8 {
@@ -309,6 +311,7 @@ SaveState :: () -> []u8 {
         cpu_profiler_window=g_cpu_profiler_window,
         show_gpu_profiler=g_show_gpu_profiler,
         profiler_running=!GetCPUFrameProfiler().paused,
+        show_physics_debug_draw_settings=g_show_physics_debug_draw_settings,
     };
     defer Free(all_state.loaded_world.data);
 
@@ -537,6 +540,7 @@ UpdateEditor :: () {
 
     ShowCPUProfiler();
     ShowGPUProfiler();
+    ShowPhysicsDebugDrawSettings();
     ShowWorldInspector(g_world);
     ShowEntityOutliner(g_world);
     ShowMaterialEditor();

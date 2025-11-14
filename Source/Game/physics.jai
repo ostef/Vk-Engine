@@ -21,7 +21,7 @@ DebugRenderer_Interface :: Jolt.DebugRenderer_Procs.{
 };
 
 InitPhysicsWorld :: (world : *World) {
-    using world.physics;;
+    using world.physics;
 
     job_system = Jolt.JobSystemThreadPool_Create(null);
     debug_renderer = Jolt.DebugRenderer_Create(world);
@@ -59,17 +59,32 @@ DestroyPhysicsWorld :: (world : *World) {
     Jolt.DebugRenderer_Destroy(debug_renderer);
 }
 
+g_physics_debug_draw_settings : PhysicsDebugDrawSettings;
+
+GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
+    return *g_physics_debug_draw_settings;
+} @ModuleAPI
+
 UpdatePhysicsWorld :: (world : *World) {
     using world.physics;
 
-    // Jolt.DebugRenderer_NextFrame(debug_renderer);
-
-    // draw_settings : Jolt.DrawSettings;
-    // Jolt.DrawSettings_InitDefault(*draw_settings);
-
-    // Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, debug_renderer, null);
-
     Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, job_system);
+
+    Jolt.DebugRenderer_NextFrame(debug_renderer);
+
+    if g_physics_debug_draw_settings.enabled {
+        draw_settings : Jolt.DrawSettings;
+        draw_settings.drawShape = g_physics_debug_draw_settings.draw_colliders;
+        draw_settings.drawShapeWireframe = g_physics_debug_draw_settings.draw_colliders_wireframe;
+        draw_settings.drawShapeColor = g_physics_debug_draw_settings.collider_color;
+        draw_settings.drawBoundingBox = g_physics_debug_draw_settings.draw_bounding_box;
+        draw_settings.drawCenterOfMassTransform = g_physics_debug_draw_settings.draw_center_of_mass_transform;
+        draw_settings.drawWorldTransform = g_physics_debug_draw_settings.draw_world_transform;
+        draw_settings.drawVelocity = g_physics_debug_draw_settings.draw_velocity;
+        draw_settings.drawMassAndInertia = g_physics_debug_draw_settings.draw_mass_and_inertia;
+
+        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, debug_renderer, null);
+    }
 
     for * world.RigidBodyComponent_storage {
         if !Jolt.BodyInterface_IsActive(body_interface, it.jolt_body_id) {

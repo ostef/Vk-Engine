@@ -641,9 +641,9 @@ SetEditorStyleMoonlight :: () {
     style.Colors[ImGui.Col.Header] = .{0.049, 0.482, 0.863, 1};
     style.Colors[ImGui.Col.HeaderHovered] = .{0.038, 0.321, 0.715, 1};
     style.Colors[ImGui.Col.HeaderActive] = .{0.123, 0.551, 0.928, 1};
-    style.Colors[ImGui.Col.Separator] = .{0.141, 0.161, 0.208, 0.2};
-    style.Colors[ImGui.Col.SeparatorHovered] = .{0.156, 0.184, 0.250, 0.78};
-    style.Colors[ImGui.Col.SeparatorActive] = .{0.156, 0.184, 0.250, 1};
+    style.Colors[ImGui.Col.Separator] = .{0.275, 0.318, 0.451, 0.78};
+    style.Colors[ImGui.Col.SeparatorHovered] = .{0.275, 0.318, 0.451, 1};
+    style.Colors[ImGui.Col.SeparatorActive] = .{1, 1, 1, 1};
     style.Colors[ImGui.Col.ResizeGrip] = .{0.145, 0.145, 0.145, 1};
     style.Colors[ImGui.Col.ResizeGripHovered] = .{0.972, 1, 0.498, 1};
     style.Colors[ImGui.Col.ResizeGripActive] = .{0.999, 1, 0.999, 1};
