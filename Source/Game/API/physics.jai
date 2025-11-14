@@ -43,11 +43,17 @@ PhysicsMotionType :: enum u8 {
     Dynamic;
 }
 
+PhysicsMotionQuality :: enum u8 {
+    Discrete;
+    Continuous;
+}
+
 RigidBodyComponent :: struct {
     #as using _ : Component; @Serialize(1) @InspectorNoTree
 
     layer := PhysicsBodyLayer.Moving; @Serialize(2)
     motion_type := PhysicsMotionType.Dynamic; @Serialize(3)
+    motion_quality := PhysicsMotionQuality.Discrete; @Serialize(5)
     activate_on_create := true; @Serialize(4)
     jolt_body_id : Jolt.BodyID;
 
@@ -103,7 +109,14 @@ RigidBodyComponent :: struct {
         case .Dynamic;   jolt_motion_type = .Dynamic;
         }
 
+        jolt_motion_quality : Jolt.MotionQuality;
+        if #complete motion_quality == {
+        case .Discrete;   jolt_motion_quality = .Discrete;
+        case .Continuous; jolt_motion_quality = .LinearCast;
+        }
+
         body_settings := Jolt.BodyCreationSettings_Create3(final_shape, *world_position, *world_rotation, jolt_motion_type, xx layer);
+        Jolt.BodyCreationSettings_SetMotionQuality(body_settings, jolt_motion_quality);
 
         jolt_body_id = Jolt.BodyInterface_CreateAndAddBody(world.physics.body_interface, body_settings, ifx activate_on_create then .Activate else .DontActivate);
         LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, shapes.count);
@@ -128,20 +141,6 @@ SphereColliderComponent :: struct {
 
     radius : float = 0.5; @Serialize(2)
     density : float = 1; @Serialize(3)
-
-    // OnCreate :: (world : *World, entity : *Entity, sphere : *SphereColliderComponent) {
-    //     rigidbody := GetComponent(entity, RigidBodyComponent);
-    //     if rigidbody {
-    //         AddSphere(world, entity, rigidbody, sphere);
-    //     }
-    // }
-
-    // OnDestroy :: (world : *World, sphere : *SphereColliderComponent) {
-    //     rigidbody := GetComponent(entity, RigidBodyComponent);
-    //     if rigidbody {
-    //         RemoveSphere(world, entity, rigidbody, sphere);
-    //     }
-    // }
 
     OnDebugDraw :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
