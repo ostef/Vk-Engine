@@ -159,7 +159,7 @@ SphereColliderComponent :: struct {
     radius : float = 0.5; @Serialize(2)
     density : float = 1; @Serialize(3)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
+    OnDebugDrawSelected :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
         right := RightVector(world_transform);
         up := UpVector(world_transform);
@@ -184,7 +184,7 @@ CapsuleColliderComponent :: struct {
     radius : float = 0.5; @Serialize(3)
     density : float = 1; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
+    OnDebugDrawSelected :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
         center := TranslationVector(world_transform);
         up := UpVector(world_transform);
         DebugDrawCapsuleOutline(world, Collider_Color, center - up * height * 0.5, center + up * height * 0.5, radius);
@@ -207,7 +207,7 @@ BoxColliderComponent :: struct {
     density : float = 1; @Serialize(3)
     margin : float = 0.01; @Serialize(4)
 
-    OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
+    OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
         DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
     }
 } @Component @Category(Physics/Colliders)
@@ -227,7 +227,7 @@ PlaneColliderComponent :: struct {
     half_extent : float = 1; @Serialize(2)
     density : float = 1; @Serialize(3)
 
-    // OnDebugDraw :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
+    // OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
     //     DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
     // }
 } @Component @Category(Physics/Colliders)
