@@ -168,7 +168,7 @@ LoaderMain :: () {
         }
     }
 
-    defer for #v2 < i : 0..Num_Modules - 1 {
+    defer for < i : 0..Num_Modules - 1 {
         UnloadModule(cast(ModuleID, i), true);
     }
 

@@ -145,7 +145,7 @@ ComputeKawaseBlur :: (cmd_buffer : *GfxCommandBuffer, blur : *KawaseBlur, base_t
     {
         BindComputePipeline(*pass, *g_kawase_blur_upsample_compute_pipeline);
 
-        for #v2 < i : 0..blur.upsample_levels.count - 1 {
+        for < i : 0..blur.upsample_levels.count - 1 {
             bindings := KawaseBlurComputeBindingSet.{
                 dst_image=.{*blur.upsample_levels[i]},
             };

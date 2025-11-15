@@ -243,7 +243,7 @@ ComputeBloom :: (using ctx : *RenderContext) {
     {
         BindComputePipeline(*pass, *g_bloom_upsample_compute_pipeline);
 
-        for #v2 < i : 0..upsample_levels.count - 1 {
+        for < i : 0..upsample_levels.count - 1 {
             AddTextureBarrier(cmd_buffer, .Undefined, .General, *upsample_levels[i]);
 
             bindings := BloomUpsampleComputeBindingSet.{

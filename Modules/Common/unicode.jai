@@ -257,7 +257,7 @@ EncodeCharacterAsUtf8 :: (codepoint : u32, buffer : []u8, byte_offset : s64) -> 
     if buffer.count < size
         return size, .Buffer_Too_Small;
 
-    for #v2 < i : 1..size - 1
+    for < i : 1..size - 1
     {
         buffer[byte_offset + i] = xx (codepoint | 0x80) & 0xbf;
         codepoint >>= 6;
