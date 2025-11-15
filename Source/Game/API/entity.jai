@@ -886,6 +886,10 @@ DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) ->
         if parsing_entity_properties {
             entity.guid = cached_guid;
             entity.index = cached_index;
+
+            ExecuteEntityCallback(world, entity, "OnValidate");
+        } else {
+            ExecuteComponentCallback(world, entity, cast(*Component, any.value_pointer), "OnValidate");
         }
 
         if !result.ok {
@@ -893,7 +897,7 @@ DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) ->
         }
     }
 
-    return DeserializeOk(*parser);;
+    return DeserializeOk(*parser);
 }
 
 KillEntity :: (using world : *World, guid : EntityGUID) {
