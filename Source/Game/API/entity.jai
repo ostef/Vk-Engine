@@ -572,6 +572,63 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
     LogMessage("Detached entity % from %", entity.guid, parent.guid, flags=.VERBOSE_ONLY);
 }
 
+// Walk up the hierarchy, applying scale to the world space axes of entity
+GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vec3f {
+    AllocatorScope(Temp);
+
+    if !component && entity.parent == Null_Entity_GUID {
+        return entity.local_scale;
+    }
+
+    hierarchy : [..]*Entity;
+    if component {
+        ArrayPush(*hierarchy, xx component); // @Hack: the cast is not valid, but we do a check later to avoid reading incorrect data
+    }
+
+    ArrayPush(*hierarchy, entity);
+
+    parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, entity.parent);
+    while parent {
+        ArrayPush(*hierarchy, parent);
+        parent = GetEntity(world, parent.parent);
+    }
+
+    world_rotation : Mat4f;
+    scale := Vec3f.{1,1,1};
+    for < hierarchy {
+        local_rotation : Quatf = ---;
+        local_scale : Vec3f = ---;
+        if it_index == 0 && component {
+            local_rotation = component.local_rotation;
+            local_scale = component.local_scale;
+        } else {
+            local_rotation = it.local_rotation;
+            local_scale = it.local_scale;
+        }
+
+        scale_x := world_rotation * Mat4fScale(.{scale.x,1,1});
+        scale_y := world_rotation * Mat4fScale(.{1,scale.y,1});
+        scale_z := world_rotation * Mat4fScale(.{1,1,scale.z});
+
+        world_rotation = world_rotation * Mat4fFromQuat(local_rotation);
+
+        right   := RightVector(world_rotation);
+        up      := UpVector(world_rotation);
+        forward := ForwardVector(world_rotation);
+        scaled_right   := TransformVector(scale_x, local_scale.x * right);
+        scaled_up      := TransformVector(scale_y, local_scale.y * up);
+        scaled_forward := TransformVector(scale_z, local_scale.z * forward);
+
+        scale = .{
+            Dot(right, scaled_right),
+            Dot(up, scaled_up),
+            Dot(forward, scaled_forward),
+        };
+    }
+
+    return scale;
+}
+
 SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f) {
     local_transform : Mat4f = ---;
     if entity.parent != Null_Entity_GUID {
