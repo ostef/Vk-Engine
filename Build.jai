@@ -311,6 +311,8 @@ Build :: () {
             Appendln(*builder, "    if !BuildModule(.%) {", cast(ModuleID, i));
             Appendln(*builder, "        Basic.exit(1);");
             Appendln(*builder, "    }");
+            Appendln(*builder, "} else if auto_detect {");
+            Appendln(*builder, "    LogMessage(\"Module % is up to date\");", cast(ModuleID, i));
             Appendln(*builder, "}");
         }
 
