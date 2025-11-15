@@ -77,7 +77,7 @@ VK_API_VERSION_MINOR   :: (version: u32) -> u32 { return (version >> 12) & 0x3ff
 VK_API_VERSION_PATCH   :: (version: u32) -> u32 { return version & 0xfff; }
 
 #if OS == .WINDOWS {
-    #load "generated_windows.jai";
+    #load "vulkan_windows.jai";
     #load "windows_extras.jai";
 
     // Needed by VkMemAlloc
@@ -99,7 +99,7 @@ VK_API_VERSION_PATCH   :: (version: u32) -> u32 { return version & 0xfff; }
         vkmemalloc :: #library,no_dll "libs/windows/VkMemAlloc";
     }
 } else #if OS == .LINUX {
-    #load "generated_linux.jai";
+    #load "vulkan_linux.jai";
 
     // Needed by VkMemAlloc
     libstdcpp :: #system_library,link_always "libstdc++.so.6";
