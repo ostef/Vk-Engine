@@ -49,6 +49,19 @@ SkinnedMeshComponent :: struct {
     cast_point_shadows := false; @Serialize(5)
     skinning_matrices : []Mat4f;
 
+    OnValidate :: (world : *World, entity : *Entity, using comp : *SkinnedMeshComponent) {
+        num_skinning_matrices := ifx mesh then mesh.joint_count else 0;
+        if skinning_matrices.count != num_skinning_matrices {
+            Free(skinning_matrices.data);
+            skinning_matrices = AllocArray(Mat4f, num_skinning_matrices, initialize=true);
+        }
+    }
+
+    OnEditorUpdate :: (world : *World, entity : *Entity, using comp : *SkinnedMeshComponent) {
+        // Make sure skinning matrices are correctly allocated
+        OnValidate(world, entity, comp);
+    }
+
     OnDestroy :: (world : *World, using comp : *SkinnedMeshComponent) {
         Free(skinning_matrices.data);
     }
