@@ -10,6 +10,6 @@
 | `OnDetach` | Game | Entities | Before the entity is detached from its parent |
 | `OnUpdate` | Game | Entities & Components | When updating the world. All entities in the world are updated first, then all components. The update happens by entity/component type |
 | `OnEditorUpdate` | Editor | Entities & Components | When updating the world inside the editor. All entities in the world are updated first, then all components |
-| `OnEditorModified` | Editor | Entities & Components | When an entity or component is modified in the editor |
+| `OnValidate` | Editor & Game | Entities & Components | When an entity or component is modified in the editor, or when it is deserialized |
 | `OnDebugDraw` | Editor & Game | Entities & Components | When debug drawing is enabled |
 | `OnDebugDrawSelected` | Editor & Game | Entities & Components | When debug drawing is enabled, and the entity is selected |
