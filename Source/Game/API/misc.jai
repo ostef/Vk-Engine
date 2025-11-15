@@ -9,8 +9,15 @@ FlyingLightEntity :: struct {
     rotation_speed : float;
     rotation_axis : Vec3f;
 
-    OnSpawn :: (world : *World, using entity : *FlyingLightEntity) {
+    OnCreate :: (world : *World, using entity : *FlyingLightEntity) {
         point_light = CreateComponent(world, PointLightComponent, entity);
+    }
+
+    OnDestroy :: (world : *World, using entity : *FlyingLightEntity) {
+        DestroyComponent(world, point_light);
+    }
+
+    OnSpawn :: (world : *World, using entity : *FlyingLightEntity) {
         point_light.intensity = random_get_within_range(*g_flying_light_rng, 0.3, 25);
         point_light.intensity_radius = random_get_within_range(*g_flying_light_rng, 1, 5);
         point_light.color = .{
@@ -35,10 +42,6 @@ FlyingLightEntity :: struct {
         };
 
         orbit_distance = random_get_within_range(*g_flying_light_rng, 1, 10);
-    }
-
-    OnDespawn :: (world : *World, using entity : *FlyingLightEntity) {
-        DestroyComponent(world, point_light);
     }
 
     OnUpdate :: (world : *World, using entity : *FlyingLightEntity) {
@@ -75,11 +78,11 @@ TestShapeEntity :: struct {
         return LoadAssetPermanent(Texture2D, "Editor/Icons/Default.png");
     }
 
-    OnSpawn :: (world : *World, using entity : *TestShapeEntity) {
+    OnCreate :: (world : *World, using entity : *TestShapeEntity) {
         mesh = CreateComponent(world, StaticMeshComponent, entity);
     }
 
-    OnDespawn :: (world : *World, using entity : *TestShapeEntity) {
+    OnDestroy :: (world : *World, using entity : *TestShapeEntity) {
         DestroyComponent(world, mesh);
     }
 
