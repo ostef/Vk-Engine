@@ -181,10 +181,15 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
     return false;
 }
 
-GenerateBindings :: (module_name : string) {
+GenerateBindings :: (module_name : string, build : bool) {
     ws := compiler_create_workspace(module_name);
 
     options := get_build_options(ws);
+    if build {
+        options.compile_time_command_line = .["build"];
+    }
+    set_build_options(options, ws);
+
     compiler_begin_intercept(ws);
 
     add_build_file(SPrint("%/generate.jai", module_name), ws);
@@ -221,6 +226,7 @@ Build :: () {
     auto_detect : bool;
     modules_to_build : u64;
     generate_bindings : bool;
+    build_bindings : bool;
 
     start_time := Basic.current_time_monotonic();
     defer if modules_to_build {
@@ -244,6 +250,9 @@ Build :: () {
             modules_to_build = 0xffffffffffffffff;
         case "generate_bindings";
             generate_bindings = true;
+        case "build_bindings";
+            generate_bindings = true;
+            build_bindings = true;
         case;
             found_module := false;
             for type_info(ModuleID).names {
@@ -278,6 +287,7 @@ Build :: () {
         Println("  all:               build all modules");
         Println("  auto:              auto detect modules to build");
         Println("  generate_bindings: (re)generate all bindings");
+        Println("  build_bindings:    (re)generate all bindings after building their source code (simply passes build to the bindings' generate.jai)");
 
         Basic.exit(1);
     }
@@ -286,7 +296,7 @@ Build :: () {
 
     if generate_bindings {
         for Bindings_To_Generate {
-            GenerateBindings(it);
+            GenerateBindings(it, build=build_bindings);
         }
     }
 
