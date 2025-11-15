@@ -1,6 +1,7 @@
 // Jolt v5.4.0
-// @Todo: compile Jolt and JoltC automatically
 
+// To compile do `jai generate.jai - build` or do it manually:
+// > cd JoltC
 // > cmake -B .build -DBUILD_SHARED_LIBS=ON
 // > cmake --build .build
 
@@ -132,8 +133,6 @@ Visitor :: (decl : *Declaration, parent_decl : *Declaration) -> Declaration_Visi
 
     return .RECURSE;
 }
-
-#scope_file
 
 #import "Basic";
 #import "Compiler";
