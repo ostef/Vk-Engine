@@ -32,16 +32,21 @@ Bindings_To_Generate :: string.[
 }
 
 BuildModule :: ($module : ModuleID) -> bool {
+    log_section := Log_Section.{#run SPrint("Build/%", module)};
+    LogSectionScope(*log_section);
+
+    LogMessage("Building module");
+
     compilation_failed := false;
     name := TPrint("%", module);
 
     start_time := Basic.current_time_monotonic();
     defer if compilation_failed {
-        LogError("Compilation failed for module %", name);
+        LogError("Compilation failed");
     } else {
         end_time := Basic.current_time_monotonic();
         total_time := end_time - start_time;
-        Println("  Compiled module % in % seconds", name, Basic.to_float64_seconds(total_time));
+        LogMessage("Compiled module in % seconds", Basic.to_float64_seconds(total_time));
     }
 
     ws := compiler_create_workspace(name);
@@ -206,8 +211,8 @@ GenerateBindings :: (module_name : string) {
 }
 
 Build :: () {
-    Log_Metaprogram :: Log_Section.{name="Metaprogram"};
-    LogSectionScope(*Log_Metaprogram);
+    Log_Build :: Log_Section.{name="Build"};
+    LogSectionScope(*Log_Build);
 
     console_logger : ConsoleLogger;
     InitConsoleLogger(*console_logger);
