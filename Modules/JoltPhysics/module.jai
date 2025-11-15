@@ -10,13 +10,15 @@ Quat :: Quaternion;
     #load "jolt_windows.jai";
 
     #scope_module
-    Jolt :: #library,link_always "Lib/Windows/Jolt";
+    Jolt :: #library,no_static_library,link_always "Lib/Windows/Joltd";
+    JoltC :: #library,no_static_library "Lib/Windows/joltcd";
     #scope_export
 } else #if OS == .LINUX {
     #load "jolt_linux.jai";
 
     #scope_module
     Jolt :: #library,no_static_library,link_always "Lib/Linux/libJolt";
+    JoltC :: #library,no_static_library "Lib/Linux/libjoltc";
     #scope_export
 } else #if OS == .MACOS {
     #load "jolt_macos.jai";

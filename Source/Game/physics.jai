@@ -1,31 +1,42 @@
+g_jolt_debug_renderer : *Jolt.DebugRenderer;
+
 InitPhysics :: () {
     ok := Jolt.Init();
     Assert(ok, "Could not initialize Jolt");
+
+    DebugRenderer_Interface :: Jolt.DebugRenderer_Procs.{
+        DrawLine = (user_data : *void, from : *Jolt.RVec3, to : *Jolt.RVec3, color : Jolt.Color) #c_call {
+            if !user_data {
+                return;
+            }
+
+            push_context,defer_pop;
+
+            rgba := cast(*u8, *color);
+
+            world := cast(*World, user_data);
+            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, .{from.x, from.y, from.z}, .{to.x, to.y, to.z});
+        }
+    };
+
+    g_jolt_debug_renderer = Jolt.DebugRenderer_Create();
+    Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
+
+    LogMessage("Initialized Jolt" ,, log_section=*Log_Physics);
 }
 
 ShutdownPhysics :: () {
+    Jolt.DebugRenderer_Destroy(g_jolt_debug_renderer);
+
     Jolt.Shutdown();
+    LogMessage("Shut down Jolt" ,, log_section=*Log_Physics);
 }
-
-DrawLine :: (self : *void, from : *Jolt.RVec3, to : *Jolt.RVec3, color : Jolt.Color) #c_call {
-    push_context,defer_pop;
-
-    rgba := cast(*u8, *color);
-
-    world := cast(*World, self);
-    DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, .{from.x, from.y, from.z}, .{to.x, to.y, to.z});
-}
-
-DebugRenderer_Interface :: Jolt.DebugRenderer_Procs.{
-    DrawLine=DrawLine,
-};
 
 InitPhysicsWorld :: (world : *World) {
     using world.physics;
 
     job_system = Jolt.JobSystemThreadPool_Create(null);
-    debug_renderer = Jolt.DebugRenderer_Create(world);
-    Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
+    Jolt.JobSystemThreadPool_Create(null);
 
     object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Body_Layers);
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Moving);
@@ -56,7 +67,6 @@ DestroyPhysicsWorld :: (world : *World) {
 
     Jolt.PhysicsSystem_Destroy(system);
     Jolt.JobSystem_Destroy(job_system);
-    Jolt.DebugRenderer_Destroy(debug_renderer);
 }
 
 g_physics_debug_draw_settings : PhysicsDebugDrawSettings;
@@ -70,7 +80,7 @@ UpdatePhysicsWorld :: (world : *World) {
 
     Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, job_system);
 
-    Jolt.DebugRenderer_NextFrame(debug_renderer);
+    Jolt.DebugRenderer_NextFrame(g_jolt_debug_renderer, world);
 
     if g_physics_debug_draw_settings.enabled {
         draw_settings : Jolt.DrawSettings;
@@ -83,7 +93,7 @@ UpdatePhysicsWorld :: (world : *World) {
         draw_settings.drawVelocity = g_physics_debug_draw_settings.draw_velocity;
         draw_settings.drawMassAndInertia = g_physics_debug_draw_settings.draw_mass_and_inertia;
 
-        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, debug_renderer, null);
+        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, g_jolt_debug_renderer, null);
     }
 
     for * world.RigidBodyComponent_storage {

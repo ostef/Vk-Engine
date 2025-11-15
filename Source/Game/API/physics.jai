@@ -30,7 +30,6 @@ PhysicsWorld :: struct {
     object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
     object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
     body_interface : *Jolt.BodyInterface;
-    debug_renderer : *Jolt.DebugRenderer;
 }
 
 RaycastResult :: struct {

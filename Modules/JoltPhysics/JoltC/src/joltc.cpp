@@ -1853,13 +1853,13 @@ void JPH_Mat4_GetQuaternion(const JPH_Mat4* matrix, JPH_Quat* result)
 }
 
 #if defined(JPH_DOUBLE_PRECISION)
-void JPH_RMat4_Zero(JPH_RMat4* result) 
+void JPH_RMat4_Zero(JPH_RMat4* result)
 {
 	const JPH::RMat44 mat = JPH::RMat44::sZero();
 	FromJolt(mat, result);
 }
 
-void JPH_RMat4_Identity(JPH_RMat4* result) 
+void JPH_RMat4_Identity(JPH_RMat4* result)
 {
 	const JPH::RMat44 mat = JPH::RMat44::sIdentity();
 	FromJolt(mat, result);
@@ -1998,6 +1998,13 @@ void JPH_ShapeSettings_SetUserData(JPH_ShapeSettings* settings, uint64_t userDat
 
 
 /* Shape */
+#ifdef JPH_DEBUG_RENDERER
+void JPH_Shape_Draw(const JPH_Shape* shape, JPH_DebugRenderer* renderer, JPH_RMat4* centerOfMassTransform, JPH_Vec3* scale, JPH_Color color, bool useMaterialColors, bool drawWireframe)
+{
+    AsShape(shape)->Draw(reinterpret_cast<DebugRenderer*>(renderer), ToJolt(centerOfMassTransform), ToJolt(scale), JPH::Color(color), useMaterialColors, drawWireframe);
+}
+#endif
+
 void JPH_Shape_Destroy(JPH_Shape* shape)
 {
 	AsShape(shape)->Release();
@@ -2885,7 +2892,7 @@ uint32_t JPH_HeightFieldShapeSettings_GetBlockSize(const JPH_HeightFieldShapeSet
 	return AsHeightFieldShapeSettings(settings)->mBlockSize;
 }
 
-void JPH_HeightFieldShapeSettings_SetBlockSize(JPH_HeightFieldShapeSettings* settings, uint32_t value) 
+void JPH_HeightFieldShapeSettings_SetBlockSize(JPH_HeightFieldShapeSettings* settings, uint32_t value)
 {
 	AsHeightFieldShapeSettings(settings)->mBlockSize = value;
 }
@@ -3038,13 +3045,13 @@ uint32_t JPH_CompoundShape_GetNumSubShapes(const JPH_CompoundShape* shape)
 void JPH_CompoundShape_GetSubShape(const JPH_CompoundShape* shape, uint32_t index, const JPH_Shape** subShape, JPH_Vec3* positionCOM, JPH_Quat* rotation, uint32_t* userData)
 {
 	const JPH::CompoundShape::SubShape& sub = AsCompoundShape(shape)->GetSubShape(index);
-	if (subShape) 
+	if (subShape)
 		*subShape = ToShape(sub.mShape.GetPtr());
-	if (positionCOM) 
+	if (positionCOM)
 		FromJolt(sub.GetPositionCOM(), positionCOM);
-	if (rotation) 
+	if (rotation)
 		FromJolt(sub.GetRotation(), rotation);
-	if (userData) 
+	if (userData)
 		*userData = sub.mUserData;
 }
 
@@ -3132,7 +3139,7 @@ void JPH_MutableCompoundShape_AdjustCenterOfMass(JPH_MutableCompoundShape* shape
 }
 
 /* DecoratedShape */
-const JPH_Shape* JPH_DecoratedShape_GetInnerShape(const JPH_DecoratedShape* shape) 
+const JPH_Shape* JPH_DecoratedShape_GetInnerShape(const JPH_DecoratedShape* shape)
 {
 	return ToShape(AsDecoratedShape(shape)->GetInnerShape());
 }
@@ -3680,7 +3687,7 @@ void JPH_SoftBodyCreationSettings_Destroy(JPH_SoftBodyCreationSettings* settings
 /* JPH_ConstraintSettings */
 void JPH_ConstraintSettings_Init(const ConstraintSettings& joltSettings, JPH_ConstraintSettings* settings)
 {
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	settings->enabled = joltSettings.mEnabled;
 	settings->constraintPriority = joltSettings.mConstraintPriority;
 	settings->numVelocityStepsOverride = joltSettings.mNumVelocityStepsOverride;
@@ -3691,7 +3698,7 @@ void JPH_ConstraintSettings_Init(const ConstraintSettings& joltSettings, JPH_Con
 
 void JPH_ConstraintSettings_ToJolt(ConstraintSettings* joltSettings, const JPH_ConstraintSettings* settings)
 {
-	// Copy settings to jolt 
+	// Copy settings to jolt
 	joltSettings->mEnabled = settings->enabled;
 	joltSettings->mConstraintPriority = settings->constraintPriority;
 	joltSettings->mNumVelocityStepsOverride = settings->numVelocityStepsOverride;
@@ -3869,7 +3876,7 @@ void JPH_FixedConstraintSettings_Init(JPH_FixedConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::FixedConstraintSettings joltSettings;
 	JPH_FixedConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -3949,7 +3956,7 @@ void JPH_DistanceConstraintSettings_Init(JPH_DistanceConstraintSettings* setting
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::DistanceConstraintSettings joltSettings;
 	JPH_DistanceConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4044,7 +4051,7 @@ void JPH_PointConstraintSettings_Init(JPH_PointConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	PointConstraintSettings joltSettings;
 	JPH_PointConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4148,7 +4155,7 @@ void JPH_HingeConstraintSettings_Init(JPH_HingeConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	HingeConstraintSettings joltSettings;
 	JPH_HingeConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4366,7 +4373,7 @@ void JPH_SliderConstraintSettings_Init(JPH_SliderConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	SliderConstraintSettings joltSettings;
 	JPH_SliderConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4552,7 +4559,7 @@ void JPH_ConeConstraintSettings_Init(JPH_ConeConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	ConeConstraintSettings joltSettings;
 	JPH_ConeConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4657,7 +4664,7 @@ void JPH_SwingTwistConstraintSettings_Init(JPH_SwingTwistConstraintSettings* set
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	SwingTwistConstraintSettings joltSettings;
 	JPH_SwingTwistConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -4790,7 +4797,7 @@ void JPH_SixDOFConstraintSettings_Init(JPH_SixDOFConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	SixDOFConstraintSettings joltSettings;
 	JPH_SixDOFConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -5026,7 +5033,7 @@ JPH_CAPI void JPH_GearConstraintSettings_Init(JPH_GearConstraintSettings* settin
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	GearConstraintSettings joltSettings;
 	JPH_GearConstraintSettings_FromJolt(settings, joltSettings);
 }
@@ -5322,7 +5329,7 @@ void JPH_PhysicsSystem_ActivateBodiesInAABox(JPH_PhysicsSystem* system, const JP
 	auto joltLayer = static_cast<JPH::ObjectLayer>(layer);
 
 	system->physicsSystem->GetBodyInterface().ActivateBodiesInAABox(
-		ToJolt(box), 
+		ToJolt(box),
 		system->physicsSystem->GetDefaultBroadPhaseLayerFilter(joltLayer),
 		system->physicsSystem->GetDefaultLayerFilter(joltLayer)
 	);
@@ -6017,7 +6024,7 @@ static inline void ToJolt(const JPH_CollideSettingsBase& settings, JPH::CollideS
 
 void JPH_CollideSettingsBase_Init(const CollideSettingsBase& joltSettings, JPH_CollideSettingsBase* settings)
 {
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	settings->activeEdgeMode = static_cast<JPH_ActiveEdgeMode>(joltSettings.mActiveEdgeMode);
 	settings->collectFacesMode = static_cast<JPH_CollectFacesMode>(joltSettings.mCollectFacesMode);
 	settings->collisionTolerance = joltSettings.mCollisionTolerance;
@@ -6058,7 +6065,7 @@ void JPH_CollideShapeSettings_Init(JPH_CollideShapeSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::CollideShapeSettings joltSettings;
 	JPH_CollideSettingsBase_Init(joltSettings, &settings->base);
 
@@ -6105,7 +6112,7 @@ void JPH_ShapeCastSettings_Init(JPH_ShapeCastSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::ShapeCastSettings joltSettings;
 	JPH_CollideSettingsBase_Init(joltSettings, &settings->base);
 
@@ -7576,7 +7583,7 @@ void JPH_ContactManifold_GetWorldSpaceContactPointOn2(const JPH_ContactManifold*
 /* CharacterBaseSettings */
 void JPH_CharacterBaseSettings_Init(const CharacterBaseSettings& joltSettings, JPH_CharacterBaseSettings* settings)
 {
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	FromJolt(joltSettings.mUp, &settings->up);
 	FromJolt(joltSettings.mSupportingVolume, &settings->supportingVolume);
 	settings->maxSlopeAngle = joltSettings.mMaxSlopeAngle;
@@ -7701,7 +7708,7 @@ void JPH_CharacterSettings_Init(JPH_CharacterSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::CharacterSettings joltSettings;
 	JPH_CharacterBaseSettings_Init(joltSettings, &settings->base);
 
@@ -7866,7 +7873,7 @@ void JPH_Character_SetLayer(JPH_Character* character, JPH_ObjectLayer value, boo
 /* CharacterVirtualSettings */
 void JPH_CharacterVirtualSettings_Init(JPH_CharacterVirtualSettings* settings)
 {
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	JPH::CharacterVirtualSettings joltSettings;
 	JPH_CharacterBaseSettings_Init(joltSettings, &settings->base);
 
@@ -8828,8 +8835,7 @@ public:
 	static const JPH_DebugRenderer_Procs* s_Procs;
 	void* userData = nullptr;
 
-	ManagedDebugRendererSimple(void* userData_)
-		: userData(userData_)
+	ManagedDebugRendererSimple() : userData(nullptr)
 	{
 
 	}
@@ -8885,9 +8891,9 @@ void JPH_DebugRenderer_SetProcs(const JPH_DebugRenderer_Procs* procs)
 	ManagedDebugRendererSimple::s_Procs = procs;
 }
 
-JPH_DebugRenderer* JPH_DebugRenderer_Create(void* userData)
+JPH_DebugRenderer* JPH_DebugRenderer_Create()
 {
-	auto impl = new ManagedDebugRendererSimple(userData);
+	auto impl = new ManagedDebugRendererSimple();
 	return reinterpret_cast<JPH_DebugRenderer*>(impl);
 }
 
@@ -8897,9 +8903,11 @@ void JPH_DebugRenderer_Destroy(JPH_DebugRenderer* renderer)
 		delete reinterpret_cast<ManagedDebugRendererSimple*>(renderer);
 }
 
-void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer* renderer)
+void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer* renderer, void *userData)
 {
-	reinterpret_cast<ManagedDebugRendererSimple*>(renderer)->NextFrame();
+    ManagedDebugRendererSimple *r = reinterpret_cast<ManagedDebugRendererSimple*>(renderer);
+	r->userData = userData;
+	r->NextFrame();
 }
 
 void JPH_DebugRenderer_SetCameraPos(JPH_DebugRenderer* renderer, const JPH_RVec3* position)
@@ -9617,7 +9625,7 @@ void JPH_VehicleDifferentialSettings_Init(JPH_VehicleDifferentialSettings* setti
 
 static void JPH_VehicleDifferentialSettings_FromJolt(JPH_VehicleDifferentialSettings* settings, const VehicleDifferentialSettings& joltSettings)
 {
-	// Copy settings to jolt 
+	// Copy settings to jolt
 	settings->leftWheel = joltSettings.mLeftWheel;
 	settings->rightWheel = joltSettings.mRightWheel;
 	settings->differentialRatio = joltSettings.mDifferentialRatio;
@@ -9855,7 +9863,7 @@ void JPH_VehicleConstraintSettings_Init(JPH_VehicleConstraintSettings* settings)
 {
 	JPH_ASSERT(settings);
 
-	// Copy defaults from jolt 
+	// Copy defaults from jolt
 	VehicleConstraintSettings joltSettings;
 	JPH_VehicleConstraintSettings_FromJolt(settings, joltSettings);
 }

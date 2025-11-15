@@ -1252,6 +1252,7 @@ JPH_CAPI uint64_t JPH_ShapeSettings_GetUserData(const JPH_ShapeSettings* setting
 JPH_CAPI void JPH_ShapeSettings_SetUserData(JPH_ShapeSettings* settings, uint64_t userData);
 
 /* Shape */
+JPH_CAPI void JPH_Shape_Draw(const JPH_Shape* shape, JPH_DebugRenderer* renderer, JPH_RMat4* centerOfMassTransform, JPH_Vec3* scale, JPH_Color color, bool useMaterialColors, bool drawWireframe);
 JPH_CAPI void JPH_Shape_Destroy(JPH_Shape* shape);
 JPH_CAPI JPH_ShapeType JPH_Shape_GetType(const JPH_Shape* shape);
 JPH_CAPI JPH_ShapeSubType JPH_Shape_GetSubType(const JPH_Shape* shape);
@@ -2170,12 +2171,12 @@ JPH_CAPI void JPH_ShapeFilter_SetBodyID2(JPH_ShapeFilter* filter, JPH_BodyID id)
 
 /* JPH_SimShapeFilter */
 typedef struct JPH_SimShapeFilter_Procs {
-	bool(JPH_API_CALL* ShouldCollide)(void* userData, 
-		const JPH_Body* body1, 
-		const JPH_Shape* shape1, 
+	bool(JPH_API_CALL* ShouldCollide)(void* userData,
+		const JPH_Body* body1,
+		const JPH_Shape* shape1,
 		const JPH_SubShapeID* subShapeIDOfShape1,
 		const JPH_Body* body2,
-		const JPH_Shape* shape2, 
+		const JPH_Shape* shape2,
 		const JPH_SubShapeID* subShapeIDOfShape2
 		);
 } JPH_SimShapeFilter_Procs;
@@ -2512,9 +2513,9 @@ typedef struct JPH_DebugRenderer_Procs {
 } JPH_DebugRenderer_Procs;
 
 JPH_CAPI void JPH_DebugRenderer_SetProcs(const JPH_DebugRenderer_Procs* procs);
-JPH_CAPI JPH_DebugRenderer* JPH_DebugRenderer_Create(void* userData);
+JPH_CAPI JPH_DebugRenderer* JPH_DebugRenderer_Create();
 JPH_CAPI void JPH_DebugRenderer_Destroy(JPH_DebugRenderer* renderer);
-JPH_CAPI void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer* renderer);
+JPH_CAPI void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer* renderer, void *userData);
 JPH_CAPI void JPH_DebugRenderer_SetCameraPos(JPH_DebugRenderer* renderer, const JPH_RVec3* position);
 
 JPH_CAPI void JPH_DebugRenderer_DrawLine(JPH_DebugRenderer* renderer, const JPH_RVec3* from, const JPH_RVec3* to, JPH_Color color);
