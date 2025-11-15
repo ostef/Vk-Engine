@@ -126,7 +126,7 @@ CopyWorld :: (dest : *World, src : *World) {
             parent_id := entity.parent;
             entity.parent = Null_Entity_GUID;
 
-            parent, err := GetEntity(dest, *parent_id);
+            parent, err := GetEntity(dest, parent_id);
             if !parent {
                 LogError("Entity does not exist %", parent_id);
                 continue;
@@ -267,7 +267,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
             parent_id := entity.parent;
             entity.parent = Null_Entity_GUID;
 
-            parent, err := GetEntity(world, *parent_id);
+            parent, err := GetEntity(world, parent_id);
             if !parent {
                 LogError("Entity does not exist %", parent_id);
                 continue;

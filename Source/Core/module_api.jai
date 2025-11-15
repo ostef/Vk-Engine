@@ -156,7 +156,7 @@ CoreModule :: struct {
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
-    SubmitGfxCommandBuffer : (cmd_buffer : GfxCommandBuffer);
+    SubmitGfxCommandBuffer : (cmd_buffer : *GfxCommandBuffer);
     SubmitGfxFrame : ();
     SubtractPoses : (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1);
     TextureUploadPass : (cmd_buffer : *GfxCommandBuffer);
@@ -964,7 +964,7 @@ SetViewport :: inline (pass : *GfxRenderPass, viewport : GfxViewport) {
     g_Core.SetViewport(pass, viewport);
 } @NoProfile
 
-SubmitGfxCommandBuffer :: inline (cmd_buffer : GfxCommandBuffer) {
+SubmitGfxCommandBuffer :: inline (cmd_buffer : *GfxCommandBuffer) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SubmitGfxCommandBuffer(cmd_buffer);
 } @NoProfile

@@ -189,7 +189,7 @@ SampleAnimation :: (
     pose_index = Math.fmod_cycling(pose_index, cast(float, anim.pose_count));
 
     for * pose_joint : output_pose.joints {
-        joint_name := GetJointName(output_pose.armature, cast(s16, it_index));
+        joint_name := GetJointName(*output_pose.armature, cast(s16, it_index));
         anim_joint_id, exists := HashMapGet(*anim.name_to_joint_id, joint_name);
         if !exists {
             continue;

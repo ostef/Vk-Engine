@@ -270,7 +270,7 @@ FreeArmatureData :: (using armature : *Armature) {
     Initialize(armature);
 }
 
-GetJointNamesArray :: (using armature : Armature) -> [][Max_Armature_Joint_Name_Length]u8 {
+GetJointNamesArray :: (using armature : *Armature) -> [][Max_Armature_Joint_Name_Length]u8 {
     result : [][Max_Armature_Joint_Name_Length]u8 = ---;
     result.count = joint_count;
     result.data = memory_block + size_of(ArmatureJoint) * joint_count;
@@ -278,7 +278,7 @@ GetJointNamesArray :: (using armature : Armature) -> [][Max_Armature_Joint_Name_
     return result;
 }
 
-GetJointName :: (armature : Armature, joint_id : s16) -> string {
+GetJointName :: (armature : *Armature, joint_id : s16) -> string {
     names := GetJointNamesArray(armature);
 
     return MakeString(names[joint_id].data);

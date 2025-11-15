@@ -88,7 +88,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
                 if new_parent_id == Null_Entity_GUID {
                     DetachEntity(world, entity);
                 } else {
-                    new_parent := GetEntity(world, *new_parent_id);
+                    new_parent := GetEntity(world, new_parent_id);
                     if new_parent {
                         AttachEntity(world, entity, new_parent);
                     }

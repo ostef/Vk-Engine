@@ -59,7 +59,7 @@ EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_
         parent_id := entity.parent;
         new_entity.parent = .{};
 
-        parent, err := GetEntity(world, *parent_id);
+        parent, err := GetEntity(world, parent_id);
         if !parent {
             LogError("Entity does not exist %", parent_id);
         } else {

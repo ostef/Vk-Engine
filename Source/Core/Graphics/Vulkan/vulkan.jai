@@ -197,7 +197,7 @@ CreateGfxCommandBuffer :: (name : string) -> GfxCommandBuffer {
     return result;
 } @ModuleAPI
 
-SubmitGfxCommandBuffer :: (cmd_buffer : GfxCommandBuffer) {
+SubmitGfxCommandBuffer :: (cmd_buffer : *GfxCommandBuffer) {
     ctx := *g_gfx_context;
 
     vkEndCommandBuffer(cmd_buffer.cmd_buffer);

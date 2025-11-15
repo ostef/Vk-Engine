@@ -173,7 +173,7 @@ LoaderMain :: () {
     }
 
     init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=1);
-    defer deinit(*g_modules_watcher);
+    defer deinit(g_modules_watcher);
     add_directories(*g_modules_watcher, "ModuleLibs");
 
     while !g_quit {

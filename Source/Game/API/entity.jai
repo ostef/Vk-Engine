@@ -430,7 +430,7 @@ GetEntity :: (using world : *World, index : EntityIndex) -> *Entity, GetEntityEr
         {
             it := Entity_Types[i];
             Appendln(*builder, "case .%;", it);
-            Appendln(*builder, "    valid, corrupt, not_occupied, version_mismatch := PagedArrayIsSlotValid(*%_storage, slot_info);", it);
+            Appendln(*builder, "    valid, corrupt, not_occupied, version_mismatch := PagedArrayIsSlotValid(%_storage, slot_info);", it);
             Appendln(*builder, "    if not_occupied || version_mismatch {");
             Appendln(*builder, "        return null, .EntityKilled;");
             Appendln(*builder, "    }");
@@ -545,7 +545,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
 
     ExecuteEntityCallback(world, entity, "OnDetach");
 
-    parent := GetEntity(world, *entity.parent);
+    parent := GetEntity(world, entity.parent);
     Assert(parent != null);
 
     child_index := ArrayFindFirst(parent.children, entity.index);
@@ -592,7 +592,7 @@ SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f
 }
 
 UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := true, update_components := true) {
-    parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, *entity.parent);
+    parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, entity.parent);
 
     local_transform := Mat4fTransformSRT(entity.local_position, entity.local_rotation, entity.local_scale);
 
@@ -736,7 +736,7 @@ CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : En
     }
 
     if entity.parent != Null_Entity_GUID {
-        parent, err := GetEntity(world, *entity.parent);
+        parent, err := GetEntity(world, entity.parent);
         if parent {
             // AttachEntity detaches from previous parent, so clear entity.parent beforehand
             entity.parent = .{};
