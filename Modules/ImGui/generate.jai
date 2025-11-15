@@ -49,6 +49,14 @@ g_begin_end_string_args : [..]*Declaration;
     compile_source := Always_Compile_Cpp_Source || !file_exists("macos/ImGui.dylib") || !file_exists("macos/ImGui.a");
 }
 
+    args := get_build_options().compile_time_command_line;
+    for args {
+        if it == {
+        case "build";
+            compile_source = true;
+        }
+    }
+
     copy_file("imconfig.h", "source/imconfig.h");
 
     if compile_source {
