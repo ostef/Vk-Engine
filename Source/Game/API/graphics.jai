@@ -226,16 +226,24 @@ DirectionalLightComponent :: struct {
         up := UpVector(light.world_transform);
         direction := ForwardVector(light.world_transform);
 
-        p0 := position + right * 0.3;
-        p1 := position - right * 0.3;
-        p2 := position + up * 0.3;
-        p3 := position - up * 0.3;
+        R :: 0.3;
+        Inv_SQ2 :: #run 1 / Sqrt(2);
+        points := Vec3f.[
+            position + right * R,
+            position - right * R,
+            position + up * R,
+            position - up * R,
+            position + right * R * Inv_SQ2 + up * R * Inv_SQ2,
+            position + right * R * Inv_SQ2 - up * R * Inv_SQ2,
+            position - right * R * Inv_SQ2 + up * R * Inv_SQ2,
+            position - right * R * Inv_SQ2 - up * R * Inv_SQ2,
+        ];
 
-        DebugDrawCircleOutline(world, .{rgb=light.color, a=1}, position, right, up, 0.3);
-        DebugDrawLine(world, .{rgb=light.color, a=1}, p0, p0 + direction);
-        DebugDrawLine(world, .{rgb=light.color, a=1}, p1, p1 + direction);
-        DebugDrawLine(world, .{rgb=light.color, a=1}, p2, p2 + direction);
-        DebugDrawLine(world, .{rgb=light.color, a=1}, p3, p3 + direction);
+        DebugDrawCircleOutline(world, .{rgb=light.color, a=1}, position, right, up, R);
+
+        for points {
+            DebugDrawLine(world, .{rgb=light.color, a=1}, it, it + direction);
+        }
     }
 
     GetEditorIcon :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) -> *Asset(Texture2D) {
