@@ -88,7 +88,7 @@ DestroyWorld :: (using world : *World) {
 
     DestroyPhysicsWorld(world);
 
-    Initialize(world);
+    world.* = .{};
 } @ModuleAPI
 
 CopyWorld :: (dest : *World, src : *World) {

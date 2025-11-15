@@ -342,7 +342,7 @@ LoadState :: (state : []u8) {
     using all_state : AllEditorState;
     result := DeserializeAny(cast(string, state), all_state);
     if !result.ok {
-        LogError("At line %, character %: %", result.line_index + 1, result.byte_index + 1, result.error_msg);
+        LogError("Error when deserializing state. At line %, character %: %", result.line_index + 1, result.byte_index + 1, result.error_msg);
     }
 
     for selected_entities {
@@ -494,18 +494,6 @@ UpdateEditorWorld :: (world : *World) {
 
     ExecuteEntityCallback(world, "OnDebugDraw");
     ExecuteComponentCallback(world, "OnDebugDraw");
-
-    for g_editor_selected_entities {
-        entity := GetEntity(world, it);
-        if !entity {
-            continue;
-        }
-
-        ExecuteEntityCallback(world, entity, "OnDebugDrawSelected");
-        for :AllEntityComponents entity {
-            ExecuteComponentCallback(world, entity, it, "OnDebugDrawSelected");
-        }
-    }
 }
 
 UpdateEditor :: () {
@@ -521,6 +509,18 @@ UpdateEditor :: () {
         UpdateWorld(g_world);
     case .Editor;
         UpdateEditorWorld(g_world);
+    }
+
+    for g_editor_selected_entities {
+        entity := GetEntity(g_world, it);
+        if !entity {
+            continue;
+        }
+
+        ExecuteEntityCallback(g_world, entity, "OnDebugDrawSelected");
+        for :AllEntityComponents entity {
+            ExecuteComponentCallback(g_world, entity, it, "OnDebugDrawSelected");
+        }
     }
 
     ShowMainMenuBar();
