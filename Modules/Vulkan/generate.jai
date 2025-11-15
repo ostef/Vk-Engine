@@ -3,12 +3,7 @@
 // You can use this file to generate any version of vulkan bindings.
 // You only need to set the vulkan.h and vulkan lib paths.
 // Modified by Ryan Capote for Vulkan 1.3
-
-// config
-AT_COMPILE_TIME                 :: true;
-VK_MEM_ALLOC_COMPILE            :: true;
-VK_MEM_ALLOC_OUTPUT_BINDINGS    :: true;
-vulkan_h_location               :: "source/vulkan/vulkan.h";
+// Modified by Stefan Oumansour (misc and styling)
 
 // if the lib path is empty system_library will be used.
 #if OS == .WINDOWS {
@@ -17,59 +12,31 @@ vulkan_h_location               :: "source/vulkan/vulkan.h";
     vulkan_lib_path :: "";
 }
 
-#if AT_COMPILE_TIME {
-    #run {
-        set_build_options_dc(.{do_output=false});
-        if !generate() {
-            compiler_set_workspace_status(.FAILED);
+#run {
+    set_build_options_dc(.{do_output=false});
+
+    compile_source := false;
+
+    args := get_build_options().compile_time_command_line;
+    for args {
+        if it == {
+        case "build";
+            compile_source = true;
         }
     }
-} else {
-    #import "System";
 
-    main :: () {
-        set_working_directory(path_strip_filename(get_path_of_running_executable()));
-        if !generate() {
-            exit(1);
-        }
+    if compile_source && !BuildVulkanMemoryAllocator() {
+        compiler_set_workspace_status(.FAILED);
+        return;
+    }
+
+    if !GenerateBindings() {
+        compiler_set_workspace_status(.FAILED);
+        return;
     }
 }
 
-//--------------------
-
-OMIT_LIST :: string.[
-    // These are defined manually:
-    "VK_NULL_HANDLE",
-    "VK_TRUE",
-    "VK_FALSE",
-    "VK_WHOLE_SIZE",
-    "VK_ATTACHMENT_UNUSED",
-    "VK_QUEUE_FAMILY_IGNORED",
-    "VK_REMAINING_ARRAY_LAYERS",
-    "VK_REMAINING_MIP_LEVELS",
-    "VK_SUBPASS_EXTERNAL",
-    "VK_MAX_PHYSICAL_DEVICE_NAME_SIZE",
-    "VK_UUID_SIZE",
-    "VK_MAX_MEMORY_TYPES",
-    "VK_MAX_MEMORY_HEAPS",
-    "VK_MAX_EXTENSION_NAME_SIZE",
-    "VK_MAX_DESCRIPTION_SIZE",
-    // Vulkan 1.3 functions that exist on Linux but are not part of our Windows version:
-    "vkGetPhysicalDeviceSurfaceCapabilities2KHR",
-    "vkGetPhysicalDeviceSurfaceFormats2KHR",
-];
-
-generate :: () -> bool {
-    do_gen_bindings := ifx VK_MEM_ALLOC_COMPILE then compile_vulkan_memory_allocator() else true;
-    if do_gen_bindings {
-        return generate_bindings();
-    } else {
-        log("failed to compile vulkan memory allocator");
-        return false;
-    }
-}
-
-compile_vulkan_memory_allocator :: () -> bool {
+BuildVulkanMemoryAllocator :: () -> bool {
     cwd := get_working_directory();
     include := tprint("-I%/source", cwd);
     src_path := tprint("%/source/vulkan_memory_allocator/vk_mem_alloc.cpp", cwd);
@@ -113,7 +80,28 @@ compile_vulkan_memory_allocator :: () -> bool {
     }
 }
 
-generate_bindings :: () -> bool {
+Declarations_To_Omit :: string.[
+    "VK_NULL_HANDLE",
+    "VK_TRUE",
+    "VK_FALSE",
+    "VK_WHOLE_SIZE",
+    "VK_ATTACHMENT_UNUSED",
+    "VK_QUEUE_FAMILY_IGNORED",
+    "VK_REMAINING_ARRAY_LAYERS",
+    "VK_REMAINING_MIP_LEVELS",
+    "VK_SUBPASS_EXTERNAL",
+    "VK_MAX_PHYSICAL_DEVICE_NAME_SIZE",
+    "VK_UUID_SIZE",
+    "VK_MAX_MEMORY_TYPES",
+    "VK_MAX_MEMORY_HEAPS",
+    "VK_MAX_EXTENSION_NAME_SIZE",
+    "VK_MAX_DESCRIPTION_SIZE",
+    // Vulkan 1.3 functions that exist on Linux but are not part of our Windows version:
+    "vkGetPhysicalDeviceSurfaceCapabilities2KHR",
+    "vkGetPhysicalDeviceSurfaceFormats2KHR",
+];
+
+GenerateBindings :: () -> bool {
     output_filename: string;
     opts: Generate_Bindings_Options;
     {
@@ -122,10 +110,10 @@ generate_bindings :: () -> bool {
         #if OS == .WINDOWS {
             array_add(*libnames, "vulkan-1");
             array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
-            output_filename  = "generated_windows.jai";
+            output_filename  = "vulkan_windows.jai";
         } else #if OS == .LINUX {
             array_add(*libnames, "libvulkan.so.1");
-            output_filename  = "generated_linux.jai";
+            output_filename  = "vulkan_linux.jai";
         } else #if OS == .MACOS {
             // @ToDo
             assert(false);
@@ -135,16 +123,15 @@ generate_bindings :: () -> bool {
 
         if vulkan_lib_path then array_add(*libpaths, vulkan_lib_path);
 
-        array_add(*source_files, vulkan_h_location);
-        if VK_MEM_ALLOC_OUTPUT_BINDINGS {
-            array_add(*source_files, "source/vulkan_memory_allocator/vk_mem_alloc.cpp");
-            #if OS == .WINDOWS {
-                array_add(*libpaths, "libs/windows");
-            } else #if OS == .LINUX {
-                array_add(*libpaths, "libs/linux");
-            }
-            array_add(*libnames, "VkMemAlloc");
+        array_add(*source_files, "source/vulkan/vulkan.h");
+
+        array_add(*source_files, "source/vulkan_memory_allocator/vk_mem_alloc.cpp");
+        #if OS == .WINDOWS {
+            array_add(*libpaths, "libs/windows");
+        } else #if OS == .LINUX {
+            array_add(*libpaths, "libs/linux");
         }
+        array_add(*libnames, "VkMemAlloc");
 
         generate_library_declarations = false;
         omit_global_declarations = false;
@@ -154,7 +141,7 @@ generate_bindings :: () -> bool {
             context.generator.libraries[0].identifier = "libvulkan";
         };
 
-        visitor     = vulkan_visitor;
+        visitor     = VulkanDeclarationVisitor;
         generate_compile_time_struct_checks = false;
     }
 
@@ -164,7 +151,7 @@ generate_bindings :: () -> bool {
 available_flag_bits: Table(string, *Enum);
 struct_type_decl: *Enum;
 
-vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
+VulkanDeclarationVisitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
     // Omit header definitions (ex: VULKAN_H_)
     if decl.kind == .MACRO_DEFINITION && ends_with(decl.name, "_H_") {
         // print("MACRO_DEFINITION removed: %\n", decl.name);
@@ -172,9 +159,9 @@ vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
         return .STOP;
     }
 
-    // Omit our OMIT_LIST
-    if !parent_decl && array_find(OMIT_LIST, decl.name) {
-        //print("OMIT_LIST: %\n", decl.name);
+    // Omit our Declarations_To_Omit
+    if !parent_decl && array_find(Declarations_To_Omit, decl.name) {
+        //print("Declarations_To_Omit: %\n", decl.name);
         decl.decl_flags |= .OMIT_FROM_OUTPUT;
         return .STOP;
     }
@@ -227,7 +214,7 @@ vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
     if parent_decl && parent_decl.kind == .STRUCT && parent_decl.name != "VkBaseInStructure" && parent_decl.name != "VkBaseOutStructure" &&
             decl.kind == .DECLARATION && decl.name == "sType" {
 
-        enum_value_name := get_sType_default_value_from_struct_name(parent_decl.name);
+        enum_value_name := GetsTypeDefaultValueFromStructName(parent_decl.name);
 
         // Vulkan has inconsisant naming for things, so the generator can't find these enum values because it splits or doesn't split
         // numbers correctly in newer cases. This manually changes the name of the enum so the generator can find it.
@@ -280,7 +267,7 @@ vulkan_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
     return .RECURSE;
 }
 
-get_sType_default_value_from_struct_name :: (name: string) -> string {
+GetsTypeDefaultValueFromStructName :: (name: string) -> string {
     assert(name.count >= 3);
 
     is_upper :: (byte: u8) -> bool {
@@ -319,7 +306,6 @@ get_sType_default_value_from_struct_name :: (name: string) -> string {
     return builder_to_string(*builder);
 }
 
-#scope_file
 #import "Basic";
 #import "Compiler";
 #import "Check";

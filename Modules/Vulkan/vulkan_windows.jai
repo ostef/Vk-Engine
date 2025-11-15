@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai Modules Source Build.jai - generate_bindings
+// jai generate.jai - build
 //
 
 
