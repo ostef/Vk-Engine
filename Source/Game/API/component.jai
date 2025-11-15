@@ -107,6 +107,10 @@ CreateComponent :: (world : *World, storage : *ComponentStorage($T), entity : *E
     component.index = index;
     component.type_id = #run cast(int, GetComponentTypeId(T));
 
+    #if #run ComponentIsSpatial(GetComponentTypeId(T)) {
+        UpdateWorldTransform(entity, component);
+    }
+
     #if #exists(T.OnCreate) {
         T.OnCreate(world, entity, component);
     }
