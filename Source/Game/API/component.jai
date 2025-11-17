@@ -3,6 +3,7 @@
 
 #placeholder Component_Types;
 #placeholder ComponentTypeId;
+#placeholder Component_Categories;
 
 #insert -> string {
     builder : StringBuilder;

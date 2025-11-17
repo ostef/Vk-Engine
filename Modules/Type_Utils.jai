@@ -1,3 +1,7 @@
+#import "Basic";
+#import "String";
+#import "Compiler";
+
 TypeIsString :: inline (type : Type) -> bool
 {
     return TypeIsString(cast(*Type_Info) type);
@@ -392,4 +396,168 @@ TypeGetSourcePolymorph :: (info : *Type_Info_Struct) -> *Type_Info_Struct
         info = info.polymorph_source_struct;
 
     return info;
+}
+
+ParseNote :: (note : string) -> ok : bool, name : string, args : []string {
+    open_paren := find_index_from_left(note, "(");
+    if open_paren < 0 {
+        return true, note, .[];
+    }
+
+    name := note;
+    name.count = open_paren;
+
+    close_paren := find_index_from_right(note, ")");
+    if close_paren != note.count - 1 {
+        return false, name, .[];
+    }
+
+    close_paren = find_index_from_left(note, ")");
+    if close_paren != note.count - 1 {
+        return false, name, .[];
+    }
+
+
+    args : [..]string;
+    args.allocator = temp;
+
+    str := advance(note, open_paren + 1);
+    i := 0;
+    while i < str.count {
+        next_comma := find_index_from_left(str, ",");
+        if next_comma < 0 {
+            next_comma = str.count - 1;
+        }
+
+        arg := str;
+        arg.count = next_comma;
+        arg = advance(arg, i);
+
+        array_add(*args, arg);
+
+        i = next_comma + 1;
+    }
+
+    return true, name, args;
+}
+
+ParseNote :: (note : string, expect_name : string, $T : Type) -> bool, T {
+    ParseArg :: ($T : Type, arg : string) -> ok : bool, value : T {
+        #if T == {
+        case bool;
+            if arg == "true" {
+                return true, true;
+            }
+            if arg == "false" {
+                return true, false;
+            }
+
+            return false, false;
+
+        case u8;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case s8;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case u16;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case s16;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case u32;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case s32;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case u64;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+        case s64;
+            value, ok, remainder := string_to_int(arg, T=T);
+            ok &= remainder.count == 0;
+
+            return ok, value;
+
+        case float32;
+            value, ok, remainder := string_to_float(arg);
+            ok &= remainder.count == 0;
+
+            return ok, xx value;
+        case float64;
+            value, ok, remainder := string_to_float(arg);
+            ok &= remainder.count == 0;
+
+            return ok, xx value;
+
+        case string;
+            return true, arg;
+
+        case;
+            #assert false "Type is not handled in ParseNote";
+        }
+    }
+
+    dummy : T;
+    ok, name, args := ParseNote(note);
+    if !ok {
+        return false, dummy;
+    }
+
+    if name != expect_name {
+        return false, dummy;
+    }
+
+    #if T == void {
+        return args.count == 0, dummy;
+    } else {
+        value : T;
+        if args.count != 1 {
+            return false, value;
+        }
+
+        ok, value = ParseArg(T, args[0]);
+
+        return ok, value;
+    }
+}
+
+GetNote :: (notes : []string, name : string, $T : Type = void) -> ok : bool, value : T {
+    for notes {
+        ok, value := ParseNote(it, name, T);
+        if ok {
+            return true, value;
+        }
+    }
+
+    dummy : T;
+    return false, dummy;
+}
+
+GetNote :: (notes : []*Code_Note, name : string, $T : Type = void) -> ok : bool, value : T {
+    for notes {
+        ok, value := ParseNote(it.text, name, T);
+        if ok {
+            return true, value;
+        }
+    }
+
+    dummy : T;
+    return false, dummy;
 }

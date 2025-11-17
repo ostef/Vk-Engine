@@ -50,7 +50,7 @@ PhysicsDebugDrawSettings :: struct {
     enabled := false; @Serialize(9)
     draw_colliders := true; @Serialize(1)
     draw_colliders_wireframe := true; @Serialize(2)
-    collider_color := Jolt.BodyManager_ShapeColor.MotionTypeColor; @Serialize(3)
+    collider_color := Jolt.BodyManager_ShapeColor.SleepColor; @Serialize(3)
     draw_bounding_box := false; @Serialize(4)
     draw_center_of_mass_transform := false; @Serialize(5)
     draw_world_transform := false; @Serialize(6)

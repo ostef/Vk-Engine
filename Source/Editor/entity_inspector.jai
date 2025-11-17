@@ -132,20 +132,177 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
-    if BeginButtonCombo("Add Component", size=.{-1,0}) {
-        defer ImGui.EndCombo();
 
-        ImGui.PushFont(g_editor_base_font);
-        defer ImGui.PopFont();
-        for i : 1..Component_Types.count - 1 {
-            type_id := cast(ComponentTypeId, i);
-            name := GetNiceComponentTypeName(type_id);
+    if ImGui.Button("Add Component", size=.{-1,0}) {
+        OpenAddComponentPopup(world, entity);
+    }
 
-            if ImGui.MenuItem(CStringClone(name ,, Temp)) {
-                AddComponent(world, type_id, entity);
+    PopButtonColor();
+    ImGui.PopFont();
+}
+
+g_add_component_popup : struct {
+    request_open : bool;
+    selected_component_type : ComponentTypeId;
+    world : *World;
+    entity : *Entity;
+}
+
+#insert -> string {
+    builder : StringBuilder;
+
+    unique_entity_categories : [..]string;
+    for Entity_Categories {
+        if it {
+            ArrayPushUnique(*unique_entity_categories, it);
+        }
+    }
+
+    QuickSort(unique_entity_categories, StringCompare);
+
+    unique_component_categories : [..]string;
+    for Component_Categories {
+        if it {
+            ArrayPushUnique(*unique_component_categories, it);
+        }
+    }
+
+    QuickSort(unique_component_categories, StringCompare);
+
+    Appendln(*builder, "Unique_Entity_Categories :: string.[");
+
+    for unique_entity_categories {
+        Append(*builder, "    ");
+        StringBuilderAppendStringLiteral(*builder, it);
+        Append(*builder, ",\n");
+    }
+
+    Appendln(*builder, "];");
+
+    Appendln(*builder, "Unique_Component_Categories :: string.[");
+
+    for unique_component_categories {
+        Append(*builder, "    ");
+        StringBuilderAppendStringLiteral(*builder, it);
+        Append(*builder, ",\n");
+    }
+
+    Appendln(*builder, "];");
+
+    return StringBuilderBuild(*builder);
+}
+
+OpenAddComponentPopup :: (world : *World, entity : *Entity) {
+    g_add_component_popup.request_open = true;
+    g_add_component_popup.world = world;
+    g_add_component_popup.entity = entity;
+}
+
+ShowAddComponentPopup :: () {
+    using g_add_component_popup;
+
+    if request_open {
+        ImGui.OpenPopup("###add_component_popup");
+        request_open = false;
+    }
+
+    window_w, window_h := GetWindowPointSize(GetWindow());
+
+    popup_size := Vec2f.{
+        Min(500.0, window_w * 0.5),
+        Min(500.0, window_h * 0.8)
+    };
+    display_size := ImGui.GetIO().DisplaySize;
+    ImGui.SetNextWindowPos((display_size - popup_size) * 0.5, .Appearing);
+    ImGui.SetNextWindowSize(popup_size, .Appearing);
+    ImGui.PushStyleVar(.WindowTitleAlign, .{0.5, 0.5});
+    defer ImGui.PopStyleVar();
+
+    if !ImGui.BeginPopupModal("Add Component###add_component_popup") {
+        return;
+    }
+
+    defer ImGui.EndPopup();
+
+    if IsKeyPressed(.Escape) {
+        ImGui.CloseCurrentPopup();
+    }
+
+    ShowComponentCategory :: (category : string, selected : *ComponentTypeId) {
+        actual_name := path_filename(category);
+        if ImGui.TreeNode(CTPrint("%##%", actual_name, category)) {
+            defer ImGui.TreePop();
+
+            for Unique_Component_Categories {
+                parent_category := path_strip_filename(it);
+                if parent_category.count > 0 && parent_category[parent_category.count - 1] == #char "/" {
+                    parent_category.count -= 1;
+                }
+
+                if parent_category == category {
+                    ShowComponentCategory(it, selected);
+                }
+            }
+
+            for i : 1..Component_Types.count - 1 {
+                type := cast(ComponentTypeId, i);
+                component_category := Component_Categories[i];
+                if component_category != category {
+                    continue;
+                }
+
+                name := GetNiceComponentTypeName(type);
+
+                node_flags := ImGui.TreeNodeFlags.Leaf;
+                if selected.* == type {
+                    node_flags |= .Selected;
+                }
+
+                if ImGui.TreeNodeEx(CStringClone(name ,, Temp), node_flags) {
+                    ImGui.TreePop();
+
+                    if ImGui.IsItemClicked() {
+                        selected.* = type;
+                    }
+                }
             }
         }
     }
+
+    {
+        ImGui.PushFont(g_editor_medium_font);
+        size := ImGui.GetContentRegionAvail();
+        size.y -= ImGui.GetFrameHeightWithSpacing();
+        ImGui.PopFont();
+
+        defer ImGui.EndChild();
+        if !ImGui.BeginChild("component_list_tiles", size=size) {
+            return;
+        }
+
+        for Unique_Component_Categories {
+            if path_strip_filename(it) == "" {
+                ShowComponentCategory(it, *selected_component_type);
+            }
+        }
+    }
+
+    ImGui.PushFont(g_editor_medium_font);
+    PushButtonColor(.EmphasisButton);
+
+    ImGui.BeginDisabled(selected_component_type == .Invalid);
+
+    add_name := ifx selected_component_type
+        then CTPrint("Add % Component###add_component", GetNiceComponentTypeName(selected_component_type))
+        else "Add Component###add_component";
+
+    if ImGui.Button(add_name, size=.{-1,0}) {
+        AddComponent(world, selected_component_type, entity);
+        ImGui.CloseCurrentPopup();
+    }
+
+    ImGui.EndDisabled();
+
     PopButtonColor();
     ImGui.PopFont();
 }

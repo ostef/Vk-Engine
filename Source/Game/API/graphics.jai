@@ -5,7 +5,7 @@ StaticMeshComponent :: struct {
     material : *Asset(Material); @Serialize(3)
     cast_shadows := true; @Serialize(4)
     cast_point_shadows := false; @Serialize(5)
-} @Component
+} @Component @Category(Graphics)
 
 AllStaticMeshComponents :: #bake_arguments AllEntityComponents(T=StaticMeshComponent);
 
@@ -65,7 +65,7 @@ SkinnedMeshComponent :: struct {
     OnDestroy :: (world : *World, using comp : *SkinnedMeshComponent) {
         Free(skinning_matrices.data);
     }
-} @Component
+} @Component @Category(Graphics)
 
 AllSkinnedMeshComponents :: #bake_arguments AllEntityComponents(T=SkinnedMeshComponent);
 
@@ -125,7 +125,7 @@ StaticMeshEntity :: struct {
     OnDestroy :: (world : *World, entity : *StaticMeshEntity) {
         DestroyComponent(world, entity.mesh);
     }
-} @Entity
+} @Entity @Category(Graphics)
 
 AnimatedMeshEntity :: struct {
     #as using _ : Entity; @Serialize(1) @InspectorNoTree
@@ -170,7 +170,7 @@ AnimatedMeshEntity :: struct {
         CalculatePoseTransforms(*pose);
         SetPose(mesh, *pose);
     }
-} @Entity
+} @Entity @Category(Graphics)
 
 AllMeshesToRender :: (world : *World, body : Code, flags : For_Flags) #expand {
     `it : MeshToRender;
@@ -262,7 +262,7 @@ DirectionalLightComponent :: struct {
     GetEditorIcon :: (world : *World, entity : *Entity, light : *DirectionalLightComponent) -> *Asset(Texture2D) {
         return LoadAssetPermanent(Texture2D, "Editor/Icons/DirectionalLight.png");
     }
-} @Component
+} @Component @Category(Graphics/Lights)
 
 AllDirectionalLightComponents :: #bake_arguments AllEntityComponents(T=DirectionalLightComponent);
 
@@ -278,7 +278,7 @@ DirectionalLightEntity :: struct {
     OnDestroy :: (world : *World, light : *DirectionalLightEntity) {
         DestroyComponent(world, light.light);
     }
-} @Entity
+} @Entity @Category(Graphics/Lights)
 
 PointLightComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
@@ -298,7 +298,7 @@ PointLightComponent :: struct {
     GetEditorIcon :: (world : *World, entity : *Entity, light : *PointLightComponent) -> *Asset(Texture2D) {
         return LoadAssetPermanent(Texture2D, "Editor/Icons/PointLight.png");
     }
-} @Component
+} @Component @Category(Graphics/Lights)
 
 AllPointLightComponents :: #bake_arguments AllEntityComponents(T=PointLightComponent);
 
@@ -314,7 +314,7 @@ PointLightEntity :: struct {
     OnDestroy :: (world : *World, light : *PointLightEntity) {
         DestroyComponent(world, light.light);
     }
-} @Entity
+} @Entity @Category(Graphics/Lights)
 
 Point_Light_Attenuation_Threshold :: 0.07;
 

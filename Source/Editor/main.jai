@@ -555,6 +555,7 @@ UpdateEditor :: () {
 
     ShowEntityInspector(g_world, entity_to_inspect);
 
+    ShowAddComponentPopup();
     UpdateAllFileBrowsers();
 
     {

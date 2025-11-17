@@ -132,11 +132,35 @@ GenerateEntityCode :: (workspace : Workspace, target : *Message) {
 
     Appendln(*builder, "];");
 
+    Appendln(*builder, "Entity_Categories :: string.[");
+    Appendln(*builder, "    \"\",");
+
+    for entity_decls {
+        _, category := GetNote(it.notes, "Category", string);
+        Append(*builder, "    ");
+        StringBuilderAppendStringLiteral(*builder, category);
+        Append(*builder, ",\n");
+    }
+
+    Appendln(*builder, "];");
+
     Appendln(*builder, "Component_Types :: Type.[");
     Appendln(*builder, "    void,");
 
     for component_types {
         Appendln(*builder, "    %,", it.name);
+    }
+
+    Appendln(*builder, "];");
+
+    Appendln(*builder, "Component_Categories :: string.[");
+    Appendln(*builder, "    \"\",");
+
+    for component_decls {
+        _, category := GetNote(it.notes, "Category", string);
+        Append(*builder, "    ");
+        StringBuilderAppendStringLiteral(*builder, category);
+        Append(*builder, ",\n");
     }
 
     Appendln(*builder, "];");
