@@ -1,4 +1,16 @@
-g_jolt_debug_renderer : *Jolt.DebugRenderer;
+g_physics : PhysicsGlobals;
+
+GetPhysicsGlobals :: () -> *PhysicsGlobals {
+    return *g_physics;
+} @ModuleAPI
+
+GetPhysicsSettings :: () -> *PhysicsSettings {
+    return *g_physics.settings;
+} @ModuleAPI
+
+GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
+    return *g_physics.debug_draw_settings;
+} @ModuleAPI
 
 InitPhysics :: () {
     ok := Jolt.Init();
@@ -19,18 +31,52 @@ InitPhysics :: () {
         }
     };
 
-    g_jolt_debug_renderer = Jolt.DebugRenderer_Create();
+    using g_physics;
+
+    debug_renderer = Jolt.DebugRenderer_Create();
     Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
 
     LogMessage("Initialized Jolt" ,, log_section=*Log_Physics);
 }
 
 ShutdownPhysics :: () {
-    Jolt.DebugRenderer_Destroy(g_jolt_debug_renderer);
+    Jolt.DebugRenderer_Destroy(g_physics.debug_renderer);
 
     Jolt.Shutdown();
+
     LogMessage("Shut down Jolt" ,, log_section=*Log_Physics);
 }
+
+GetPhysicsCollisionLayersMatrixIndex :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> int {
+    if a < b {
+        Swap(*a, *b);
+    }
+
+    first_index_of_row := cast(int, a + 1) * cast(int, a + 2) / 2;
+    index := Physics_Collision_Layer_Matrix_Size - first_index_of_row + cast(int, b);
+
+    return index;
+}
+
+EnablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
+    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
+    g_physics.settings.collision_layer_matrix[index] = true;
+} @ModuleAPI
+
+DisablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
+    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
+    g_physics.settings.collision_layer_matrix[index] = false;
+} @ModuleAPI
+
+ShouldPhysicsCollisionLayersCollide :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {
+    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
+
+    return g_physics.settings.collision_layer_matrix[index];
+} @ModuleAPI
+
+UpdatePhysicsCollisionLayerMatrix :: () {
+    using g_physics;
+} @ModuleAPI
 
 InitPhysicsWorld :: (world : *World) {
     using world.physics;
@@ -38,15 +84,25 @@ InitPhysicsWorld :: (world : *World) {
     job_system = Jolt.JobSystemThreadPool_Create(null);
     Jolt.JobSystemThreadPool_Create(null);
 
-    object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Body_Layers);
-    Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Moving);
-    Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Static);
+    object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Collision_Layers);
 
-    broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable_Create(Physics_Num_Body_Layers, Physics_Num_Body_Layers);
-    Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsBodyLayer.Static, xx PhysicsBodyLayer.Static);
-    Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsBodyLayer.Moving, xx PhysicsBodyLayer.Moving);
+    for i : 0..Physics_Num_Collision_Layers - 1 {
+        for j : 0..i {
+            if ShouldPhysicsCollisionLayersCollide(xx i, xx j) {
+                Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx i, xx j);
+            } else {
+                Jolt.ObjectLayerPairFilterTable_DisableCollision(object_vs_object_layer_filter, xx i, xx j);
+            }
+        }
+    }
 
-    object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable_Create(broad_phase_layer_interface, Physics_Num_Body_Layers, object_vs_object_layer_filter, Physics_Num_Body_Layers);
+    broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable_Create(Physics_Num_Collision_Layers, Physics_Num_Collision_Layers);
+
+    for i : 0..Physics_Num_Collision_Layers - 1 {
+        Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx i, xx i);
+    }
+
+    object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable_Create(broad_phase_layer_interface, Physics_Num_Collision_Layers, object_vs_object_layer_filter, Physics_Num_Collision_Layers);
 
     system_settings := Jolt.PhysicsSystemSettings.{
         maxBodies=Physics_Max_Bodies,
@@ -69,31 +125,25 @@ DestroyPhysicsWorld :: (world : *World) {
     Jolt.JobSystem_Destroy(job_system);
 }
 
-g_physics_debug_draw_settings : PhysicsDebugDrawSettings;
-
-GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
-    return *g_physics_debug_draw_settings;
-} @ModuleAPI
-
 UpdatePhysicsWorld :: (world : *World) {
     using world.physics;
 
     Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, job_system);
 
-    Jolt.DebugRenderer_NextFrame(g_jolt_debug_renderer, world);
+    Jolt.DebugRenderer_NextFrame(g_physics.debug_renderer, world);
 
-    if g_physics_debug_draw_settings.enabled {
+    if g_physics.debug_draw_settings.enabled {
         draw_settings : Jolt.DrawSettings;
-        draw_settings.drawShape = g_physics_debug_draw_settings.draw_colliders;
-        draw_settings.drawShapeWireframe = g_physics_debug_draw_settings.draw_colliders_wireframe;
-        draw_settings.drawShapeColor = g_physics_debug_draw_settings.collider_color;
-        draw_settings.drawBoundingBox = g_physics_debug_draw_settings.draw_bounding_box;
-        draw_settings.drawCenterOfMassTransform = g_physics_debug_draw_settings.draw_center_of_mass_transform;
-        draw_settings.drawWorldTransform = g_physics_debug_draw_settings.draw_world_transform;
-        draw_settings.drawVelocity = g_physics_debug_draw_settings.draw_velocity;
-        draw_settings.drawMassAndInertia = g_physics_debug_draw_settings.draw_mass_and_inertia;
+        draw_settings.drawShape = g_physics.debug_draw_settings.draw_colliders;
+        draw_settings.drawShapeWireframe = g_physics.debug_draw_settings.draw_colliders_wireframe;
+        draw_settings.drawShapeColor = g_physics.debug_draw_settings.collider_color;
+        draw_settings.drawBoundingBox = g_physics.debug_draw_settings.draw_bounding_box;
+        draw_settings.drawCenterOfMassTransform = g_physics.debug_draw_settings.draw_center_of_mass_transform;
+        draw_settings.drawWorldTransform = g_physics.debug_draw_settings.draw_world_transform;
+        draw_settings.drawVelocity = g_physics.debug_draw_settings.draw_velocity;
+        draw_settings.drawMassAndInertia = g_physics.debug_draw_settings.draw_mass_and_inertia;
 
-        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, g_jolt_debug_renderer, null);
+        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, g_physics.debug_renderer, null);
     }
 
     for * world.RigidBodyComponent_storage {

@@ -5,8 +5,12 @@ GameModule :: struct {
     CopyWorld : (dest : *World, src : *World);
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
+    DisablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
+    EnablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
     GetDefaultMaterial : () -> *Asset(DataType=Material);
     GetPhysicsDebugDrawSettings : () -> *PhysicsDebugDrawSettings;
+    GetPhysicsGlobals : () -> *PhysicsGlobals;
+    GetPhysicsSettings : () -> *PhysicsSettings;
     InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
     RayIntersection_1 : (world : *World, box : *BoxColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RaycastResult;
@@ -16,7 +20,9 @@ GameModule :: struct {
     Raycast : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RaycastResult;
     RaycastAll : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RaycastResult) -> bool;
     SaveWorldToDirectory : (world : *World, output_directory : string);
+    ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
+    UpdatePhysicsCollisionLayerMatrix : ();
     UpdatePhysicsWorld : (world : *World);
     UpdateWorld : (world : *World);
 }
@@ -39,6 +45,16 @@ DestroyWorld :: inline (world : *World) {
     g_Game.DestroyWorld(world);
 } @NoProfile
 
+DisablePhysicsCollisionLayersCollision :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.DisablePhysicsCollisionLayersCollision(a, b);
+} @NoProfile
+
+EnablePhysicsCollisionLayersCollision :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.EnablePhysicsCollisionLayersCollision(a, b);
+} @NoProfile
+
 GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetDefaultMaterial();
@@ -47,6 +63,16 @@ GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
 GetPhysicsDebugDrawSettings :: inline () -> *PhysicsDebugDrawSettings {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetPhysicsDebugDrawSettings();
+} @NoProfile
+
+GetPhysicsGlobals :: inline () -> *PhysicsGlobals {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.GetPhysicsGlobals();
+} @NoProfile
+
+GetPhysicsSettings :: inline () -> *PhysicsSettings {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.GetPhysicsSettings();
 } @NoProfile
 
 InitWorld :: inline (world : *World) {
@@ -94,9 +120,19 @@ SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
     g_Game.SaveWorldToDirectory(world, output_directory);
 } @NoProfile
 
+ShouldPhysicsCollisionLayersCollide :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.ShouldPhysicsCollisionLayersCollide(a, b);
+} @NoProfile
+
 SubmitWorldToRenderer :: inline (world_to_render : *WorldToRender, world : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SubmitWorldToRenderer(world_to_render, world);
+} @NoProfile
+
+UpdatePhysicsCollisionLayerMatrix :: inline () {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.UpdatePhysicsCollisionLayerMatrix();
 } @NoProfile
 
 UpdatePhysicsWorld :: inline (world : *World) {

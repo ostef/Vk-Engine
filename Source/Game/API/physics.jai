@@ -11,6 +11,41 @@ Physics_Num_Updates_Per_Second :: 60;
 Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
 Physics_Num_Collision_Steps :: 1;
 
+PhysicsCollisionLayer :: enum u32 {
+    Default;
+    Foliage;
+}
+
+Physics_Num_Collision_Layers :: #run type_info(PhysicsCollisionLayer).names.count;
+
+#insert -> string {
+    builder : StringBuilder;
+
+    Appendln(*builder, "PhysicsCollisionLayerFlags :: enum_flags u32 {");
+
+    info := type_info(PhysicsCollisionLayer);
+    for info.names {
+        Appendln(*builder, "    %1 :: 1 << PhysicsCollisionLayer.%1;", it);
+    }
+
+    Appendln(*builder, "}");
+
+    return StringBuilderBuild(*builder);
+}
+
+// Triangular number with N = Physics_Num_Collision_Layers
+Physics_Collision_Layer_Matrix_Size :: #run (Physics_Num_Collision_Layers * (Physics_Num_Collision_Layers + 1)) / 2;
+
+PhysicsSettings :: struct {
+    collision_layer_matrix : [Physics_Collision_Layer_Matrix_Size]bool;
+}
+
+PhysicsGlobals :: struct {
+    settings : PhysicsSettings;
+    debug_draw_settings : PhysicsDebugDrawSettings;
+    debug_renderer : *Jolt.DebugRenderer;
+}
+
 PhysicsDebugDrawSettings :: struct {
     enabled := false; @Serialize(9)
     draw_colliders := true; @Serialize(1)
@@ -26,10 +61,10 @@ PhysicsDebugDrawSettings :: struct {
 PhysicsWorld :: struct {
     system : *Jolt.PhysicsSystem;
     job_system : *Jolt.JobSystem;
+    body_interface : *Jolt.BodyInterface;
     broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
     object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
     object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
-    body_interface : *Jolt.BodyInterface;
 }
 
 RaycastResult :: struct {
@@ -40,13 +75,6 @@ RaycastResult :: struct {
     entity : *Entity;
     collider : *Component;
 }
-
-PhysicsBodyLayer :: enum u8 {
-    Static;
-    Moving;
-}
-
-Physics_Num_Body_Layers :: #run type_info(PhysicsBodyLayer).names.count;
 
 PhysicsMotionType :: enum u8 {
     Static;
@@ -62,7 +90,7 @@ PhysicsMotionQuality :: enum u8 {
 RigidBodyComponent :: struct {
     #as using _ : Component; @Serialize(1) @InspectorNoTree
 
-    layer := PhysicsBodyLayer.Moving; @Serialize(2)
+    layer := PhysicsCollisionLayer.Default; @Serialize(2)
     motion_type := PhysicsMotionType.Dynamic; @Serialize(3)
     motion_quality := PhysicsMotionQuality.Discrete; @Serialize(5)
     activate_on_create := true; @Serialize(4)

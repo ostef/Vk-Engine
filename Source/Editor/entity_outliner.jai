@@ -70,6 +70,15 @@ EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_
     return new_entity;
 }
 
+PascalCaseToCapitalized :: (str : string) -> string {
+    AllocatorScope(Temp);
+
+    builder : StringBuilder;
+    AppendPascalCaseToCapitalized(*builder, str);
+
+    return StringBuilderBuild(*builder);
+}
+
 AppendPascalCaseToCapitalized :: (builder : *StringBuilder, str : string) {
     for curr : str {
         Case :: enum {
