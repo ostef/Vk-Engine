@@ -196,22 +196,27 @@ ShowEntityOutliner :: (world : *World) {
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
-    if BeginButtonCombo("Add Entity", size=.{-1,0}) {
-        defer ImGui.EndCombo();
-
-        ImGui.PushFont(g_editor_base_font);
-        defer ImGui.PopFont();
-
-        for i : 1..Entity_Types.count - 1 {
-            type_id := cast(EntityTypeId, i);
-            name := GetNiceEntityTypeName(type_id);
-
-            if ImGui.MenuItem(CStringClone(name ,, Temp)) {
-                entity := SpawnEntity(world, type_id);
-                SelectEntity(entity.guid);
-            }
-        }
+    if ImGui.Button("Add Entity", size=.{-1,0}) {
+        OpenAddEntityPopup(world);
     }
+
+    // if BeginButtonCombo("Add Entity", size=.{-1,0}) {
+    //     defer ImGui.EndCombo();
+
+    //     ImGui.PushFont(g_editor_base_font);
+    //     defer ImGui.PopFont();
+
+    //     for i : 1..Entity_Types.count - 1 {
+    //         type_id := cast(EntityTypeId, i);
+    //         name := GetNiceEntityTypeName(type_id);
+
+    //         if ImGui.MenuItem(CStringClone(name ,, Temp)) {
+    //             entity := SpawnEntity(world, type_id);
+    //             SelectEntity(entity.guid);
+    //         }
+    //     }
+    // }
+
     PopButtonColor();
     ImGui.PopFont();
 

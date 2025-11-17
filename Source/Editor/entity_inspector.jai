@@ -141,13 +141,6 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
     ImGui.PopFont();
 }
 
-g_add_component_popup : struct {
-    request_open : bool;
-    selected_component_type : ComponentTypeId;
-    world : *World;
-    entity : *Entity;
-}
-
 #insert -> string {
     builder : StringBuilder;
 
@@ -192,17 +185,110 @@ g_add_component_popup : struct {
     return StringBuilderBuild(*builder);
 }
 
+g_add_entity_popup : struct {
+    request_open : bool;
+    selected_entity_type : EntityTypeId;
+    world : *World;
+}
+
+OpenAddEntityPopup :: (world : *World) {
+    g_add_entity_popup.request_open = true;
+    g_add_entity_popup.world = world;
+}
+
+g_add_component_popup : struct {
+    request_open : bool;
+    selected_component_type : ComponentTypeId;
+    world : *World;
+    entity : *Entity;
+}
+
 OpenAddComponentPopup :: (world : *World, entity : *Entity) {
     g_add_component_popup.request_open = true;
     g_add_component_popup.world = world;
     g_add_component_popup.entity = entity;
 }
 
-ShowAddComponentPopup :: () {
+#scope_file
+
+ShowCategory :: (category : string, categories : []string, category_callback : (category : string)) {
+    actual_name := path_filename(category);
+    if ImGui.TreeNode(CTPrint("%##%", actual_name, category)) {
+        defer ImGui.TreePop();
+
+        for categories {
+            parent_category := path_strip_filename(it);
+            if parent_category.count > 0 && parent_category[parent_category.count - 1] == #char "/" {
+                parent_category.count -= 1;
+            }
+
+            if parent_category == category {
+                ShowCategory(it, categories, category_callback);
+            }
+        }
+
+        category_callback(category);
+    }
+}
+
+ShowComponentCategory :: (category : string) {
     using g_add_component_popup;
 
+    for i : 1..Component_Types.count - 1 {
+        type := cast(ComponentTypeId, i);
+        component_category := Component_Categories[i];
+        if component_category != category {
+            continue;
+        }
+
+        name := GetNiceComponentTypeName(type);
+
+        node_flags := ImGui.TreeNodeFlags.Leaf;
+        if selected_component_type == type {
+            node_flags |= .Selected;
+        }
+
+        if ImGui.TreeNodeEx(CStringClone(name ,, Temp), node_flags) {
+            ImGui.TreePop();
+
+            if ImGui.IsItemClicked() {
+                selected_component_type = type;
+            }
+        }
+    }
+}
+
+ShowEntityCategory :: (category : string) {
+    using g_add_entity_popup;
+
+    for i : 1..Entity_Types.count - 1 {
+        type := cast(EntityTypeId, i);
+        entity_category := Entity_Categories[i];
+        if entity_category != category {
+            continue;
+        }
+
+        name := GetNiceEntityTypeName(type);
+
+        node_flags := ImGui.TreeNodeFlags.Leaf;
+        if selected_entity_type == type {
+            node_flags |= .Selected;
+        }
+
+        if ImGui.TreeNodeEx(CStringClone(name ,, Temp), node_flags) {
+            ImGui.TreePop();
+
+            if ImGui.IsItemClicked() {
+                selected_entity_type = type;
+            }
+        }
+    }
+}
+
+ShowPopup :: ($name : string, $id : string, categories : []string, request_open : bool, category_callback : (category : string)) -> bool {
+    id_str := CTPrint("###%", id);
     if request_open {
-        ImGui.OpenPopup("###add_component_popup");
+        ImGui.OpenPopup(id_str);
         request_open = false;
     }
 
@@ -218,55 +304,18 @@ ShowAddComponentPopup :: () {
     ImGui.PushStyleVar(.WindowTitleAlign, .{0.5, 0.5});
     defer ImGui.PopStyleVar();
 
-    if !ImGui.BeginPopupModal("Add Component###add_component_popup") {
-        return;
+    opened := ImGui.IsPopupOpen(id_str);
+
+    if !ImGui.BeginPopupModal(CTPrint("%###%", name, id), *opened) {
+        return false;
     }
 
-    defer ImGui.EndPopup();
-
-    if IsKeyPressed(.Escape) {
+    if !opened {
         ImGui.CloseCurrentPopup();
     }
 
-    ShowComponentCategory :: (category : string, selected : *ComponentTypeId) {
-        actual_name := path_filename(category);
-        if ImGui.TreeNode(CTPrint("%##%", actual_name, category)) {
-            defer ImGui.TreePop();
-
-            for Unique_Component_Categories {
-                parent_category := path_strip_filename(it);
-                if parent_category.count > 0 && parent_category[parent_category.count - 1] == #char "/" {
-                    parent_category.count -= 1;
-                }
-
-                if parent_category == category {
-                    ShowComponentCategory(it, selected);
-                }
-            }
-
-            for i : 1..Component_Types.count - 1 {
-                type := cast(ComponentTypeId, i);
-                component_category := Component_Categories[i];
-                if component_category != category {
-                    continue;
-                }
-
-                name := GetNiceComponentTypeName(type);
-
-                node_flags := ImGui.TreeNodeFlags.Leaf;
-                if selected.* == type {
-                    node_flags |= .Selected;
-                }
-
-                if ImGui.TreeNodeEx(CStringClone(name ,, Temp), node_flags) {
-                    ImGui.TreePop();
-
-                    if ImGui.IsItemClicked() {
-                        selected.* = type;
-                    }
-                }
-            }
-        }
+    if IsKeyPressed(.Escape) {
+        ImGui.CloseCurrentPopup();
     }
 
     {
@@ -276,16 +325,65 @@ ShowAddComponentPopup :: () {
         ImGui.PopFont();
 
         defer ImGui.EndChild();
-        if !ImGui.BeginChild("component_list_tiles", size=size) {
-            return;
+        if !ImGui.BeginChild(CTPrint("###%_tiles", id), size=size) {
+            return true;
         }
 
-        for Unique_Component_Categories {
+        for categories {
             if path_strip_filename(it) == "" {
-                ShowComponentCategory(it, *selected_component_type);
+                ShowCategory(it, categories, category_callback);
             }
         }
     }
+
+    return true;
+}
+
+#scope_export
+
+ShowAddEntityPopup :: () {
+    using g_add_entity_popup;
+
+    defer request_open = false;
+
+    if !ShowPopup("Add Entity", "add_entity_popup", Unique_Entity_Categories, request_open, ShowEntityCategory) {
+        return;
+    }
+
+    defer ImGui.EndPopup();
+
+    ImGui.PushFont(g_editor_medium_font);
+    PushButtonColor(.EmphasisButton);
+
+    ImGui.BeginDisabled(selected_entity_type == .Invalid);
+
+    add_name := ifx selected_entity_type
+        then CTPrint("Add % Entity###add_entity", GetNiceEntityTypeName(selected_entity_type))
+        else "Add Entity###add_entity";
+
+    if ImGui.Button(add_name, size=.{-1,0}) {
+        entity := CreateEntity(world, selected_entity_type);
+        SelectEntity(entity.guid);
+
+        ImGui.CloseCurrentPopup();
+    }
+
+    ImGui.EndDisabled();
+
+    PopButtonColor();
+    ImGui.PopFont();
+}
+
+ShowAddComponentPopup :: () {
+    using g_add_component_popup;
+
+    defer request_open = false;
+
+    if !ShowPopup("Add Component", "add_component_popup", Unique_Component_Categories, request_open, ShowComponentCategory) {
+        return;
+    }
+
+    defer ImGui.EndPopup();
 
     ImGui.PushFont(g_editor_medium_font);
     PushButtonColor(.EmphasisButton);
