@@ -25,7 +25,7 @@
 @margin 4: 0.01
 
 [RigidBodyComponent]
-@layer 2: Static
+@layer 2: Default
 @motion_type 3: Static
 @motion_quality 5: Discrete
 @activate_on_create 4: true
