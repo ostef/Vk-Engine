@@ -334,6 +334,8 @@ ShowPopup :: ($name : string, $id : string, categories : []string, request_open 
                 ShowCategory(it, categories, category_callback);
             }
         }
+
+        category_callback("");
     }
 
     return true;
