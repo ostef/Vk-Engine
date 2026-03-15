@@ -44,6 +44,8 @@ BuildVulkanMemoryAllocator :: () -> bool {
     array_add(*extra_args, "-std=c++17");
 
     #if OS == .WINDOWS {
+        make_directory_if_it_does_not_exist("libs/windows", recursive=true);
+
         success := true;
         // vulkan memory allocator uses the VMA_CALL_PRE prefix before all of their functions
         // here we can seet them to be exported when it's compiled as a library.
@@ -60,6 +62,8 @@ BuildVulkanMemoryAllocator :: () -> bool {
 
         return success;
     } else #if OS == .LINUX {
+        make_directory_if_it_does_not_exist("libs/linux", recursive=true);
+
         success := true;
         // vulkan memory allocator uses the VMA_CALL_PRE prefix before all of their functions
         // here we can seet them to be exported when it's compiled as a library.
@@ -108,11 +112,11 @@ GenerateBindings :: () -> bool {
         using opts;
 
         #if OS == .WINDOWS {
-            array_add(*libnames, "vulkan-1");
+            array_add(*libraries, .{filename="vulkan-1"});
             array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
             output_filename  = "vulkan_windows.jai";
         } else #if OS == .LINUX {
-            array_add(*libnames, "libvulkan.so.1");
+            array_add(*libraries, .{filename="libvulkan.so.1"});
             output_filename  = "vulkan_linux.jai";
         } else #if OS == .MACOS {
             // @ToDo
@@ -121,17 +125,17 @@ GenerateBindings :: () -> bool {
             assert(false);
         }
 
-        if vulkan_lib_path then array_add(*libpaths, vulkan_lib_path);
+        if vulkan_lib_path then array_add(*library_search_paths, vulkan_lib_path);
 
         array_add(*source_files, "source/vulkan/vulkan.h");
 
         array_add(*source_files, "source/vulkan_memory_allocator/vk_mem_alloc.cpp");
         #if OS == .WINDOWS {
-            array_add(*libpaths, "libs/windows");
+            array_add(*library_search_paths, "libs/windows");
         } else #if OS == .LINUX {
-            array_add(*libpaths, "libs/linux");
+            array_add(*library_search_paths, "libs/linux");
         }
-        array_add(*libnames, "VkMemAlloc");
+        array_add(*libraries, .{filename="VkMemAlloc"});
 
         generate_library_declarations = false;
         omit_global_declarations = false;
@@ -201,7 +205,7 @@ VulkanDeclarationVisitor :: (decl: *Declaration, parent_decl: *Declaration) -> D
     if decl.kind == .TYPEDEF && decl.type.type_of_typedef &&  decl.type.type_of_typedef.name == "VkFlags" {
         //print("TYPEDEF(VkFlags):%\n", << decl.name);
         flags_name := replace(decl.name, "Flags", "FlagBits");
-        found, enum_decl := table_find_new(*available_flag_bits, flags_name);
+        found, enum_decl := table_find(*available_flag_bits, flags_name);
         if found {
             type := New(CType);
             type.type_of_enum = enum_decl;

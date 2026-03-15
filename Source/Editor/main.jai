@@ -721,7 +721,7 @@ EditorColors :: struct {
     cancel_button_hovered := Vec4f.{0.182, 0.189, 0.197, 0.78}; @ColorEdit @ShowInInspector
     cancel_button_active := Vec4f.{0.154, 0.154, 0.154, 0.78}; @ColorEdit @ShowInInspector
 
-    #place emphasis_button;
+    #overlay(emphasis_button)
     all : [12]Vec4f = ---;
 } @ShaderType
 

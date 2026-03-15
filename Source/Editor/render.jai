@@ -225,7 +225,7 @@ SubmitMaterialEditorPreviewToRenderer :: (world : *World) {
 
     world_index := AddWorldToRender(world_to_render);
 
-    viewpoint := MakeViewpointToRender(g_material_editor.preview_camera, .{xx Max(g_material_editor.preview_size.x, 0), xx Max(g_material_editor.preview_size.y, 0)});
+    viewpoint := MakeViewpointToRender(*g_material_editor.preview_camera, .{xx Max(g_material_editor.preview_size.x, 0), xx Max(g_material_editor.preview_size.y, 0)});
     viewpoint.unique_id = Material_Editor_Preview_Viewport_ID;
     viewpoint.flags = .NoGrids;
     viewpoint.world_index = world_index;

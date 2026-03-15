@@ -108,8 +108,8 @@ GizmoContext :: struct {
         rotate_half : *Asset(StaticMesh);
         rotate_quarter : *Asset(StaticMesh);
 
-        #place cube;
-        all : [11]*Asset(StaticMesh);
+        #overlay(cube)
+        all : [11]*Asset(StaticMesh) = ---;
     };
 
     color_texture : GfxTexture;
@@ -234,7 +234,7 @@ GizmoStyle :: struct {
 
         cursor := Vec4f.{0.117,0.117,0.117,1}; @ShowInInspector @ColorEdit
 
-        #place origin;
+        #overlay(origin)
         all : [GizmoStyleColor.Count]Vec4f = ---; @HideInInspector
     }; @ShowInInspector
 }

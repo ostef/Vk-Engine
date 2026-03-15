@@ -369,7 +369,7 @@ GetFuncArgsForPrinting :: (func : *Function, type : *Function_Type, mode : Arg_P
                 // For the outer wrapper, remove any "_begin" part of the argument, and
                 // change its type to a jai string
                 new_arg := New(Declaration);
-                <<new_arg = <<it;
+                new_arg.* = it.*;
                 new_arg.type = context.generator.type_def_jai_string;
 
                 if ends_with(it.name, "_begin") {
@@ -389,12 +389,12 @@ GetFuncArgsForPrinting :: (func : *Function, type : *Function_Type, mode : Arg_P
                 }
 
                 first_arg := New(Declaration);
-                <<first_arg = <<it;
+                first_arg.* = it.*;
                 first_arg.output_name = tprint("%.data", basename);
                 array_add(*args, first_arg);
 
                 second_arg := New(Declaration);
-                <<second_arg = <<it;
+                second_arg.* = it.*;
                 second_arg.output_name = tprint("%.data + %.count", basename, basename);
                 array_add(*args, second_arg);
 

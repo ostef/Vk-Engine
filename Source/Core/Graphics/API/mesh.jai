@@ -60,7 +60,7 @@ Armature :: struct {
     // [joint_count][Max_Armature_Joint_Name_Length]u8
     // [map_capacity]HashMap(string, s16).Entry
 
-    #place joint_count;
-    joints : []ArmatureJoint;
+    #overlay(joint_count)
+    joints : []ArmatureJoint = ---;
     name_to_joint_id : HashMap(string, s16);
 }

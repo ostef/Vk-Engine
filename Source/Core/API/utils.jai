@@ -52,9 +52,10 @@ Second_To_Nano :: 1000000000;
 Rect :: struct (T : Type) {
     x, y, w, h : T;
 
-    #place x;
-    position : Vec2(T);
-    size : Vec2(T);
+    #overlay(x)
+    position : Vec2(T) = ---;
+    #overlay(w)
+    size : Vec2(T) = ---;
 }
 
 operator == :: inline (a : $T/Rect, b : Rect) -> bool {

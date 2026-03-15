@@ -1032,10 +1032,10 @@ ListBox :: (label: *u8, current_item: *s32, getter: #type (user_data: *void, idx
 
 // Widgets: Data Plotting
 // - Consider using ImPlot (https://github.com/epezent/implot) which is much better!
-PlotLines :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPKfiiS1_ff6ImVec2i";
-PlotLines :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPFfPviES2_iiS1_ff6ImVec2";
-PlotHistogram :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPKfiiS1_ff6ImVec2i";
-PlotHistogram :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPFfPviES2_iiS1_ff6ImVec2";
+PlotLines :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPKfiiS1_ff6ImVec2i";
+PlotLines :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPFfPviES2_iiS1_ff6ImVec2";
+PlotHistogram :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPKfiiS1_ff6ImVec2i";
+PlotHistogram :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPFfPviES2_iiS1_ff6ImVec2";
 
 // Widgets: Value() Helpers.
 // - Those are merely shortcut to calling Text() with a format string. Output single value in "name: value" format (tip: freely declare more in your code to handle your types. you can add functions to the ImGui namespace)
@@ -3360,11 +3360,8 @@ TableColumnSortSpecs :: struct {
 // Defining a custom placement new() with a custom parameter allows us to bypass including <new> which on some platforms complains when user has disabled exceptions.
 //-----------------------------------------------------------------------------
 ImNewWrapper :: struct {
-    using imnewwrapper__raw: ImNewWrapper__RAW;
-    __empty_struct_padding:  u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// ImNewWrapper without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from ImNewWrapper
-ImNewWrapper__RAW :: struct {}
 
 //-----------------------------------------------------------------------------
 // [SECTION] ImGuiStyle
@@ -4174,6 +4171,31 @@ ImFontGlyph :: struct {
     V1:         float; // Texture coordinates
 }
 
+set_Colored :: (fields: *ImFontGlyph, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_Colored :: (fields: ImFontGlyph) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_Visible :: (fields: *ImFontGlyph, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_Visible :: (fields: ImFontGlyph) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_Codepoint :: (fields: *ImFontGlyph, value: u32) {
+    MASK0: u32 : (0b11_1111_1111_1111_1111_1111_1111_1111 << 2);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 2) & MASK0);
+}
+get_Codepoint :: (fields: ImFontGlyph) -> u32 {
+    return ((fields.__bitfield & (0b11_1111_1111_1111_1111_1111_1111_1111 << 2)) >> 2);
+}
+
+
 // Helper to build glyph ranges from text/string data. Feed your application strings/characters to it then call BuildRanges().
 // This is essentially a tightly packed of vector of 64k booleans = 8KB storage.
 ImFontGlyphRangesBuilder :: struct {
@@ -4418,6 +4440,10 @@ ViewportFlags :: enum_flags u32 {
 //   - Work Area = entire viewport minus sections used by main menu bars (for platform windows), or by task bar (for platform monitor).
 //   - Windows are generally trying to stay within the Work Area of their host viewport.
 Viewport :: struct {
+    using viewport__raw: Viewport__RAW;
+}
+// Viewport without padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Viewport
+Viewport__RAW :: struct {
     ID_:                   ID; // Unique identifier for the viewport
     Flags:                 ViewportFlags; // See ImGuiViewportFlags_
     Pos:                   ImVec2; // Main Area: Position of the viewport (Dear ImGui coordinates are the same as OS desktop/native coordinates)
@@ -4436,7 +4462,7 @@ Viewport :: struct {
     PlatformRequestMove:   bool; // Platform window requested move (e.g. window was moved by the OS / host window manager, authoritative position will be OS window position)
     PlatformRequestResize: bool; // Platform window requested resize (e.g. window was resized by the OS / host window manager, authoritative size will be OS window size)
     PlatformRequestClose:  bool; // Platform window requested closure (e.g. window was moved by the OS / host window manager, e.g. pressing ALT-F4)
-}
+} #no_padding
 
 // (Optional) Access via ImGui::GetPlatformIO()
 PlatformIO :: struct {
@@ -5920,8 +5946,34 @@ DockNode :: struct {
     Constructor :: (this: *DockNode, id: ID) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeC1Ej";
     Destructor_Base :: (this: *DockNode) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeD2Ev";
     Destructor :: (this: *DockNode) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeD1Ev";
-    #place ID_; DockNode_alignment: u64;
+
+    _:                      [0] u64; // Force DockNode alignment to match the C/C++ equivalent
 }
+
+set_AuthorityForPos :: (fields: *DockNode, value: DataAuthority) {
+    MASK0: u16 : 0b111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((cast,no_check(u16) value) & MASK0);
+}
+get_AuthorityForPos :: (fields: DockNode) -> DataAuthority {
+    return (cast,no_check(DataAuthority) (fields.__bitfield & 0b111));
+}
+
+set_AuthorityForSize :: (fields: *DockNode, value: DataAuthority) {
+    MASK0: u16 : (0b111 << 3);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(u16) value) << 3) & MASK0);
+}
+get_AuthorityForSize :: (fields: DockNode) -> DataAuthority {
+    return (cast,no_check(DataAuthority) ((fields.__bitfield & (0b111 << 3)) >> 3));
+}
+
+set_AuthorityForViewport :: (fields: *DockNode, value: DataAuthority) {
+    MASK0: u16 : (0b111 << 6);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(u16) value) << 6) & MASK0);
+}
+get_AuthorityForViewport :: (fields: DockNode) -> DataAuthority {
+    return (cast,no_check(DataAuthority) ((fields.__bitfield & (0b111 << 6)) >> 6));
+}
+
 
 // List of colors that are stored at the time of Begin() into Docked Windows.
 // We currently store the packed colors in a simple array window->DockStyle.Colors[].
@@ -5959,7 +6011,7 @@ DockContext :: struct {
 // ImGuiViewport Private/Internals fields (cardinal sin: we are using inheritance!)
 // Every instance of ImGuiViewport is in fact a ImGuiViewportP.
 ViewportP :: struct {
-    #as using imguiviewport: Viewport;
+    using viewport__raw:     Viewport__RAW;
 
     Window_:                 *Window; // Set when the viewport is owned by a window (and ImGuiViewportFlags_CanHostOtherWindows is NOT set)
     Idx:                     s32;
@@ -5982,6 +6034,7 @@ ViewportP :: struct {
     WorkOffsetMax:           ImVec2; // Work Area: Offset from Pos+Size to bottom-right corner of Work Area. Generally (0,0) or (0,-status_bar_height).
     BuildWorkOffsetMin:      ImVec2; // Work Area: Offset being built during current frame. Generally >= 0.0f.
     BuildWorkOffsetMax:      ImVec2; // Work Area: Offset being built during current frame. Generally <= 0.0f.
+    #overlay (viewport__raw) #as imguiviewport: Viewport; // Support cast to Viewport
 }
 
 // Windows data saved in imgui.ini file
@@ -6466,7 +6519,8 @@ Context :: struct #type_info_none {
     WantTextInputNextFrame:                   s32;
     TempBuffer:                               ImVector(u8); // Temporary text buffer
     TempKeychordName:                         [64] u8;
-    #place Initialized; Context_alignment: u64;
+
+    _:                                        [0] u64; // Force Context alignment to match the C/C++ equivalent
 }
 
 // Transient per-window data, reset at the beginning of the frame. This used to be called ImGuiDrawContext, hence the DC variable name in ImGuiWindow.
@@ -6668,6 +6722,39 @@ Window :: struct {
     TitleBarRect :: (this: *Window) -> ImRect #cpp_method #foreign imgui "_ZNK11ImGuiWindow12TitleBarRectEv";
 }
 
+set_SetWindowPosAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: Cond : 0b1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_SetWindowPosAllowFlags :: (fields: Window) -> Cond {
+    return (fields.__bitfield & 0b1111_1111);
+}
+
+set_SetWindowSizeAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: Cond : (0b1111_1111 << 8);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 8) & MASK0);
+}
+get_SetWindowSizeAllowFlags :: (fields: Window) -> Cond {
+    return ((fields.__bitfield & (0b1111_1111 << 8)) >> 8);
+}
+
+set_SetWindowCollapsedAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: Cond : (0b1111_1111 << 16);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 16) & MASK0);
+}
+get_SetWindowCollapsedAllowFlags :: (fields: Window) -> Cond {
+    return ((fields.__bitfield & (0b1111_1111 << 16)) >> 16);
+}
+
+set_SetWindowDockAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: Cond : (0b1111_1111 << 24);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 24) & MASK0);
+}
+get_SetWindowDockAllowFlags :: (fields: Window) -> Cond {
+    return ((fields.__bitfield & (0b1111_1111 << 24)) >> 24);
+}
+
+
 // Extend ImGuiTabBarFlags_
 TabBarFlagsPrivate_ :: enum u32 {
     TabBarFlags_DockNode     :: 1048576;
@@ -6803,6 +6890,31 @@ TableColumn :: struct {
 
     SortDirectionsAvailList:  ImU8; // Ordered list of available sort directions (2-bits each, total 8-bits)
 }
+
+set_SortDirection :: (fields: *TableColumn, value: ImU8) {
+    MASK0: ImU8 : 0b11;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_SortDirection :: (fields: TableColumn) -> ImU8 {
+    return (fields.__bitfield & 0b11);
+}
+
+set_SortDirectionsAvailCount :: (fields: *TableColumn, value: ImU8) {
+    MASK0: ImU8 : (0b11 << 2);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 2) & MASK0);
+}
+get_SortDirectionsAvailCount :: (fields: TableColumn) -> ImU8 {
+    return ((fields.__bitfield & (0b11 << 2)) >> 2);
+}
+
+set_SortDirectionsAvailMask :: (fields: *TableColumn, value: ImU8) {
+    MASK0: ImU8 : (0b1111 << 4);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 4) & MASK0);
+}
+get_SortDirectionsAvailMask :: (fields: TableColumn) -> ImU8 {
+    return ((fields.__bitfield & (0b1111 << 4)) >> 4);
+}
+
 
 // Transient cell data stored per row.
 // sizeof() ~ 6
@@ -6943,6 +7055,23 @@ Table :: struct {
     HostSkipItems:              bool; // Backup of InnerWindow->SkipItem at the end of BeginTable(), because we will overwrite InnerWindow->SkipItem on a per-column basis
 }
 
+set_RowFlags :: (fields: *Table, value: TableRowFlags) {
+    MASK0: TableRowFlags : 0b1111_1111_1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_RowFlags :: (fields: Table) -> TableRowFlags {
+    return (fields.__bitfield & 0b1111_1111_1111_1111);
+}
+
+set_LastRowFlags :: (fields: *Table, value: TableRowFlags) {
+    MASK0: TableRowFlags : (0b1111_1111_1111_1111 << 16);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 16) & MASK0);
+}
+get_LastRowFlags :: (fields: Table) -> TableRowFlags {
+    return ((fields.__bitfield & (0b1111_1111_1111_1111 << 16)) >> 16);
+}
+
+
 // Transient data that are only needed between BeginTable() and EndTable(), those buffers are shared (1 per level of stacked table).
 // - Accessing those requires chasing an extra pointer so for very frequently used data we leave them in the main table structure.
 // - We also leave out of this structure data that tend to be particularly useful for debugging/metrics.
@@ -6980,6 +7109,31 @@ TableColumnSettings :: struct {
     */
 }
 
+set_SortDirection :: (fields: *TableColumnSettings, value: ImU8) {
+    MASK0: ImU8 : 0b11;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_SortDirection :: (fields: TableColumnSettings) -> ImU8 {
+    return (fields.__bitfield & 0b11);
+}
+
+set_IsEnabled :: (fields: *TableColumnSettings, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(ImU8)(1 << 2);
+}
+get_IsEnabled :: (fields: TableColumnSettings) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_IsStretch :: (fields: *TableColumnSettings, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(ImU8)(1 << 3);
+}
+get_IsStretch :: (fields: TableColumnSettings) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+
 // This is designed to be stored in a single ImChunkStream (1 header followed by N ImGuiTableColumnSettings, etc.)
 TableSettings :: struct {
     ID_:             ID; // Set to 0 to invalidate/delete the setting
@@ -7006,6 +7160,13 @@ ImFontAtlasBuildRender8bppRectFromString :: (atlas: *ImFontAtlas, x: s32, y: s32
 ImFontAtlasBuildRender32bppRectFromString :: (atlas: *ImFontAtlas, x: s32, y: s32, w: s32, h: s32, in_str: *u8, in_marker_char: u8, in_marker_pixel_value: u32) -> void #foreign imgui "_Z41ImFontAtlasBuildRender32bppRectFromStringP11ImFontAtlasiiiiPKccj";
 ImFontAtlasBuildMultiplyCalcLookupTable :: (out_table: *[256] u8, in_multiply_factor: float) -> void #foreign imgui "_Z39ImFontAtlasBuildMultiplyCalcLookupTablePhf";
 ImFontAtlasBuildMultiplyRectAlpha8 :: (table: *[256] u8, pixels: *u8, x: s32, y: s32, w: s32, h: s32, stride: s32) -> void #foreign imgui "_Z34ImFontAtlasBuildMultiplyRectAlpha8PKhPhiiiii";
+
+//
+// #elsewhere declarations that were moved out of namespaces / structs:
+//
+
+
+TextBuffer_EmptyString: [1] u8 #elsewhere imgui "_ZN15ImGuiTextBuffer11EmptyStringE";
 
 #scope_file
 

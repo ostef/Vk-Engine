@@ -3,7 +3,7 @@ Utf8String :: struct
     count : s64;
     data : *u8;
 
-    #place count;
+    #overlay(count)
     as_string : string;
 }
 

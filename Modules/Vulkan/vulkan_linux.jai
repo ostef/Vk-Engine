@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai Modules Source Build.jai - generate_bindings
+// jai generate.jai
 //
 
 
@@ -11288,8 +11288,106 @@ StdVideoH264SpsVuiFlags :: struct {
         nal_hrd_parameters_present_flag: u32; /* 1 bits */
         vcl_hrd_parameters_present_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH264SpsVuiFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH264SpsVuiFlags alignment to match the C/C++ equivalent
 }
+
+set_aspect_ratio_info_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u16)(1 << 0);
+}
+get_aspect_ratio_info_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_overscan_info_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u16)(1 << 1);
+}
+get_overscan_info_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_overscan_appropriate_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u16)(1 << 2);
+}
+get_overscan_appropriate_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_video_signal_type_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u16)(1 << 3);
+}
+get_video_signal_type_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_video_full_range_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u16)(1 << 4);
+}
+get_video_full_range_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_color_description_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u16)(1 << 5);
+}
+get_color_description_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_chroma_loc_info_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u16)(1 << 6);
+}
+get_chroma_loc_info_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_timing_info_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u16)(1 << 7);
+}
+get_timing_info_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
+set_fixed_frame_rate_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 8;
+    else     fields.__bitfield &= ~cast(u16)(1 << 8);
+}
+get_fixed_frame_rate_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 8)) != 0;
+}
+
+set_bitstream_restriction_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 9;
+    else     fields.__bitfield &= ~cast(u16)(1 << 9);
+}
+get_bitstream_restriction_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 9)) != 0;
+}
+
+set_nal_hrd_parameters_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 10;
+    else     fields.__bitfield &= ~cast(u16)(1 << 10);
+}
+get_nal_hrd_parameters_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 10)) != 0;
+}
+
+set_vcl_hrd_parameters_present_flag :: (fields: *StdVideoH264SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 11;
+    else     fields.__bitfield &= ~cast(u16)(1 << 11);
+}
+get_vcl_hrd_parameters_present_flag :: (fields: StdVideoH264SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 11)) != 0;
+}
+
 
 StdVideoH264HrdParameters :: struct {
     cpb_cnt_minus1:                          u8;
@@ -11344,8 +11442,138 @@ StdVideoH264SpsFlags :: struct {
         seq_scaling_matrix_present_flag: u32; /* 1 bits */
         vui_parameters_present_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH264SpsFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH264SpsFlags alignment to match the C/C++ equivalent
 }
+
+set_constraint_set0_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u16)(1 << 0);
+}
+get_constraint_set0_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_constraint_set1_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u16)(1 << 1);
+}
+get_constraint_set1_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_constraint_set2_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u16)(1 << 2);
+}
+get_constraint_set2_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_constraint_set3_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u16)(1 << 3);
+}
+get_constraint_set3_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_constraint_set4_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u16)(1 << 4);
+}
+get_constraint_set4_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_constraint_set5_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u16)(1 << 5);
+}
+get_constraint_set5_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_direct_8x8_inference_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u16)(1 << 6);
+}
+get_direct_8x8_inference_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_mb_adaptive_frame_field_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u16)(1 << 7);
+}
+get_mb_adaptive_frame_field_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
+set_frame_mbs_only_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 8;
+    else     fields.__bitfield &= ~cast(u16)(1 << 8);
+}
+get_frame_mbs_only_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 8)) != 0;
+}
+
+set_delta_pic_order_always_zero_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 9;
+    else     fields.__bitfield &= ~cast(u16)(1 << 9);
+}
+get_delta_pic_order_always_zero_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 9)) != 0;
+}
+
+set_separate_colour_plane_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 10;
+    else     fields.__bitfield &= ~cast(u16)(1 << 10);
+}
+get_separate_colour_plane_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 10)) != 0;
+}
+
+set_gaps_in_frame_num_value_allowed_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 11;
+    else     fields.__bitfield &= ~cast(u16)(1 << 11);
+}
+get_gaps_in_frame_num_value_allowed_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 11)) != 0;
+}
+
+set_qpprime_y_zero_transform_bypass_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 12;
+    else     fields.__bitfield &= ~cast(u16)(1 << 12);
+}
+get_qpprime_y_zero_transform_bypass_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 12)) != 0;
+}
+
+set_frame_cropping_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 13;
+    else     fields.__bitfield &= ~cast(u16)(1 << 13);
+}
+get_frame_cropping_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 13)) != 0;
+}
+
+set_seq_scaling_matrix_present_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 14;
+    else     fields.__bitfield &= ~cast(u16)(1 << 14);
+}
+get_seq_scaling_matrix_present_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 14)) != 0;
+}
+
+set_vui_parameters_present_flag :: (fields: *StdVideoH264SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 15;
+    else     fields.__bitfield &= ~cast(u16)(1 << 15);
+}
+get_vui_parameters_present_flag :: (fields: StdVideoH264SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 15)) != 0;
+}
+
 
 StdVideoH264ScalingLists :: struct {
     scaling_list_present_mask:       u16;
@@ -11394,8 +11622,74 @@ StdVideoH264PpsFlags :: struct {
         entropy_coding_mode_flag: u32; /* 1 bits */
         pic_scaling_matrix_present_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH264PpsFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH264PpsFlags alignment to match the C/C++ equivalent
 }
+
+set_transform_8x8_mode_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_transform_8x8_mode_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_redundant_pic_cnt_present_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_redundant_pic_cnt_present_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_constrained_intra_pred_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_constrained_intra_pred_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_deblocking_filter_control_present_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_deblocking_filter_control_present_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_weighted_pred_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u8)(1 << 4);
+}
+get_weighted_pred_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_bottom_field_pic_order_in_frame_present_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u8)(1 << 5);
+}
+get_bottom_field_pic_order_in_frame_present_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_entropy_coding_mode_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u8)(1 << 6);
+}
+get_entropy_coding_mode_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_pic_scaling_matrix_present_flag :: (fields: *StdVideoH264PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u8)(1 << 7);
+}
+get_pic_scaling_matrix_present_flag :: (fields: StdVideoH264PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
 
 StdVideoH264PictureParameterSet :: struct {
     flags:                                StdVideoH264PpsFlags;
@@ -11433,8 +11727,58 @@ StdVideoDecodeH264PictureInfoFlags :: struct {
         is_reference: u32; /* 1 bits */
         complementary_field_pair: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoDecodeH264PictureInfoFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoDecodeH264PictureInfoFlags alignment to match the C/C++ equivalent
 }
+
+set_field_pic_flag :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_field_pic_flag :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_is_intra :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_is_intra :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_IdrPicFlag :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_IdrPicFlag :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_bottom_field_flag :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_bottom_field_flag :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_is_reference :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u8)(1 << 4);
+}
+get_is_reference :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_complementary_field_pair :: (fields: *StdVideoDecodeH264PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u8)(1 << 5);
+}
+get_complementary_field_pair :: (fields: StdVideoDecodeH264PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
 
 StdVideoDecodeH264PictureInfo :: struct {
     flags:                StdVideoDecodeH264PictureInfoFlags;
@@ -11455,8 +11799,42 @@ StdVideoDecodeH264ReferenceInfoFlags :: struct {
         used_for_long_term_reference: u32; /* 1 bits */
         is_non_existing: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoDecodeH264ReferenceInfoFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoDecodeH264ReferenceInfoFlags alignment to match the C/C++ equivalent
 }
+
+set_top_field_flag :: (fields: *StdVideoDecodeH264ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_top_field_flag :: (fields: StdVideoDecodeH264ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_bottom_field_flag :: (fields: *StdVideoDecodeH264ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_bottom_field_flag :: (fields: StdVideoDecodeH264ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_used_for_long_term_reference :: (fields: *StdVideoDecodeH264ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_used_for_long_term_reference :: (fields: StdVideoDecodeH264ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_is_non_existing :: (fields: *StdVideoDecodeH264ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_is_non_existing :: (fields: StdVideoDecodeH264ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
 
 StdVideoDecodeH264ReferenceInfo :: struct {
     flags:       StdVideoDecodeH264ReferenceInfoFlags;
@@ -12326,6 +12704,63 @@ StdVideoH265HrdFlags :: struct {
     */
 }
 
+set_nal_hrd_parameters_present_flag :: (fields: *StdVideoH265HrdFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_nal_hrd_parameters_present_flag :: (fields: StdVideoH265HrdFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_vcl_hrd_parameters_present_flag :: (fields: *StdVideoH265HrdFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_vcl_hrd_parameters_present_flag :: (fields: StdVideoH265HrdFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_sub_pic_hrd_params_present_flag :: (fields: *StdVideoH265HrdFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u32)(1 << 2);
+}
+get_sub_pic_hrd_params_present_flag :: (fields: StdVideoH265HrdFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_sub_pic_cpb_params_in_pic_timing_sei_flag :: (fields: *StdVideoH265HrdFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u32)(1 << 3);
+}
+get_sub_pic_cpb_params_in_pic_timing_sei_flag :: (fields: StdVideoH265HrdFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_fixed_pic_rate_general_flag :: (fields: *StdVideoH265HrdFlags, value: u32) {
+    MASK0: u32 : (0b1111_1111 << 4);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 4) & MASK0);
+}
+get_fixed_pic_rate_general_flag :: (fields: StdVideoH265HrdFlags) -> u32 {
+    return ((fields.__bitfield & (0b1111_1111 << 4)) >> 4);
+}
+
+set_fixed_pic_rate_within_cvs_flag :: (fields: *StdVideoH265HrdFlags, value: u32) {
+    MASK0: u32 : (0b1111_1111 << 12);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 12) & MASK0);
+}
+get_fixed_pic_rate_within_cvs_flag :: (fields: StdVideoH265HrdFlags) -> u32 {
+    return ((fields.__bitfield & (0b1111_1111 << 12)) >> 12);
+}
+
+set_low_delay_hrd_flag :: (fields: *StdVideoH265HrdFlags, value: u32) {
+    MASK0: u32 : (0b1111_1111 << 20);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 20) & MASK0);
+}
+get_low_delay_hrd_flag :: (fields: StdVideoH265HrdFlags) -> u32 {
+    return ((fields.__bitfield & (0b1111_1111 << 20)) >> 20);
+}
+
+
 StdVideoH265HrdParameters :: struct {
     flags:                                        StdVideoH265HrdFlags;
     tick_divisor_minus2:                          u8;
@@ -12352,8 +12787,42 @@ StdVideoH265VpsFlags :: struct {
         vps_timing_info_present_flag: u32; /* 1 bits */
         vps_poc_proportional_to_timing_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH265VpsFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH265VpsFlags alignment to match the C/C++ equivalent
 }
+
+set_vps_temporal_id_nesting_flag :: (fields: *StdVideoH265VpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_vps_temporal_id_nesting_flag :: (fields: StdVideoH265VpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_vps_sub_layer_ordering_info_present_flag :: (fields: *StdVideoH265VpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_vps_sub_layer_ordering_info_present_flag :: (fields: StdVideoH265VpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_vps_timing_info_present_flag :: (fields: *StdVideoH265VpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_vps_timing_info_present_flag :: (fields: StdVideoH265VpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_vps_poc_proportional_to_timing_flag :: (fields: *StdVideoH265VpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_vps_poc_proportional_to_timing_flag :: (fields: StdVideoH265VpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
 
 StdVideoH265ProfileTierLevelFlags :: struct {
     __bitfield: u8;
@@ -12364,8 +12833,50 @@ StdVideoH265ProfileTierLevelFlags :: struct {
         general_non_packed_constraint_flag: u32; /* 1 bits */
         general_frame_only_constraint_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH265ProfileTierLevelFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH265ProfileTierLevelFlags alignment to match the C/C++ equivalent
 }
+
+set_general_tier_flag :: (fields: *StdVideoH265ProfileTierLevelFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_general_tier_flag :: (fields: StdVideoH265ProfileTierLevelFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_general_progressive_source_flag :: (fields: *StdVideoH265ProfileTierLevelFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_general_progressive_source_flag :: (fields: StdVideoH265ProfileTierLevelFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_general_interlaced_source_flag :: (fields: *StdVideoH265ProfileTierLevelFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_general_interlaced_source_flag :: (fields: StdVideoH265ProfileTierLevelFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_general_non_packed_constraint_flag :: (fields: *StdVideoH265ProfileTierLevelFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_general_non_packed_constraint_flag :: (fields: StdVideoH265ProfileTierLevelFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_general_frame_only_constraint_flag :: (fields: *StdVideoH265ProfileTierLevelFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u8)(1 << 4);
+}
+get_general_frame_only_constraint_flag :: (fields: StdVideoH265ProfileTierLevelFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
 
 StdVideoH265ProfileTierLevel :: struct {
     flags:               StdVideoH265ProfileTierLevelFlags;
@@ -12420,6 +12931,151 @@ StdVideoH265SpsVuiFlags :: struct {
         restricted_ref_pic_lists_flag: u32; /* 1 bits */;
     */
 }
+
+set_aspect_ratio_info_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_aspect_ratio_info_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_overscan_info_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_overscan_info_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_overscan_appropriate_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u32)(1 << 2);
+}
+get_overscan_appropriate_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_video_signal_type_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u32)(1 << 3);
+}
+get_video_signal_type_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_video_full_range_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u32)(1 << 4);
+}
+get_video_full_range_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_colour_description_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u32)(1 << 5);
+}
+get_colour_description_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_chroma_loc_info_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u32)(1 << 6);
+}
+get_chroma_loc_info_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_neutral_chroma_indication_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u32)(1 << 7);
+}
+get_neutral_chroma_indication_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
+set_field_seq_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 8;
+    else     fields.__bitfield &= ~cast(u32)(1 << 8);
+}
+get_field_seq_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 8)) != 0;
+}
+
+set_frame_field_info_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 9;
+    else     fields.__bitfield &= ~cast(u32)(1 << 9);
+}
+get_frame_field_info_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 9)) != 0;
+}
+
+set_default_display_window_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 10;
+    else     fields.__bitfield &= ~cast(u32)(1 << 10);
+}
+get_default_display_window_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 10)) != 0;
+}
+
+set_vui_timing_info_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 11;
+    else     fields.__bitfield &= ~cast(u32)(1 << 11);
+}
+get_vui_timing_info_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 11)) != 0;
+}
+
+set_vui_poc_proportional_to_timing_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 12;
+    else     fields.__bitfield &= ~cast(u32)(1 << 12);
+}
+get_vui_poc_proportional_to_timing_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 12)) != 0;
+}
+
+set_vui_hrd_parameters_present_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 13;
+    else     fields.__bitfield &= ~cast(u32)(1 << 13);
+}
+get_vui_hrd_parameters_present_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 13)) != 0;
+}
+
+set_bitstream_restriction_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 14;
+    else     fields.__bitfield &= ~cast(u32)(1 << 14);
+}
+get_bitstream_restriction_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 14)) != 0;
+}
+
+set_tiles_fixed_structure_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 15;
+    else     fields.__bitfield &= ~cast(u32)(1 << 15);
+}
+get_tiles_fixed_structure_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 15)) != 0;
+}
+
+set_motion_vectors_over_pic_boundaries_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 16;
+    else     fields.__bitfield &= ~cast(u32)(1 << 16);
+}
+get_motion_vectors_over_pic_boundaries_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 16)) != 0;
+}
+
+set_restricted_ref_pic_lists_flag :: (fields: *StdVideoH265SpsVuiFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 17;
+    else     fields.__bitfield &= ~cast(u32)(1 << 17);
+}
+get_restricted_ref_pic_lists_flag :: (fields: StdVideoH265SpsVuiFlags) -> bool {
+    return (fields.__bitfield & (1 << 17)) != 0;
+}
+
 
 StdVideoH265SequenceParameterSetVui :: struct {
     flags:                               StdVideoH265SpsVuiFlags;
@@ -12490,14 +13146,273 @@ StdVideoH265SpsFlags :: struct {
     */
 }
 
+set_sps_temporal_id_nesting_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_sps_temporal_id_nesting_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_separate_colour_plane_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_separate_colour_plane_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_conformance_window_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u32)(1 << 2);
+}
+get_conformance_window_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_sps_sub_layer_ordering_info_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u32)(1 << 3);
+}
+get_sps_sub_layer_ordering_info_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_scaling_list_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u32)(1 << 4);
+}
+get_scaling_list_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_sps_scaling_list_data_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u32)(1 << 5);
+}
+get_sps_scaling_list_data_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_amp_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u32)(1 << 6);
+}
+get_amp_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_sample_adaptive_offset_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u32)(1 << 7);
+}
+get_sample_adaptive_offset_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
+set_pcm_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 8;
+    else     fields.__bitfield &= ~cast(u32)(1 << 8);
+}
+get_pcm_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 8)) != 0;
+}
+
+set_pcm_loop_filter_disabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 9;
+    else     fields.__bitfield &= ~cast(u32)(1 << 9);
+}
+get_pcm_loop_filter_disabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 9)) != 0;
+}
+
+set_long_term_ref_pics_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 10;
+    else     fields.__bitfield &= ~cast(u32)(1 << 10);
+}
+get_long_term_ref_pics_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 10)) != 0;
+}
+
+set_sps_temporal_mvp_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 11;
+    else     fields.__bitfield &= ~cast(u32)(1 << 11);
+}
+get_sps_temporal_mvp_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 11)) != 0;
+}
+
+set_strong_intra_smoothing_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 12;
+    else     fields.__bitfield &= ~cast(u32)(1 << 12);
+}
+get_strong_intra_smoothing_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 12)) != 0;
+}
+
+set_vui_parameters_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 13;
+    else     fields.__bitfield &= ~cast(u32)(1 << 13);
+}
+get_vui_parameters_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 13)) != 0;
+}
+
+set_sps_extension_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 14;
+    else     fields.__bitfield &= ~cast(u32)(1 << 14);
+}
+get_sps_extension_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 14)) != 0;
+}
+
+set_sps_range_extension_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 15;
+    else     fields.__bitfield &= ~cast(u32)(1 << 15);
+}
+get_sps_range_extension_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 15)) != 0;
+}
+
+set_transform_skip_rotation_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 16;
+    else     fields.__bitfield &= ~cast(u32)(1 << 16);
+}
+get_transform_skip_rotation_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 16)) != 0;
+}
+
+set_transform_skip_context_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 17;
+    else     fields.__bitfield &= ~cast(u32)(1 << 17);
+}
+get_transform_skip_context_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 17)) != 0;
+}
+
+set_implicit_rdpcm_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 18;
+    else     fields.__bitfield &= ~cast(u32)(1 << 18);
+}
+get_implicit_rdpcm_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 18)) != 0;
+}
+
+set_explicit_rdpcm_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 19;
+    else     fields.__bitfield &= ~cast(u32)(1 << 19);
+}
+get_explicit_rdpcm_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 19)) != 0;
+}
+
+set_extended_precision_processing_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 20;
+    else     fields.__bitfield &= ~cast(u32)(1 << 20);
+}
+get_extended_precision_processing_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 20)) != 0;
+}
+
+set_intra_smoothing_disabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 21;
+    else     fields.__bitfield &= ~cast(u32)(1 << 21);
+}
+get_intra_smoothing_disabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 21)) != 0;
+}
+
+set_high_precision_offsets_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 22;
+    else     fields.__bitfield &= ~cast(u32)(1 << 22);
+}
+get_high_precision_offsets_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 22)) != 0;
+}
+
+set_persistent_rice_adaptation_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 23;
+    else     fields.__bitfield &= ~cast(u32)(1 << 23);
+}
+get_persistent_rice_adaptation_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 23)) != 0;
+}
+
+set_cabac_bypass_alignment_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 24;
+    else     fields.__bitfield &= ~cast(u32)(1 << 24);
+}
+get_cabac_bypass_alignment_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 24)) != 0;
+}
+
+set_sps_scc_extension_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 25;
+    else     fields.__bitfield &= ~cast(u32)(1 << 25);
+}
+get_sps_scc_extension_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 25)) != 0;
+}
+
+set_sps_curr_pic_ref_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 26;
+    else     fields.__bitfield &= ~cast(u32)(1 << 26);
+}
+get_sps_curr_pic_ref_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 26)) != 0;
+}
+
+set_palette_mode_enabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 27;
+    else     fields.__bitfield &= ~cast(u32)(1 << 27);
+}
+get_palette_mode_enabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 27)) != 0;
+}
+
+set_sps_palette_predictor_initializers_present_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 28;
+    else     fields.__bitfield &= ~cast(u32)(1 << 28);
+}
+get_sps_palette_predictor_initializers_present_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 28)) != 0;
+}
+
+set_intra_boundary_filtering_disabled_flag :: (fields: *StdVideoH265SpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 29;
+    else     fields.__bitfield &= ~cast(u32)(1 << 29);
+}
+get_intra_boundary_filtering_disabled_flag :: (fields: StdVideoH265SpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 29)) != 0;
+}
+
+
 StdVideoH265ShortTermRefPicSetFlags :: struct {
     __bitfield: u8;
     /* 
         inter_ref_pic_set_prediction_flag: u32; /* 1 bits */
         delta_rps_sign: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoH265ShortTermRefPicSetFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoH265ShortTermRefPicSetFlags alignment to match the C/C++ equivalent
 }
+
+set_inter_ref_pic_set_prediction_flag :: (fields: *StdVideoH265ShortTermRefPicSetFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_inter_ref_pic_set_prediction_flag :: (fields: StdVideoH265ShortTermRefPicSetFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_delta_rps_sign :: (fields: *StdVideoH265ShortTermRefPicSetFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_delta_rps_sign :: (fields: StdVideoH265ShortTermRefPicSetFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
 
 StdVideoH265ShortTermRefPicSet :: struct {
     flags:                    StdVideoH265ShortTermRefPicSetFlags;
@@ -12600,6 +13515,255 @@ StdVideoH265PpsFlags :: struct {
     */
 }
 
+set_dependent_slice_segments_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_dependent_slice_segments_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_output_flag_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_output_flag_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_sign_data_hiding_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u32)(1 << 2);
+}
+get_sign_data_hiding_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_cabac_init_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u32)(1 << 3);
+}
+get_cabac_init_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
+set_constrained_intra_pred_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(u32)(1 << 4);
+}
+get_constrained_intra_pred_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+set_transform_skip_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 5;
+    else     fields.__bitfield &= ~cast(u32)(1 << 5);
+}
+get_transform_skip_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 5)) != 0;
+}
+
+set_cu_qp_delta_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 6;
+    else     fields.__bitfield &= ~cast(u32)(1 << 6);
+}
+get_cu_qp_delta_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 6)) != 0;
+}
+
+set_pps_slice_chroma_qp_offsets_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 7;
+    else     fields.__bitfield &= ~cast(u32)(1 << 7);
+}
+get_pps_slice_chroma_qp_offsets_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 7)) != 0;
+}
+
+set_weighted_pred_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 8;
+    else     fields.__bitfield &= ~cast(u32)(1 << 8);
+}
+get_weighted_pred_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 8)) != 0;
+}
+
+set_weighted_bipred_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 9;
+    else     fields.__bitfield &= ~cast(u32)(1 << 9);
+}
+get_weighted_bipred_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 9)) != 0;
+}
+
+set_transquant_bypass_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 10;
+    else     fields.__bitfield &= ~cast(u32)(1 << 10);
+}
+get_transquant_bypass_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 10)) != 0;
+}
+
+set_tiles_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 11;
+    else     fields.__bitfield &= ~cast(u32)(1 << 11);
+}
+get_tiles_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 11)) != 0;
+}
+
+set_entropy_coding_sync_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 12;
+    else     fields.__bitfield &= ~cast(u32)(1 << 12);
+}
+get_entropy_coding_sync_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 12)) != 0;
+}
+
+set_uniform_spacing_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 13;
+    else     fields.__bitfield &= ~cast(u32)(1 << 13);
+}
+get_uniform_spacing_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 13)) != 0;
+}
+
+set_loop_filter_across_tiles_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 14;
+    else     fields.__bitfield &= ~cast(u32)(1 << 14);
+}
+get_loop_filter_across_tiles_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 14)) != 0;
+}
+
+set_pps_loop_filter_across_slices_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 15;
+    else     fields.__bitfield &= ~cast(u32)(1 << 15);
+}
+get_pps_loop_filter_across_slices_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 15)) != 0;
+}
+
+set_deblocking_filter_control_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 16;
+    else     fields.__bitfield &= ~cast(u32)(1 << 16);
+}
+get_deblocking_filter_control_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 16)) != 0;
+}
+
+set_deblocking_filter_override_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 17;
+    else     fields.__bitfield &= ~cast(u32)(1 << 17);
+}
+get_deblocking_filter_override_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 17)) != 0;
+}
+
+set_pps_deblocking_filter_disabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 18;
+    else     fields.__bitfield &= ~cast(u32)(1 << 18);
+}
+get_pps_deblocking_filter_disabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 18)) != 0;
+}
+
+set_pps_scaling_list_data_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 19;
+    else     fields.__bitfield &= ~cast(u32)(1 << 19);
+}
+get_pps_scaling_list_data_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 19)) != 0;
+}
+
+set_lists_modification_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 20;
+    else     fields.__bitfield &= ~cast(u32)(1 << 20);
+}
+get_lists_modification_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 20)) != 0;
+}
+
+set_slice_segment_header_extension_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 21;
+    else     fields.__bitfield &= ~cast(u32)(1 << 21);
+}
+get_slice_segment_header_extension_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 21)) != 0;
+}
+
+set_pps_extension_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 22;
+    else     fields.__bitfield &= ~cast(u32)(1 << 22);
+}
+get_pps_extension_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 22)) != 0;
+}
+
+set_cross_component_prediction_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 23;
+    else     fields.__bitfield &= ~cast(u32)(1 << 23);
+}
+get_cross_component_prediction_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 23)) != 0;
+}
+
+set_chroma_qp_offset_list_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 24;
+    else     fields.__bitfield &= ~cast(u32)(1 << 24);
+}
+get_chroma_qp_offset_list_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 24)) != 0;
+}
+
+set_pps_curr_pic_ref_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 25;
+    else     fields.__bitfield &= ~cast(u32)(1 << 25);
+}
+get_pps_curr_pic_ref_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 25)) != 0;
+}
+
+set_residual_adaptive_colour_transform_enabled_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 26;
+    else     fields.__bitfield &= ~cast(u32)(1 << 26);
+}
+get_residual_adaptive_colour_transform_enabled_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 26)) != 0;
+}
+
+set_pps_slice_act_qp_offsets_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 27;
+    else     fields.__bitfield &= ~cast(u32)(1 << 27);
+}
+get_pps_slice_act_qp_offsets_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 27)) != 0;
+}
+
+set_pps_palette_predictor_initializers_present_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 28;
+    else     fields.__bitfield &= ~cast(u32)(1 << 28);
+}
+get_pps_palette_predictor_initializers_present_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 28)) != 0;
+}
+
+set_monochrome_palette_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 29;
+    else     fields.__bitfield &= ~cast(u32)(1 << 29);
+}
+get_monochrome_palette_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 29)) != 0;
+}
+
+set_pps_range_extension_flag :: (fields: *StdVideoH265PpsFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 30;
+    else     fields.__bitfield &= ~cast(u32)(1 << 30);
+}
+get_pps_range_extension_flag :: (fields: StdVideoH265PpsFlags) -> bool {
+    return (fields.__bitfield & (1 << 30)) != 0;
+}
+
+
 StdVideoH265PictureParameterSet :: struct {
     flags:                                     StdVideoH265PpsFlags;
     pps_pic_parameter_set_id:                  u8;
@@ -12647,8 +13811,42 @@ StdVideoDecodeH265PictureInfoFlags :: struct {
         IsReference: u32; /* 1 bits */
         short_term_ref_pic_set_sps_flag: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoDecodeH265PictureInfoFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoDecodeH265PictureInfoFlags alignment to match the C/C++ equivalent
 }
+
+set_IrapPicFlag :: (fields: *StdVideoDecodeH265PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_IrapPicFlag :: (fields: StdVideoDecodeH265PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_IdrPicFlag :: (fields: *StdVideoDecodeH265PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_IdrPicFlag :: (fields: StdVideoDecodeH265PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_IsReference :: (fields: *StdVideoDecodeH265PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 2;
+    else     fields.__bitfield &= ~cast(u8)(1 << 2);
+}
+get_IsReference :: (fields: StdVideoDecodeH265PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 2)) != 0;
+}
+
+set_short_term_ref_pic_set_sps_flag :: (fields: *StdVideoDecodeH265PictureInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 3;
+    else     fields.__bitfield &= ~cast(u8)(1 << 3);
+}
+get_short_term_ref_pic_set_sps_flag :: (fields: StdVideoDecodeH265PictureInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 3)) != 0;
+}
+
 
 StdVideoDecodeH265PictureInfo :: struct {
     flags:                        StdVideoDecodeH265PictureInfoFlags;
@@ -12670,8 +13868,26 @@ StdVideoDecodeH265ReferenceInfoFlags :: struct {
         used_for_long_term_reference: u32; /* 1 bits */
         unused_for_reference: u32; /* 1 bits */;
     */
-    #place __bitfield; StdVideoDecodeH265ReferenceInfoFlags_alignment: u32;
+
+    _:          [0] u32; // Force StdVideoDecodeH265ReferenceInfoFlags alignment to match the C/C++ equivalent
 }
+
+set_used_for_long_term_reference :: (fields: *StdVideoDecodeH265ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u8)(1 << 0);
+}
+get_used_for_long_term_reference :: (fields: StdVideoDecodeH265ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_unused_for_reference :: (fields: *StdVideoDecodeH265ReferenceInfoFlags, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u8)(1 << 1);
+}
+get_unused_for_reference :: (fields: StdVideoDecodeH265ReferenceInfoFlags) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
 
 StdVideoDecodeH265ReferenceInfo :: struct {
     flags:          StdVideoDecodeH265ReferenceInfoFlags;
@@ -14762,6 +15978,47 @@ VkAccelerationStructureInstanceKHR :: struct {
     accelerationStructureReference: u64;
 }
 
+set_instanceCustomIndex :: (fields: *VkAccelerationStructureInstanceKHR, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[2] = (fields.__bitfield[2] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceCustomIndex :: (fields: VkAccelerationStructureInstanceKHR) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[0] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[1] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[2] & 0b1111_1111)) << 16);
+}
+
+set_mask :: (fields: *VkAccelerationStructureInstanceKHR, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[3] = (fields.__bitfield[3] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_mask :: (fields: VkAccelerationStructureInstanceKHR) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[3] & 0b1111_1111));
+}
+
+set_instanceShaderBindingTableRecordOffset :: (fields: *VkAccelerationStructureInstanceKHR, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[4] = (fields.__bitfield[4] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[5] = (fields.__bitfield[5] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[6] = (fields.__bitfield[6] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceShaderBindingTableRecordOffset :: (fields: VkAccelerationStructureInstanceKHR) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[4] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[5] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[6] & 0b1111_1111)) << 16);
+}
+
+set_flags :: (fields: *VkAccelerationStructureInstanceKHR, value: VkGeometryInstanceFlagsKHR) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[7] = (fields.__bitfield[7] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_flags :: (fields: VkAccelerationStructureInstanceKHR) -> VkGeometryInstanceFlagsKHR {
+    return (cast,no_check(VkGeometryInstanceFlagsKHR) (fields.__bitfield[7] & 0b1111_1111));
+}
+
+
 VkAccelerationStructureInstanceNV :: VkAccelerationStructureInstanceKHR;
 
 PFN_vkCreateAccelerationStructureNV :: #type (device: VkDevice, pCreateInfo: *VkAccelerationStructureCreateInfoNV, pAllocator: *VkAllocationCallbacks, pAccelerationStructure: *VkAccelerationStructureNV) -> VkResult #c_call;
@@ -16339,6 +17596,47 @@ VkAccelerationStructureMatrixMotionInstanceNV :: struct {
     accelerationStructureReference: u64;
 }
 
+set_instanceCustomIndex :: (fields: *VkAccelerationStructureMatrixMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[2] = (fields.__bitfield[2] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceCustomIndex :: (fields: VkAccelerationStructureMatrixMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[0] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[1] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[2] & 0b1111_1111)) << 16);
+}
+
+set_mask :: (fields: *VkAccelerationStructureMatrixMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[3] = (fields.__bitfield[3] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_mask :: (fields: VkAccelerationStructureMatrixMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[3] & 0b1111_1111));
+}
+
+set_instanceShaderBindingTableRecordOffset :: (fields: *VkAccelerationStructureMatrixMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[4] = (fields.__bitfield[4] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[5] = (fields.__bitfield[5] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[6] = (fields.__bitfield[6] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceShaderBindingTableRecordOffset :: (fields: VkAccelerationStructureMatrixMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[4] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[5] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[6] & 0b1111_1111)) << 16);
+}
+
+set_flags :: (fields: *VkAccelerationStructureMatrixMotionInstanceNV, value: VkGeometryInstanceFlagsKHR) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[7] = (fields.__bitfield[7] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_flags :: (fields: VkAccelerationStructureMatrixMotionInstanceNV) -> VkGeometryInstanceFlagsKHR {
+    return (cast,no_check(VkGeometryInstanceFlagsKHR) (fields.__bitfield[7] & 0b1111_1111));
+}
+
+
 VkSRTDataNV :: struct {
     sx:  float;
     a:   float;
@@ -16371,6 +17669,47 @@ VkAccelerationStructureSRTMotionInstanceNV :: struct {
 
     accelerationStructureReference: u64;
 }
+
+set_instanceCustomIndex :: (fields: *VkAccelerationStructureSRTMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[2] = (fields.__bitfield[2] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceCustomIndex :: (fields: VkAccelerationStructureSRTMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[0] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[1] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[2] & 0b1111_1111)) << 16);
+}
+
+set_mask :: (fields: *VkAccelerationStructureSRTMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[3] = (fields.__bitfield[3] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_mask :: (fields: VkAccelerationStructureSRTMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[3] & 0b1111_1111));
+}
+
+set_instanceShaderBindingTableRecordOffset :: (fields: *VkAccelerationStructureSRTMotionInstanceNV, value: u32) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[4] = (fields.__bitfield[4] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+    MASK1: u8 : 0b1111_1111;
+    fields.__bitfield[5] = (fields.__bitfield[5] & ~MASK1) | ((cast,no_check(u8) (value >> 8)) & MASK1);
+    MASK2: u8 : 0b1111_1111;
+    fields.__bitfield[6] = (fields.__bitfield[6] & ~MASK2) | ((cast,no_check(u8) (value >> 16)) & MASK2);
+}
+get_instanceShaderBindingTableRecordOffset :: (fields: VkAccelerationStructureSRTMotionInstanceNV) -> u32 {
+    return (cast,no_check(u32) (fields.__bitfield[4] & 0b1111_1111)) | ((cast,no_check(u32) (fields.__bitfield[5] & 0b1111_1111)) << 8) | ((cast,no_check(u32) (fields.__bitfield[6] & 0b1111_1111)) << 16);
+}
+
+set_flags :: (fields: *VkAccelerationStructureSRTMotionInstanceNV, value: VkGeometryInstanceFlagsKHR) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[7] = (fields.__bitfield[7] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_flags :: (fields: VkAccelerationStructureSRTMotionInstanceNV) -> VkGeometryInstanceFlagsKHR {
+    return (cast,no_check(VkGeometryInstanceFlagsKHR) (fields.__bitfield[7] & 0b1111_1111));
+}
+
 
 VkAccelerationStructureMotionInstanceDataNV :: union {
     staticInstance:       VkAccelerationStructureInstanceKHR;

@@ -28,6 +28,6 @@ ArmaturePose :: struct {
     joint_count : s64;
     memory_block : *void;
 
-    #place joint_count;
-    joints : []JointPose;
+    #overlay(joint_count)
+    joints : []JointPose = ---;
 }

@@ -1382,7 +1382,6 @@ ShapeSettings_Destroy :: (settings: *ShapeSettings) -> void #foreign JoltC "JPH_
 ShapeSettings_GetUserData :: (settings: *ShapeSettings) -> u64 #foreign JoltC "JPH_ShapeSettings_GetUserData";
 ShapeSettings_SetUserData :: (settings: *ShapeSettings, userData: u64) -> void #foreign JoltC "JPH_ShapeSettings_SetUserData";
 
-/* Shape */
 Shape_Destroy :: (shape: *Shape) -> void #foreign JoltC "JPH_Shape_Destroy";
 Shape_GetType :: (shape: *Shape) -> ShapeType #foreign JoltC "JPH_Shape_GetType";
 Shape_GetSubType :: (shape: *Shape) -> ShapeSubType #foreign JoltC "JPH_Shape_GetSubType";
@@ -2428,9 +2427,9 @@ DebugRenderer_Procs :: struct {
 }
 
 DebugRenderer_SetProcs :: (procs: *DebugRenderer_Procs) -> void #foreign JoltC "JPH_DebugRenderer_SetProcs";
-DebugRenderer_Create :: (userData: *void) -> *DebugRenderer #foreign JoltC "JPH_DebugRenderer_Create";
+DebugRenderer_Create :: () -> *DebugRenderer #foreign JoltC "JPH_DebugRenderer_Create";
 DebugRenderer_Destroy :: (renderer: *DebugRenderer) -> void #foreign JoltC "JPH_DebugRenderer_Destroy";
-DebugRenderer_NextFrame :: (renderer: *DebugRenderer) -> void #foreign JoltC "JPH_DebugRenderer_NextFrame";
+DebugRenderer_NextFrame :: (renderer: *DebugRenderer, userData: *void) -> void #foreign JoltC "JPH_DebugRenderer_NextFrame";
 DebugRenderer_SetCameraPos :: (renderer: *DebugRenderer, position: *RVec3) -> void #foreign JoltC "JPH_DebugRenderer_SetCameraPos";
 
 DebugRenderer_DrawLine :: (renderer: *DebugRenderer, from: *RVec3, to: *RVec3, color: Color) -> void #foreign JoltC "JPH_DebugRenderer_DrawLine";
@@ -2804,4 +2803,3 @@ MotorcycleController_SetLeanSmoothingFactor :: (controller: *MotorcycleControlle
 
 #scope_file
 
-JoltC :: #library "./Lib/Linux/libjoltc";

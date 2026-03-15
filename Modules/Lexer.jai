@@ -10,7 +10,7 @@ Lexer :: struct
 {
     name : string;
 
-    #place name;
+    #overlay(name)
     filename : string;
 
     text : string;

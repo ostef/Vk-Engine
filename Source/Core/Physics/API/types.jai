@@ -49,8 +49,8 @@ Frustum :: struct {
     left_plane, right_plane : Plane;
     top_plane, bottom_plane : Plane;
 
-    #place far_plane;
-    planes : [6]Plane;
+    #overlay(far_plane)
+    planes : [6]Plane = ---;
 }
 
 GetTransformedAABB :: (transform : Mat4f, aabb : AABB) -> AABB {
