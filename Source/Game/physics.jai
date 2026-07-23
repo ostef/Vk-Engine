@@ -82,7 +82,6 @@ InitPhysicsWorld :: (world : *World) {
     using world.physics;
 
     job_system = Jolt.JobSystemThreadPool_Create(null);
-    Jolt.JobSystemThreadPool_Create(null);
 
     object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Collision_Layers);
 
