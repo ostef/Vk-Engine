@@ -67,7 +67,7 @@ PhysicsWorld :: struct {
     object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
 }
 
-RaycastResult :: struct {
+RayCastResult :: struct {
     hit : bool;
     point : Vec3f;
     normal : Vec3f;
@@ -96,7 +96,7 @@ RigidBodyComponent :: struct {
     activate_on_create := true; @Serialize(4)
     jolt_body_id : Jolt.BodyID;
 
-    OnSpawn :: (world : *World, entity : *Entity, using body : *RigidBodyComponent) {
+    OnSpawn :: (world : *World, entity : *Entity, using rigid_body : *RigidBodyComponent) {
         LogSectionScope(*Log_Physics);
 
         shape_transforms : [..]struct{position : Vec3f; rotation : Quatf;};
@@ -162,7 +162,12 @@ RigidBodyComponent :: struct {
         body_settings := Jolt.BodyCreationSettings_Create3(final_shape, *world_position, *world_rotation, jolt_motion_type, xx layer);
         Jolt.BodyCreationSettings_SetMotionQuality(body_settings, jolt_motion_quality);
 
-        jolt_body_id = Jolt.BodyInterface_CreateAndAddBody(world.physics.body_interface, body_settings, ifx activate_on_create then .Activate else .DontActivate);
+        body := Jolt.BodyInterface_CreateBody(world.physics.body_interface, body_settings);
+        Jolt.Body_SetUserData(body, xx rigid_body);
+
+        jolt_body_id = Jolt.Body_GetID(body);
+        Jolt.BodyInterface_AddBody(world.physics.body_interface, jolt_body_id, ifx activate_on_create then .Activate else .DontActivate);
+
         LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, shapes.count);
     }
 
@@ -202,6 +207,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderCo
     Jolt.ConvexShapeSettings_SetDensity(xx settings, sphere.density);
 
     shape : *Jolt.Shape = xx Jolt.SphereShapeSettings_CreateShape(settings);
+    Jolt.Shape_SetUserData(shape, xx sphere);
 
     world_scale := GetWorldScale(world, entity, sphere);
     if world_scale != .{1,1,1} {
@@ -210,6 +216,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderCo
         }
 
         shape = Jolt.Shape_ScaleShape(xx shape, *world_scale);
+        Jolt.Shape_SetUserData(shape, xx sphere);
     }
 
     return shape;
@@ -236,6 +243,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
     Jolt.ConvexShapeSettings_SetDensity(xx settings, capsule.density);
 
     shape : *Jolt.Shape = xx Jolt.CapsuleShapeSettings_CreateShape(settings);
+    Jolt.Shape_SetUserData(shape, xx capsule);
 
     world_scale := GetWorldScale(world, entity, capsule);
     if world_scale != .{1,1,1} {
@@ -244,6 +252,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
         }
 
         shape = Jolt.Shape_ScaleShape(xx shape, *world_scale);
+        Jolt.Shape_SetUserData(shape, xx capsule);
     }
 
     return shape;
@@ -268,6 +277,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
     Jolt.ConvexShapeSettings_SetDensity(xx settings, box.density);
 
     shape : *Jolt.Shape = xx Jolt.BoxShapeSettings_CreateShape(settings);
+    Jolt.Shape_SetUserData(shape, xx box);
 
     world_scale := GetWorldScale(world, entity, box);
     if world_scale != .{1,1,1} {
@@ -276,6 +286,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
         }
 
         shape = Jolt.Shape_ScaleShape(xx shape, *world_scale);
+        Jolt.Shape_SetUserData(shape, xx box);
     }
 
     return shape;
@@ -303,6 +314,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComp
     Jolt.ConvexShapeSettings_SetDensity(xx settings, plane.density);
 
     shape : *Jolt.Shape = xx Jolt.PlaneShapeSettings_CreateShape(settings);
+    Jolt.Shape_SetUserData(shape, xx plane);
 
     world_scale := GetWorldScale(world, entity, plane);
     if world_scale != .{1,1,1} {
@@ -311,6 +323,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComp
         }
 
         shape = Jolt.Shape_ScaleShape(xx shape, *world_scale);
+        Jolt.Shape_SetUserData(shape, xx plane);
     }
 
     return shape;

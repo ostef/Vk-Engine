@@ -33,8 +33,36 @@ InitPhysics :: () {
 
     using g_physics;
 
-    debug_renderer = Jolt.DebugRenderer_Create();
     Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
+    debug_renderer = Jolt.DebugRenderer_Create();
+
+    BroadPhaseLayerFilter_Interface :: Jolt.BroadPhaseLayerFilter_Procs.{
+        ShouldCollide = (user_data : *void, layer : Jolt.BroadPhaseLayer) -> bool #c_call {
+            return true;
+        },
+    };
+
+    Jolt.BroadPhaseLayerFilter_SetProcs(*BroadPhaseLayerFilter_Interface);
+
+    ObjectLayerFilter_Interface :: Jolt.ObjectLayerFilter_Procs.{
+        ShouldCollide = (user_data : *void, layer : Jolt.ObjectLayer) -> bool #c_call {
+            return true;
+        },
+    };
+
+    Jolt.ObjectLayerFilter_SetProcs(*ObjectLayerFilter_Interface);
+
+    BodyFilter_Interface :: Jolt.BodyFilter_Procs.{
+        ShouldCollide = (user_data : *void, body_id : Jolt.BodyID) -> bool #c_call {
+            return true;
+        },
+
+        ShouldCollideLocked = (user_data : *void, body_id : *Jolt.Body) -> bool #c_call {
+            return true;
+        }
+    };
+
+    Jolt.BodyFilter_SetProcs(*BodyFilter_Interface);
 
     LogMessage("Initialized Jolt" ,, log_section=*Log_Physics);
 }
@@ -160,7 +188,7 @@ UpdatePhysicsWorld :: (world : *World) {
     }
 } @ModuleAPI
 
-RayIntersection :: (world : *World, sphere : *SphereColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
+RayIntersection :: (world : *World, sphere : *SphereColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
     entity := GetEntity(world, sphere.entity_index);
     if !entity {
         return .{};
@@ -180,7 +208,7 @@ RayIntersection :: (world : *World, sphere : *SphereColliderComponent, ray_origi
     };
 } @ModuleAPI
 
-RayIntersection :: (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
+RayIntersection :: (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
     entity := GetEntity(world, capsule.entity_index);
     if !entity {
         return .{};
@@ -203,7 +231,7 @@ RayIntersection :: (world : *World, capsule : *CapsuleColliderComponent, ray_ori
     };
 } @ModuleAPI
 
-RayIntersection :: (world : *World, box : *BoxColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
+RayIntersection :: (world : *World, box : *BoxColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
     entity := GetEntity(world, box.entity_index);
     if !entity {
         return .{};
@@ -221,7 +249,7 @@ RayIntersection :: (world : *World, box : *BoxColliderComponent, ray_origin : Ve
     };
 } @ModuleAPI
 
-RayIntersection :: (world : *World, mesh : *MeshColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
+RayIntersection :: (world : *World, mesh : *MeshColliderComponent, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
     entity := GetEntity(world, mesh.entity_index);
     if !entity {
         return .{};
@@ -239,7 +267,7 @@ RayIntersection :: (world : *World, mesh : *MeshColliderComponent, ray_origin : 
     };
 } @ModuleAPI
 
-RaycastAll :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RaycastResult) -> bool {
+RaycastAll :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RayCastResult) -> bool {
     original_count := results.count;
 
     for * world.SphereColliderComponent_storage {
@@ -270,8 +298,8 @@ RaycastAll :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_le
     return results.count > original_count;
 } @ModuleAPI
 
-Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RaycastResult {
-    closest_hit : RaycastResult;
+Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
+    closest_hit : RayCastResult;
     for * world.SphereColliderComponent_storage {
         hit := RayIntersection(world, it, ray_origin, ray_direction, ray_length);
         if hit.hit && hit.dist < closest_hit.dist {
@@ -298,4 +326,60 @@ Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     }
 
     return closest_hit;
+} @ModuleAPI
+
+CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f) -> RayCastResult {
+    broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null);
+    defer Jolt.BroadPhaseLayerFilter_Destroy(broad_phase_layer_filter);
+
+    object_layer_filter := Jolt.ObjectLayerFilter_Create(null);
+    defer Jolt.ObjectLayerFilter_Destroy(object_layer_filter);
+
+    body_filter := Jolt.BodyFilter_Create(null);
+    defer Jolt.BodyFilter_Destroy(body_filter);
+
+    narrow_phase := Jolt.PhysicsSystem_GetNarrowPhaseQuery(world.physics.system);
+
+    result : Jolt.RayCastResult;
+    hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, *ray_origin, *ray_direction, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
+    if !hit {
+        return .{};
+    }
+
+    point : Vec3f;
+    Jolt.RayCast_GetPointOnRay(*ray_origin, *ray_direction, result.fraction, *point);
+
+    collider : *Component;
+
+    normal : Vec3f;
+
+    body_lock_read : Jolt.BodyLockRead;
+    {
+        body_lock_interface := Jolt.PhysicsSystem_GetBodyLockInterface(world.physics.system);
+        Jolt.BodyLockInterface_LockRead(body_lock_interface, result.bodyID, *body_lock_read);
+        defer Jolt.BodyLockInterface_UnlockRead(body_lock_interface, *body_lock_read);
+
+        if body_lock_read.body {
+            Jolt.Body_GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, *point, *normal);
+
+            shape := Jolt.Body_GetShape(body_lock_read.body);
+
+            remainder_shape_id : Jolt.SubShapeID;
+            subshape := Jolt.Shape_GetLeafShape(shape, result.subShapeID2, *remainder_shape_id);
+            if subshape {
+                shape = subshape;
+            }
+
+            collider = cast(*Component, Jolt.Shape_GetUserData(shape));
+        }
+    }
+
+    return .{
+        hit=true,
+        point=point,
+        normal=normal,
+        dist=Length(point - ray_origin),
+        entity=ifx collider then GetEntity(world, collider.entity_index),
+        collider=collider,
+    };
 } @ModuleAPI
