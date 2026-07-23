@@ -483,8 +483,8 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
 IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
     return viewport.is_box_selecting
-        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 4)
-        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 4));
+        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 20)
+        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 20));
 }
 
 HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
