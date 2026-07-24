@@ -1206,3 +1206,51 @@ void JPH_TriangleShapeSettings_SetConvexRadius(JPH_TriangleShapeSettings *settin
 float JPH_TriangleShapeSettings_GetConvexRadius(const JPH_TriangleShapeSettings *settings) {
     return ToCpp(settings)->mConvexRadius;
 }
+
+JPH_ConvexHullShapeSettings *JPH_ConvexHullShapeSettings_Create() {
+    return ToC(new JPH::ConvexHullShapeSettings);
+}
+
+void JPH_ConvexHullShapeSettings_Destroy(JPH_ConvexHullShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(ConvexHullShape);
+
+void JPH_ConvexHullShapeSettings_AddPoints(JPH_ConvexHullShapeSettings *settings, const JPH_Vec3 *points, uint32_t count) {
+    auto &arr = ToCpp(settings)->mPoints;
+    auto *cppPoints = reinterpret_cast<const JPH::Vec3 *>(points);
+    arr.insert(arr.end(), cppPoints, cppPoints + count);
+}
+
+uint32_t JPH_ConvexHullShapeSettings_GetNumPoints(const JPH_ConvexHullShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mPoints.size();
+}
+
+const JPH_Vec3 *JPH_ConvexHullShapeSettings_GetPoints(const JPH_ConvexHullShapeSettings *settings) {
+    return reinterpret_cast<const JPH_Vec3 *>(ToCpp(settings)->mPoints.data());
+}
+
+void JPH_ConvexHullShapeSettings_SetMaxConvexRadius(JPH_ConvexHullShapeSettings *settings, float maxConvexRadius) {
+    ToCpp(settings)->mMaxConvexRadius = maxConvexRadius;
+}
+
+float JPH_ConvexHullShapeSettings_GetMaxConvexRadius(const JPH_ConvexHullShapeSettings *settings) {
+    return ToCpp(settings)->mMaxConvexRadius;
+}
+
+void JPH_ConvexHullShapeSettings_SetMaxErrorConvexRadius(JPH_ConvexHullShapeSettings *settings, float maxErrorConvexRadius) {
+    ToCpp(settings)->mMaxErrorConvexRadius = maxErrorConvexRadius;
+}
+
+float JPH_ConvexHullShapeSettings_GetMaxErrorConvexRadius(const JPH_ConvexHullShapeSettings *settings) {
+    return ToCpp(settings)->mMaxErrorConvexRadius;
+}
+
+void JPH_ConvexHullShapeSettings_SetHullTolerance(JPH_ConvexHullShapeSettings *settings, float hullTolerance) {
+    ToCpp(settings)->mHullTolerance = hullTolerance;
+}
+
+float JPH_ConvexHullShapeSettings_GetHullTolerance(const JPH_ConvexHullShapeSettings *settings) {
+    return ToCpp(settings)->mHullTolerance;
+}
