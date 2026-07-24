@@ -7,7 +7,6 @@ obj/
 *.o
 *.pdb
 *.exe
-.vscode/
 Fenetres/
 Stylo/
 imgui.ini

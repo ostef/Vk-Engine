@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/JoltPhysics"
+            ],
+            "defines": [
+                "JPH_DEBUG_RENDERER"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}
