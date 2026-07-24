@@ -346,20 +346,21 @@ SaveWorldToDirectory :: (world : *World, output_directory : string) {
 } @ModuleAPI
 
 DestroyKilledEntities :: (using world : *World) {
-    DestroyEntity :: (using world : *World, index : EntityIndex) {
-        entity := GetEntity(world, index);
-        Assert(entity != null);
-
-        type_id := GetEntityTypeId(index);
+    DestroyEntity :: (using world : *World, entity : *Entity) {
+        type_id := GetEntityTypeId(entity.index);
 
         if entity.parent != Null_Entity_GUID {
             DetachEntity(world, entity, keep_same_world_transform=true);
         }
 
         while entity.children.count > 0 {
-            child := GetEntity(world, entity.children[0]);
+            child := GetEntity(world, entity.children[entity.children.count - 1]);
             if child {
-                DetachEntity(world, child, keep_same_world_transform=true);
+                if !DetachEntity(world, child, keep_same_world_transform=true) {
+                    ArrayPop(*entity.children);
+                }
+            } else {
+                ArrayPop(*entity.children);
             }
         }
 
@@ -406,7 +407,10 @@ DestroyKilledEntities :: (using world : *World) {
     QuickSort(entities_killed_this_frame, CompareEntityIndex);
 
     for index : entities_killed_this_frame {
-        DestroyEntity(world, index);
+        entity := GetEntity(world, index);
+        if entity {
+            DestroyEntity(world, entity);
+        }
     }
 
     ArrayClear(*entities_killed_this_frame);
