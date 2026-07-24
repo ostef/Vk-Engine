@@ -107,6 +107,8 @@ UpdatePhysicsCollisionLayerMatrix :: () {
 } @ModuleAPI
 
 InitPhysicsWorld :: (world : *World) {
+    LogSectionScope(*Log_Physics);
+
     using world.physics;
 
     job_system = Jolt.JobSystemThreadPool_Create(null);
@@ -143,6 +145,8 @@ InitPhysicsWorld :: (world : *World) {
     system = Jolt.PhysicsSystem_Create(*system_settings);
 
     body_interface = Jolt.PhysicsSystem_GetBodyInterface(system);
+
+    LogMessage("Initialize physics system");
 }
 
 DestroyPhysicsWorld :: (world : *World) {
