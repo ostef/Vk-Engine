@@ -59,6 +59,13 @@ JOLTC_API void JPH_Free(JPH_Allocator allocator, void *ptr);
 
 // @Todo: ensure vector type alignment
 
+typedef union JPH_Float3 {
+    struct {
+        float x, y, z;
+    };
+    float values[3];
+} JPH_Float3;
+
 typedef union JPH_Vec3 {
     struct {
         float x, y, z;
@@ -177,6 +184,18 @@ typedef struct JPH_RotatedTranslatedShapeSettings  JPH_RotatedTranslatedShapeSet
 typedef struct JPH_ScaledShapeSettings             JPH_ScaledShapeSettings;
 typedef struct JPH_OffsetCenterOfMassShapeSettings JPH_OffsetCenterOfMassShapeSettings;
 typedef struct JPH_EmptyShapeSettings              JPH_EmptyShapeSettings;
+
+typedef struct JPH_IndexedTriangle {
+    uint32_t idx[3];
+    uint32_t materialIndex;
+    uint32_t userData;
+} JPH_IndexedTriangle;
+
+typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
+enum {
+    JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
+    JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
+};
 
 // Shapes
 

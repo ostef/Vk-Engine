@@ -103,6 +103,14 @@ void JPH_Free(JPH_Allocator allocator, void *ptr) {
 
 // Math conversion
 
+static inline JPH::Float3 ToCpp(JPH_Float3 v) {
+    return *reinterpret_cast<JPH::Float3 *>(&v);
+}
+
+static inline JPH_Float3 ToC(JPH::Float3 v) {
+    return *reinterpret_cast<JPH_Float3 *>(&v);
+}
+
 static inline JPH::Vec3 ToCpp(JPH_Vec3 v) {
     return *reinterpret_cast<JPH::Vec3 *>(&v);
 }
@@ -199,6 +207,14 @@ JPH_Vec3 JPH_Plane_ProjectPointOnPlane(JPH_Plane plane, JPH_Vec3 point) {
 
 JPH_Plane JPH_Plane_FromPointAndNormal(JPH_Vec3 point, JPH_Vec3 normal) {
     return ToC(JPH::Plane::sFromPointAndNormal(ToCpp(point), ToCpp(normal)));
+}
+
+static inline JPH::IndexedTriangle ToCpp(JPH_IndexedTriangle v) {
+    return *reinterpret_cast<JPH::IndexedTriangle *>(&v);
+}
+
+static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
+    return *reinterpret_cast<JPH_IndexedTriangle *>(&v);
 }
 
 #define DEFINE_CONVERSION_FUNCTIONS(c_type, cpp_type) \
