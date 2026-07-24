@@ -1,0 +1,634 @@
+name: Determinism Check
+
+env:
+  CONVEX_VS_MESH_HASH: '0x918f27cacae9752b'
+  HIGH_SPEED_HASH: '0x58d8d892536f4021'
+  RAGDOLL_HASH: '0x58387d2b5664c5d7'
+  PYRAMID_HASH: '0x74d0118836ac0892'
+  CHARACTER_VIRTUAL_HASH: '0x16469ae097282fab'
+  CONVEX_VS_MESH_HASH_DOUBLE: '0x3729e7890b93a289'
+  HIGH_SPEED_HASH_DOUBLE: '0x183f48cb94739ce'
+  RAGDOLL_HASH_DOUBLE: '0x9d486d4f5ccdbe5f'
+  PYRAMID_HASH_DOUBLE: '0xf07f04597a102a82'
+  CHARACTER_VIRTUAL_HASH_DOUBLE: '0xcc36f19c574647b7'
+  EMSCRIPTEN_VERSION: 5.0.6
+  NODE_VERSION: 24.x
+  UBUNTU_CLANG_VERSION: clang++-18
+  UBUNTU_GCC_VERSION: g++-14
+  UBUNTU_GCC_AARCH64_VERSION: aarch64-linux-gnu-g++-14
+  UBUNTU_GCC_RISCV_VERSION: riscv64-linux-gnu-g++-14
+  UBUNTU_GCC_POWERPC_VERSION: powerpc64le-linux-gnu-g++-14
+  UBUNTU_GCC_LOONGARCH_VERSION: loongarch64-linux-gnu-g++-14
+  SDE_VERSION: '10.8.0-2026-03-15'
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'Docs/**'
+      - '**.md'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - 'Docs/**'
+      - '**.md'
+
+jobs:
+  linux_clang:
+    runs-on: ubuntu-latest
+    name: Linux Clang Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ctest --output-on-failure --verbose
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  linux_clang_double:
+    runs-on: ubuntu-latest
+    name: Linux Clang Double Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DDOUBLE_PRECISION=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ctest --output-on-failure --verbose
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH_DOUBLE}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH_DOUBLE}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH_DOUBLE}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH_DOUBLE}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH_DOUBLE}
+
+  linux_clang_avx512:
+    runs-on: ubuntu-latest
+    name: Linux Clang AVX512 Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Cache Intel SDE
+      id: cache-sde
+      uses: actions/cache@v6
+      with:
+        path: sde-external-${{env.SDE_VERSION}}-lin
+        key: sde-${{env.SDE_VERSION}}
+    - name: Install Intel SDE
+      if: steps.cache-sde.outputs.cache-hit != 'true'
+      run: |
+        wget -O sde.tar.xz https://raw.githubusercontent.com/jrouwe/JoltPhysicsCI/main/sde-external-${{env.SDE_VERSION}}-lin.tar.xz
+        file sde.tar.xz | grep -q 'XZ compressed' || { echo "ERROR: Downloaded file is not a valid XZ archive"; file sde.tar.xz; exit 1; }
+        tar -xf sde.tar.xz
+    - name: Set SDE path
+      run: echo "SDE_PATH=$PWD/sde-external-${{env.SDE_VERSION}}-lin" >> $GITHUB_ENV
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON -DUSE_AVX512=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ${{env.SDE_PATH}}/sde64 -skx -- ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  linux_gcc:
+    runs-on: ubuntu-latest
+    name: Linux GCC Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_GCC_VERSION}} -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ctest --output-on-failure --verbose
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  msvc_cl:
+    runs-on: windows-2025-vs2026
+    name: Visual Studio CL Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v3
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_vs2026_cl.bat -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: msbuild Build\VS2026_CL\JoltPhysics.slnx /property:Configuration=Distribution
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./UnitTests.exe
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh "-validate_hash=$env:CONVEX_VS_MESH_HASH"
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed "-validate_hash=$env:HIGH_SPEED_HASH"
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll "-validate_hash=$env:RAGDOLL_HASH"
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid "-validate_hash=$env:PYRAMID_HASH"
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/VS2026_CL/Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual "-validate_hash=$env:CHARACTER_VIRTUAL_HASH"
+
+  msvc_cl_32:
+    runs-on: windows-2025-vs2026
+    name: Visual Studio CL 32-bit Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v3
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_vs2026_cl_32bit.bat -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: msbuild Build\VS2026_CL_32BIT\JoltPhysics.slnx /property:Configuration=Distribution
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./UnitTests.exe
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh "-validate_hash=$env:CONVEX_VS_MESH_HASH"
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed "-validate_hash=$env:HIGH_SPEED_HASH"
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll "-validate_hash=$env:RAGDOLL_HASH"
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid "-validate_hash=$env:PYRAMID_HASH"
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/VS2026_CL_32BIT/Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual "-validate_hash=$env:CHARACTER_VIRTUAL_HASH"
+
+  macos:
+    runs-on: macos-latest
+    name: macOS Determinism Check
+    env:
+        VULKAN_SDK_INSTALL: ${{github.workspace}}/vulkan_sdk
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Install Vulkan SDK
+      run: ${{github.workspace}}/Build/macos_install_vulkan_sdk.sh ${VULKAN_SDK_INSTALL}
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: |
+        source ${VULKAN_SDK_INSTALL}/setup-env.sh
+        ./cmake_linux_clang_gcc.sh Distribution clang++ -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: |
+        source ${VULKAN_SDK_INSTALL}/setup-env.sh
+        ctest --output-on-failure --verbose
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  macos_double:
+    runs-on: macos-latest
+    name: macOS Double Determinism Check
+    env:
+        VULKAN_SDK_INSTALL: ${{github.workspace}}/vulkan_sdk
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Install Vulkan SDK
+      run: ${{github.workspace}}/Build/macos_install_vulkan_sdk.sh ${VULKAN_SDK_INSTALL}
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: |
+        source ${VULKAN_SDK_INSTALL}/setup-env.sh
+        ./cmake_linux_clang_gcc.sh Distribution clang++ -DDOUBLE_PRECISION=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: |
+        source ${VULKAN_SDK_INSTALL}/setup-env.sh
+        ctest --output-on-failure --verbose
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH_DOUBLE}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH_DOUBLE}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH_DOUBLE}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH_DOUBLE}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH_DOUBLE}
+
+  arm_clang:
+    runs-on: ubuntu-latest
+    name: ARM Clang Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install gcc-14-aarch64-linux-gnu gcc-14-multilib g++-14-multilib libstdc++-14-dev-arm64-cross qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  arm_clang_32:
+    runs-on: ubuntu-latest
+    name: ARM Clang 32-bit Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install g++-14-arm-linux-gnueabihf qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_COMPILE_ARM_TARGET="arm-linux-gnueabihf" -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-arm -L /usr/arm-linux-gnueabihf/ ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  arm_gcc:
+    runs-on: ubuntu-latest
+    name: ARM GCC Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install g++-14-aarch64-linux-gnu gcc-14-multilib g++-14-multilib libstdc++-14-dev-arm64-cross qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_GCC_AARCH64_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  riscv_gcc:
+    runs-on: ubuntu-latest
+    name: RISC-V GCC Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install g++-14-riscv64-linux-gnu gcc-14-multilib g++-14-multilib qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_GCC_RISCV_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DCROSS_COMPILE_ARM_TARGET="" -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  riscv_clang_rvv:
+    runs-on: ubuntu-latest
+    name: RISC-V Clang RVV Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install RISC-V Support
+      run: sudo apt-get install g++-14-riscv64-linux-gnu gcc-14-multilib g++-14-multilib qemu-user lld -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_CLANG_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DCROSS_COMPILE_ARM_TARGET="" -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON -DJPH_USE_VK=OFF -DCMAKE_CXX_FLAGS="--target=riscv64-unknown-linux-gnu -march=rv64gcv" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld"
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+# This is really slow so disabled for the moment
+#    - name: Test HighSpeed
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+#    - name: Test Ragdoll
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+#    - name: Test Pyramid
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-riscv64 -L /usr/riscv64-linux-gnu/ ./PerformanceTest -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  powerpcle_gcc:
+    runs-on: ubuntu-latest
+    name: PowerPC Little Endian GCC Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install g++-14-powerpc64le-linux-gnu gcc-14-multilib g++-14-multilib qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_GCC_POWERPC_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DCROSS_COMPILE_ARM_TARGET="" -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+# This is really slow so disabled for the moment
+#    - name: Test Ragdoll
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+#    - name: Test Pyramid
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+
+  loongarch_gcc:
+    runs-on: ubuntu-latest
+    name: LoongArch GCC Determinism Check
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Update index
+      run: sudo apt-get update
+    - name: Install Cross Compiler
+      run: sudo apt-get install g++-14-loongarch64-linux-gnu gcc-14-multilib g++-14-multilib qemu-user -y
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_clang_gcc.sh Distribution ${{env.UBUNTU_GCC_LOONGARCH_VERSION}} -DCROSS_COMPILE_ARM=ON -DCROSS_PLATFORM_DETERMINISTIC=ON -DCROSS_COMPILE_ARM_TARGET="" -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/Linux_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-loongarch64 -L /usr/loongarch64-linux-gnu/ ./UnitTests
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-loongarch64 -L /usr/loongarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-loongarch64 -L /usr/loongarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+      run: qemu-loongarch64 -L /usr/loongarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+# This is slow so disabled for the moment
+#    - name: Test Pyramid
+#      working-directory: ${{github.workspace}}/Build/Linux_Distribution
+#      run: qemu-loongarch64 -L /usr/loongarch64-linux-gnu/ ./PerformanceTest -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+
+  emscripten:
+    runs-on: ubuntu-latest
+    name: Emscripten WASM32 Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Setup emsdk
+      uses: mymindstorm/setup-emsdk@v16
+      with:
+        version: ${{env.EMSCRIPTEN_VERSION}}
+    - name: Verify emsdk
+      run: emcc -v
+    - name: Setup Node.js ${{env.NODE_VERSION}}
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_emscripten.sh Distribution -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/WASM_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node UnitTests.js
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
+
+  emscripten64:
+    runs-on: ubuntu-latest
+    name: Emscripten WASM64 Determinism Check
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Setup emsdk
+      uses: mymindstorm/setup-emsdk@v16
+      with:
+        version: ${{env.EMSCRIPTEN_VERSION}}
+    - name: Verify emsdk
+      run: emcc -v
+    - name: Setup Node.js ${{env.NODE_VERSION}}
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: ./cmake_linux_emscripten.sh Distribution -DCROSS_PLATFORM_DETERMINISTIC=ON -DTARGET_VIEWER=OFF -DTARGET_SAMPLES=OFF -DTARGET_HELLO_WORLD=OFF -DTARGET_UNIT_TESTS=ON -DTARGET_PERFORMANCE_TEST=ON -DJPH_USE_WASM64=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build/WASM_Distribution -j $(nproc)
+    - name: Unit Tests
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node UnitTests.js
+    - name: Test ConvexVsMesh
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=ConvexVsMesh -validate_hash=${CONVEX_VS_MESH_HASH}
+    - name: Test HighSpeed
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=HighSpeed -validate_hash=${HIGH_SPEED_HASH}
+    - name: Test Ragdoll
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=Ragdoll -validate_hash=${RAGDOLL_HASH}
+    - name: Test Pyramid
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=LinearCast -t=max -s=Pyramid -validate_hash=${PYRAMID_HASH}
+    - name: Test CharacterVirtual
+      working-directory: ${{github.workspace}}/Build/WASM_Distribution
+      run: node PerformanceTest.js -q=Discrete -t=max -s=CharacterVirtual -validate_hash=${CHARACTER_VIRTUAL_HASH}
