@@ -2,7 +2,7 @@
 
 GameModule :: struct {
     #as base : Module;
-    CastRay : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32)) -> RayCastResult;
+    CastRay : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
     CopyWorld : (dest : *World, src : *World);
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
@@ -14,12 +14,6 @@ GameModule :: struct {
     GetPhysicsSettings : () -> *PhysicsSettings;
     InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
-    RayIntersection_1 : (world : *World, box : *BoxColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
-    RayIntersection_2 : (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
-    RayIntersection_3 : (world : *World, mesh : *MeshColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
-    RayIntersection_4 : (world : *World, sphere : *SphereColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
-    Raycast : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
-    RaycastAll : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult) -> bool;
     SaveWorldToDirectory : (world : *World, output_directory : string);
     ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
@@ -31,9 +25,9 @@ GameModule :: struct {
 #if Import_Mode == .Foreign {
 g_Game : *GameModule;
 
-CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32)) -> RayCastResult {
+CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
     Assert(g_Game != null, "Game module is null");
-    return g_Game.CastRay(world, ray_origin, ray_direction);
+    return g_Game.CastRay(world, ray_origin, ray_direction, ray_length);
 } @NoProfile
 
 CopyWorld :: inline (dest : *World, src : *World) {
@@ -89,36 +83,6 @@ InitWorld :: inline (world : *World) {
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.LoadWorldFromDirectory(world, directory);
-} @NoProfile
-
-RayIntersection :: inline (world : *World, box : *BoxColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.RayIntersection_1(world, box, ray_origin, ray_direction, ray_length);
-} @NoProfile
-
-RayIntersection :: inline (world : *World, capsule : *CapsuleColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.RayIntersection_2(world, capsule, ray_origin, ray_direction, ray_length);
-} @NoProfile
-
-RayIntersection :: inline (world : *World, mesh : *MeshColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.RayIntersection_3(world, mesh, ray_origin, ray_direction, ray_length);
-} @NoProfile
-
-RayIntersection :: inline (world : *World, sphere : *SphereColliderComponent, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.RayIntersection_4(world, sphere, ray_origin, ray_direction, ray_length);
-} @NoProfile
-
-Raycast :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.Raycast(world, ray_origin, ray_direction, ray_length);
-} @NoProfile
-
-RaycastAll :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult) -> bool {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.RaycastAll(world, ray_origin, ray_direction, ray_length, results);
 } @NoProfile
 
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
