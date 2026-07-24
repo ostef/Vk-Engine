@@ -583,4 +583,64 @@ JOLTC_API JPH_Vec3 JPH_BoxShapeSettings_GetHalfExtent(const JPH_BoxShapeSettings
 JOLTC_API void JPH_BoxShapeSettings_SetConvexRadius(JPH_BoxShapeSettings *settings, float convexRadius);
 JOLTC_API float JPH_BoxShapeSettings_GetConvexRadius(const JPH_BoxShapeSettings *settings);
 
+JOLTC_API JPH_SphereShapeSettings *JPH_SphereShapeSettings_Create();
+JOLTC_API void JPH_SphereShapeSettings_Destroy(JPH_SphereShapeSettings *settings);
+JOLTC_API JPH_SphereShape *JPH_SphereShapeSettings_CreateShape(JPH_SphereShapeSettings *settings);
+JOLTC_API void JPH_SphereShapeSettings_SetRadius(JPH_SphereShapeSettings *settings, float radius);
+JOLTC_API float JPH_SphereShapeSettings_GetRadius(const JPH_SphereShapeSettings *settings);
+
+JOLTC_API JPH_CapsuleShapeSettings *JPH_CapsuleShapeSettings_Create();
+JOLTC_API void JPH_CapsuleShapeSettings_Destroy(JPH_CapsuleShapeSettings *settings);
+JOLTC_API JPH_CapsuleShape *JPH_CapsuleShapeSettings_CreateShape(JPH_CapsuleShapeSettings *settings);
+JOLTC_API void JPH_CapsuleShapeSettings_SetRadius(JPH_CapsuleShapeSettings *settings, float radius);
+JOLTC_API float JPH_CapsuleShapeSettings_GetRadius(const JPH_CapsuleShapeSettings *settings);
+JOLTC_API void JPH_CapsuleShapeSettings_SetHalfHeightOfCylinder(JPH_CapsuleShapeSettings *settings, float halfHeightOfCylinder);
+JOLTC_API float JPH_CapsuleShapeSettings_GetHalfHeightOfCylinder(const JPH_CapsuleShapeSettings *settings);
+
+JOLTC_API JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create();
+JOLTC_API void JPH_TaperedCapsuleShapeSettings_Destroy(JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API JPH_TaperedCapsuleShape *JPH_TaperedCapsuleShapeSettings_CreateShape(JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetHalfHeightOfTaperedCylinder(JPH_TaperedCapsuleShapeSettings *settings, float halfHeightOfTaperedCylinder);
+JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetHalfHeightOfTaperedCylinder(const JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetTopRadius(JPH_TaperedCapsuleShapeSettings *settings, float topRadius);
+JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetTopRadius(const JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetBottomRadius(JPH_TaperedCapsuleShapeSettings *settings, float bottomRadius);
+JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetBottomRadius(const JPH_TaperedCapsuleShapeSettings *settings);
+
+JOLTC_API JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create();
+JOLTC_API void JPH_CylinderShapeSettings_Destroy(JPH_CylinderShapeSettings *settings);
+JOLTC_API JPH_CylinderShape *JPH_CylinderShapeSettings_CreateShape(JPH_CylinderShapeSettings *settings);
+JOLTC_API void JPH_CylinderShapeSettings_SetHalfHeight(JPH_CylinderShapeSettings *settings, float halfHeight);
+JOLTC_API float JPH_CylinderShapeSettings_GetHalfHeight(const JPH_CylinderShapeSettings *settings);
+JOLTC_API void JPH_CylinderShapeSettings_SetRadius(JPH_CylinderShapeSettings *settings, float radius);
+JOLTC_API float JPH_CylinderShapeSettings_GetRadius(const JPH_CylinderShapeSettings *settings);
+JOLTC_API void JPH_CylinderShapeSettings_SetConvexRadius(JPH_CylinderShapeSettings *settings, float convexRadius);
+JOLTC_API float JPH_CylinderShapeSettings_GetConvexRadius(const JPH_CylinderShapeSettings *settings);
+
+JOLTC_API JPH_TaperedCylinderShapeSettings *JPH_TaperedCylinderShapeSettings_Create();
+JOLTC_API void JPH_TaperedCylinderShapeSettings_Destroy(JPH_TaperedCylinderShapeSettings *settings);
+JOLTC_API JPH_TaperedCylinderShape *JPH_TaperedCylinderShapeSettings_CreateShape(JPH_TaperedCylinderShapeSettings *settings);
+JOLTC_API void JPH_TaperedCylinderShapeSettings_SetHalfHeight(JPH_TaperedCylinderShapeSettings *settings, float halfHeight);
+JOLTC_API float JPH_TaperedCylinderShapeSettings_GetHalfHeight(const JPH_TaperedCylinderShapeSettings *settings);
+JOLTC_API void JPH_TaperedCylinderShapeSettings_SetTopRadius(JPH_TaperedCylinderShapeSettings *settings, float topRadius);
+JOLTC_API float JPH_TaperedCylinderShapeSettings_GetTopRadius(const JPH_TaperedCylinderShapeSettings *settings);
+JOLTC_API void JPH_TaperedCylinderShapeSettings_SetBottomRadius(JPH_TaperedCylinderShapeSettings *settings, float bottomRadius);
+JOLTC_API float JPH_TaperedCylinderShapeSettings_GetBottomRadius(const JPH_TaperedCylinderShapeSettings *settings);
+JOLTC_API void JPH_TaperedCylinderShapeSettings_SetConvexRadius(JPH_TaperedCylinderShapeSettings *settings, float convexRadius);
+JOLTC_API float JPH_TaperedCylinderShapeSettings_GetConvexRadius(const JPH_TaperedCylinderShapeSettings *settings);
+
+JOLTC_API JPH_TriangleShapeSettings *JPH_TriangleShapeSettings_Create();
+JOLTC_API void JPH_TriangleShapeSettings_Destroy(JPH_TriangleShapeSettings *settings);
+JOLTC_API JPH_TriangleShape *JPH_TriangleShapeSettings_CreateShape(JPH_TriangleShapeSettings *settings);
+JOLTC_API void JPH_TriangleShapeSettings_SetV1(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1);
+JOLTC_API JPH_Vec3 JPH_TriangleShapeSettings_GetV1(const JPH_TriangleShapeSettings *settings);
+JOLTC_API void JPH_TriangleShapeSettings_SetV2(JPH_TriangleShapeSettings *settings, JPH_Vec3 v2);
+JOLTC_API JPH_Vec3 JPH_TriangleShapeSettings_GetV2(const JPH_TriangleShapeSettings *settings);
+JOLTC_API void JPH_TriangleShapeSettings_SetV3(JPH_TriangleShapeSettings *settings, JPH_Vec3 v3);
+JOLTC_API JPH_Vec3 JPH_TriangleShapeSettings_GetV3(const JPH_TriangleShapeSettings *settings);
+JOLTC_API void JPH_TriangleShapeSettings_SetPoints(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1, JPH_Vec3 v2, JPH_Vec3 v3);
+JOLTC_API void JPH_TriangleShapeSettings_GetPoints(const JPH_TriangleShapeSettings *settings, JPH_Vec3 *outV1, JPH_Vec3 *outV2, JPH_Vec3 *outV3);
+JOLTC_API void JPH_TriangleShapeSettings_SetConvexRadius(JPH_TriangleShapeSettings *settings, float convexRadius);
+JOLTC_API float JPH_TriangleShapeSettings_GetConvexRadius(const JPH_TriangleShapeSettings *settings);
+
 #endif

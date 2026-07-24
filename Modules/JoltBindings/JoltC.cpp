@@ -983,3 +983,210 @@ float JPH_BoxShapeSettings_GetConvexRadius(const JPH_BoxShapeSettings *settings)
     return ToCpp(settings)->mConvexRadius;
 }
 
+JPH_SphereShapeSettings *JPH_SphereShapeSettings_Create() {
+    return ToC(new JPH::SphereShapeSettings);
+}
+
+void JPH_SphereShapeSettings_Destroy(JPH_SphereShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(SphereShape);
+
+void JPH_SphereShapeSettings_SetRadius(JPH_SphereShapeSettings *settings, float radius) {
+    ToCpp(settings)->mRadius = radius;
+}
+
+float JPH_SphereShapeSettings_GetRadius(const JPH_SphereShapeSettings *settings) {
+    return ToCpp(settings)->mRadius;
+}
+
+JPH_CapsuleShapeSettings *JPH_CapsuleShapeSettings_Create() {
+    return ToC(new JPH::CapsuleShapeSettings);
+}
+
+void JPH_CapsuleShapeSettings_Destroy(JPH_CapsuleShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(CapsuleShape);
+
+void JPH_CapsuleShapeSettings_SetRadius(JPH_CapsuleShapeSettings *settings, float radius) {
+    ToCpp(settings)->mRadius = radius;
+}
+
+float JPH_CapsuleShapeSettings_GetRadius(const JPH_CapsuleShapeSettings *settings) {
+    return ToCpp(settings)->mRadius;
+}
+
+void JPH_CapsuleShapeSettings_SetHalfHeightOfCylinder(JPH_CapsuleShapeSettings *settings, float halfHeightOfCylinder) {
+    ToCpp(settings)->mHalfHeightOfCylinder = halfHeightOfCylinder;
+}
+
+float JPH_CapsuleShapeSettings_GetHalfHeightOfCylinder(const JPH_CapsuleShapeSettings *settings) {
+    return ToCpp(settings)->mHalfHeightOfCylinder;
+}
+
+JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create() {
+    return ToC(new JPH::TaperedCapsuleShapeSettings);
+}
+
+void JPH_TaperedCapsuleShapeSettings_Destroy(JPH_TaperedCapsuleShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(TaperedCapsuleShape);
+
+void JPH_TaperedCapsuleShapeSettings_SetHalfHeightOfTaperedCylinder(JPH_TaperedCapsuleShapeSettings *settings, float halfHeightOfTaperedCylinder) {
+    ToCpp(settings)->mHalfHeightOfTaperedCylinder = halfHeightOfTaperedCylinder;
+}
+
+float JPH_TaperedCapsuleShapeSettings_GetHalfHeightOfTaperedCylinder(const JPH_TaperedCapsuleShapeSettings *settings) {
+    return ToCpp(settings)->mHalfHeightOfTaperedCylinder;
+}
+
+void JPH_TaperedCapsuleShapeSettings_SetTopRadius(JPH_TaperedCapsuleShapeSettings *settings, float topRadius) {
+    ToCpp(settings)->mTopRadius = topRadius;
+}
+
+float JPH_TaperedCapsuleShapeSettings_GetTopRadius(const JPH_TaperedCapsuleShapeSettings *settings) {
+    return ToCpp(settings)->mTopRadius;
+}
+
+void JPH_TaperedCapsuleShapeSettings_SetBottomRadius(JPH_TaperedCapsuleShapeSettings *settings, float bottomRadius) {
+    ToCpp(settings)->mBottomRadius = bottomRadius;
+}
+
+float JPH_TaperedCapsuleShapeSettings_GetBottomRadius(const JPH_TaperedCapsuleShapeSettings *settings) {
+    return ToCpp(settings)->mBottomRadius;
+}
+
+JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create() {
+    return ToC(new JPH::CylinderShapeSettings);
+}
+
+void JPH_CylinderShapeSettings_Destroy(JPH_CylinderShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(CylinderShape);
+
+void JPH_CylinderShapeSettings_SetHalfHeight(JPH_CylinderShapeSettings *settings, float halfHeight) {
+    ToCpp(settings)->mHalfHeight = halfHeight;
+}
+
+float JPH_CylinderShapeSettings_GetHalfHeight(const JPH_CylinderShapeSettings *settings) {
+    return ToCpp(settings)->mHalfHeight;
+}
+
+void JPH_CylinderShapeSettings_SetRadius(JPH_CylinderShapeSettings *settings, float radius) {
+    ToCpp(settings)->mRadius = radius;
+}
+
+float JPH_CylinderShapeSettings_GetRadius(const JPH_CylinderShapeSettings *settings) {
+    return ToCpp(settings)->mRadius;
+}
+
+void JPH_CylinderShapeSettings_SetConvexRadius(JPH_CylinderShapeSettings *settings, float convexRadius) {
+    ToCpp(settings)->mConvexRadius = convexRadius;
+}
+
+float JPH_CylinderShapeSettings_GetConvexRadius(const JPH_CylinderShapeSettings *settings) {
+    return ToCpp(settings)->mConvexRadius;
+}
+
+JPH_TaperedCylinderShapeSettings *JPH_TaperedCylinderShapeSettings_Create() {
+    return ToC(new JPH::TaperedCylinderShapeSettings);
+}
+
+void JPH_TaperedCylinderShapeSettings_Destroy(JPH_TaperedCylinderShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(TaperedCylinderShape);
+
+void JPH_TaperedCylinderShapeSettings_SetHalfHeight(JPH_TaperedCylinderShapeSettings *settings, float halfHeight) {
+    ToCpp(settings)->mHalfHeight = halfHeight;
+}
+
+float JPH_TaperedCylinderShapeSettings_GetHalfHeight(const JPH_TaperedCylinderShapeSettings *settings) {
+    return ToCpp(settings)->mHalfHeight;
+}
+
+void JPH_TaperedCylinderShapeSettings_SetTopRadius(JPH_TaperedCylinderShapeSettings *settings, float topRadius) {
+    ToCpp(settings)->mTopRadius = topRadius;
+}
+
+float JPH_TaperedCylinderShapeSettings_GetTopRadius(const JPH_TaperedCylinderShapeSettings *settings) {
+    return ToCpp(settings)->mTopRadius;
+}
+
+void JPH_TaperedCylinderShapeSettings_SetBottomRadius(JPH_TaperedCylinderShapeSettings *settings, float bottomRadius) {
+    ToCpp(settings)->mBottomRadius = bottomRadius;
+}
+
+float JPH_TaperedCylinderShapeSettings_GetBottomRadius(const JPH_TaperedCylinderShapeSettings *settings) {
+    return ToCpp(settings)->mBottomRadius;
+}
+
+void JPH_TaperedCylinderShapeSettings_SetConvexRadius(JPH_TaperedCylinderShapeSettings *settings, float convexRadius) {
+    ToCpp(settings)->mConvexRadius = convexRadius;
+}
+
+float JPH_TaperedCylinderShapeSettings_GetConvexRadius(const JPH_TaperedCylinderShapeSettings *settings) {
+    return ToCpp(settings)->mConvexRadius;
+}
+
+JPH_TriangleShapeSettings *JPH_TriangleShapeSettings_Create() {
+    return ToC(new JPH::TriangleShapeSettings);
+}
+
+void JPH_TriangleShapeSettings_Destroy(JPH_TriangleShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(TriangleShape);
+
+void JPH_TriangleShapeSettings_SetV1(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1) {
+    ToCpp(settings)->mV1 = ToCpp(v1);
+}
+
+JPH_Vec3 JPH_TriangleShapeSettings_GetV1(const JPH_TriangleShapeSettings *settings) {
+    return ToC(ToCpp(settings)->mV1);
+}
+
+void JPH_TriangleShapeSettings_SetV2(JPH_TriangleShapeSettings *settings, JPH_Vec3 v2) {
+    ToCpp(settings)->mV2 = ToCpp(v2);
+}
+
+JPH_Vec3 JPH_TriangleShapeSettings_GetV2(const JPH_TriangleShapeSettings *settings) {
+    return ToC(ToCpp(settings)->mV2);
+}
+
+void JPH_TriangleShapeSettings_SetV3(JPH_TriangleShapeSettings *settings, JPH_Vec3 v3) {
+    ToCpp(settings)->mV3 = ToCpp(v3);
+}
+
+JPH_Vec3 JPH_TriangleShapeSettings_GetV3(const JPH_TriangleShapeSettings *settings) {
+    return ToC(ToCpp(settings)->mV3);
+}
+
+void JPH_TriangleShapeSettings_SetPoints(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1, JPH_Vec3 v2, JPH_Vec3 v3) {
+    ToCpp(settings)->mV1 = ToCpp(v1);
+    ToCpp(settings)->mV2 = ToCpp(v2);
+    ToCpp(settings)->mV3 = ToCpp(v3);
+}
+
+void JPH_TriangleShapeSettings_GetPoints(const JPH_TriangleShapeSettings *settings, JPH_Vec3 *outV1, JPH_Vec3 *outV2, JPH_Vec3 *outV3) {
+    *outV1 = ToC(ToCpp(settings)->mV1);
+    *outV2 = ToC(ToCpp(settings)->mV2);
+    *outV3 = ToC(ToCpp(settings)->mV3);
+}
+
+void JPH_TriangleShapeSettings_SetConvexRadius(JPH_TriangleShapeSettings *settings, float convexRadius) {
+    ToCpp(settings)->mConvexRadius = convexRadius;
+}
+
+float JPH_TriangleShapeSettings_GetConvexRadius(const JPH_TriangleShapeSettings *settings) {
+    return ToCpp(settings)->mConvexRadius;
+}
