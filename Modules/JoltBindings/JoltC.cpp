@@ -712,7 +712,7 @@ void JPH_PhysicsSystem_DrawConstraintReferenceFrame(JPH_PhysicsSystem *system, J
     JPH_##name *JPH_##name##Settings_CreateShape(JPH_##name##Settings *settings) { \
         auto result = ToCpp(settings)->Create(); \
         if (!result.IsValid()) { \
-            return NULL; \
+            return nullptr; \
         } \
     \
         auto shape = result.Get().GetPtr(); \
