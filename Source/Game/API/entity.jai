@@ -488,7 +488,7 @@ ExecuteEntityCallback :: inline (world : *World, entity : *$T, $Callback : strin
     }
 }
 
-AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same_world_transform := true) {
+AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same_world_transform := true) -> bool {
     LogSectionScope(*Log_Entities);
 
     Assert(entity != null);
@@ -496,14 +496,14 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
 
     if entity == to {
         LogError("Trying to attach entity to itself");
-        return;
+        return false;
     }
 
     // Detect entity attaching itself to one of its descendants
     #if Detect_Entity_Recursive_Attachment {
         if EntityIsInHierarchy(world, to, entity) {
             LogError("Trying to recursively attach entity to one of its descendants");
-            return;
+            return false;
         }
     }
 
@@ -535,13 +535,15 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     ExecuteEntityCallback(world, entity, "OnAttached");
 
     LogMessage("Attached entity % to %", entity.guid, to.guid, flags=.VERBOSE_ONLY);
+
+    return true;
 }
 
-DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := true) {
+DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := true) -> bool {
     LogSectionScope(*Log_Entities);
 
     if entity.parent == Null_Entity_GUID {
-        return;
+        return false;
     }
 
     ExecuteEntityCallback(world, entity, "OnDetach");
@@ -554,7 +556,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
 
     ArrayRemove(*parent.children, child_index);
 
-    entity.parent = .{};
+    entity.parent = Null_Entity_GUID;
 
     if keep_same_world_transform {
         entity.local_position = TranslationVector(entity.world_transform);
@@ -571,6 +573,8 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
     UpdateWorldTransform(world, entity);
 
     LogMessage("Detached entity % from %", entity.guid, parent.guid, flags=.VERBOSE_ONLY);
+
+    return true;
 }
 
 // Walk up the hierarchy, applying scale to the world space axes of entity
@@ -770,7 +774,7 @@ CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := 
     return entity;
 }
 
-CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
+CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name := "", guid := Null_Entity_GUID) -> *Entity {
     entity := CreateEntity(world, type_id, guid=guid, name=name);
     cached_name := entity.name;
 
@@ -793,7 +797,7 @@ CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : En
         Free(name.data);
     }
 
-    if entity.parent != Null_Entity_GUID {
+    if entity.parent != Null_Entity_GUID && attach_to_parent {
         parent, err := GetEntity(world, entity.parent);
         if parent {
             // AttachEntity detaches from previous parent, so clear entity.parent beforehand

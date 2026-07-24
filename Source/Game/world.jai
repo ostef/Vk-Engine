@@ -102,7 +102,7 @@ CopyWorld :: (dest : *World, src : *World) {
 
         str := StringBuilderBuild(*serializer.builder ,, Temp);
 
-        new_entity := CreateAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), name=entity.name, guid=entity.guid);
+        new_entity := CreateAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), attach_to_parent=false, name=entity.name, guid=entity.guid);
 
         return new_entity;
     }
@@ -255,13 +255,13 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
 
             defer Free(file_contents.data);
 
-            entity := CreateAndDeserializeEntity(world, file_contents, type_id, guid=guid);
+            entity := CreateAndDeserializeEntity(world, file_contents, type_id, attach_to_parent=false, guid=guid);
 
             loaded_entities += 1;
         }
     }
 
-    // Attach all entities to their parent correctly
+    // Attach all entities to their parent now that all entities have been loaded
     for :AllEntities entity : world {
         if entity.parent != Null_Entity_GUID {
             parent_id := entity.parent;
