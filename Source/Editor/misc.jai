@@ -60,6 +60,7 @@ IntersectionMenu :: (world : *World) {
                     point.shape = .Point;
                     point.local_position = p * 10;
                     point.local_rotation = rotation;
+                    UpdateWorldTransform(world, ray);
                     AttachEntity(world, point, root);
                 }
             }
@@ -84,6 +85,7 @@ IntersectionMenu :: (world : *World) {
                     ray.shape = .Ray;
                     ray.local_position = p * 10;
                     ray.local_rotation = rotation;
+                    UpdateWorldTransform(world, ray);
                     AttachEntity(world, ray, root);
                 }
             }
