@@ -9,7 +9,6 @@ __pycache__/
 *.exe
 *.rdi
 *.code-workspace
-.vscode/
 imgui.ini
 *.dSYM
 .DS_Store
