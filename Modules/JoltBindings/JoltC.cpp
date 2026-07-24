@@ -1619,11 +1619,7 @@ JPH_Vec3 JPH_Shape_GetSurfaceNormal(const JPH_Shape *shape, JPH_SubShapeID subSh
 }
 
 void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_SupportingFace *outVertices) {
-    JPH::Shape::SupportingFace face;
-    ToCpp(shape)->GetSupportingFace(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), ToCpp(direction), ToCpp(scale), ToCpp(centerOfMassTransform), face);
-
-    outVertices->size = static_cast<uint32_t>(face.size());
-    memcpy(&outVertices->elements, face.data(), face.size() * sizeof(JPH_Vec3));
+    ToCpp(shape)->GetSupportingFace(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), ToCpp(direction), ToCpp(scale), ToCpp(centerOfMassTransform), *reinterpret_cast<JPH::Shape::SupportingFace *>(outVertices));
 }
 
 uint64_t JPH_Shape_GetSubShapeUserData(const JPH_Shape *shape, JPH_SubShapeID subShapeID) {
