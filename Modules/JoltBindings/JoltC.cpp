@@ -1240,7 +1240,7 @@ void JPH_ConvexHullShapeSettings_AddPoints(JPH_ConvexHullShapeSettings *settings
 }
 
 uint32_t JPH_ConvexHullShapeSettings_GetNumPoints(const JPH_ConvexHullShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mPoints.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mPoints.size());
 }
 
 const JPH_Vec3 *JPH_ConvexHullShapeSettings_GetPoints(const JPH_ConvexHullShapeSettings *settings) {
@@ -1296,7 +1296,7 @@ void JPH_MeshShapeSettings_AddVertices(JPH_MeshShapeSettings *settings, const JP
 }
 
 uint32_t JPH_MeshShapeSettings_GetNumVertices(const JPH_MeshShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mTriangleVertices.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mTriangleVertices.size());
 }
 
 const JPH_Float3 *JPH_MeshShapeSettings_GetVertices(const JPH_MeshShapeSettings *settings) {
@@ -1314,7 +1314,7 @@ void JPH_MeshShapeSettings_AddIndexedTriangles(JPH_MeshShapeSettings *settings, 
 }
 
 uint32_t JPH_MeshShapeSettings_GetNumIndexedTriangles(const JPH_MeshShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mIndexedTriangles.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mIndexedTriangles.size());
 }
 
 const JPH_IndexedTriangle *JPH_MeshShapeSettings_GetIndexedTriangles(const JPH_MeshShapeSettings *settings) {
@@ -1333,7 +1333,7 @@ void JPH_MeshShapeSettings_AddMaterials(JPH_MeshShapeSettings *settings, const J
 }
 
 uint32_t JPH_MeshShapeSettings_GetNumMaterials(const JPH_MeshShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mMaterials.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mMaterials.size());
 }
 
 const JPH_PhysicsMaterial *JPH_MeshShapeSettings_GetMaterial(const JPH_MeshShapeSettings *settings, uint32_t index) {
@@ -1365,11 +1365,11 @@ bool JPH_MeshShapeSettings_GetPerTriangleUserData(const JPH_MeshShapeSettings *s
 }
 
 void JPH_MeshShapeSettings_SetBuildQuality(JPH_MeshShapeSettings *settings, JPH_MeshShapeSettings_EBuildQuality buildQuality) {
-    ToCpp(settings)->mBuildQuality = (JPH::MeshShapeSettings::EBuildQuality)buildQuality;
+    ToCpp(settings)->mBuildQuality = static_cast<JPH::MeshShapeSettings::EBuildQuality>(buildQuality);
 }
 
 JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const JPH_MeshShapeSettings *settings) {
-    return (JPH_MeshShapeSettings_EBuildQuality)ToCpp(settings)->mBuildQuality;
+    return static_cast<JPH_MeshShapeSettings_EBuildQuality>(ToCpp(settings)->mBuildQuality);
 }
 
 JPH_HeightFieldShapeSettings *JPH_HeightFieldShapeSettings_Create() {
@@ -1400,7 +1400,7 @@ void JPH_HeightFieldShapeSettings_AddHeightSamples(JPH_HeightFieldShapeSettings 
 }
 
 uint32_t JPH_HeightFieldShapeSettings_GetNumHeightSamples(const JPH_HeightFieldShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mHeightSamples.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mHeightSamples.size());
 }
 
 const float *JPH_HeightFieldShapeSettings_GetHeightSamples(const JPH_HeightFieldShapeSettings *settings) {
@@ -1417,7 +1417,7 @@ void JPH_HeightFieldShapeSettings_AddMaterialIndices(JPH_HeightFieldShapeSetting
 }
 
 uint32_t JPH_HeightFieldShapeSettings_GetNumMaterialIndices(const JPH_HeightFieldShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mMaterialIndices.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mMaterialIndices.size());
 }
 
 const uint8_t *JPH_HeightFieldShapeSettings_GetMaterialIndices(const JPH_HeightFieldShapeSettings *settings) {
@@ -1436,7 +1436,7 @@ void JPH_HeightFieldShapeSettings_AddMaterials(JPH_HeightFieldShapeSettings *set
 }
 
 uint32_t JPH_HeightFieldShapeSettings_GetNumMaterials(const JPH_HeightFieldShapeSettings *settings) {
-    return (uint32_t)ToCpp(settings)->mMaterials.size();
+    return static_cast<uint32_t>(ToCpp(settings)->mMaterials.size());
 }
 
 const JPH_PhysicsMaterial *JPH_HeightFieldShapeSettings_GetMaterial(const JPH_HeightFieldShapeSettings *settings, uint32_t index) {
@@ -1513,4 +1513,103 @@ void JPH_HeightFieldShapeSettings_SetActiveEdgeCosThresholdAngle(JPH_HeightField
 
 float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(const JPH_HeightFieldShapeSettings *settings) {
     return ToCpp(settings)->mActiveEdgeCosThresholdAngle;
+}
+
+void JPH_Shape_AddRef(JPH_Shape *shape) {
+    ToCpp(shape)->AddRef();
+}
+
+void JPH_Shape_Release(JPH_Shape *shape) {
+    ToCpp(shape)->Release();
+}
+
+JPH_Shape_EShapeType JPH_Shape_GetType(const JPH_Shape *shape) {
+    return static_cast<JPH_Shape_EShapeType>(ToCpp(shape)->GetType());
+}
+
+JPH_Shape_EShapeSubType JPH_Shape_GetSubType(const JPH_Shape *shape) {
+    return static_cast<JPH_Shape_EShapeSubType>(ToCpp(shape)->GetSubType());
+}
+
+uint64_t JPH_Shape_GetUserData(const JPH_Shape *shape) {
+    return ToCpp(shape)->GetUserData();
+}
+
+void JPH_Shape_SetUserData(JPH_Shape *shape, uint64_t userData) {
+    ToCpp(shape)->SetUserData(userData);
+}
+
+bool JPH_Shape_MustBeStatic(const JPH_Shape *shape) {
+    return ToCpp(shape)->MustBeStatic();
+}
+
+JPH_Vec3 JPH_Shape_GetCenterOfMass(const JPH_Shape *shape) {
+    return ToC(ToCpp(shape)->GetCenterOfMass());
+}
+
+JPH_AABox JPH_Shape_GetLocalBounds(const JPH_Shape *shape) {
+    return ToC(ToCpp(shape)->GetLocalBounds());
+}
+
+uint32_t JPH_Shape_GetSubShapeIDBitsRecursive(const JPH_Shape *shape) {
+    return ToCpp(shape)->GetSubShapeIDBitsRecursive();
+}
+
+JPH_AABox JPH_Shape_GetWorldSpaceBounds(const JPH_Shape *shape, JPH_Mat44 centerOfMassTransform, JPH_Vec3 scale) {
+    return ToC(ToCpp(shape)->GetWorldSpaceBounds(ToCpp(centerOfMassTransform), ToCpp(scale)));
+}
+
+float JPH_Shape_GetInnerRadius(const JPH_Shape *shape) {
+    return ToCpp(shape)->GetInnerRadius();
+}
+
+const JPH_Shape *JPH_Shape_GetLeafShape(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_SubShapeID *outRemainder) {
+    JPH::SubShapeID remainder;
+    const JPH::Shape *result = ToCpp(shape)->GetLeafShape(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), remainder);
+    *outRemainder = *reinterpret_cast<JPH_SubShapeID *>(&remainder);
+    return ToC(result);
+}
+
+const JPH_PhysicsMaterial *JPH_Shape_GetMaterial(const JPH_Shape *shape, JPH_SubShapeID subShapeID) {
+    return ToC(ToCpp(shape)->GetMaterial(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID)));
+}
+
+JPH_Vec3 JPH_Shape_GetSurfaceNormal(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 localSurfacePosition) {
+    return ToC(ToCpp(shape)->GetSurfaceNormal(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), ToCpp(localSurfacePosition)));
+}
+
+uint64_t JPH_Shape_GetSubShapeUserData(const JPH_Shape *shape, JPH_SubShapeID subShapeID) {
+    return ToCpp(shape)->GetSubShapeUserData(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID));
+}
+
+void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 centerOfMassTransform, JPH_Vec3 scale, JPH_Plane surface, float *outTotalVolume, float *outSubmergedVolume, JPH_Vec3 *outCenterOfBuoyancy) {
+#ifdef JPH_DEBUG_RENDERER
+    ToCpp(shape)->GetSubmergedVolume(ToCpp(centerOfMassTransform), ToCpp(scale), ToCpp(surface), *outTotalVolume, *outSubmergedVolume, *reinterpret_cast<JPH::Vec3 *>(outCenterOfBuoyancy), JPH::RVec3(JPH::Vec3::sZero()));
+#else
+    ToCpp(shape)->GetSubmergedVolume(ToCpp(centerOfMassTransform), ToCpp(scale), ToCpp(surface), *outTotalVolume, *outSubmergedVolume, *reinterpret_cast<JPH::Vec3 *>(outCenterOfBuoyancy));
+#endif
+}
+
+JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale) {
+    auto result = ToCpp(shape)->ScaleShape(ToCpp(scale));
+    if (!result.IsValid()) {
+        return nullptr;
+    }
+
+    auto scaledShape = result.Get().GetPtr();
+    scaledShape->AddRef();
+
+    return ToC(scaledShape);
+}
+
+float JPH_Shape_GetVolume(const JPH_Shape *shape) {
+    return ToCpp(shape)->GetVolume();
+}
+
+bool JPH_Shape_IsValidScale(const JPH_Shape *shape, JPH_Vec3 scale) {
+    return ToCpp(shape)->IsValidScale(ToCpp(scale));
+}
+
+JPH_Vec3 JPH_Shape_MakeScaleValid(const JPH_Shape *shape, JPH_Vec3 scale) {
+    return ToC(ToCpp(shape)->MakeScaleValid(ToCpp(scale)));
 }
