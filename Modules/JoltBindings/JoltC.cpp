@@ -1371,3 +1371,146 @@ void JPH_MeshShapeSettings_SetBuildQuality(JPH_MeshShapeSettings *settings, JPH_
 JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const JPH_MeshShapeSettings *settings) {
     return (JPH_MeshShapeSettings_EBuildQuality)ToCpp(settings)->mBuildQuality;
 }
+
+JPH_HeightFieldShapeSettings *JPH_HeightFieldShapeSettings_Create() {
+    return ToC(new JPH::HeightFieldShapeSettings);
+}
+
+void JPH_HeightFieldShapeSettings_Destroy(JPH_HeightFieldShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(HeightFieldShape);
+
+void JPH_HeightFieldShapeSettings_DetermineMinAndMaxSample(const JPH_HeightFieldShapeSettings *settings, float *outMinValue, float *outMaxValue, float *outQuantizationScale) {
+    ToCpp(settings)->DetermineMinAndMaxSample(*outMinValue, *outMaxValue, *outQuantizationScale);
+}
+
+uint32_t JPH_HeightFieldShapeSettings_CalculateBitsPerSampleForError(const JPH_HeightFieldShapeSettings *settings, float maxError) {
+    return ToCpp(settings)->CalculateBitsPerSampleForError(maxError);
+}
+
+void JPH_HeightFieldShapeSettings_AddHeightSample(JPH_HeightFieldShapeSettings *settings, float sample) {
+    ToCpp(settings)->mHeightSamples.push_back(sample);
+}
+
+void JPH_HeightFieldShapeSettings_AddHeightSamples(JPH_HeightFieldShapeSettings *settings, const float *samples, uint32_t count) {
+    auto &arr = ToCpp(settings)->mHeightSamples;
+    arr.insert(arr.end(), samples, samples + count);
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetNumHeightSamples(const JPH_HeightFieldShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mHeightSamples.size();
+}
+
+const float *JPH_HeightFieldShapeSettings_GetHeightSamples(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mHeightSamples.data();
+}
+
+void JPH_HeightFieldShapeSettings_AddMaterialIndex(JPH_HeightFieldShapeSettings *settings, uint8_t materialIndex) {
+    ToCpp(settings)->mMaterialIndices.push_back(materialIndex);
+}
+
+void JPH_HeightFieldShapeSettings_AddMaterialIndices(JPH_HeightFieldShapeSettings *settings, const uint8_t *materialIndices, uint32_t count) {
+    auto &arr = ToCpp(settings)->mMaterialIndices;
+    arr.insert(arr.end(), materialIndices, materialIndices + count);
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetNumMaterialIndices(const JPH_HeightFieldShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mMaterialIndices.size();
+}
+
+const uint8_t *JPH_HeightFieldShapeSettings_GetMaterialIndices(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mMaterialIndices.data();
+}
+
+void JPH_HeightFieldShapeSettings_AddMaterial(JPH_HeightFieldShapeSettings *settings, const JPH_PhysicsMaterial *material) {
+    ToCpp(settings)->mMaterials.push_back(ToCpp(material));
+}
+
+void JPH_HeightFieldShapeSettings_AddMaterials(JPH_HeightFieldShapeSettings *settings, const JPH_PhysicsMaterial **materials, uint32_t count) {
+    auto &arr = ToCpp(settings)->mMaterials;
+    for (uint32_t i = 0; i < count; i++) {
+        arr.push_back(ToCpp(materials[i]));
+    }
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetNumMaterials(const JPH_HeightFieldShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mMaterials.size();
+}
+
+const JPH_PhysicsMaterial *JPH_HeightFieldShapeSettings_GetMaterial(const JPH_HeightFieldShapeSettings *settings, uint32_t index) {
+    return ToC(ToCpp(settings)->mMaterials[index].GetPtr());
+}
+
+void JPH_HeightFieldShapeSettings_SetOffset(JPH_HeightFieldShapeSettings *settings, JPH_Vec3 offset) {
+    ToCpp(settings)->mOffset = ToCpp(offset);
+}
+
+JPH_Vec3 JPH_HeightFieldShapeSettings_GetOffset(const JPH_HeightFieldShapeSettings *settings) {
+    return ToC(ToCpp(settings)->mOffset);
+}
+
+void JPH_HeightFieldShapeSettings_SetScale(JPH_HeightFieldShapeSettings *settings, JPH_Vec3 scale) {
+    ToCpp(settings)->mScale = ToCpp(scale);
+}
+
+JPH_Vec3 JPH_HeightFieldShapeSettings_GetScale(const JPH_HeightFieldShapeSettings *settings) {
+    return ToC(ToCpp(settings)->mScale);
+}
+
+void JPH_HeightFieldShapeSettings_SetSampleCount(JPH_HeightFieldShapeSettings *settings, uint32_t sampleCount) {
+    ToCpp(settings)->mSampleCount = sampleCount;
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetSampleCount(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mSampleCount;
+}
+
+void JPH_HeightFieldShapeSettings_SetMinHeightValue(JPH_HeightFieldShapeSettings *settings, float minHeightValue) {
+    ToCpp(settings)->mMinHeightValue = minHeightValue;
+}
+
+float JPH_HeightFieldShapeSettings_GetMinHeightValue(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mMinHeightValue;
+}
+
+void JPH_HeightFieldShapeSettings_SetMaxHeightValue(JPH_HeightFieldShapeSettings *settings, float maxHeightValue) {
+    ToCpp(settings)->mMaxHeightValue = maxHeightValue;
+}
+
+float JPH_HeightFieldShapeSettings_GetMaxHeightValue(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mMaxHeightValue;
+}
+
+void JPH_HeightFieldShapeSettings_SetMaterialsCapacity(JPH_HeightFieldShapeSettings *settings, uint32_t materialsCapacity) {
+    ToCpp(settings)->mMaterialsCapacity = materialsCapacity;
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetMaterialsCapacity(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mMaterialsCapacity;
+}
+
+void JPH_HeightFieldShapeSettings_SetBlockSize(JPH_HeightFieldShapeSettings *settings, uint32_t blockSize) {
+    ToCpp(settings)->mBlockSize = blockSize;
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetBlockSize(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mBlockSize;
+}
+
+void JPH_HeightFieldShapeSettings_SetBitsPerSample(JPH_HeightFieldShapeSettings *settings, uint32_t bitsPerSample) {
+    ToCpp(settings)->mBitsPerSample = bitsPerSample;
+}
+
+uint32_t JPH_HeightFieldShapeSettings_GetBitsPerSample(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mBitsPerSample;
+}
+
+void JPH_HeightFieldShapeSettings_SetActiveEdgeCosThresholdAngle(JPH_HeightFieldShapeSettings *settings, float activeEdgeCosThresholdAngle) {
+    ToCpp(settings)->mActiveEdgeCosThresholdAngle = activeEdgeCosThresholdAngle;
+}
+
+float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(const JPH_HeightFieldShapeSettings *settings) {
+    return ToCpp(settings)->mActiveEdgeCosThresholdAngle;
+}
