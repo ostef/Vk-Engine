@@ -1515,6 +1515,42 @@ float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(const JPH_Heig
     return ToCpp(settings)->mActiveEdgeCosThresholdAngle;
 }
 
+static inline JPH::MassProperties ToCpp(JPH_MassProperties v) {
+    return *reinterpret_cast<JPH::MassProperties *>(&v);
+}
+
+static inline JPH_MassProperties ToC(JPH::MassProperties v) {
+    return *reinterpret_cast<JPH_MassProperties *>(&v);
+}
+
+JPH_Vec3 JPH_MassProperties_GetEquivalentSolidBoxSize(float mass, JPH_Vec3 inertiaDiagonal) {
+    return ToC(JPH::MassProperties::sGetEquivalentSolidBoxSize(mass, ToCpp(inertiaDiagonal)));
+}
+
+bool JPH_MassProperties_DecomposePrincipalMomentsOfInertia(JPH_MassProperties *massProperties, JPH_Mat44 *outRotation, JPH_Vec3 *outDiagonal) {
+    return reinterpret_cast<JPH::MassProperties *>(massProperties)->DecomposePrincipalMomentsOfInertia(*reinterpret_cast<JPH::Mat44 *>(outRotation), *reinterpret_cast<JPH::Vec3 *>(outDiagonal));
+}
+
+void JPH_MassProperties_SetMassAndInertiaOfSolidBox(JPH_MassProperties *massProperties, JPH_Vec3 boxSize, float density) {
+    reinterpret_cast<JPH::MassProperties *>(massProperties)->SetMassAndInertiaOfSolidBox(ToCpp(boxSize), density);
+}
+
+void JPH_MassProperties_ScaleToMass(JPH_MassProperties *massProperties, float mass) {
+    reinterpret_cast<JPH::MassProperties *>(massProperties)->ScaleToMass(mass);
+}
+
+void JPH_MassProperties_Rotate(JPH_MassProperties *massProperties, JPH_Mat44 rotation) {
+    reinterpret_cast<JPH::MassProperties *>(massProperties)->Rotate(ToCpp(rotation));
+}
+
+void JPH_MassProperties_Translate(JPH_MassProperties *massProperties, JPH_Vec3 translation) {
+    reinterpret_cast<JPH::MassProperties *>(massProperties)->Translate(ToCpp(translation));
+}
+
+void JPH_MassProperties_Scale(JPH_MassProperties *massProperties, JPH_Vec3 scale) {
+    reinterpret_cast<JPH::MassProperties *>(massProperties)->Scale(ToCpp(scale));
+}
+
 void JPH_Shape_AddRef(JPH_Shape *shape) {
     ToCpp(shape)->AddRef();
 }
@@ -1561,6 +1597,10 @@ JPH_AABox JPH_Shape_GetWorldSpaceBounds(const JPH_Shape *shape, JPH_Mat44 center
 
 float JPH_Shape_GetInnerRadius(const JPH_Shape *shape) {
     return ToCpp(shape)->GetInnerRadius();
+}
+
+JPH_MassProperties JPH_Shape_GetMassProperties(const JPH_Shape *shape) {
+    return ToC(ToCpp(shape)->GetMassProperties());
 }
 
 const JPH_Shape *JPH_Shape_GetLeafShape(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_SubShapeID *outRemainder) {

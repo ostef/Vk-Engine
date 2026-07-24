@@ -788,6 +788,19 @@ JOLTC_API float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(cons
 
 // Shape
 
+typedef struct JPH_MassProperties {
+    float mass;
+    JPH_Mat44 inertia;
+} JPH_MassProperties;
+
+JOLTC_API JPH_Vec3 JPH_MassProperties_GetEquivalentSolidBoxSize(float mass, JPH_Vec3 inertiaDiagonal);
+JOLTC_API bool JPH_MassProperties_DecomposePrincipalMomentsOfInertia(JPH_MassProperties *massProperties, JPH_Mat44 *outRotation, JPH_Vec3 *outDiagonal);
+JOLTC_API void JPH_MassProperties_SetMassAndInertiaOfSolidBox(JPH_MassProperties *massProperties, JPH_Vec3 boxSize, float density);
+JOLTC_API void JPH_MassProperties_ScaleToMass(JPH_MassProperties *massProperties, float mass);
+JOLTC_API void JPH_MassProperties_Rotate(JPH_MassProperties *massProperties, JPH_Mat44 rotation);
+JOLTC_API void JPH_MassProperties_Translate(JPH_MassProperties *massProperties, JPH_Vec3 translation);
+JOLTC_API void JPH_MassProperties_Scale(JPH_MassProperties *massProperties, JPH_Vec3 scale);
+
 JOLTC_API void JPH_Shape_AddRef(JPH_Shape *shape);
 JOLTC_API void JPH_Shape_Release(JPH_Shape *shape);
 
@@ -803,6 +816,8 @@ JOLTC_API JPH_AABox JPH_Shape_GetLocalBounds(const JPH_Shape *shape);
 JOLTC_API uint32_t JPH_Shape_GetSubShapeIDBitsRecursive(const JPH_Shape *shape);
 JOLTC_API JPH_AABox JPH_Shape_GetWorldSpaceBounds(const JPH_Shape *shape, JPH_Mat44 centerOfMassTransform, JPH_Vec3 scale);
 JOLTC_API float JPH_Shape_GetInnerRadius(const JPH_Shape *shape);
+
+JOLTC_API JPH_MassProperties JPH_Shape_GetMassProperties(const JPH_Shape *shape);
 
 JOLTC_API const JPH_Shape *JPH_Shape_GetLeafShape(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_SubShapeID *outRemainder);
 JOLTC_API const JPH_PhysicsMaterial *JPH_Shape_GetMaterial(const JPH_Shape *shape, JPH_SubShapeID subShapeID);
