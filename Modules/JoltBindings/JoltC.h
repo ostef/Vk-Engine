@@ -18,12 +18,6 @@
 #define JOLTC_EXTERN extern
 #endif
 
-#if defined(__cplusplus)
-#define JOLTC_ALIGNAS(N) alignas(N)
-#else
-#define JOLTC_ALIGNAS(N) _Alignas(N)
-#endif
-
 #define JOLTC_API JOLTC_EXTERN JOLTC_EXPORT
 
 #if defined(_WIN32)
@@ -44,6 +38,9 @@ typedef uint32_t JPH_Bool;
 #else
     #error "JPH_OBJECT_LAYER_BITS must be 16 or 32"
 #endif
+
+#define JOLTC_VECTOR_ALIGNMENT 16 // @Todo: match this with Jolt/Core/Core.h
+#define JOLTC_DVECTOR_ALIGNMENT 32
 
 // Custom allocator struct, we have this in an effort to let users provide
 // a fast allocation solution specifically for interfaces. We make interfaces
@@ -66,11 +63,8 @@ JOLTC_API void JPH_Free(JPH_Allocator allocator, void *ptr);
 
 // @Todo: ensure vector type alignment
 
-typedef union JPH_Float3 {
-    struct {
-        float x, y, z;
-    };
-    float values[3];
+typedef struct JPH_Float3 {
+    float x, y, z;
 } JPH_Float3;
 
 typedef union JPH_Vec3 {
@@ -78,14 +72,14 @@ typedef union JPH_Vec3 {
         float x, y, z;
     };
     float values[4];
-} JPH_Vec3;
+} JPH_Vec3 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
 
 typedef union JPH_Vec4 {
     struct {
         float x, y, z, w;
     };
     float values[4];
-} JPH_Vec4;
+} JPH_Vec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
 
 typedef struct JPH_Mat44 {
     JPH_Vec4 cols[4];
@@ -96,14 +90,14 @@ typedef union JPH_DVec3 {
         double x, y, z;
     };
     double values[4];
-} JPH_DVec3;
+} JPH_DVec3 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
 
 typedef union JPH_DVec4 {
     struct {
         double x, y, z, w;
     };
     double values[4];
-} JPH_DVec4;
+} JPH_DVec4 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
 
 typedef struct JPH_DMat44 {
     JPH_DVec4 cols[4];
@@ -126,7 +120,7 @@ typedef union JPH_Quat {
         float x, y, z, w;
     };
     float values[4];
-} JPH_Quat;
+} JPH_Quat __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
 
 typedef uint32_t JPH_Color;
 
@@ -832,7 +826,7 @@ JOLTC_API JPH_Vec3 JPH_Shape_GetSurfaceNormal(const JPH_Shape *shape, JPH_SubSha
 
 typedef struct JPH_SupportingFace {
     uint32_t size;
-    JPH_Vec3 elements[32]; // @Todo: make sure this is correctly aligned
+    JPH_Vec3 elements[32];
 } JPH_SupportingFace;
 
 JOLTC_API void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_SupportingFace *outVertices);
@@ -847,8 +841,8 @@ JOLTC_API void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 ce
 JOLTC_API JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale);
 
 typedef struct JPH_Shape_GetTrianglesContext {
-    JOLTC_ALIGNAS(16) uint8_t data[4288];
-} JPH_Shape_GetTrianglesContext;
+    uint8_t data[4288];
+} JPH_Shape_GetTrianglesContext __attribute__((aligned(16)));
 
 JOLTC_API void JPH_Shape_GetTrianglesStart(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, JPH_AABox box, JPH_Vec3 positionCOM, JPH_Quat rotation, JPH_Vec3 scale);
 JOLTC_API uint32_t JPH_Shape_GetTrianglesNext(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, uint32_t maxTrianglesRequested, JPH_Float3 *outTriangleVertices, const JPH_PhysicsMaterial **outMaterials);
