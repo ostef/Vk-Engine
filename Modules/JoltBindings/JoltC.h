@@ -100,7 +100,8 @@ typedef union JPH_DVec4 {
 } JPH_DVec4 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
 
 typedef struct JPH_DMat44 {
-    JPH_DVec4 cols[4];
+    JPH_Vec4 cols[3];
+    JPH_DVec3 col3;
 } JPH_DMat44;
 
 #ifdef JPH_DOUBLE_PRECISION
