@@ -28,10 +28,7 @@
 
 typedef uint32_t JPH_Bool;
 
-#ifndef JPH_OBJECT_LAYER_BITS
-    #define JPH_OBJECT_LAYER_BITS 16
-#endif // JPH_OBJECT_LAYER_BITS
-#if JPH_OBJECT_LAYER_BITS == 16
+#if !defined(JPH_OBJECT_LAYER_BITS) || JPH_OBJECT_LAYER_BITS == 16
     typedef uint16_t JPH_ObjectLayer;
 #elif JPH_OBJECT_LAYER_BITS == 32
     typedef uint32_t JPH_ObjectLayer;
