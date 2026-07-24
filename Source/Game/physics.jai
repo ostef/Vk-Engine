@@ -200,6 +200,10 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         return .{};
     }
 
+    // @Todo: BAD! HEAP ALLOCATION! BAD! The bindings are bad since they don't allow you to create a filter
+    // on the stack. Also functions exist to get default filters from the system and they do not allocate,
+    // but the bindings do not expose them...
+    // For now this is fine, but we need to do something about it.
     broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null);
     defer Jolt.BroadPhaseLayerFilter_Destroy(broad_phase_layer_filter);
 
@@ -229,7 +233,8 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 
     body_lock_read : Jolt.BodyLockRead;
     {
-        body_lock_interface := Jolt.PhysicsSystem_GetBodyLockInterface(world.physics.system);
+        // Happens in between physics update, so we use the NoLock interface
+        body_lock_interface := Jolt.PhysicsSystem_GetBodyLockInterfaceNoLock(world.physics.system);
         Jolt.BodyLockInterface_LockRead(body_lock_interface, result.bodyID, *body_lock_read);
         defer Jolt.BodyLockInterface_UnlockRead(body_lock_interface, *body_lock_read);
 
