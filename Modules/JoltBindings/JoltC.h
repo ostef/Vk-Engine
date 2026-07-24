@@ -596,6 +596,8 @@ JOLTC_API void JPH_CapsuleShapeSettings_SetRadius(JPH_CapsuleShapeSettings *sett
 JOLTC_API float JPH_CapsuleShapeSettings_GetRadius(const JPH_CapsuleShapeSettings *settings);
 JOLTC_API void JPH_CapsuleShapeSettings_SetHalfHeightOfCylinder(JPH_CapsuleShapeSettings *settings, float halfHeightOfCylinder);
 JOLTC_API float JPH_CapsuleShapeSettings_GetHalfHeightOfCylinder(const JPH_CapsuleShapeSettings *settings);
+JOLTC_API bool JPH_CapsuleShapeSettings_IsValid(const JPH_CapsuleShapeSettings *settings);
+JOLTC_API bool JPH_CapsuleShapeSettings_IsSphere(const JPH_CapsuleShapeSettings *settings);
 
 JOLTC_API JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create();
 JOLTC_API void JPH_TaperedCapsuleShapeSettings_Destroy(JPH_TaperedCapsuleShapeSettings *settings);
@@ -606,6 +608,8 @@ JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetTopRadius(JPH_TaperedCapsuleSh
 JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetTopRadius(const JPH_TaperedCapsuleShapeSettings *settings);
 JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetBottomRadius(JPH_TaperedCapsuleShapeSettings *settings, float bottomRadius);
 JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetBottomRadius(const JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API bool JPH_TaperedCapsuleShapeSettings_IsValid(const JPH_TaperedCapsuleShapeSettings *settings);
+JOLTC_API bool JPH_TaperedCapsuleShapeSettings_IsSphere(const JPH_TaperedCapsuleShapeSettings *settings);
 
 JOLTC_API JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create();
 JOLTC_API void JPH_CylinderShapeSettings_Destroy(JPH_CylinderShapeSettings *settings);

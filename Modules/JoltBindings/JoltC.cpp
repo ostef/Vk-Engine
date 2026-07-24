@@ -1027,6 +1027,14 @@ float JPH_CapsuleShapeSettings_GetHalfHeightOfCylinder(const JPH_CapsuleShapeSet
     return ToCpp(settings)->mHalfHeightOfCylinder;
 }
 
+bool JPH_CapsuleShapeSettings_IsValid(const JPH_CapsuleShapeSettings *settings) {
+    return ToCpp(settings)->IsValid();
+}
+
+bool JPH_CapsuleShapeSettings_IsSphere(const JPH_CapsuleShapeSettings *settings) {
+    return ToCpp(settings)->IsSphere();
+}
+
 JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create() {
     return ToC(new JPH::TaperedCapsuleShapeSettings);
 }
@@ -1059,6 +1067,14 @@ void JPH_TaperedCapsuleShapeSettings_SetBottomRadius(JPH_TaperedCapsuleShapeSett
 
 float JPH_TaperedCapsuleShapeSettings_GetBottomRadius(const JPH_TaperedCapsuleShapeSettings *settings) {
     return ToCpp(settings)->mBottomRadius;
+}
+
+bool JPH_TaperedCapsuleShapeSettings_IsValid(const JPH_TaperedCapsuleShapeSettings *settings) {
+    return ToCpp(settings)->IsValid();
+}
+
+bool JPH_TaperedCapsuleShapeSettings_IsSphere(const JPH_TaperedCapsuleShapeSettings *settings) {
+    return ToCpp(settings)->IsSphere();
 }
 
 JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create() {
