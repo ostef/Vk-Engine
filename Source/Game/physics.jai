@@ -333,6 +333,10 @@ Raycast :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 } @ModuleAPI
 
 CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f) -> RayCastResult {
+    if !world.physics.system {
+        return .{};
+    }
+
     broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null);
     defer Jolt.BroadPhaseLayerFilter_Destroy(broad_phase_layer_filter);
 
