@@ -1270,3 +1270,104 @@ void JPH_ConvexHullShapeSettings_SetHullTolerance(JPH_ConvexHullShapeSettings *s
 float JPH_ConvexHullShapeSettings_GetHullTolerance(const JPH_ConvexHullShapeSettings *settings) {
     return ToCpp(settings)->mHullTolerance;
 }
+
+JPH_MeshShapeSettings *JPH_MeshShapeSettings_Create() {
+    return ToC(new JPH::MeshShapeSettings);
+}
+
+void JPH_MeshShapeSettings_Destroy(JPH_MeshShapeSettings *settings) {
+    delete ToCpp(settings);
+}
+
+CREATE_SHAPE_IMPL(MeshShape);
+
+void JPH_MeshShapeSettings_Sanitize(JPH_MeshShapeSettings *settings) {
+    ToCpp(settings)->Sanitize();
+}
+
+void JPH_MeshShapeSettings_AddVertex(JPH_MeshShapeSettings *settings, JPH_Float3 vertex) {
+    ToCpp(settings)->mTriangleVertices.push_back(*reinterpret_cast<JPH::Float3 *>(&vertex));
+}
+
+void JPH_MeshShapeSettings_AddVertices(JPH_MeshShapeSettings *settings, const JPH_Float3 *vertices, uint32_t count) {
+    auto &arr = ToCpp(settings)->mTriangleVertices;
+    auto *cppVertices = reinterpret_cast<const JPH::Float3 *>(vertices);
+    arr.insert(arr.end(), cppVertices, cppVertices + count);
+}
+
+uint32_t JPH_MeshShapeSettings_GetNumVertices(const JPH_MeshShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mTriangleVertices.size();
+}
+
+const JPH_Float3 *JPH_MeshShapeSettings_GetVertices(const JPH_MeshShapeSettings *settings) {
+    return reinterpret_cast<const JPH_Float3 *>(ToCpp(settings)->mTriangleVertices.data());
+}
+
+void JPH_MeshShapeSettings_AddIndexedTriangle(JPH_MeshShapeSettings *settings, JPH_IndexedTriangle triangle) {
+    ToCpp(settings)->mIndexedTriangles.push_back(*reinterpret_cast<JPH::IndexedTriangle *>(&triangle));
+}
+
+void JPH_MeshShapeSettings_AddIndexedTriangles(JPH_MeshShapeSettings *settings, const JPH_IndexedTriangle *triangles, uint32_t count) {
+    auto &arr = ToCpp(settings)->mIndexedTriangles;
+    auto *cppTriangles = reinterpret_cast<const JPH::IndexedTriangle *>(triangles);
+    arr.insert(arr.end(), cppTriangles, cppTriangles + count);
+}
+
+uint32_t JPH_MeshShapeSettings_GetNumIndexedTriangles(const JPH_MeshShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mIndexedTriangles.size();
+}
+
+const JPH_IndexedTriangle *JPH_MeshShapeSettings_GetIndexedTriangles(const JPH_MeshShapeSettings *settings) {
+    return reinterpret_cast<const JPH_IndexedTriangle *>(ToCpp(settings)->mIndexedTriangles.data());
+}
+
+void JPH_MeshShapeSettings_AddMaterial(JPH_MeshShapeSettings *settings, const JPH_PhysicsMaterial *material) {
+    ToCpp(settings)->mMaterials.push_back(ToCpp(material));
+}
+
+void JPH_MeshShapeSettings_AddMaterials(JPH_MeshShapeSettings *settings, const JPH_PhysicsMaterial **materials, uint32_t count) {
+    auto &arr = ToCpp(settings)->mMaterials;
+    for (uint32_t i = 0; i < count; i++) {
+        arr.push_back(ToCpp(materials[i]));
+    }
+}
+
+uint32_t JPH_MeshShapeSettings_GetNumMaterials(const JPH_MeshShapeSettings *settings) {
+    return (uint32_t)ToCpp(settings)->mMaterials.size();
+}
+
+const JPH_PhysicsMaterial *JPH_MeshShapeSettings_GetMaterial(const JPH_MeshShapeSettings *settings, uint32_t index) {
+    return ToC(ToCpp(settings)->mMaterials[index].GetPtr());
+}
+
+void JPH_MeshShapeSettings_SetMaxTrianglesPerLeaf(JPH_MeshShapeSettings *settings, uint32_t maxTrianglesPerLeaf) {
+    ToCpp(settings)->mMaxTrianglesPerLeaf = maxTrianglesPerLeaf;
+}
+
+uint32_t JPH_MeshShapeSettings_GetMaxTrianglesPerLeaf(const JPH_MeshShapeSettings *settings) {
+    return ToCpp(settings)->mMaxTrianglesPerLeaf;
+}
+
+void JPH_MeshShapeSettings_SetActiveEdgeCosThresholdAngle(JPH_MeshShapeSettings *settings, float activeEdgeCosThresholdAngle) {
+    ToCpp(settings)->mActiveEdgeCosThresholdAngle = activeEdgeCosThresholdAngle;
+}
+
+float JPH_MeshShapeSettings_GetActiveEdgeCosThresholdAngle(const JPH_MeshShapeSettings *settings) {
+    return ToCpp(settings)->mActiveEdgeCosThresholdAngle;
+}
+
+void JPH_MeshShapeSettings_SetPerTriangleUserData(JPH_MeshShapeSettings *settings, bool perTriangleUserData) {
+    ToCpp(settings)->mPerTriangleUserData = perTriangleUserData;
+}
+
+bool JPH_MeshShapeSettings_GetPerTriangleUserData(const JPH_MeshShapeSettings *settings) {
+    return ToCpp(settings)->mPerTriangleUserData;
+}
+
+void JPH_MeshShapeSettings_SetBuildQuality(JPH_MeshShapeSettings *settings, JPH_MeshShapeSettings_EBuildQuality buildQuality) {
+    ToCpp(settings)->mBuildQuality = (JPH::MeshShapeSettings::EBuildQuality)buildQuality;
+}
+
+JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const JPH_MeshShapeSettings *settings) {
+    return (JPH_MeshShapeSettings_EBuildQuality)ToCpp(settings)->mBuildQuality;
+}

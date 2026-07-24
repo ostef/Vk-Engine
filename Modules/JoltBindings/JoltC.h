@@ -673,4 +673,29 @@ JOLTC_API float JPH_ConvexHullShapeSettings_GetMaxErrorConvexRadius(const JPH_Co
 JOLTC_API void JPH_ConvexHullShapeSettings_SetHullTolerance(JPH_ConvexHullShapeSettings *settings, float hullTolerance);
 JOLTC_API float JPH_ConvexHullShapeSettings_GetHullTolerance(const JPH_ConvexHullShapeSettings *settings);
 
+JOLTC_API JPH_MeshShapeSettings *JPH_MeshShapeSettings_Create();
+JOLTC_API void JPH_MeshShapeSettings_Destroy(JPH_MeshShapeSettings *settings);
+JOLTC_API JPH_MeshShape *JPH_MeshShapeSettings_CreateShape(JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_Sanitize(JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_AddVertex(JPH_MeshShapeSettings *settings, JPH_Float3 vertex);
+JOLTC_API void JPH_MeshShapeSettings_AddVertices(JPH_MeshShapeSettings *settings, const JPH_Float3 *vertices, uint32_t count);
+JOLTC_API uint32_t JPH_MeshShapeSettings_GetNumVertices(const JPH_MeshShapeSettings *settings);
+JOLTC_API const JPH_Float3 *JPH_MeshShapeSettings_GetVertices(const JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_AddIndexedTriangle(JPH_MeshShapeSettings *settings, JPH_IndexedTriangle triangle);
+JOLTC_API void JPH_MeshShapeSettings_AddIndexedTriangles(JPH_MeshShapeSettings *settings, const JPH_IndexedTriangle *triangles, uint32_t count);
+JOLTC_API uint32_t JPH_MeshShapeSettings_GetNumIndexedTriangles(const JPH_MeshShapeSettings *settings);
+JOLTC_API const JPH_IndexedTriangle *JPH_MeshShapeSettings_GetIndexedTriangles(const JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_AddMaterial(JPH_MeshShapeSettings *settings, const JPH_PhysicsMaterial *material);
+JOLTC_API void JPH_MeshShapeSettings_AddMaterials(JPH_MeshShapeSettings *settings, const JPH_PhysicsMaterial **materials, uint32_t count);
+JOLTC_API uint32_t JPH_MeshShapeSettings_GetNumMaterials(const JPH_MeshShapeSettings *settings);
+JOLTC_API const JPH_PhysicsMaterial *JPH_MeshShapeSettings_GetMaterial(const JPH_MeshShapeSettings *settings, uint32_t index);
+JOLTC_API void JPH_MeshShapeSettings_SetMaxTrianglesPerLeaf(JPH_MeshShapeSettings *settings, uint32_t maxTrianglesPerLeaf);
+JOLTC_API uint32_t JPH_MeshShapeSettings_GetMaxTrianglesPerLeaf(const JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_SetActiveEdgeCosThresholdAngle(JPH_MeshShapeSettings *settings, float activeEdgeCosThresholdAngle);
+JOLTC_API float JPH_MeshShapeSettings_GetActiveEdgeCosThresholdAngle(const JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_SetPerTriangleUserData(JPH_MeshShapeSettings *settings, bool perTriangleUserData);
+JOLTC_API bool JPH_MeshShapeSettings_GetPerTriangleUserData(const JPH_MeshShapeSettings *settings);
+JOLTC_API void JPH_MeshShapeSettings_SetBuildQuality(JPH_MeshShapeSettings *settings, JPH_MeshShapeSettings_EBuildQuality buildQuality);
+JOLTC_API JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const JPH_MeshShapeSettings *settings);
+
 #endif
