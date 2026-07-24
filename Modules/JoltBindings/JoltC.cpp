@@ -1646,6 +1646,14 @@ JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale) {
     return ToC(scaledShape);
 }
 
+void JPH_Shape_GetTrianglesStart(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, JPH_AABox box, JPH_Vec3 positionCOM, JPH_Quat rotation, JPH_Vec3 scale) {
+    ToCpp(shape)->GetTrianglesStart(*reinterpret_cast<JPH::Shape::GetTrianglesContext *>(ioContext), ToCpp(box), ToCpp(positionCOM), ToCpp(rotation), ToCpp(scale));
+}
+
+uint32_t JPH_Shape_GetTrianglesNext(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, uint32_t maxTrianglesRequested, JPH_Float3 *outTriangleVertices, const JPH_PhysicsMaterial **outMaterials) {
+    return static_cast<uint32_t>(ToCpp(shape)->GetTrianglesNext(*reinterpret_cast<JPH::Shape::GetTrianglesContext *>(ioContext), static_cast<int>(maxTrianglesRequested), reinterpret_cast<JPH::Float3 *>(outTriangleVertices), reinterpret_cast<const JPH::PhysicsMaterial **>(outMaterials)));
+}
+
 JPH_Shape_Stats JPH_Shape_GetStats(const JPH_Shape *shape) {
     auto stats = ToCpp(shape)->GetStats();
     return *reinterpret_cast<JPH_Shape_Stats *>(&stats);

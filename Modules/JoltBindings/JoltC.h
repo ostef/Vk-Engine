@@ -18,6 +18,12 @@
 #define JOLTC_EXTERN extern
 #endif
 
+#if defined(__cplusplus)
+#define JOLTC_ALIGNAS(N) alignas(N)
+#else
+#define JOLTC_ALIGNAS(N) _Alignas(N)
+#endif
+
 #define JOLTC_API JOLTC_EXTERN JOLTC_EXPORT
 
 #if defined(_WIN32)
@@ -835,7 +841,17 @@ JOLTC_API uint64_t JPH_Shape_GetSubShapeUserData(const JPH_Shape *shape, JPH_Sub
 
 JOLTC_API void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 centerOfMassTransform, JPH_Vec3 scale, JPH_Plane surface, float *outTotalVolume, float *outSubmergedVolume, JPH_Vec3 *outCenterOfBuoyancy);
 
+// @Todo: Shape::CastRay
+// @Todo: Shape::CollidePoint
+
 JOLTC_API JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale);
+
+typedef struct JPH_Shape_GetTrianglesContext {
+    JOLTC_ALIGNAS(16) uint8_t data[4288];
+} JPH_Shape_GetTrianglesContext;
+
+JOLTC_API void JPH_Shape_GetTrianglesStart(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, JPH_AABox box, JPH_Vec3 positionCOM, JPH_Quat rotation, JPH_Vec3 scale);
+JOLTC_API uint32_t JPH_Shape_GetTrianglesNext(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, uint32_t maxTrianglesRequested, JPH_Float3 *outTriangleVertices, const JPH_PhysicsMaterial **outMaterials);
 
 typedef struct JPH_Shape_Stats {
     size_t sizeBytes;
