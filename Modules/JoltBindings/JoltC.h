@@ -161,42 +161,6 @@ typedef struct JPH_ObjectLayerPairFilter         JPH_ObjectLayerPairFilter;
 typedef struct JPH_BroadPhaseLayerFilter         JPH_BroadPhaseLayerFilter;
 typedef struct JPH_ObjectLayerFilter             JPH_ObjectLayerFilter;
 
-// Shape settings
-
-typedef struct JPH_ShapeSettings                   JPH_ShapeSettings;
-typedef struct JPH_ConvexShapeSettings             JPH_ConvexShapeSettings;
-typedef struct JPH_SphereShapeSettings             JPH_SphereShapeSettings;
-typedef struct JPH_BoxShapeSettings                JPH_BoxShapeSettings;
-typedef struct JPH_PlaneShapeSettings              JPH_PlaneShapeSettings;
-typedef struct JPH_TriangleShapeSettings           JPH_TriangleShapeSettings;
-typedef struct JPH_CapsuleShapeSettings            JPH_CapsuleShapeSettings;
-typedef struct JPH_TaperedCapsuleShapeSettings     JPH_TaperedCapsuleShapeSettings;
-typedef struct JPH_CylinderShapeSettings           JPH_CylinderShapeSettings;
-typedef struct JPH_TaperedCylinderShapeSettings    JPH_TaperedCylinderShapeSettings;
-typedef struct JPH_ConvexHullShapeSettings         JPH_ConvexHullShapeSettings;
-typedef struct JPH_CompoundShapeSettings           JPH_CompoundShapeSettings;
-typedef struct JPH_StaticCompoundShapeSettings     JPH_StaticCompoundShapeSettings;
-typedef struct JPH_MutableCompoundShapeSettings    JPH_MutableCompoundShapeSettings;
-typedef struct JPH_MeshShapeSettings               JPH_MeshShapeSettings;
-typedef struct JPH_HeightFieldShapeSettings        JPH_HeightFieldShapeSettings;
-typedef struct JPH_DecoratedShapeSettings          JPH_DecoratedShapeSettings;
-typedef struct JPH_RotatedTranslatedShapeSettings  JPH_RotatedTranslatedShapeSettings;
-typedef struct JPH_ScaledShapeSettings             JPH_ScaledShapeSettings;
-typedef struct JPH_OffsetCenterOfMassShapeSettings JPH_OffsetCenterOfMassShapeSettings;
-typedef struct JPH_EmptyShapeSettings              JPH_EmptyShapeSettings;
-
-typedef struct JPH_IndexedTriangle {
-    uint32_t idx[3];
-    uint32_t materialIndex;
-    uint32_t userData;
-} JPH_IndexedTriangle;
-
-typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
-enum {
-    JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
-    JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
-};
-
 // Shapes
 
 typedef uint32_t JPH_SubShapeID;
@@ -511,6 +475,40 @@ JOLTC_API void JPH_PhysicsSystem_DrawConstraintReferenceFrame(JPH_PhysicsSystem 
 #endif
 
 // Shape settings
+
+typedef struct JPH_ShapeSettings                   JPH_ShapeSettings;
+typedef struct JPH_ConvexShapeSettings             JPH_ConvexShapeSettings;
+typedef struct JPH_SphereShapeSettings             JPH_SphereShapeSettings;
+typedef struct JPH_BoxShapeSettings                JPH_BoxShapeSettings;
+typedef struct JPH_PlaneShapeSettings              JPH_PlaneShapeSettings;
+typedef struct JPH_TriangleShapeSettings           JPH_TriangleShapeSettings;
+typedef struct JPH_CapsuleShapeSettings            JPH_CapsuleShapeSettings;
+typedef struct JPH_TaperedCapsuleShapeSettings     JPH_TaperedCapsuleShapeSettings;
+typedef struct JPH_CylinderShapeSettings           JPH_CylinderShapeSettings;
+typedef struct JPH_TaperedCylinderShapeSettings    JPH_TaperedCylinderShapeSettings;
+typedef struct JPH_ConvexHullShapeSettings         JPH_ConvexHullShapeSettings;
+typedef struct JPH_CompoundShapeSettings           JPH_CompoundShapeSettings;
+typedef struct JPH_StaticCompoundShapeSettings     JPH_StaticCompoundShapeSettings;
+typedef struct JPH_MutableCompoundShapeSettings    JPH_MutableCompoundShapeSettings;
+typedef struct JPH_MeshShapeSettings               JPH_MeshShapeSettings;
+typedef struct JPH_HeightFieldShapeSettings        JPH_HeightFieldShapeSettings;
+typedef struct JPH_DecoratedShapeSettings          JPH_DecoratedShapeSettings;
+typedef struct JPH_RotatedTranslatedShapeSettings  JPH_RotatedTranslatedShapeSettings;
+typedef struct JPH_ScaledShapeSettings             JPH_ScaledShapeSettings;
+typedef struct JPH_OffsetCenterOfMassShapeSettings JPH_OffsetCenterOfMassShapeSettings;
+typedef struct JPH_EmptyShapeSettings              JPH_EmptyShapeSettings;
+
+typedef struct JPH_IndexedTriangle {
+    uint32_t idx[3];
+    uint32_t materialIndex;
+    uint32_t userData;
+} JPH_IndexedTriangle;
+
+typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
+enum {
+    JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
+    JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
+};
 
 // @Todo: add aliases for inherited methods
 
