@@ -5,6 +5,7 @@
 #define JOLTC_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if !defined(JOLTC_EXPORT)
@@ -828,6 +829,13 @@ JOLTC_API uint64_t JPH_Shape_GetSubShapeUserData(const JPH_Shape *shape, JPH_Sub
 JOLTC_API void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 centerOfMassTransform, JPH_Vec3 scale, JPH_Plane surface, float *outTotalVolume, float *outSubmergedVolume, JPH_Vec3 *outCenterOfBuoyancy);
 
 JOLTC_API JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale);
+
+typedef struct JPH_Shape_Stats {
+    size_t sizeBytes;
+    uint32_t numTriangles;
+} JPH_Shape_Stats;
+
+JOLTC_API JPH_Shape_Stats JPH_Shape_GetStats(const JPH_Shape *shape);
 
 JOLTC_API float JPH_Shape_GetVolume(const JPH_Shape *shape);
 JOLTC_API bool JPH_Shape_IsValidScale(const JPH_Shape *shape, JPH_Vec3 scale);

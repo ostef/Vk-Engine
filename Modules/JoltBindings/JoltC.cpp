@@ -1642,6 +1642,11 @@ JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale) {
     return ToC(scaledShape);
 }
 
+JPH_Shape_Stats JPH_Shape_GetStats(const JPH_Shape *shape) {
+    auto stats = ToCpp(shape)->GetStats();
+    return *reinterpret_cast<JPH_Shape_Stats *>(&stats);
+}
+
 float JPH_Shape_GetVolume(const JPH_Shape *shape) {
     return ToCpp(shape)->GetVolume();
 }
