@@ -84,7 +84,7 @@ typedef struct JPH_DefaultBroadPhaseLayerFilter {
 } JPH_DefaultBroadPhaseLayerFilter;
 
 JOLTC_API bool JPH_DefaultBroadPhaseLayerFilter_ShouldCollide(const void *data, JPH_BroadPhaseLayer layer);
-JOLTC_API const JPH_BroadPhaseLayerFilter *JPH_JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_Allocator allocator);
+JOLTC_API const JPH_BroadPhaseLayerFilter *JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_Allocator allocator);
 
 typedef struct JPH_DefaultObjectLayerFilter {
     const JPH_ObjectLayerPairFilter *objectLayerPairFilter;
