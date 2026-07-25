@@ -71,9 +71,9 @@ enum {
 
 typedef uint8_t JPH_EOverrideMassProperties;
 enum {
-    CalculateMassAndInertia,
-    CalculateInertia,
-    MassAndInertiaProvided
+    JPH_EOverrideMassProperties_CalculateMassAndInertia,
+    JPH_EOverrideMassProperties_CalculateInertia,
+    JPH_EOverrideMassProperties_MassAndInertiaProvided
 };
 
 typedef struct JPH_BodyCreationSettings {

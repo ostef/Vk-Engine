@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
             .ShouldCollide=ObjectVsBroadPhaseLayerFilter_ShouldCollide,
         }, (JPH_Allocator){});
 
-    JPH_PhysicsSystemSettings systemSettings = (JPH_PhysicsSystemSettings){
+    JPH_PhysicsSystemSettings systemSettings = {
         .maxBodies=1024,
         .numBodyMutexes=0,
         .maxBodyPairs=1024,
@@ -115,6 +115,62 @@ int main(int argc, char **argv) {
         .objectLayerPairFilter=objectLayerPairFilter,
     };
     JPH_PhysicsSystem *system = JPH_PhysicsSystem_Create(systemSettings);
+
+    JPH_BodyInterface *bodyInterface = JPH_PhysicsSystem_GetBodyInterface(system);
+
+    JPH_BoxShapeSettings *floorShapeSettings = JPH_BoxShapeSettings_Create();
+    JPH_BoxShapeSettings_SetHalfExtent(floorShapeSettings, (JPH_Vec3){100, 1, 100});
+
+    JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)floorShapeSettings);
+
+    JPH_BodyCreationSettings floorSettings;
+    JPH_BodyCreationSettings_SetDefaults(&floorSettings);
+    floorSettings.position = (JPH_RVec3){0, -1, 0};
+    floorSettings.rotation = JPH_Quat_sIdentity;
+    floorSettings.objectLayer = ObjectLayer_NonMoving;
+    floorSettings.motionType = JPH_EMotionType_Static;
+    floorSettings.shapePtr = floorShape;
+
+    JPH_Body *floor = JPH_BodyInterface_CreateBody(bodyInterface, &floorSettings);
+    JPH_BodyInterface_AddBody(bodyInterface, JPH_Body_GetID(floor), JPH_EActivation_Activate);
+
+    JPH_SphereShapeSettings *sphereShapeSettings = JPH_SphereShapeSettings_Create();
+    JPH_SphereShapeSettings_SetRadius(sphereShapeSettings, 0.5f);
+
+    JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)sphereShapeSettings);
+
+    JPH_BodyCreationSettings sphereSettings;
+    JPH_BodyCreationSettings_SetDefaults(&sphereSettings);
+    sphereSettings.position = (JPH_RVec3){0, 2, 0};
+    sphereSettings.rotation = JPH_Quat_sIdentity;
+    sphereSettings.objectLayer = ObjectLayer_Moving;
+    sphereSettings.motionType = JPH_EMotionType_Dynamic;
+    sphereSettings.shapePtr = sphereShape;
+
+    JPH_BodyID sphereID = JPH_BodyInterface_CreateAndAddBody(bodyInterface, &sphereSettings, JPH_EActivation_Activate);
+
+    JPH_BodyInterface_SetLinearVelocity(bodyInterface, sphereID, (JPH_Vec3){0, -5, 0});
+
+    JPH_PhysicsSystem_OptimizeBroadPhase(system);
+
+    const float cDeltaTime = 1.0f / 60.0f;
+    uint32_t step = 0;
+    while (JPH_BodyInterface_IsActive(bodyInterface, sphereID)) {
+        step += 1;
+
+        JPH_RVec3 position = JPH_BodyInterface_GetCenterOfMassPosition(bodyInterface, sphereID);
+        JPH_Vec3 velocity = JPH_BodyInterface_GetLinearVelocity(bodyInterface, sphereID);
+        printf("Step %d: Position = (%f, %f, %f), Velocity = (%f, %f, %f)\n", step, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
+
+        const int cCollisionSteps = 1;
+        JPH_PhysicsSystem_Update(system, cDeltaTime, cCollisionSteps, tempAllocator, jobSystem);
+    }
+
+    JPH_BodyInterface_RemoveBody(bodyInterface, sphereID);
+    JPH_BodyInterface_DestroyBody(bodyInterface, sphereID);
+
+    JPH_BodyInterface_RemoveBody(bodyInterface, JPH_Body_GetID(floor));
+    JPH_BodyInterface_DestroyBody(bodyInterface, JPH_Body_GetID(floor));
 
     JPH_PhysicsSystem_Destroy(system);
 

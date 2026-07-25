@@ -102,6 +102,8 @@ typedef union JPH_Quat {
     float values[4];
 } JPH_Quat __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
 
+#define JPH_Quat_sIdentity ((JPH_Quat){0.0f, 0.0f, 0.0f, 1.0f})
+
 typedef uint32_t JPH_Color;
 
 typedef struct JPH_AABox {

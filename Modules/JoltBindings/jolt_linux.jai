@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai - build
+// jai generate.jai
 //
 
 
@@ -140,6 +140,7 @@ JobSystemSingleThreaded_Create :: (maxJobs: u32) -> *JobSystem #foreign JoltC "J
 JobSystemThreadPool_Create :: (maxJobs: u32, maxBarriers: u32, numThreads: s32) -> *JobSystem #foreign JoltC "JPH_JobSystemThreadPool_Create";
 JobSystem_Destroy :: (job_system: *JobSystem) -> void #foreign JoltC "JPH_JobSystem_Destroy";
 
+// @Todo: ifdef custom allocators
 AllocateFunction :: #type (size: u64) -> *void #c_call;
 ReallocateFunction :: #type (block: *void, oldSize: u64, newSize: u64) -> *void #c_call;
 FreeFunction :: #type (block: *void) -> void #c_call;
@@ -147,6 +148,8 @@ AlignedAllocateFunction :: #type (size: u64, alignment: u64) -> *void #c_call;
 AlignedFreeFunction :: #type (block: *void) -> void #c_call;
 
 TraceHandler :: #type (fmt: *u8, __args: ..Any) -> void #c_call;
+
+// @Todo: ifdef enable asserts
 AssertFailedHandler :: #type (expression: *u8, message: *u8, file: *u8, line: u32) -> bool #c_call;
 
 RegisterDefaultAllocator :: () -> void #foreign JoltC "JPH_RegisterDefaultAllocator";
@@ -173,6 +176,8 @@ Allocator :: struct {
 
 Allocator_Allocate :: (allocator: Allocator, size: u64) -> *void #foreign JoltC "JPH_Allocator_Allocate";
 Allocator_Free :: (allocator: Allocator, ptr: *void) -> void #foreign JoltC "JPH_Allocator_Free";
+
+GetJoltVersionID :: () -> u64 #foreign JoltC "JPH_GetJoltVersionID";
 
 PhysicsMaterial :: struct {}
 BroadPhaseLayerInterface :: struct {}
@@ -893,10 +898,14 @@ EAllowedDOFs_1 :: enum u32 {
 
 // BodyCreationSettings
 EOverrideMassProperties :: u8;
-anon_enum :: enum u32 {
+EOverrideMassProperties_1 :: enum u32 {
     CalculateMassAndInertia :: 0;
     CalculateInertia        :: 1;
     MassAndInertiaProvided  :: 2;
+
+    JPH_EOverrideMassProperties_CalculateMassAndInertia :: CalculateMassAndInertia;
+    JPH_EOverrideMassProperties_CalculateInertia        :: CalculateInertia;
+    JPH_EOverrideMassProperties_MassAndInertiaProvided  :: MassAndInertiaProvided;
 }
 
 BodyCreationSettings :: struct {

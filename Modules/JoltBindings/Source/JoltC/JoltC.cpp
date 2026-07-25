@@ -2097,7 +2097,7 @@ static inline const JPH::BodyCreationSettings *ToCpp(const JPH_BodyCreationSetti
 }
 
 void JPH_BodyCreationSettings_SetDefaults(JPH_BodyCreationSettings *settings) {
-    *ToCpp(settings) = JPH::BodyCreationSettings();
+    new(settings) JPH::BodyCreationSettings;
 }
 
 JPH_Shape *JPH_BodyCreationSettings_ConvertShapeSettings(JPH_BodyCreationSettings *settings) {
@@ -2131,7 +2131,7 @@ static inline const JPH::SoftBodyCreationSettings *ToCpp(const JPH_SoftBodyCreat
 }
 
 JOLTC_API void JPH_SoftBodyCreationSettings_SetDefaults(JPH_SoftBodyCreationSettings *settings) {
-    *ToCpp(settings) = JPH::SoftBodyCreationSettings();
+    new(settings) JPH::SoftBodyCreationSettings;
 }
 
 // BodyInterface
