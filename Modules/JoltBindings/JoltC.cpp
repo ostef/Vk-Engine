@@ -6,6 +6,7 @@
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
@@ -347,6 +348,44 @@ DEFINE_CONVERSION_FUNCTIONS(JPH_PhysicsMaterial, JPH::PhysicsMaterial);
 // Body
 
 DEFINE_CONVERSION_FUNCTIONS(JPH_Body, JPH::Body);
+
+// Core
+
+JPH_TempAllocator *JPH_TempAllocatorImpl_Create(size_t size) {
+    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorImpl(size)));
+}
+
+JPH_TempAllocator *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size) {
+    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorImplWithMallocFallback(size)));
+}
+
+JPH_TempAllocator *JPH_TempAllocatorMalloc_Create() {
+    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorMalloc));
+}
+
+void JPH_TempAllocator_Destroy(JPH_TempAllocator *allocator) {
+    delete ToCpp(allocator);
+}
+
+void *JPH_TempAllocator_Allocate(JPH_TempAllocator *allocator, uint32_t size) {
+    return ToCpp(allocator)->Allocate(size);
+}
+
+void JPH_TempAllocator_Free(JPH_TempAllocator *allocator, void *ptr, uint32_t size) {
+    ToCpp(allocator)->Free(ptr, size);
+}
+
+JPH_JobSystem *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs) {
+    return ToC(static_cast<JPH::JobSystem *>(new JPH::JobSystemSingleThreaded(maxJobs)));
+}
+
+JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads) {
+    return ToC(static_cast<JPH::JobSystem *>(new JPH::JobSystemThreadPool(maxJobs, maxBarriers, numThreads)));
+}
+
+void JPH_JobSystem_Destroy(JPH_JobSystem *job_system) {
+    delete ToCpp(job_system);
+}
 
 // Debug renderer
 

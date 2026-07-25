@@ -25,8 +25,8 @@
 #define JOLTC_VECTOR_ALIGNMENT 16 // @Todo: match this with Jolt/Core/Core.h
 #define JOLTC_DVECTOR_ALIGNMENT 32
 
-typedef struct JPH_TempAllocator     JPH_TempAllocator;
-typedef struct JPH_JobSystem         JPH_JobSystem;
+typedef struct JPH_TempAllocator JPH_TempAllocator;
+typedef struct JPH_JobSystem     JPH_JobSystem;
 
 // Custom allocator struct, we have this in an effort to let users provide
 // a fast allocation solution specifically for interfaces. We make interfaces
@@ -167,3 +167,14 @@ typedef struct JPH_PhysicsSettings {
     bool allowSleeping;
     bool checkActiveEdges;
 } JPH_PhysicsSettings;
+
+JOLTC_API JPH_TempAllocator *JPH_TempAllocatorImpl_Create(size_t size);
+JOLTC_API JPH_TempAllocator *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size);
+JOLTC_API JPH_TempAllocator *JPH_TempAllocatorMalloc_Create();
+JOLTC_API void JPH_TempAllocator_Destroy(JPH_TempAllocator *allocator);
+JOLTC_API void *JPH_TempAllocator_Allocate(JPH_TempAllocator *allocator, uint32_t size);
+JOLTC_API void JPH_TempAllocator_Free(JPH_TempAllocator *allocator, void *ptr, uint32_t size);
+
+JOLTC_API JPH_JobSystem *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs);
+JOLTC_API JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads);
+JOLTC_API void JPH_JobSystem_Destroy(JPH_JobSystem *job_system);

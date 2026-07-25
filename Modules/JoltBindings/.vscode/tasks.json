@@ -6,8 +6,8 @@
         {
             "label": "Build",
             "type": "shell",
-            "command": "g++",
-            "args": ["JoltC.cpp", "-I.", "-IJoltPhysics", "-DJPH_DEBUG_RENDERER"],
+            "command": "make",
+            "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -19,14 +19,6 @@ typedef struct JPH_PhysicsSystemSettings {
     const JPH_ObjectLayerPairFilter *objectLayerPairFilter;
 } JPH_PhysicsSystemSettings;
 
-typedef uint32_t JPH_EPhysicsUpdateError;
-enum {
-    JPH_EPhysicsUpdateError_None = 0,
-    JPH_EPhysicsUpdateError_ManifoldCacheFull = 1 << 0,
-    JPH_EPhysicsUpdateError_BodyPairCacheFull = 1 << 1,
-    JPH_EPhysicsUpdateError_ContactConstraintsFull = 1 << 2,
-};
-
 JOLTC_API JPH_PhysicsSystem *JPH_PhysicsSystem_Create(JPH_PhysicsSystemSettings settings);
 JOLTC_API void JPH_PhysicsSystem_Destroy(JPH_PhysicsSystem *system);
 
@@ -60,6 +52,15 @@ JOLTC_API JPH_DefaultBroadPhaseLayerFilter JPH_PhysicsSystem_GetDefaultBroadPhas
 JOLTC_API JPH_DefaultObjectLayerFilter JPH_PhysicsSystem_GetDefaultLayerFilter(const JPH_PhysicsSystem *system, JPH_ObjectLayer layer, JPH_Allocator allocator);
 
 JOLTC_API void JPH_PhysicsSystem_OptimizeBroadPhase(JPH_PhysicsSystem *system);
+
+typedef uint32_t JPH_EPhysicsUpdateError;
+enum {
+    JPH_EPhysicsUpdateError_None = 0,
+    JPH_EPhysicsUpdateError_ManifoldCacheFull = 1 << 0,
+    JPH_EPhysicsUpdateError_BodyPairCacheFull = 1 << 1,
+    JPH_EPhysicsUpdateError_ContactConstraintsFull = 1 << 2,
+};
+
 JOLTC_API JPH_EPhysicsUpdateError JPH_PhysicsSystem_Update(JPH_PhysicsSystem *system, float deltaTime, int collisionSteps, JPH_TempAllocator *tempAllocator, JPH_JobSystem *jobSystem);
 
 #ifdef JPH_DEBUG_RENDERER
@@ -70,4 +71,3 @@ JOLTC_API void JPH_PhysicsSystem_DrawConstraintLimits(JPH_PhysicsSystem *system,
 JOLTC_API void JPH_PhysicsSystem_DrawConstraintReferenceFrame(JPH_PhysicsSystem *system, JPH_DebugRenderer *renderer);
 
 #endif
-

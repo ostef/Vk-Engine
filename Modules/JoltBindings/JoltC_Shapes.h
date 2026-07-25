@@ -47,18 +47,6 @@ typedef struct JPH_ScaledShape             JPH_ScaledShape;
 typedef struct JPH_OffsetCenterOfMassShape JPH_OffsetCenterOfMassShape;
 typedef struct JPH_EmptyShape              JPH_EmptyShape;
 
-typedef struct JPH_IndexedTriangle {
-    uint32_t idx[3];
-    uint32_t materialIndex;
-    uint32_t userData;
-} JPH_IndexedTriangle;
-
-typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
-enum {
-    JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
-    JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
-};
-
 // @Todo: add aliases for inherited methods
 
 JOLTC_API void JPH_ShapeSettings_Destroy(JPH_ShapeSettings *settings);
@@ -219,6 +207,18 @@ JOLTC_API void JPH_ConvexHullShapeSettings_SetMaxErrorConvexRadius(JPH_ConvexHul
 JOLTC_API float JPH_ConvexHullShapeSettings_GetMaxErrorConvexRadius(const JPH_ConvexHullShapeSettings *settings);
 JOLTC_API void JPH_ConvexHullShapeSettings_SetHullTolerance(JPH_ConvexHullShapeSettings *settings, float hullTolerance);
 JOLTC_API float JPH_ConvexHullShapeSettings_GetHullTolerance(const JPH_ConvexHullShapeSettings *settings);
+
+typedef struct JPH_IndexedTriangle {
+    uint32_t idx[3];
+    uint32_t materialIndex;
+    uint32_t userData;
+} JPH_IndexedTriangle;
+
+typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
+enum {
+    JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
+    JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
+};
 
 JOLTC_API JPH_MeshShapeSettings *JPH_MeshShapeSettings_Create();
 JOLTC_API void JPH_MeshShapeSettings_Destroy(JPH_MeshShapeSettings *settings);
