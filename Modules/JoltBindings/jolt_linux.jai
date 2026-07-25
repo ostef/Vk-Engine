@@ -942,7 +942,7 @@ BodyCreationSettings :: struct {
     shapePtr:                     *Shape;
 }
 
-BodyCreationSettings_SetDefaults :: (settings: *BodyCreationSettings) -> void #foreign JoltC "JPH_BodyCreationSettings_SetDefaults";
+BodyCreationSettings_Default :: () -> BodyCreationSettings #foreign JoltC "JPH_BodyCreationSettings_Default";
 BodyCreationSettings_ConvertShapeSettings :: (settings: *BodyCreationSettings) -> *Shape #foreign JoltC "JPH_BodyCreationSettings_ConvertShapeSettings";
 BodyCreationSettings_HasMassProperties :: (settings: *BodyCreationSettings) -> bool #foreign JoltC "JPH_BodyCreationSettings_HasMassProperties";
 BodyCreationSettings_GetMassProperties :: (settings: *BodyCreationSettings) -> MassProperties #foreign JoltC "JPH_BodyCreationSettings_GetMassProperties";
@@ -969,7 +969,7 @@ SoftBodyCreationSettings :: struct {
     facesDoubleSided:     bool;
 }
 
-SoftBodyCreationSettings_SetDefaults :: (settings: *SoftBodyCreationSettings) -> void #foreign JoltC "JPH_SoftBodyCreationSettings_SetDefaults";
+SoftBodyCreationSettings_Default :: () -> SoftBodyCreationSettings #foreign JoltC "JPH_SoftBodyCreationSettings_Default";
 
 // BodyInterface
 EActivation :: u32;
