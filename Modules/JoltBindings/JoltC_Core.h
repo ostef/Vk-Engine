@@ -55,6 +55,13 @@ typedef struct JPH_Float3 {
     float x, y, z;
 } JPH_Float3;
 
+typedef union JPH_UVec4 {
+    struct {
+        uint32_t x, y, z, w;
+    };
+    uint32_t values[4];
+} JPH_Vec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+
 typedef union JPH_Vec3 {
     struct {
         float x, y, z;
