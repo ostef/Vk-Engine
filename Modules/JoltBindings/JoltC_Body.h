@@ -13,6 +13,8 @@ typedef struct JPH_SoftBodySharedSettings    JPH_SoftBodySharedSettings;
 
 typedef uint32_t JPH_BodyID;
 
+#define JPH_cInvalidBodyID 0xffffffff
+
 typedef struct JPH_BodyManager_BodyStats {
     uint32_t numBodies;
     uint32_t maxBodies;
@@ -236,5 +238,53 @@ JOLTC_API void JPH_BodyInterface_SetIsSensor(JPH_BodyInterface *bodyInterface, J
 JOLTC_API bool JPH_BodyInterface_IsSensor(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API void JPH_BodyInterface_SetCollisionGroup(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, const JPH_CollisionGroup *collisionGroup);
 JOLTC_API const JPH_CollisionGroup *JPH_BodyInterface_GetCollisionGroup(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
+
+// BodyLockInterface
+
+typedef uint64_t JPH_BodyManager_MutexMask;
+
+JOLTC_API JPH_Body *JPH_BodyLockInterface_TryGetBody(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyID bodyID);
+
+typedef struct JPH_BodyLockRead {
+    JPH_SharedMutex *bodyLockMutex;
+    const JPH_Body *body;
+} JPH_BodyLockRead;
+
+typedef struct JPH_BodyLockWrite {
+    JPH_SharedMutex *bodyLockMutex;
+    JPH_Body *body;
+} JPH_BodyLockWrite;
+
+JOLTC_API void JPH_BodyLockInterface_LockRead(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyID bodyID, JPH_BodyLockRead *outLock);
+JOLTC_API void JPH_BodyLockInterface_UnlockRead(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyLockRead *outLock);
+JOLTC_API void JPH_BodyLockInterface_LockWrite(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyID bodyID, JPH_BodyLockWrite *outLock);
+JOLTC_API void JPH_BodyLockInterface_UnlockWrite(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyLockWrite *outLock);
+
+typedef struct JPH_BodyLockMultiRead {
+    JPH_BodyManager_MutexMask mutexMask;
+    const JPH_BodyID *bodyIDs;
+    int numBodies;
+} JPH_BodyLockMultiRead;
+
+typedef struct JPH_BodyLockMultiWrite {
+    JPH_BodyManager_MutexMask mutexMask;
+    const JPH_BodyID *bodyIDs;
+    int numBodies;
+} JPH_BodyLockMultiWrite;
+
+JOLTC_API void JPH_BodyLockInterface_LockReadMulti(const JPH_BodyLockInterface *bodyLockInterface, const JPH_BodyID *bodyIDs, int numBodies, JPH_BodyLockMultiRead *outLock);
+JOLTC_API void JPH_BodyLockInterface_UnlockReadMulti(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyLockMultiRead *outLock);
+JOLTC_API void JPH_BodyLockInterface_LockWriteMulti(const JPH_BodyLockInterface *bodyLockInterface, const JPH_BodyID *bodyIDs, int numBodies, JPH_BodyLockMultiWrite *outLock);
+JOLTC_API void JPH_BodyLockInterface_UnlockWriteMulti(const JPH_BodyLockInterface *bodyLockInterface, JPH_BodyLockMultiWrite *outLock);
+
+JOLTC_API const JPH_Body *JPH_BodyLockMultiRead_GetBody(const JPH_BodyLockMultiRead *lock, int bodyIndex);
+JOLTC_API JPH_Body *JPH_BodyLockMultiWrite_GetBody(const JPH_BodyLockMultiWrite *lock, int bodyIndex);
+
+JOLTC_API void JPH_BodyLockInterface_LockReadAll(const JPH_BodyLockInterface *bodyLockInterface);
+JOLTC_API void JPH_BodyLockInterface_UnlockReadAll(const JPH_BodyLockInterface *bodyLockInterface);
+
+JOLTC_API void JPH_BodyLockInterface_LockWriteAll(const JPH_BodyLockInterface *bodyLockInterface);
+JOLTC_API void JPH_BodyLockInterface_UnlockWriteAll(const JPH_BodyLockInterface *bodyLockInterface);
+
 
 // @Todo: BodyFilter

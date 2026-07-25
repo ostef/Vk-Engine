@@ -27,6 +27,7 @@
 
 typedef struct JPH_TempAllocator JPH_TempAllocator;
 typedef struct JPH_JobSystem     JPH_JobSystem;
+typedef struct JPH_SharedMutex   JPH_SharedMutex;
 
 // Custom allocator struct, we have this in an effort to let users provide
 // a fast allocation solution specifically for interfaces. We make interfaces
