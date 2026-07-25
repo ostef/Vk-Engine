@@ -23,16 +23,6 @@ TempAllocator :: struct {}
 JobSystem :: struct {}
 SharedMutex :: struct {}
 
-// The default empty allocator calls JPH::Allocate and JPH::Free
-Allocator :: struct {
-    data:     *void;
-    Allocate: #type (data: *void, size: u64) -> *void #c_call;
-    Free:     #type (data: *void, ptr: *void) -> void #c_call;
-}
-
-Allocate :: (allocator: Allocator, size: u64) -> *void #foreign JoltC "JPH_Allocate";
-Free :: (allocator: Allocator, ptr: *void) -> void #foreign JoltC "JPH_Free";
-
 Bool :: u32;
 
 // @Todo: ensure vector type alignment
@@ -149,6 +139,40 @@ TempAllocator_Free :: (allocator: *TempAllocator, ptr: *void, size: u32) -> void
 JobSystemSingleThreaded_Create :: (maxJobs: u32) -> *JobSystem #foreign JoltC "JPH_JobSystemSingleThreaded_Create";
 JobSystemThreadPool_Create :: (maxJobs: u32, maxBarriers: u32, numThreads: s32) -> *JobSystem #foreign JoltC "JPH_JobSystemThreadPool_Create";
 JobSystem_Destroy :: (job_system: *JobSystem) -> void #foreign JoltC "JPH_JobSystem_Destroy";
+
+AllocateFunction :: #type (size: u64) -> *void #c_call;
+ReallocateFunction :: #type (block: *void, oldSize: u64, newSize: u64) -> *void #c_call;
+FreeFunction :: #type (block: *void) -> void #c_call;
+AlignedAllocateFunction :: #type (size: u64, alignment: u64) -> *void #c_call;
+AlignedFreeFunction :: #type (block: *void) -> void #c_call;
+
+TraceHandler :: #type (fmt: *u8, __args: ..Any) -> void #c_call;
+AssertFailedHandler :: #type (expression: *u8, message: *u8, file: *u8, line: u32) -> bool #c_call;
+
+RegisterDefaultAllocator :: () -> void #foreign JoltC "JPH_RegisterDefaultAllocator";
+SetAllocatorFunctions :: (allocate: AllocateFunction, reallocate: ReallocateFunction, free: FreeFunction, alignedAllocate: AlignedAllocateFunction, alignedFree: AlignedFreeFunction) -> void #foreign JoltC "JPH_SetAllocatorFunctions";
+SetTraceHandler :: (handler: TraceHandler) -> void #foreign JoltC "JPH_SetTraceHandler";
+SetAssertFailedHandler :: (handler: AssertFailedHandler) -> void #foreign JoltC "JPH_SetAssertFailedHandler";
+CreateFactory :: () -> void #foreign JoltC "JPH_CreateFactory";
+DestroyFactory :: () -> void #foreign JoltC "JPH_DestroyFactory";
+RegisterTypes :: () -> void #foreign JoltC "JPH_RegisterTypes";
+UnregisterTypes :: () -> void #foreign JoltC "JPH_UnregisterTypes";
+
+Allocate :: (size: u64) -> *void #foreign JoltC "JPH_Allocate";
+Reallocate :: (block: *void, oldSize: u64, newSize: u64) -> *void #foreign JoltC "JPH_Reallocate";
+Free :: (block: *void) -> void #foreign JoltC "JPH_Free";
+AlignedAllocate :: (size: u64, alignment: u64) -> *void #foreign JoltC "JPH_AlignedAllocate";
+AlignedFree :: (block: *void) -> void #foreign JoltC "JPH_AlignedFree";
+
+// The default empty allocator calls JPH::Allocate and JPH::Free
+Allocator :: struct {
+    data:     *void;
+    Allocate: #type (data: *void, size: u64) -> *void #c_call;
+    Free:     #type (data: *void, ptr: *void) -> void #c_call;
+}
+
+Allocator_Allocate :: (allocator: Allocator, size: u64) -> *void #foreign JoltC "JPH_Allocator_Allocate";
+Allocator_Free :: (allocator: Allocator, ptr: *void) -> void #foreign JoltC "JPH_Allocator_Free";
 
 PhysicsMaterial :: struct {}
 BroadPhaseLayerInterface :: struct {}

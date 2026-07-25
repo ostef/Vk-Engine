@@ -74,34 +74,6 @@
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #endif
 
-// Allocator
-
-void *JPH_Allocate(JPH_Allocator allocator, uint64_t size) {
-    if (size == 0) {
-        return 0;
-    }
-
-    if (allocator.Allocate) {
-        return allocator.Allocate(allocator.data, size);
-    }
-
-    return JPH::Allocate(size);
-}
-
-void JPH_Free(JPH_Allocator allocator, void *ptr) {
-    if (!ptr) {
-        return;
-    }
-
-    if (allocator.Free) {
-        allocator.Free(allocator.data, ptr);
-    } else if (!allocator.Allocate) {
-        // Only call JPH::Free when the allocator has no Allocate function
-        // so we can set Free to null to have an allocator that never frees
-        JPH::Free(ptr);
-    }
-}
-
 // Math conversion
 
 static inline JPH::Float3 ToCpp(JPH_Float3 v) {
@@ -244,6 +216,7 @@ static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
         return reinterpret_cast<c_type *>(v); \
     }
 
+// @Todo: override delete
 #define BEGIN_INTERFACE_WRAPPER_CLASS(name) \
     class name##Wrapper final : public JPH::name { \
     private: \
@@ -266,7 +239,7 @@ static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
 
 #define DEFINE_INTERFACE_WRAPPER_FUNCTIONS(name) \
     JPH_##name *JPH_##name##_Create(void *data, JPH_##name##_Funcs funcs, JPH_Allocator allocator) { \
-        void *ptr = JPH_Allocate(allocator, sizeof(name##Wrapper)); \
+        void *ptr = JPH_Allocator_Allocate(allocator, sizeof(name##Wrapper)); \
         return ToC(new(ptr) name##Wrapper(data, funcs, allocator)); \
     } \
     \
@@ -353,6 +326,97 @@ DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MotionProperties, JPH::MotionPropert
 
 // Core
 
+void JPH_RegisterDefaultAllocator() {
+    JPH::RegisterDefaultAllocator();
+}
+
+void JPH_SetAllocatorFunctions(JPH_AllocateFunction allocate, JPH_ReallocateFunction reallocate, JPH_FreeFunction free, JPH_AlignedAllocateFunction alignedAllocate, JPH_AlignedFreeFunction alignedFree) {
+    JPH::Allocate = allocate;
+    JPH::Reallocate = reallocate;
+    JPH::Free = free;
+    JPH::AlignedAllocate = alignedAllocate;
+    JPH::AlignedFree = alignedFree;
+}
+
+void JPH_SetTraceHandler(JPH_TraceHandler handler) {
+    JPH::Trace = handler;
+}
+
+void JPH_SetAssertFailedHandler(JPH_AssertFailedHandler handler) {
+    JPH::AssertFailed = handler;
+}
+
+void JPH_CreateFactory() {
+    JPH::Factory::sInstance = new JPH::Factory;
+}
+
+void JPH_DestroyFactory() {
+    delete JPH::Factory::sInstance;
+    JPH::Factory::sInstance = nullptr;
+}
+
+void JPH_RegisterTypes() {
+    JPH::RegisterTypes();
+}
+
+void JPH_UnregisterTypes() {
+    JPH::UnregisterTypes();
+}
+
+void *JPH_Allocate(size_t size) {
+    return JPH::Allocate(size);
+}
+
+void *JPH_Reallocate(void *block, size_t oldSize, size_t newSize) {
+    return JPH::Reallocate(block, oldSize, newSize);
+}
+
+void JPH_Free(void *block) {
+    JPH::Free(block);
+}
+
+void *JPH_AlignedAllocate(size_t size, size_t alignment) {
+    return JPH::AlignedAllocate(size, alignment);
+}
+
+void JPH_AlignedFree(void *block) {
+    JPH::AlignedFree(block);
+}
+
+// Allocator
+
+void *JPH_Allocator_Allocate(JPH_Allocator allocator, uint64_t size) {
+    if (size == 0) {
+        return 0;
+    }
+
+    if (allocator.Allocate) {
+        return allocator.Allocate(allocator.data, size);
+    }
+
+    return JPH::Allocate(size);
+}
+
+void JPH_Allocator_Free(JPH_Allocator allocator, void *ptr) {
+    if (!ptr) {
+        return;
+    }
+
+    if (allocator.Free) {
+        allocator.Free(allocator.data, ptr);
+    } else if (!allocator.Allocate) {
+        // Only call JPH::Free when the allocator has no Allocate function
+        // so we can set Free to null to have an allocator that never frees
+        JPH::Free(ptr);
+    }
+}
+
+uint64_t JPH_GetJoltVersionID() {
+    using uint64 = uint64_t;
+
+    return JPH_VERSION_ID;
+}
+
 JPH_TempAllocator *JPH_TempAllocatorImpl_Create(size_t size) {
     return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorImpl(size)));
 }
@@ -433,7 +497,7 @@ BEGIN_INTERFACE_WRAPPER_CLASS(DebugRendererSimple);
 END_INTERFACE_WRAPPER_CLASS();
 
 JPH_DebugRenderer *JPH_DebugRendererSimple_Create(void *data, JPH_DebugRendererSimple_Funcs funcs, JPH_Allocator allocator) {
-    void *ptr = JPH_Allocate(allocator, sizeof(DebugRendererSimpleWrapper));
+    void *ptr = JPH_Allocator_Allocate(allocator, sizeof(DebugRendererSimpleWrapper));
     return ToC(reinterpret_cast<JPH::DebugRenderer *>(new(ptr) DebugRendererSimpleWrapper(data, funcs, allocator)));
 }
 
@@ -630,7 +694,7 @@ uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID
     ToCpp(system)->GetBodies(resultVector);
 
     uint32_t numBodies = static_cast<uint32_t>(resultVector.size());
-    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
+    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
     memcpy(ids, resultVector.data(), sizeof(JPH_BodyID) * numBodies);
 
     *outIDs = ids;
@@ -647,7 +711,7 @@ uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_
     ToCpp(system)->GetActiveBodies(static_cast<JPH::EBodyType>(type), resultVector);
 
     uint32_t numBodies = static_cast<uint32_t>(resultVector.size());
-    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
+    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
     memcpy(ids, resultVector.data(), sizeof(JPH_BodyID) * numBodies);
 
     *outIDs = ids;

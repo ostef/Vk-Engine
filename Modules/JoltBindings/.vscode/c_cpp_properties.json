@@ -3,8 +3,8 @@
         {
             "name": "Windows",
             "includePath": [
-                "${workspaceFolder}",
-                "${workspaceFolder}/JoltPhysics"
+                "${workspaceFolder}/Source/JoltC",
+                "${workspaceFolder}/Source/JoltPhysics"
             ],
             "defines": [
                 "JPH_DEBUG_RENDERER"

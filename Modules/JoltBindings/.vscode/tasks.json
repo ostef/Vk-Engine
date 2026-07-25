@@ -7,7 +7,7 @@
             "label": "Build",
             "type": "shell",
             "command": "make",
-            "args": [],
+            "args": ["-C", "${workspaceFolder}/Source/JoltC"],
             "group": {
                 "kind": "build",
                 "isDefault": true

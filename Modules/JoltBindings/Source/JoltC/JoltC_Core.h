@@ -29,23 +29,6 @@ typedef struct JPH_TempAllocator JPH_TempAllocator;
 typedef struct JPH_JobSystem     JPH_JobSystem;
 typedef struct JPH_SharedMutex   JPH_SharedMutex;
 
-// Custom allocator struct, we have this in an effort to let users provide
-// a fast allocation solution specifically for interfaces. We make interfaces
-// opaque because the ABI is too complicated (vtables + inheritence), but in a lot
-// of places the "right" usage is to create the concrete class on the stack, which
-// of course is not possible for opaque data types, hence we allocate dynamically.
-
-// The default empty allocator calls JPH::Allocate and JPH::Free
-
-typedef struct JPH_Allocator {
-    void *data;
-    void *(JOLTC_CALL *Allocate)(void *data, uint64_t size);
-    void (JOLTC_CALL *Free)(void *data, void *ptr);
-} JPH_Allocator;
-
-JOLTC_API void *JPH_Allocate(JPH_Allocator allocator, uint64_t size);
-JOLTC_API void JPH_Free(JPH_Allocator allocator, void *ptr);
-
 typedef uint32_t JPH_Bool;
 
 // Math
@@ -186,3 +169,48 @@ JOLTC_API void JPH_TempAllocator_Free(JPH_TempAllocator *allocator, void *ptr, u
 JOLTC_API JPH_JobSystem *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs);
 JOLTC_API JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads);
 JOLTC_API void JPH_JobSystem_Destroy(JPH_JobSystem *job_system);
+
+// @Todo: ifdef custom allocators
+typedef void *(*JPH_AllocateFunction)(size_t size);
+typedef void *(*JPH_ReallocateFunction)(void *block, size_t oldSize, size_t newSize);
+typedef void (*JPH_FreeFunction)(void *block);
+typedef void *(*JPH_AlignedAllocateFunction)(size_t size, size_t alignment);
+typedef void (*JPH_AlignedFreeFunction)(void *block);
+
+typedef void (*JPH_TraceHandler)(const char *fmt, ...);
+// @Todo: ifdef enable asserts
+typedef bool (*JPH_AssertFailedHandler)(const char *expression, const char *message, const char *file, uint32_t line);
+
+JOLTC_API void JPH_RegisterDefaultAllocator();
+JOLTC_API void JPH_SetAllocatorFunctions(JPH_AllocateFunction allocate, JPH_ReallocateFunction reallocate, JPH_FreeFunction free, JPH_AlignedAllocateFunction alignedAllocate, JPH_AlignedFreeFunction alignedFree);
+JOLTC_API void JPH_SetTraceHandler(JPH_TraceHandler handler);
+JOLTC_API void JPH_SetAssertFailedHandler(JPH_AssertFailedHandler handler);
+JOLTC_API void JPH_CreateFactory();
+JOLTC_API void JPH_DestroyFactory();
+JOLTC_API void JPH_RegisterTypes();
+JOLTC_API void JPH_UnregisterTypes();
+
+JOLTC_API void *JPH_Allocate(size_t size);
+JOLTC_API void *JPH_Reallocate(void *block, size_t oldSize, size_t newSize);
+JOLTC_API void JPH_Free(void *block);
+JOLTC_API void *JPH_AlignedAllocate(size_t size, size_t alignment);
+JOLTC_API void JPH_AlignedFree(void *block);
+
+// Custom allocator struct, we have this in an effort to let users provide
+// a fast allocation solution specifically for interfaces. We make interfaces
+// opaque because the ABI is too complicated (vtables + inheritence), but in a lot
+// of places the "right" usage is to create the concrete class on the stack, which
+// of course is not possible for opaque data types, hence we allocate dynamically.
+
+// The default empty allocator calls JPH::Allocate and JPH::Free
+
+typedef struct JPH_Allocator {
+    void *data;
+    void *(JOLTC_CALL *Allocate)(void *data, uint64_t size);
+    void (JOLTC_CALL *Free)(void *data, void *ptr);
+} JPH_Allocator;
+
+JOLTC_API void *JPH_Allocator_Allocate(JPH_Allocator allocator, uint64_t size);
+JOLTC_API void JPH_Allocator_Free(JPH_Allocator allocator, void *ptr);
+
+JOLTC_API uint64_t JPH_GetJoltVersionID();

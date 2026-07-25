@@ -8,7 +8,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/vox-gl",
+            "program": "${workspaceRoot}/Source/JoltC/example",
             "args": [],
             "environment": [],
             "cwd": "${workspaceRoot}",
