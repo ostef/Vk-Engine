@@ -123,8 +123,7 @@ int main(int argc, char **argv) {
 
     JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)floorShapeSettings);
 
-    JPH_BodyCreationSettings floorSettings;
-    JPH_BodyCreationSettings_SetDefaults(&floorSettings);
+    JPH_BodyCreationSettings floorSettings = JPH_BodyCreationSettings_Default();
     floorSettings.position = (JPH_RVec3){0, -1, 0};
     floorSettings.rotation = JPH_Quat_sIdentity;
     floorSettings.objectLayer = ObjectLayer_NonMoving;
@@ -139,8 +138,7 @@ int main(int argc, char **argv) {
 
     JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)sphereShapeSettings);
 
-    JPH_BodyCreationSettings sphereSettings;
-    JPH_BodyCreationSettings_SetDefaults(&sphereSettings);
+    JPH_BodyCreationSettings sphereSettings = JPH_BodyCreationSettings_Default();
     sphereSettings.position = (JPH_RVec3){0, 2, 0};
     sphereSettings.rotation = JPH_Quat_sIdentity;
     sphereSettings.objectLayer = ObjectLayer_Moving;

@@ -2096,8 +2096,9 @@ static inline const JPH::BodyCreationSettings *ToCpp(const JPH_BodyCreationSetti
     return reinterpret_cast<const JPH::BodyCreationSettings *>(settings);
 }
 
-void JPH_BodyCreationSettings_SetDefaults(JPH_BodyCreationSettings *settings) {
-    new(settings) JPH::BodyCreationSettings;
+JPH_BodyCreationSettings JPH_BodyCreationSettings_Default() {
+    auto result = JPH::BodyCreationSettings();
+    return *reinterpret_cast<JPH_BodyCreationSettings *>(&result);
 }
 
 JPH_Shape *JPH_BodyCreationSettings_ConvertShapeSettings(JPH_BodyCreationSettings *settings) {
@@ -2130,8 +2131,9 @@ static inline const JPH::SoftBodyCreationSettings *ToCpp(const JPH_SoftBodyCreat
     return reinterpret_cast<const JPH::SoftBodyCreationSettings *>(settings);
 }
 
-JOLTC_API void JPH_SoftBodyCreationSettings_SetDefaults(JPH_SoftBodyCreationSettings *settings) {
-    new(settings) JPH::SoftBodyCreationSettings;
+JPH_SoftBodyCreationSettings JPH_SoftBodyCreationSettings_Default() {
+    auto result = JPH::SoftBodyCreationSettings();
+    return *reinterpret_cast<JPH_SoftBodyCreationSettings *>(&result);
 }
 
 // BodyInterface

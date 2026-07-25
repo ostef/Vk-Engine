@@ -110,7 +110,7 @@ typedef struct JPH_BodyCreationSettings {
     const JPH_Shape *shapePtr;
 } JPH_BodyCreationSettings;
 
-JOLTC_API void JPH_BodyCreationSettings_SetDefaults(JPH_BodyCreationSettings *settings);
+JOLTC_API JPH_BodyCreationSettings JPH_BodyCreationSettings_Default();
 JOLTC_API JPH_Shape *JPH_BodyCreationSettings_ConvertShapeSettings(JPH_BodyCreationSettings *settings);
 JOLTC_API bool JPH_BodyCreationSettings_HasMassProperties(const JPH_BodyCreationSettings *settings);
 JOLTC_API JPH_MassProperties JPH_BodyCreationSettings_GetMassProperties(const JPH_BodyCreationSettings *settings);
@@ -138,7 +138,7 @@ typedef struct JPH_SoftBodyCreationSettings {
     bool facesDoubleSided;
 } JPH_SoftBodyCreationSettings;
 
-JOLTC_API void JPH_SoftBodyCreationSettings_SetDefaults(JPH_SoftBodyCreationSettings *settings);
+JOLTC_API JPH_SoftBodyCreationSettings JPH_SoftBodyCreationSettings_Default();
 
 // BodyInterface
 
