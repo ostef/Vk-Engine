@@ -388,8 +388,6 @@ JOLTC_API void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 ce
 // @Todo: Shape::CastRay
 // @Todo: Shape::CollidePoint
 
-JOLTC_API JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale);
-
 typedef struct JPH_Shape_GetTrianglesContext {
     uint8_t data[4288];
 } JPH_Shape_GetTrianglesContext __attribute__((aligned(16)));
@@ -407,3 +405,124 @@ JOLTC_API JPH_Shape_Stats JPH_Shape_GetStats(const JPH_Shape *shape);
 JOLTC_API float JPH_Shape_GetVolume(const JPH_Shape *shape);
 JOLTC_API bool JPH_Shape_IsValidScale(const JPH_Shape *shape, JPH_Vec3 scale);
 JOLTC_API JPH_Vec3 JPH_Shape_MakeScaleValid(const JPH_Shape *shape, JPH_Vec3 scale);
+JOLTC_API JPH_Shape *JPH_Shape_ScaleShape(const JPH_Shape *shape, JPH_Vec3 scale);
+
+// ConvexShape
+
+JOLTC_API void JPH_ConvexShape_SetMaterial(JPH_ConvexShape *shape, const JPH_PhysicsMaterial *material);
+JOLTC_API const JPH_PhysicsMaterial *JPH_ConvexShape_GetMaterial(const JPH_ConvexShape *shape);
+JOLTC_API void JPH_ConvexShape_SetDensity(JPH_ConvexShape *shape, float density);
+JOLTC_API float JPH_ConvexShape_GetDensity(const JPH_ConvexShape *shape);
+
+// SphereShape
+
+JOLTC_API float JPH_SphereShape_GetRadius(const JPH_SphereShape *shape);
+
+// BoxShape
+
+JOLTC_API JPH_Vec3 JPH_BoxShape_GetHalfExtent(const JPH_BoxShape *shape);
+JOLTC_API float JPH_BoxShape_GetConvexRadius(const JPH_BoxShape *shape);
+
+// PlaneShape
+
+JOLTC_API JPH_Plane JPH_PlaneShape_GetPlane(const JPH_PlaneShape *shape);
+JOLTC_API float JPH_PlaneShape_GetHalfExtent(const JPH_PlaneShape *shape);
+JOLTC_API void JPH_PlaneShape_SetMaterial(JPH_PlaneShape *shape, const JPH_PhysicsMaterial *material);
+JOLTC_API const JPH_PhysicsMaterial *JPH_PlaneShape_GetMaterial(const JPH_PlaneShape *shape);
+
+// TriangleShape
+
+JOLTC_API JPH_Vec3 JPH_TriangleShape_GetVertex1(const JPH_TriangleShape *shape);
+JOLTC_API JPH_Vec3 JPH_TriangleShape_GetVertex2(const JPH_TriangleShape *shape);
+JOLTC_API JPH_Vec3 JPH_TriangleShape_GetVertex3(const JPH_TriangleShape *shape);
+JOLTC_API void JPH_TriangleShape_GetVertices(const JPH_TriangleShape *shape, JPH_Vec3 *outV1, JPH_Vec3 *outV2, JPH_Vec3 *outV3);
+JOLTC_API float JPH_TriangleShape_GetConvexRadius(const JPH_TriangleShape *shape);
+
+// CapsuleShape
+
+JOLTC_API float JPH_CapsuleShape_GetRadius(const JPH_CapsuleShape *shape);
+JOLTC_API float JPH_CapsuleShape_GetHalfHeightOfCylinder(const JPH_CapsuleShape *shape);
+
+// TaperedCapsuleShape
+
+JOLTC_API float JPH_TaperedCapsuleShape_GetTopRadius(const JPH_TaperedCapsuleShape *shape);
+JOLTC_API float JPH_TaperedCapsuleShape_GetBottomRadius(const JPH_TaperedCapsuleShape *shape);
+JOLTC_API float JPH_TaperedCapsuleShape_GetHalfHeight(const JPH_TaperedCapsuleShape *shape);
+
+// CylinderShape
+
+JOLTC_API float JPH_CylinderShape_GetHalfHeight(const JPH_CylinderShape *shape);
+JOLTC_API float JPH_CylinderShape_GetRadius(const JPH_CylinderShape *shape);
+JOLTC_API float JPH_CylinderShape_GetConvexRadius(const JPH_CylinderShape *shape);
+
+// TaperedCylinderShape
+
+JOLTC_API float JPH_TaperedCylinderShape_GetTopRadius(const JPH_TaperedCylinderShape *shape);
+JOLTC_API float JPH_TaperedCylinderShape_GetBottomRadius(const JPH_TaperedCylinderShape *shape);
+JOLTC_API float JPH_TaperedCylinderShape_GetConvexRadius(const JPH_TaperedCylinderShape *shape);
+JOLTC_API float JPH_TaperedCylinderShape_GetHalfHeight(const JPH_TaperedCylinderShape *shape);
+
+// ConvexHullShape
+
+JOLTC_API float JPH_ConvexHullShape_GetConvexRadius(const JPH_ConvexHullShape *shape);
+JOLTC_API uint32_t JPH_ConvexHullShape_GetNumPoints(const JPH_ConvexHullShape *shape);
+JOLTC_API JPH_Vec3 JPH_ConvexHullShape_GetPoint(const JPH_ConvexHullShape *shape, uint32_t index);
+JOLTC_API uint32_t JPH_ConvexHullShape_GetNumFaces(const JPH_ConvexHullShape *shape);
+JOLTC_API uint32_t JPH_ConvexHullShape_GetNumVerticesInFace(const JPH_ConvexHullShape *shape, uint32_t faceIndex);
+JOLTC_API uint32_t JPH_ConvexHullShape_GetFaceVertices(const JPH_ConvexHullShape *shape, uint32_t faceIndex, uint32_t maxVertices, uint32_t *outVertices);
+JOLTC_API uint32_t JPH_ConvexHullShape_GetNumPlanes(const JPH_ConvexHullShape *shape);
+JOLTC_API const JPH_Plane *JPH_ConvexHullShape_GetPlanes(const JPH_ConvexHullShape *shape);
+
+// DecoratedShape
+
+JOLTC_API const JPH_Shape *JPH_DecoratedShape_GetInnerShape(const JPH_DecoratedShape *shape);
+
+// RotatedTranslatedShape
+
+JOLTC_API JPH_Quat JPH_RotatedTranslatedShape_GetRotation(const JPH_RotatedTranslatedShape *shape);
+JOLTC_API JPH_Vec3 JPH_RotatedTranslatedShape_GetPosition(const JPH_RotatedTranslatedShape *shape);
+JOLTC_API JPH_Vec3 JPH_RotatedTranslatedShape_TransformScale(const JPH_RotatedTranslatedShape *shape, JPH_Vec3 scale);
+
+// ScaledShape
+
+JOLTC_API JPH_Vec3 JPH_ScaledShape_GetScale(const JPH_ScaledShape *shape);
+
+// OffsetCenterOfMassShape
+
+JOLTC_API JPH_Vec3 JPH_OffsetCenterOfMassShape_GetOffset(const JPH_OffsetCenterOfMassShape *shape);
+
+// CompoundShape
+
+JOLTC_API uint32_t JPH_CompoundShape_GetNumSubShapes(const JPH_CompoundShape *shape);
+JOLTC_API uint32_t JPH_CompoundShape_GetCompoundUserData(const JPH_CompoundShape *shape, uint32_t index);
+JOLTC_API void JPH_CompoundShape_SetCompoundUserData(JPH_CompoundShape *shape, uint32_t index, uint32_t userData);
+JOLTC_API bool JPH_CompoundShape_IsSubShapeIDValid(const JPH_CompoundShape *shape, JPH_SubShapeID subShapeID);
+JOLTC_API uint32_t JPH_CompoundShape_GetSubShapeIndexFromID(const JPH_CompoundShape *shape, JPH_SubShapeID subShapeID, JPH_SubShapeID *outRemainder);
+
+// MutableCompoundShape
+
+JOLTC_API uint32_t JPH_MutableCompoundShape_AddShape(JPH_MutableCompoundShape *shape, JPH_Vec3 position, JPH_Quat rotation, const JPH_Shape *inShape, uint32_t userData, uint32_t index);
+JOLTC_API void JPH_MutableCompoundShape_RemoveShape(JPH_MutableCompoundShape *shape, uint32_t index);
+JOLTC_API void JPH_MutableCompoundShape_ModifyShape(JPH_MutableCompoundShape *shape, uint32_t index, JPH_Vec3 position, JPH_Quat rotation);
+JOLTC_API void JPH_MutableCompoundShape_ModifyShapeWithShape(JPH_MutableCompoundShape *shape, uint32_t index, JPH_Vec3 position, JPH_Quat rotation, const JPH_Shape *inShape);
+JOLTC_API void JPH_MutableCompoundShape_ModifyShapes(JPH_MutableCompoundShape *shape, uint32_t startIndex, uint32_t number, const JPH_Vec3 *positions, const JPH_Quat *rotations, uint32_t positionStride, uint32_t rotationStride);
+JOLTC_API void JPH_MutableCompoundShape_AdjustCenterOfMass(JPH_MutableCompoundShape *shape);
+
+// MeshShape
+
+JOLTC_API uint32_t JPH_MeshShape_GetMaterialIndex(const JPH_MeshShape *shape, JPH_SubShapeID subShapeID);
+JOLTC_API uint32_t JPH_MeshShape_GetTriangleUserData(const JPH_MeshShape *shape, JPH_SubShapeID subShapeID);
+
+// HeightFieldShape
+
+JOLTC_API uint32_t JPH_HeightFieldShape_GetSampleCount(const JPH_HeightFieldShape *shape);
+JOLTC_API uint32_t JPH_HeightFieldShape_GetBlockSize(const JPH_HeightFieldShape *shape);
+JOLTC_API const JPH_PhysicsMaterial *JPH_HeightFieldShape_GetMaterial(const JPH_HeightFieldShape *shape, uint32_t x, uint32_t y);
+JOLTC_API JPH_Vec3 JPH_HeightFieldShape_GetPosition(const JPH_HeightFieldShape *shape, uint32_t x, uint32_t y);
+JOLTC_API bool JPH_HeightFieldShape_IsNoCollision(const JPH_HeightFieldShape *shape, uint32_t x, uint32_t y);
+JOLTC_API bool JPH_HeightFieldShape_ProjectOntoSurface(const JPH_HeightFieldShape *shape, JPH_Vec3 localPosition, JPH_Vec3 *outSurfacePosition, JPH_SubShapeID *outSubShapeID);
+JOLTC_API void JPH_HeightFieldShape_GetSubShapeCoordinates(const JPH_HeightFieldShape *shape, JPH_SubShapeID subShapeID, uint32_t *outX, uint32_t *outY, uint32_t *outTriangleIndex);
+JOLTC_API float JPH_HeightFieldShape_GetMinHeightValue(const JPH_HeightFieldShape *shape);
+JOLTC_API float JPH_HeightFieldShape_GetMaxHeightValue(const JPH_HeightFieldShape *shape);
+JOLTC_API void JPH_HeightFieldShape_GetHeights(const JPH_HeightFieldShape *shape, uint32_t x, uint32_t y, uint32_t sizeX, uint32_t sizeY, float *outHeights, intptr_t heightsStride);
+JOLTC_API void JPH_HeightFieldShape_SetHeights(JPH_HeightFieldShape *shape, uint32_t x, uint32_t y, uint32_t sizeX, uint32_t sizeY, const float *inHeights, intptr_t heightsStride, JPH_TempAllocator *allocator, float activeEdgeCosThresholdAngle);
