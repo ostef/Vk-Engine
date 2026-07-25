@@ -349,6 +349,7 @@ DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_PhysicsMaterial, JPH::PhysicsMateria
 // Body
 
 DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_Body, JPH::Body);
+DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MotionProperties, JPH::MotionProperties);
 
 // Core
 
@@ -2564,3 +2565,326 @@ void JPH_BodyLockInterface_UnlockWriteAll(const JPH_BodyLockInterface *bodyLockI
     }
 }
 
+// Body
+
+JPH_BodyID JPH_Body_GetID(const JPH_Body *body) {
+    return ToCpp(body)->GetID().GetIndexAndSequenceNumber();
+}
+
+JPH_EBodyType JPH_Body_GetBodyType(const JPH_Body *body) {
+    return static_cast<JPH_EBodyType>(ToCpp(body)->GetBodyType());
+}
+
+bool JPH_Body_IsRigidBody(const JPH_Body *body) {
+    return ToCpp(body)->IsRigidBody();
+}
+
+bool JPH_Body_IsSoftBody(const JPH_Body *body) {
+    return ToCpp(body)->IsSoftBody();
+}
+
+bool JPH_Body_IsActive(const JPH_Body *body) {
+    return ToCpp(body)->IsActive();
+}
+
+bool JPH_Body_IsStatic(const JPH_Body *body) {
+    return ToCpp(body)->IsStatic();
+}
+
+bool JPH_Body_IsKinematic(const JPH_Body *body) {
+    return ToCpp(body)->IsKinematic();
+}
+
+bool JPH_Body_IsDynamic(const JPH_Body *body) {
+    return ToCpp(body)->IsDynamic();
+}
+
+bool JPH_Body_CanBeKinematicOrDynamic(const JPH_Body *body) {
+    return ToCpp(body)->CanBeKinematicOrDynamic();
+}
+
+void JPH_Body_SetIsSensor(JPH_Body *body, bool isSensor) {
+    ToCpp(body)->SetIsSensor(isSensor);
+}
+
+bool JPH_Body_IsSensor(const JPH_Body *body) {
+    return ToCpp(body)->IsSensor();
+}
+
+void JPH_Body_SetCollideKinematicVsNonDynamic(JPH_Body *body, bool collide) {
+    ToCpp(body)->SetCollideKinematicVsNonDynamic(collide);
+}
+
+bool JPH_Body_GetCollideKinematicVsNonDynamic(const JPH_Body *body) {
+    return ToCpp(body)->GetCollideKinematicVsNonDynamic();
+}
+
+void JPH_Body_SetUseManifoldReduction(JPH_Body *body, bool useReduction) {
+    ToCpp(body)->SetUseManifoldReduction(useReduction);
+}
+
+bool JPH_Body_GetUseManifoldReduction(const JPH_Body *body) {
+    return ToCpp(body)->GetUseManifoldReduction();
+}
+
+bool JPH_Body_GetUseManifoldReductionWithBody(const JPH_Body *body, const JPH_Body *body2) {
+    return ToCpp(body)->GetUseManifoldReductionWithBody(*ToCpp(body2));
+}
+
+void JPH_Body_SetApplyGyroscopicForce(JPH_Body *body, bool apply) {
+    ToCpp(body)->SetApplyGyroscopicForce(apply);
+}
+
+bool JPH_Body_GetApplyGyroscopicForce(const JPH_Body *body) {
+    return ToCpp(body)->GetApplyGyroscopicForce();
+}
+
+void JPH_Body_SetEnhancedInternalEdgeRemoval(JPH_Body *body, bool apply) {
+    ToCpp(body)->SetEnhancedInternalEdgeRemoval(apply);
+}
+
+bool JPH_Body_GetEnhancedInternalEdgeRemoval(const JPH_Body *body) {
+    return ToCpp(body)->GetEnhancedInternalEdgeRemoval();
+}
+
+bool JPH_Body_GetEnhancedInternalEdgeRemovalWithBody(const JPH_Body *body, const JPH_Body *body2) {
+    return ToCpp(body)->GetEnhancedInternalEdgeRemovalWithBody(*ToCpp(body2));
+}
+
+JPH_EMotionType JPH_Body_GetMotionType(const JPH_Body *body) {
+    return static_cast<JPH_EMotionType>(ToCpp(body)->GetMotionType());
+}
+
+void JPH_Body_SetMotionType(JPH_Body *body, JPH_EMotionType motionType) {
+    ToCpp(body)->SetMotionType(static_cast<JPH::EMotionType>(motionType));
+}
+
+JPH_BroadPhaseLayer JPH_Body_GetBroadPhaseLayer(const JPH_Body *body) {
+    return ToCpp(body)->GetBroadPhaseLayer().GetValue();
+}
+
+JPH_ObjectLayer JPH_Body_GetObjectLayer(const JPH_Body *body) {
+    return ToCpp(body)->GetObjectLayer();
+}
+
+const JPH_CollisionGroup *JPH_Body_GetCollisionGroupConst(const JPH_Body *body) {
+    return reinterpret_cast<const JPH_CollisionGroup *>(&ToCpp(body)->GetCollisionGroup());
+}
+
+JPH_CollisionGroup *JPH_Body_GetCollisionGroup(JPH_Body *body) {
+    return reinterpret_cast<JPH_CollisionGroup *>(&ToCpp(body)->GetCollisionGroup());
+}
+
+void JPH_Body_SetCollisionGroup(JPH_Body *body, const JPH_CollisionGroup *group) {
+    ToCpp(body)->SetCollisionGroup(*reinterpret_cast<const JPH::CollisionGroup *>(group));
+}
+
+bool JPH_Body_GetAllowSleeping(const JPH_Body *body) {
+    return ToCpp(body)->GetAllowSleeping();
+}
+
+void JPH_Body_SetAllowSleeping(JPH_Body *body, bool allow) {
+    ToCpp(body)->SetAllowSleeping(allow);
+}
+
+void JPH_Body_ResetSleepTimer(JPH_Body *body) {
+    ToCpp(body)->ResetSleepTimer();
+}
+
+float JPH_Body_GetFriction(const JPH_Body *body) {
+    return ToCpp(body)->GetFriction();
+}
+
+void JPH_Body_SetFriction(JPH_Body *body, float friction) {
+    ToCpp(body)->SetFriction(friction);
+}
+
+float JPH_Body_GetRestitution(const JPH_Body *body) {
+    return ToCpp(body)->GetRestitution();
+}
+
+void JPH_Body_SetRestitution(JPH_Body *body, float restitution) {
+    ToCpp(body)->SetRestitution(restitution);
+}
+
+JPH_Vec3 JPH_Body_GetLinearVelocity(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetLinearVelocity());
+}
+
+void JPH_Body_SetLinearVelocity(JPH_Body *body, JPH_Vec3 linearVelocity) {
+    ToCpp(body)->SetLinearVelocity(ToCpp(linearVelocity));
+}
+
+void JPH_Body_SetLinearVelocityClamped(JPH_Body *body, JPH_Vec3 linearVelocity) {
+    ToCpp(body)->SetLinearVelocityClamped(ToCpp(linearVelocity));
+}
+
+JPH_Vec3 JPH_Body_GetAngularVelocity(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetAngularVelocity());
+}
+
+void JPH_Body_SetAngularVelocity(JPH_Body *body, JPH_Vec3 angularVelocity) {
+    ToCpp(body)->SetAngularVelocity(ToCpp(angularVelocity));
+}
+
+void JPH_Body_SetAngularVelocityClamped(JPH_Body *body, JPH_Vec3 angularVelocity) {
+    ToCpp(body)->SetAngularVelocityClamped(ToCpp(angularVelocity));
+}
+
+JPH_Vec3 JPH_Body_GetPointVelocityCOM(const JPH_Body *body, JPH_Vec3 pointRelativeToCOM) {
+    return ToC(ToCpp(body)->GetPointVelocityCOM(ToCpp(pointRelativeToCOM)));
+}
+
+JPH_Vec3 JPH_Body_GetPointVelocity(const JPH_Body *body, JPH_RVec3 point) {
+    return ToC(ToCpp(body)->GetPointVelocity(ToCpp(point)));
+}
+
+void JPH_Body_AddForce(JPH_Body *body, JPH_Vec3 force) {
+    ToCpp(body)->AddForce(ToCpp(force));
+}
+
+void JPH_Body_AddForceAtPoint(JPH_Body *body, JPH_Vec3 force, JPH_RVec3 position) {
+    ToCpp(body)->AddForce(ToCpp(force), ToCpp(position));
+}
+
+void JPH_Body_AddTorque(JPH_Body *body, JPH_Vec3 torque) {
+    ToCpp(body)->AddTorque(ToCpp(torque));
+}
+
+JPH_Vec3 JPH_Body_GetAccumulatedForce(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetAccumulatedForce());
+}
+
+JPH_Vec3 JPH_Body_GetAccumulatedTorque(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetAccumulatedTorque());
+}
+
+void JPH_Body_ResetForce(JPH_Body *body) {
+    ToCpp(body)->ResetForce();
+}
+
+void JPH_Body_ResetTorque(JPH_Body *body) {
+    ToCpp(body)->ResetTorque();
+}
+
+void JPH_Body_ResetMotion(JPH_Body *body) {
+    ToCpp(body)->ResetMotion();
+}
+
+JPH_Mat44 JPH_Body_GetInverseInertia(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetInverseInertia());
+}
+
+void JPH_Body_AddImpulse(JPH_Body *body, JPH_Vec3 impulse) {
+    ToCpp(body)->AddImpulse(ToCpp(impulse));
+}
+
+void JPH_Body_AddImpulseAtPoint(JPH_Body *body, JPH_Vec3 impulse, JPH_RVec3 position) {
+    ToCpp(body)->AddImpulse(ToCpp(impulse), ToCpp(position));
+}
+
+void JPH_Body_AddAngularImpulse(JPH_Body *body, JPH_Vec3 angularImpulse) {
+    ToCpp(body)->AddAngularImpulse(ToCpp(angularImpulse));
+}
+
+void JPH_Body_MoveKinematic(JPH_Body *body, JPH_RVec3 targetPosition, JPH_Quat targetRotation, float deltaTime) {
+    ToCpp(body)->MoveKinematic(ToCpp(targetPosition), ToCpp(targetRotation), deltaTime);
+}
+
+void JPH_Body_GetSubmergedVolume(const JPH_Body *body, JPH_RVec3 surfacePosition, JPH_Vec3 surfaceNormal, float *outTotalVolume, float *outSubmergedVolume, JPH_Vec3 *outRelativeCenterOfBuoyancy) {
+    ToCpp(body)->GetSubmergedVolume(ToCpp(surfacePosition), ToCpp(surfaceNormal), *outTotalVolume, *outSubmergedVolume, *reinterpret_cast<JPH::Vec3 *>(outRelativeCenterOfBuoyancy));
+}
+
+bool JPH_Body_ApplyBuoyancyImpulseWithSurface(JPH_Body *body, JPH_RVec3 surfacePosition, JPH_Vec3 surfaceNormal, float buoyancy, float linearDrag, float angularDrag, JPH_Vec3 fluidVelocity, JPH_Vec3 gravity, float deltaTime) {
+    return ToCpp(body)->ApplyBuoyancyImpulse(ToCpp(surfacePosition), ToCpp(surfaceNormal), buoyancy, linearDrag, angularDrag, ToCpp(fluidVelocity), ToCpp(gravity), deltaTime);
+}
+
+bool JPH_Body_ApplyBuoyancyImpulse(JPH_Body *body, float totalVolume, float submergedVolume, JPH_Vec3 relativeCenterOfBuoyancy, float buoyancy, float linearDrag, float angularDrag, JPH_Vec3 fluidVelocity, JPH_Vec3 gravity, float deltaTime) {
+    return ToCpp(body)->ApplyBuoyancyImpulse(totalVolume, submergedVolume, ToCpp(relativeCenterOfBuoyancy), buoyancy, linearDrag, angularDrag, ToCpp(fluidVelocity), ToCpp(gravity), deltaTime);
+}
+
+bool JPH_Body_IsInBroadPhase(const JPH_Body *body) {
+    return ToCpp(body)->IsInBroadPhase();
+}
+
+bool JPH_Body_IsCollisionCacheInvalid(const JPH_Body *body) {
+    return ToCpp(body)->IsCollisionCacheInvalid();
+}
+
+const JPH_Shape *JPH_Body_GetShape(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetShape());
+}
+
+JPH_RVec3 JPH_Body_GetPosition(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetPosition());
+}
+
+JPH_Quat JPH_Body_GetRotation(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetRotation());
+}
+
+JPH_RMat44 JPH_Body_GetWorldTransform(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetWorldTransform());
+}
+
+JPH_RVec3 JPH_Body_GetCenterOfMassPosition(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetCenterOfMassPosition());
+}
+
+JPH_RMat44 JPH_Body_GetCenterOfMassTransform(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetCenterOfMassTransform());
+}
+
+JPH_RMat44 JPH_Body_GetInverseCenterOfMassTransform(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetInverseCenterOfMassTransform());
+}
+
+JPH_AABox JPH_Body_GetWorldSpaceBounds(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetWorldSpaceBounds());
+}
+
+const JPH_MotionProperties *JPH_Body_GetMotionPropertiesConst(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetMotionProperties());
+}
+
+JPH_MotionProperties *JPH_Body_GetMotionProperties(JPH_Body *body) {
+    return ToC(ToCpp(body)->GetMotionProperties());
+}
+
+const JPH_MotionProperties *JPH_Body_GetMotionPropertiesUncheckedConst(const JPH_Body *body) {
+    return ToC(ToCpp(body)->GetMotionPropertiesUnchecked());
+}
+
+JPH_MotionProperties *JPH_Body_GetMotionPropertiesUnchecked(JPH_Body *body) {
+    return ToC(ToCpp(body)->GetMotionPropertiesUnchecked());
+}
+
+uint64_t JPH_Body_GetUserData(const JPH_Body *body) {
+    return ToCpp(body)->GetUserData();
+}
+
+void JPH_Body_SetUserData(JPH_Body *body, uint64_t userData) {
+    ToCpp(body)->SetUserData(userData);
+}
+
+JPH_Vec3 JPH_Body_GetWorldSpaceSurfaceNormal(const JPH_Body *body, JPH_SubShapeID subShapeID, JPH_RVec3 position) {
+    return ToC(ToCpp(body)->GetWorldSpaceSurfaceNormal(*reinterpret_cast<const JPH::SubShapeID *>(&subShapeID), ToCpp(position)));
+}
+
+JPH_BodyCreationSettings JPH_Body_GetBodyCreationSettings(const JPH_Body *body) {
+    auto result = ToCpp(body)->GetBodyCreationSettings();
+    return *reinterpret_cast<JPH_BodyCreationSettings *>(&result);
+}
+
+void JPH_Body_ApplyBodyCreationSettings(JPH_Body *body, const JPH_BodyCreationSettings *bodyCreationSettings, const JPH_BroadPhaseLayerInterface *bplInterface) {
+    ToCpp(body)->ApplyBodyCreationSettings(*ToCpp(bodyCreationSettings), *ToCpp(bplInterface));
+}
+
+JPH_SoftBodyCreationSettings JPH_Body_GetSoftBodyCreationSettings(const JPH_Body *body) {
+    auto result = ToCpp(body)->GetSoftBodyCreationSettings();
+    return *reinterpret_cast<JPH_SoftBodyCreationSettings *>(&result);
+}
+
+void JPH_Body_ApplySoftBodyCreationSettings(JPH_Body *body, const JPH_SoftBodyCreationSettings *softBodyCreationSettings, const JPH_BroadPhaseLayerInterface *bplInterface) {
+    ToCpp(body)->ApplySoftBodyCreationSettings(*ToCpp(softBodyCreationSettings), *ToCpp(bplInterface));
+}
