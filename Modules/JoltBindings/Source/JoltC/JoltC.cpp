@@ -216,7 +216,6 @@ static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
         return reinterpret_cast<c_type *>(v); \
     }
 
-// @Todo: override delete
 #define BEGIN_INTERFACE_WRAPPER_CLASS(name) \
     class name##Wrapper final : public JPH::name { \
     private: \
@@ -225,6 +224,11 @@ static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
         JPH_Allocator allocator; \
     \
     public: \
+        void operator delete (void *ptr) noexcept                { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
+        void operator delete (void *ptr, size_t size) noexcept   { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
+        void operator delete[] (void *ptr) noexcept              { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
+        void operator delete[] (void *ptr, size_t size) noexcept { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
+    \
         name##Wrapper(void *data, JPH_##name##_Funcs funcs, JPH_Allocator allocator) \
             : data(data), funcs(funcs), allocator(allocator) { \
         } \
