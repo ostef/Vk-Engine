@@ -60,7 +60,7 @@ typedef union JPH_UVec4 {
         uint32_t x, y, z, w;
     };
     uint32_t values[4];
-} JPH_Vec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+} JPH_UVec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
 
 typedef union JPH_Vec3 {
     struct {

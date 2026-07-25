@@ -8,6 +8,7 @@ typedef struct JPH_ObjectVsBroadPhaseLayerFilter JPH_ObjectVsBroadPhaseLayerFilt
 typedef struct JPH_ObjectLayerPairFilter         JPH_ObjectLayerPairFilter;
 typedef struct JPH_BroadPhaseLayerFilter         JPH_BroadPhaseLayerFilter;
 typedef struct JPH_ObjectLayerFilter             JPH_ObjectLayerFilter;
+typedef struct JPH_GroupFilter                   JPH_GroupFilter;
 typedef struct JPH_BroadPhaseQuery               JPH_BroadPhaseQuery;
 typedef struct JPH_NarrowPhaseQuery              JPH_NarrowPhaseQuery;
 
@@ -20,6 +21,15 @@ typedef uint8_t JPH_BroadPhaseLayer;
 #else
     #error "JPH_OBJECT_LAYER_BITS must be 16 or 32"
 #endif
+
+typedef uint32_t JPH_CollisionGroup_GroupID;
+typedef uint32_t JPH_CollisionGroup_SubGroupID;
+
+typedef struct JPH_CollisionGroup {
+    const JPH_GroupFilter *groupFilter;
+    JPH_CollisionGroup_GroupID groupID;
+    JPH_CollisionGroup_SubGroupID subGroupID;
+} JPH_CollisionGroup;
 
 typedef struct JPH_BroadPhaseLayerInterface_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);

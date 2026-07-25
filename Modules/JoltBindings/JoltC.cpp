@@ -1709,3 +1709,46 @@ bool JPH_Shape_IsValidScale(const JPH_Shape *shape, JPH_Vec3 scale) {
 JPH_Vec3 JPH_Shape_MakeScaleValid(const JPH_Shape *shape, JPH_Vec3 scale) {
     return ToC(ToCpp(shape)->MakeScaleValid(ToCpp(scale)));
 }
+
+// Body
+
+static inline JPH::BodyCreationSettings *ToCpp(JPH_BodyCreationSettings *settings) {
+    return reinterpret_cast<JPH::BodyCreationSettings *>(settings);
+}
+
+static inline const JPH::BodyCreationSettings *ToCpp(const JPH_BodyCreationSettings *settings) {
+    return reinterpret_cast<const JPH::BodyCreationSettings *>(settings);
+}
+
+void JPH_BodyCreationSettings_SetDefaults(JPH_BodyCreationSettings *settings) {
+    *ToCpp(settings) = JPH::BodyCreationSettings();
+}
+
+JPH_Shape *JPH_BodyCreationSettings_ConvertShapeSettings(JPH_BodyCreationSettings *settings) {
+    auto result = ToCpp(settings)->ConvertShapeSettings();
+    if (!result.IsValid()) {
+        return nullptr;
+    }
+
+    return ToC(result.Get().GetPtr());
+}
+
+bool JPH_BodyCreationSettings_HasMassProperties(const JPH_BodyCreationSettings *settings) {
+    return ToCpp(settings)->HasMassProperties();
+}
+
+JPH_MassProperties JPH_BodyCreationSettings_GetMassProperties(const JPH_BodyCreationSettings *settings) {
+    return ToC(ToCpp(settings)->GetMassProperties());
+}
+
+static inline JPH::SoftBodyCreationSettings *ToCpp(JPH_SoftBodyCreationSettings *settings) {
+    return reinterpret_cast<JPH::SoftBodyCreationSettings *>(settings);
+}
+
+static inline const JPH::SoftBodyCreationSettings *ToCpp(const JPH_SoftBodyCreationSettings *settings) {
+    return reinterpret_cast<const JPH::SoftBodyCreationSettings *>(settings);
+}
+
+JOLTC_API void JPH_SoftBodyCreationSettings_SetDefaults(JPH_SoftBodyCreationSettings *settings) {
+    *ToCpp(settings) = JPH::SoftBodyCreationSettings();
+}
