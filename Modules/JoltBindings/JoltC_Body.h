@@ -152,7 +152,7 @@ JOLTC_API JPH_Body *JPH_BodyInterface_CreateBodyWithoutID(const JPH_BodyInterfac
 JOLTC_API JPH_Body *JPH_BodyInterface_CreateSoftBodyWithoutID(const JPH_BodyInterface *bodyInterface, const JPH_SoftBodyCreationSettings *settings);
 JOLTC_API void JPH_BodyInterface_DestroyBodyWithoutID(const JPH_BodyInterface *bodyInterface, JPH_Body *body);
 JOLTC_API bool JPH_BodyInterface_AssignBodyID(JPH_BodyInterface *bodyInterface, JPH_Body *ioBody);
-JOLTC_API bool JPH_BodyInterface_AssignBodyID(JPH_BodyInterface *bodyInterface, JPH_Body *ioBody, JPH_BodyID bodyID);
+JOLTC_API bool JPH_BodyInterface_SetBodyID(JPH_BodyInterface *bodyInterface, JPH_Body *ioBody, JPH_BodyID bodyID);
 JOLTC_API JPH_Body *JPH_BodyInterface_UnassignBodyID(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API void JPH_BodyInterface_UnassignBodyIDs(JPH_BodyInterface *bodyInterface, const JPH_BodyID *bodyIDs, int count, JPH_Body **outBodies);
 JOLTC_API void JPH_BodyInterface_DestroyBody(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
@@ -195,7 +195,7 @@ JOLTC_API void JPH_BodyInterface_ResetSleepTimer(JPH_BodyInterface *bodyInterfac
 JOLTC_API const JPH_Shape *JPH_BodyInterface_GetShape(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API void JPH_BodyInterface_SetShape(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, const JPH_Shape *shape, bool updateMassProperties, JPH_EActivation activationMode);
 JOLTC_API void JPH_BodyInterface_NotifyShapeChanged(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 inPreviousCenterOfMass, bool updateMassProperties, JPH_EActivation activationMode);
-JOLTC_API void JPH_BodyInterface_SetObjectLayer(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_ObjectLayer layer);
+JOLTC_API void JPH_BodyInterface_SetObjectLayer(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_ObjectLayer layer);
 JOLTC_API JPH_ObjectLayer JPH_BodyInterface_GetObjectLayer(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API void JPH_BodyInterface_SetPositionAndRotation(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_RVec3 position, JPH_Quat rotation, JPH_EActivation activationMode);
 JOLTC_API void JPH_BodyInterface_SetPositionAndRotationWhenChanged(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_RVec3 position, JPH_Quat rotation, JPH_EActivation activationMode);
@@ -208,11 +208,11 @@ JOLTC_API JPH_Quat JPH_BodyInterface_GetRotation(const JPH_BodyInterface *bodyIn
 JOLTC_API JPH_RMat44 JPH_BodyInterface_GetWorldTransform(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API JPH_RMat44 JPH_BodyInterface_GetCenterOfMassTransform(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
 JOLTC_API void JPH_BodyInterface_AddForce(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 force, JPH_EActivation activationMode);
-JOLTC_API void JPH_BodyInterface_AddForce(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 force, JPH_RVec3 point, JPH_EActivation activationMode);
+JOLTC_API void JPH_BodyInterface_AddForceAtPoint(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 force, JPH_RVec3 point, JPH_EActivation activationMode);
 JOLTC_API void JPH_BodyInterface_AddTorque(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 torque, JPH_EActivation activationMode);;
 JOLTC_API void JPH_BodyInterface_AddForceAndTorque(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 force, JPH_Vec3 torque, JPH_EActivation activationMode);
 JOLTC_API void JPH_BodyInterface_AddImpulse(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 impulse);
-JOLTC_API void JPH_BodyInterface_AddImpulse(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 impulse, JPH_RVec3 point);
+JOLTC_API void JPH_BodyInterface_AddImpulseAtPoint(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 impulse, JPH_RVec3 point);
 JOLTC_API void JPH_BodyInterface_AddAngularImpulse(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_Vec3 angularImpulse);
 JOLTC_API bool JPH_BodyInterface_ApplyBuoyancyImpulse(JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID, JPH_RVec3 surfacePosition, JPH_Vec3 surfaceNormal, float buoyancy, float linearDrag, float angularDrag, JPH_Vec3 fluidVelocity, JPH_Vec3 gravity, float deltaTime);
 JOLTC_API JPH_EBodyType JPH_BodyInterface_GetBodyType(const JPH_BodyInterface *bodyInterface, JPH_BodyID bodyID);
