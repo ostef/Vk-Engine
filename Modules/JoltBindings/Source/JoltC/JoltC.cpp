@@ -647,7 +647,7 @@ void JPH_PhysicsSystem_Destroy(JPH_PhysicsSystem *system) {
 
 void JPH_PhysicsSystem_SetPhysicsSettings(JPH_PhysicsSystem *system, JPH_PhysicsSettings settings) {
     JPH::PhysicsSettings cppSettings = {};
-    memcpy(&cppSettings, &settings, sizeof(settings));
+    memcpy(reinterpret_cast<void *>(&cppSettings), &settings, sizeof(settings));
 
     ToCpp(system)->SetPhysicsSettings(cppSettings);
 }
@@ -656,7 +656,7 @@ JPH_PhysicsSettings JPH_PhysicsSystem_GetPhysicsSettings(const JPH_PhysicsSystem
     auto settings = ToCpp(system)->GetPhysicsSettings();
 
     JPH_PhysicsSettings result = {};
-    memcpy(&result, &settings, sizeof(settings));
+    memcpy(&result, reinterpret_cast<void *>(&settings), sizeof(settings));
 
     return result;
 }
@@ -812,7 +812,7 @@ JPH_EPhysicsUpdateError JPH_PhysicsSystem_Update(JPH_PhysicsSystem *system, floa
 
 void JPH_PhysicsSystem_DrawBodies(JPH_PhysicsSystem *system, const JPH_BodyManager_DrawSettings *settings, JPH_DebugRenderer *renderer, const JPH_BodyDrawFilter *bodyFilter) {
     JPH::BodyManager::DrawSettings cppSettings;
-    memcpy(&cppSettings, settings, sizeof(JPH_BodyManager_DrawSettings));
+    memcpy(reinterpret_cast<void *>(&cppSettings), settings, sizeof(JPH_BodyManager_DrawSettings));
 
     ToCpp(system)->DrawBodies(cppSettings, ToCpp(renderer), ToCpp(bodyFilter));
 }

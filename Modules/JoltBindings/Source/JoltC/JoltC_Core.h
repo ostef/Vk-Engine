@@ -4,22 +4,28 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if !defined(JOLTC_EXPORT)
-#define JOLTC_EXPORT
+#if defined(JOLTC_BUILD_SHARED_LIBS)
+  #if defined(_WIN32)
+    #define JOLTC_EXPORT __declspec(dllexport)
+  #else
+    #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+  #endif
+#else
+  #define JOLTC_EXPORT
 #endif
 
 #if defined(__cplusplus)
-#define JOLTC_EXTERN extern "C"
+  #define JOLTC_EXTERN extern "C"
 #else
-#define JOLTC_EXTERN extern
+  #define JOLTC_EXTERN extern
 #endif
 
 #define JOLTC_API JOLTC_EXTERN JOLTC_EXPORT
 
 #if defined(_WIN32)
-#define JOLTC_CALL __cdecl
+  #define JOLTC_CALL __cdecl
 #else
-#define JOLTC_CALL
+  #define JOLTC_CALL
 #endif
 
 #define JOLTC_VECTOR_ALIGNMENT 16 // @Todo: match this with Jolt/Core/Core.h
@@ -29,11 +35,7 @@ typedef struct JPH_TempAllocator JPH_TempAllocator;
 typedef struct JPH_JobSystem     JPH_JobSystem;
 typedef struct JPH_SharedMutex   JPH_SharedMutex;
 
-typedef uint32_t JPH_Bool;
-
 // Math
-
-// @Todo: ensure vector type alignment
 
 typedef struct JPH_Float3 {
     float x, y, z;

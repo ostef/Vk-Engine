@@ -5,22 +5,35 @@
 #run {
     set_build_options_dc(.{do_output=false});
 
-    build_jolt := false;
+    build_joltc := false;
+    shared_libs := false;
+    combined_shared_libs := false;
+    build_type := "Debug";
 
     args := get_build_options().compile_time_command_line;
     for args {
         if it == {
         case "build";
-            build_jolt = true;
+            build_joltc = true;
+        case "shared_libs";
+            shared_libs = true;
+        case "combined_shared_libs";
+            combined_shared_libs = true;
+        case "build_debug";
+            build_type = "Debug";
+        case "build_release";
+            build_type = "Release";
+        case "build_distribution";
+            build_type = "Distribution";
         }
     }
 
-    if build_jolt && !BuildJolt() {
+    if build_joltc && !BuildJoltC(shared_libs, combined_shared_libs, build_type) {
         compiler_set_workspace_status(.FAILED);
         return;
     }
 
-    if !GenerateBindings() {
+    if !GenerateBindings(shared_libs, combined_shared_libs) {
         compiler_set_workspace_status(.FAILED);
         return;
     }
@@ -30,7 +43,7 @@ Declarations_To_Omit :: string.[
     "JPH_Quat", "JPH_Vec3", "JPH_Vec4",
 ];
 
-GenerateBindings :: () -> bool {
+GenerateBindings :: (shared_libs : bool, combined_shared_libs : bool) -> bool {
     using opts : Generate_Bindings_Options;
 
     // strip_flags = 0;
@@ -41,6 +54,10 @@ GenerateBindings :: () -> bool {
     output_filename: string;
     #if OS == .LINUX {
         output_filename = "jolt_linux.jai";
+
+        if !combined_shared_libs {
+            array_add(*libraries, .{filename="Libs/Linux/libJolt", identifier="Jolt"});
+        }
         array_add(*libraries, .{filename="Libs/Linux/libJoltC", identifier="JoltC"});
     } else {
         assert(false);
@@ -58,7 +75,7 @@ GenerateBindings :: () -> bool {
     return generate_bindings(opts, output_filename);
 }
 
-BuildJolt :: () -> bool {
+BuildJoltC :: (build_shared_libs : bool, build_combined_shared_libs : bool, build_type : string) -> bool {
     {
         working_dir := get_working_directory();
         defer set_working_directory(working_dir);
@@ -69,24 +86,73 @@ BuildJolt :: () -> bool {
             return false;
         }
 
-        if run_command("make").exit_code != 0 {
+        configure : [..]string;
+        array_add(*configure, "cmake", "-B", ".build");
+        array_add(*configure, tprint("-DBUILD_SHARED_LIBS=%", ifx build_shared_libs then "ON" else "OFF"));
+        array_add(*configure, tprint("-DJOLTC_BUILD_COMBINED_SHARED_LIBS=%", ifx build_combined_shared_libs then "ON" else "OFF"));
+        array_add(*configure, tprint("-DCMAKE_BUILD_TYPE=%", build_type));
+
+        configure_str : string;
+        for configure {
+            if it_index > 0 {
+                configure_str = sprint("% ", configure_str);
+            }
+            configure_str = sprint("%%", configure_str, it);
+        }
+
+        log("Running: %", configure_str);
+
+        if run_command(..configure).exit_code != 0 {
             return false;
         }
 
-        // if run_command("cmake", "-B", ".build", "-DJPH_TESTS=OFF", "-DJPH_SAMPLES=OFF").exit_code != 0 {
-        //     return false;
-        // }
+        num_jobs := max(get_number_of_processors(.ALL_LOGICAL) - 1, 2);
 
-        // if run_command("cmake", "--build", ".build").exit_code != 0 {
-        //     return false;
-        // }
+        build : [..]string;
+        array_add(*build, "cmake", "--build", ".build", tprint("-j%", num_jobs));
+
+        build_str : string;
+        for build {
+            if it_index > 0 {
+                build_str = sprint("% ", build_str);
+            }
+            build_str = sprint("%%", build_str, it);
+        }
+
+        log("Running: %", build_str);
+
+        if run_command(..build).exit_code != 0 {
+            return false;
+        }
     }
 
+    log("Copying library files");
+
     #if OS == .LINUX {
+        // Purge the lib directory because files with different configuration conflict each other
+        if run_command("rm", "-rf", "Libs/Linux").exit_code != 0 {
+            return false;
+        }
+
         make_directory_if_it_does_not_exist("Libs/Linux", recursive=true);
 
-        if !copy_file("Source/JoltC/libJoltC.a", "Libs/Linux/libJoltC.a") {
-            return false;
+        if !build_shared_libs && !build_combined_shared_libs {
+            if !copy_file("Source/JoltC/.build/_deps/joltphysics-build/libJolt.a", "Libs/Linux/libJolt.a") {
+                return false;
+            }
+            if !copy_file("Source/JoltC/.build/libJoltC.a", "Libs/Linux/libJoltC.a") {
+                return false;
+            }
+        } else {
+            if !build_combined_shared_libs {
+                if !copy_file("Source/JoltC/.build/_deps/joltphysics-build/libJolt.so", "Libs/Linux/libJolt.so") {
+                    return false;
+                }
+            }
+
+            if !copy_file("Source/JoltC/.build/libJoltC.so", "Libs/Linux/libJoltC.so") {
+                return false;
+            }
         }
     } else {
         #assert false "@Todo";
@@ -104,6 +170,7 @@ Visitor :: (decl : *Declaration, parent_decl : *Declaration) -> Declaration_Visi
     return .RECURSE;
 }
 
+#import "System";
 #import "Basic";
 #import "Compiler";
 #import "Process";
