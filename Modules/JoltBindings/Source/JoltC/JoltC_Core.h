@@ -4,11 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(JOLTC_BUILD_SHARED_LIBS)
-  #if defined(_WIN32)
-    #define JOLTC_EXPORT __declspec(dllexport)
+#if defined(JOLTC_SHARED_LIBRARY)
+  #if defined(JOLTC_BUILD_SHARED_LIBRARY)
+    #if defined(_WIN32)
+      #define JOLTC_EXPORT __declspec(dllexport)
+    #else
+      #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+    #endif
   #else
-    #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+    #if defined(_WIN32)
+      #define JOLTC_EXPORT __declspec(dllimport)
+    #else
+      #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+    #endif
   #endif
 #else
   #define JOLTC_EXPORT

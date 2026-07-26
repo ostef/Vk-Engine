@@ -85,17 +85,22 @@ if (NOT CPP_EXCEPTIONS_ENABLED)
     )
 endif()
 
+if(JOLTC_BUILD_SHARED_LIBS)
+    target_compile_definitions(JoltC PUBLIC JOLTC_SHARED_LIBRARY)
+    target_compile_definitions(JoltC PRIVATE JOLTC_BUILD_SHARED_LIBRARY)
+endif()
+
 target_include_directories(JoltC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# if(JOLTC_BUILD_COMBINED_SHARED_LIBS)
-#     target_link_libraries(JoltC PUBLIC Jolt)
-
-#     set_target_properties(JoltC PROPERTIES
-#         CXX_VISIBILITY_PRESET hidden
-#         VISIBILITY_INLINES_HIDDEN ON
-#     )
-# else()
+if(JOLTC_BUILD_COMBINED_SHARED_LIBS)
     target_link_libraries(JoltC PUBLIC Jolt)
-# endif()
+
+    set_target_properties(JoltC PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
+    )
+else()
+    target_link_libraries(JoltC PUBLIC Jolt)
+endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/Examples/HelloWorld.cmake)
