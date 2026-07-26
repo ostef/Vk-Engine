@@ -827,12 +827,12 @@ void JPH_Shape_Release(JPH_Shape *shape) {
     ToCpp(shape)->Release();
 }
 
-JPH_Shape_EShapeType JPH_Shape_GetType(const JPH_Shape *shape) {
-    return static_cast<JPH_Shape_EShapeType>(ToCpp(shape)->GetType());
+JPH_EShapeType JPH_Shape_GetType(const JPH_Shape *shape) {
+    return static_cast<JPH_EShapeType>(ToCpp(shape)->GetType());
 }
 
-JPH_Shape_EShapeSubType JPH_Shape_GetSubType(const JPH_Shape *shape) {
-    return static_cast<JPH_Shape_EShapeSubType>(ToCpp(shape)->GetSubType());
+JPH_EShapeSubType JPH_Shape_GetSubType(const JPH_Shape *shape) {
+    return static_cast<JPH_EShapeSubType>(ToCpp(shape)->GetSubType());
 }
 
 uint64_t JPH_Shape_GetUserData(const JPH_Shape *shape) {
@@ -886,7 +886,7 @@ JPH_Vec3 JPH_Shape_GetSurfaceNormal(const JPH_Shape *shape, JPH_SubShapeID subSh
     return ToC(ToCpp(shape)->GetSurfaceNormal(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), ToCpp(localSurfacePosition)));
 }
 
-void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_SupportingFace *outVertices) {
+void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_Shape_SupportingFace *outVertices) {
     ToCpp(shape)->GetSupportingFace(*reinterpret_cast<JPH::SubShapeID *>(&subShapeID), ToCpp(direction), ToCpp(scale), ToCpp(centerOfMassTransform), *reinterpret_cast<JPH::Shape::SupportingFace *>(outVertices));
 }
 

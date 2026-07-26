@@ -67,9 +67,11 @@ void JPH_SetTraceHandler(JPH_TraceHandler handler) {
     JPH::Trace = handler;
 }
 
+#ifdef JOLTC_ENABLE_ASSERTS
 void JPH_SetAssertFailedHandler(JPH_AssertFailedHandler handler) {
     JPH::AssertFailed = handler;
 }
+#endif
 
 void JPH_CreateFactory() {
     JPH::Factory::sInstance = new JPH::Factory;
@@ -80,7 +82,11 @@ void JPH_DestroyFactory() {
     JPH::Factory::sInstance = nullptr;
 }
 
+void ABITests();
+
 void JPH_RegisterTypes() {
+    ABITests();
+
     JPH::RegisterTypes();
 }
 

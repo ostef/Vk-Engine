@@ -284,58 +284,58 @@ JOLTC_API float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(cons
 
 typedef uint32_t JPH_SubShapeID;
 
-typedef uint8_t JPH_Shape_EShapeType;
+typedef uint8_t JPH_EShapeType;
 enum {
-    JPH_Shape_EShapeType_Convex,
-    JPH_Shape_EShapeType_Compound,
-    JPH_Shape_EShapeType_Decorated,
-    JPH_Shape_EShapeType_Mesh,
-    JPH_Shape_EShapeType_HeightField,
-    JPH_Shape_EShapeType_SoftBody,
-    JPH_Shape_EShapeType_User1,
-    JPH_Shape_EShapeType_User2,
-    JPH_Shape_EShapeType_User3,
-    JPH_Shape_EShapeType_User4,
-    JPH_Shape_EShapeType_Plane,
-    JPH_Shape_EShapeType_Empty,
+    JPH_EShapeType_Convex,
+    JPH_EShapeType_Compound,
+    JPH_EShapeType_Decorated,
+    JPH_EShapeType_Mesh,
+    JPH_EShapeType_HeightField,
+    JPH_EShapeType_SoftBody,
+    JPH_EShapeType_User1,
+    JPH_EShapeType_User2,
+    JPH_EShapeType_User3,
+    JPH_EShapeType_User4,
+    JPH_EShapeType_Plane,
+    JPH_EShapeType_Empty,
 };
 
-typedef uint8_t JPH_Shape_EShapeSubType;
+typedef uint8_t JPH_EShapeSubType;
 enum {
-    JPH_Shape_EShapeSubType_Sphere,
-    JPH_Shape_EShapeSubType_Box,
-    JPH_Shape_EShapeSubType_Triangle,
-    JPH_Shape_EShapeSubType_Capsule,
-    JPH_Shape_EShapeSubType_TaperedCapsule,
-    JPH_Shape_EShapeSubType_Cylinder,
-    JPH_Shape_EShapeSubType_ConvexHull,
-    JPH_Shape_EShapeSubType_StaticCompound,
-    JPH_Shape_EShapeSubType_MutableCompound,
-    JPH_Shape_EShapeSubType_RotatedTranslated,
-    JPH_Shape_EShapeSubType_Scaled,
-    JPH_Shape_EShapeSubType_OffsetCenterOfMass,
-    JPH_Shape_EShapeSubType_Mesh,
-    JPH_Shape_EShapeSubType_HeightField,
-    JPH_Shape_EShapeSubType_SoftBody,
-    JPH_Shape_EShapeSubType_User1,
-    JPH_Shape_EShapeSubType_User2,
-    JPH_Shape_EShapeSubType_User3,
-    JPH_Shape_EShapeSubType_User4,
-    JPH_Shape_EShapeSubType_User5,
-    JPH_Shape_EShapeSubType_User6,
-    JPH_Shape_EShapeSubType_User7,
-    JPH_Shape_EShapeSubType_User8,
-    JPH_Shape_EShapeSubType_UserConvex1,
-    JPH_Shape_EShapeSubType_UserConvex2,
-    JPH_Shape_EShapeSubType_UserConvex3,
-    JPH_Shape_EShapeSubType_UserConvex4,
-    JPH_Shape_EShapeSubType_UserConvex5,
-    JPH_Shape_EShapeSubType_UserConvex6,
-    JPH_Shape_EShapeSubType_UserConvex7,
-    JPH_Shape_EShapeSubType_UserConvex8,
-    JPH_Shape_EShapeSubType_Plane,
-    JPH_Shape_EShapeSubType_TaperedCylinder,
-    JPH_Shape_EShapeSubType_Empty,
+    JPH_EShapeSubType_Sphere,
+    JPH_EShapeSubType_Box,
+    JPH_EShapeSubType_Triangle,
+    JPH_EShapeSubType_Capsule,
+    JPH_EShapeSubType_TaperedCapsule,
+    JPH_EShapeSubType_Cylinder,
+    JPH_EShapeSubType_ConvexHull,
+    JPH_EShapeSubType_StaticCompound,
+    JPH_EShapeSubType_MutableCompound,
+    JPH_EShapeSubType_RotatedTranslated,
+    JPH_EShapeSubType_Scaled,
+    JPH_EShapeSubType_OffsetCenterOfMass,
+    JPH_EShapeSubType_Mesh,
+    JPH_EShapeSubType_HeightField,
+    JPH_EShapeSubType_SoftBody,
+    JPH_EShapeSubType_User1,
+    JPH_EShapeSubType_User2,
+    JPH_EShapeSubType_User3,
+    JPH_EShapeSubType_User4,
+    JPH_EShapeSubType_User5,
+    JPH_EShapeSubType_User6,
+    JPH_EShapeSubType_User7,
+    JPH_EShapeSubType_User8,
+    JPH_EShapeSubType_UserConvex1,
+    JPH_EShapeSubType_UserConvex2,
+    JPH_EShapeSubType_UserConvex3,
+    JPH_EShapeSubType_UserConvex4,
+    JPH_EShapeSubType_UserConvex5,
+    JPH_EShapeSubType_UserConvex6,
+    JPH_EShapeSubType_UserConvex7,
+    JPH_EShapeSubType_UserConvex8,
+    JPH_EShapeSubType_Plane,
+    JPH_EShapeSubType_TaperedCylinder,
+    JPH_EShapeSubType_Empty,
 };
 
 typedef struct JPH_MassProperties {
@@ -354,8 +354,8 @@ JOLTC_API void JPH_MassProperties_Scale(JPH_MassProperties *massProperties, JPH_
 JOLTC_API void JPH_Shape_AddRef(JPH_Shape *shape);
 JOLTC_API void JPH_Shape_Release(JPH_Shape *shape);
 
-JOLTC_API JPH_Shape_EShapeType JPH_Shape_GetType(const JPH_Shape *shape);
-JOLTC_API JPH_Shape_EShapeSubType JPH_Shape_GetSubType(const JPH_Shape *shape);
+JOLTC_API JPH_EShapeType JPH_Shape_GetType(const JPH_Shape *shape);
+JOLTC_API JPH_EShapeSubType JPH_Shape_GetSubType(const JPH_Shape *shape);
 
 JOLTC_API uint64_t JPH_Shape_GetUserData(const JPH_Shape *shape);
 JOLTC_API void JPH_Shape_SetUserData(JPH_Shape *shape, uint64_t userData);
@@ -373,12 +373,12 @@ JOLTC_API const JPH_Shape *JPH_Shape_GetLeafShape(const JPH_Shape *shape, JPH_Su
 JOLTC_API const JPH_PhysicsMaterial *JPH_Shape_GetMaterial(const JPH_Shape *shape, JPH_SubShapeID subShapeID);
 JOLTC_API JPH_Vec3 JPH_Shape_GetSurfaceNormal(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 localSurfacePosition);
 
-typedef struct JPH_SupportingFace {
+typedef struct JPH_Shape_SupportingFace {
     uint32_t size;
     JPH_Vec3 elements[32];
-} JPH_SupportingFace;
+} JPH_Shape_SupportingFace;
 
-JOLTC_API void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_SupportingFace *outVertices);
+JOLTC_API void JPH_Shape_GetSupportingFace(const JPH_Shape *shape, JPH_SubShapeID subShapeID, JPH_Vec3 direction, JPH_Vec3 scale, JPH_Mat44 centerOfMassTransform, JPH_Shape_SupportingFace *outVertices);
 
 JOLTC_API uint64_t JPH_Shape_GetSubShapeUserData(const JPH_Shape *shape, JPH_SubShapeID subShapeID);
 

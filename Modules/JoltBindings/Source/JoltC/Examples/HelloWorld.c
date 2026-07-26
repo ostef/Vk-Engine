@@ -81,7 +81,9 @@ int main(int argc, char **argv) {
 
     JPH_RegisterDefaultAllocator();
     JPH_SetTraceHandler(Trace);
+#ifdef JOLTC_ENABLE_ASSERTS
     JPH_SetAssertFailedHandler(AssertFailed);
+#endif
 
     JPH_CreateFactory();
     JPH_RegisterTypes();

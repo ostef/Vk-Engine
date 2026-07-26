@@ -36,6 +36,18 @@
   #define JOLTC_CALL
 #endif
 
+// Determine if we want extra debugging code to be active
+#if !defined(NDEBUG) && !defined(JPH_NO_DEBUG)
+	#define JOLTC_DEBUG
+#endif
+
+// Always turn on asserts in Debug mode
+#if defined(JPH_ENABLE_ASSERTS)
+    #define JOLTC_ENABLE_ASSERTS
+#elif defined(JOLTC_DEBUG)
+	#define JOLTC_ENABLE_ASSERTS
+#endif
+
 #define JOLTC_VECTOR_ALIGNMENT 16 // @Todo: match this with Jolt/Core/Core.h
 #define JOLTC_DVECTOR_ALIGNMENT 32
 
@@ -81,13 +93,6 @@ typedef union JPH_DVec3 {
     double values[4];
 } JPH_DVec3 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
 
-typedef union JPH_DVec4 {
-    struct {
-        double x, y, z, w;
-    };
-    double values[4];
-} JPH_DVec4 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
-
 typedef struct JPH_DMat44 {
     JPH_Vec4 cols[3];
     JPH_DVec3 col3;
@@ -132,6 +137,14 @@ JOLTC_API JPH_Plane JPH_Plane_GetTransformed(JPH_Plane plane, JPH_Mat44 transfor
 JOLTC_API float JPH_Plane_SignedDistance(JPH_Plane plane, JPH_Vec3 point);
 JOLTC_API JPH_Vec3 JPH_Plane_ProjectPointOnPlane(JPH_Plane plane, JPH_Vec3 point);
 JOLTC_API JPH_Plane JPH_Plane_FromPointAndNormal(JPH_Vec3 point, JPH_Vec3 normal);
+
+typedef struct JPH_OrientedBox {
+    JPH_Mat44 orientation;
+    JPH_Vec3 halfExtents;
+} JPH_OrientedBox;
+
+JOLTC_API bool JPH_OrientedBox_OverlapsAABox(const JPH_OrientedBox *box, JPH_AABox otherBox, float epsilon);
+JOLTC_API bool JPH_OrientedBox_OverlapsOrientedBox(const JPH_OrientedBox *box, JPH_OrientedBox otherBox, float epsilon);
 
 #define JPH_cDefaultCollisionTolerance 1.0e-4f
 #define JPH_cDefaultPenetrationTolerance 1.0e-4f
@@ -190,13 +203,16 @@ typedef void *(*JPH_AlignedAllocateFunction)(size_t size, size_t alignment);
 typedef void (*JPH_AlignedFreeFunction)(void *block);
 
 typedef void (*JPH_TraceHandler)(const char *fmt, ...);
-// @Todo: ifdef enable asserts
+#ifdef JOLTC_ENABLE_ASSERTS
 typedef bool (*JPH_AssertFailedHandler)(const char *expression, const char *message, const char *file, uint32_t line);
+#endif
 
 JOLTC_API void JPH_RegisterDefaultAllocator();
 JOLTC_API void JPH_SetAllocatorFunctions(JPH_AllocateFunction allocate, JPH_ReallocateFunction reallocate, JPH_FreeFunction free, JPH_AlignedAllocateFunction alignedAllocate, JPH_AlignedFreeFunction alignedFree);
 JOLTC_API void JPH_SetTraceHandler(JPH_TraceHandler handler);
+#ifdef JOLTC_ENABLE_ASSERTS
 JOLTC_API void JPH_SetAssertFailedHandler(JPH_AssertFailedHandler handler);
+#endif
 JOLTC_API void JPH_CreateFactory();
 JOLTC_API void JPH_DestroyFactory();
 JOLTC_API void JPH_RegisterTypes();

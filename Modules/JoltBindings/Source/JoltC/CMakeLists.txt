@@ -58,6 +58,7 @@ else()
 endif()
 
 set(JOLTC_SRC_FILES
+    ${CMAKE_SOURCE_DIR}/JoltC_ABITests.cpp
     ${CMAKE_SOURCE_DIR}/JoltC_Core.cpp
     ${CMAKE_SOURCE_DIR}/JoltC_Collision.cpp
     ${CMAKE_SOURCE_DIR}/JoltC_Body.cpp

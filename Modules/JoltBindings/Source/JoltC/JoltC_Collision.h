@@ -145,14 +145,6 @@ typedef struct JPH_RayCastSettings {
 
 JOLTC_API JPH_RayCastSettings JPH_RayCastSettings_Default();
 
-typedef struct JPH_OrientedBox {
-    JPH_Mat44 orientation;
-    JPH_Vec3 halfExtents;
-} JPH_OrientedBox;
-
-JOLTC_API bool JPH_OrientedBox_OverlapsAABox(const JPH_OrientedBox *box, JPH_AABox otherBox, float epsilon);
-JOLTC_API bool JPH_OrientedBox_OverlapsOrientedBox(const JPH_OrientedBox *box, JPH_OrientedBox otherBox, float epsilon);
-
 typedef struct JPH_AABoxCast {
     JPH_AABox box;
     JPH_Vec3 direction;
