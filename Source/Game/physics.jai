@@ -13,64 +13,28 @@ GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
 } @ModuleAPI
 
 InitPhysics :: () {
-    ok := Jolt.Init();
-    Assert(ok, "Could not initialize Jolt");
+    LogSectionScope(*Log_Physics);
 
-    DebugRenderer_Interface :: Jolt.DebugRenderer_Procs.{
-        DrawLine = (user_data : *void, from : *Jolt.RVec3, to : *Jolt.RVec3, color : Jolt.Color) #c_call {
-            if !user_data {
-                return;
-            }
+    LogMessage("Jolt version ID: %\n", FormatInt.{value=Jolt.GetJoltVersionID(), base=16});
 
-            push_context,defer_pop;
+    Jolt.RegisterDefaultAllocator();
+    Jolt.RegisterDefaultTraceHandler();
+    #if Jolt.ENABLE_ASSERTS {
+        Jolt.RegisterDefaultAssertFailedHandler();
+    }
 
-            rgba := cast(*u8, *color);
+    Jolt.CreateFactory();
 
-            world := cast(*World, user_data);
-            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, .{from.x, from.y, from.z}, .{to.x, to.y, to.z});
-        }
-    };
+    Jolt.RegisterTypes();
 
     using g_physics;
-
-    Jolt.DebugRenderer_SetProcs(*DebugRenderer_Interface);
-    debug_renderer = Jolt.DebugRenderer_Create();
-
-    BroadPhaseLayerFilter_Interface :: Jolt.BroadPhaseLayerFilter_Procs.{
-        ShouldCollide = (user_data : *void, layer : Jolt.BroadPhaseLayer) -> bool #c_call {
-            return true;
-        },
-    };
-
-    Jolt.BroadPhaseLayerFilter_SetProcs(*BroadPhaseLayerFilter_Interface);
-
-    ObjectLayerFilter_Interface :: Jolt.ObjectLayerFilter_Procs.{
-        ShouldCollide = (user_data : *void, layer : Jolt.ObjectLayer) -> bool #c_call {
-            return true;
-        },
-    };
-
-    Jolt.ObjectLayerFilter_SetProcs(*ObjectLayerFilter_Interface);
-
-    BodyFilter_Interface :: Jolt.BodyFilter_Procs.{
-        ShouldCollide = (user_data : *void, body_id : Jolt.BodyID) -> bool #c_call {
-            return true;
-        },
-
-        ShouldCollideLocked = (user_data : *void, body_id : *Jolt.Body) -> bool #c_call {
-            return true;
-        }
-    };
-
-    Jolt.BodyFilter_SetProcs(*BodyFilter_Interface);
 
     LogMessage("Initialized Jolt" ,, log_section=*Log_Physics);
 }
 
 ShutdownPhysics :: () {
-    Jolt.DebugRenderer_Destroy(g_physics.debug_renderer);
-
-    Jolt.Shutdown();
+    Jolt.UnregisterTypes();
+    Jolt.DestroyFactory();
 
     LogMessage("Shut down Jolt" ,, log_section=*Log_Physics);
 }
@@ -111,27 +75,56 @@ InitPhysicsWorld :: (world : *World) {
 
     using world.physics;
 
-    job_system = Jolt.JobSystemThreadPool_Create(null);
-
-    object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Collision_Layers);
-
-    for i : 0..Physics_Num_Collision_Layers - 1 {
-        for j : 0..i {
-            if ShouldPhysicsCollisionLayersCollide(xx i, xx j) {
-                Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx i, xx j);
-            } else {
-                Jolt.ObjectLayerPairFilterTable_DisableCollision(object_vs_object_layer_filter, xx i, xx j);
+    debug_renderer_funcs := Jolt.DebugRendererSimple_Funcs.{
+        DrawLine = (user_data : *void, from : Jolt.RVec3, to : Jolt.RVec3, color : Jolt.Color) #c_call {
+            if !user_data {
+                return;
             }
+
+            push_context,defer_pop;
+
+            rgba := cast(*u8, *color);
+
+            world := cast(*World, user_data);
+            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, Jolt.ToXYZ(from), Jolt.ToXYZ(to));
         }
-    }
+    };
+    debug_renderer = Jolt.DebugRendererSimple_Create(world, debug_renderer_funcs, .{});
 
-    broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable_Create(Physics_Num_Collision_Layers, Physics_Num_Collision_Layers);
+    temp_allocator = Jolt.TempAllocatorImpl_Create(5 * 1024 * 1024);
 
-    for i : 0..Physics_Num_Collision_Layers - 1 {
-        Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx i, xx i);
-    }
+    job_system = Jolt.JobSystemThreadPool_Create(Jolt.JPH_cMaxPhysicsJobs, Jolt.JPH_cMaxPhysicsBarriers, -1);
 
-    object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable_Create(broad_phase_layer_interface, Physics_Num_Collision_Layers, object_vs_object_layer_filter, Physics_Num_Collision_Layers);
+    broad_phase_layer_interface_funcs := Jolt.BroadPhaseLayerInterface_Funcs.{
+        GetNumBroadPhaseLayers = (data : *void) -> u32 #c_call {
+            return Physics_Num_Collision_Layers;
+        },
+
+        GetBroadPhaseLayer = (data : *void, layer : Jolt.ObjectLayer) -> Jolt.BroadPhaseLayer #c_call {
+            return xx layer;
+        },
+
+        GetBroadPhaseLayerName = (data : *void, layer : Jolt.BroadPhaseLayer) -> *u8 #c_call {
+            return type_info(PhysicsCollisionLayer).names[layer].data;
+        }
+    };
+    broad_phase_layer_interface = Jolt.BroadPhaseLayerInterface_Create(null, broad_phase_layer_interface_funcs, .{});
+
+    object_vs_object_layer_filter_funcs := Jolt.ObjectLayerPairFilter_Funcs.{
+        ShouldCollide = (data : *void, layer1 : Jolt.ObjectLayer, layer2 : Jolt.ObjectLayer) -> bool #c_call {
+            push_context,defer_pop;
+            return ShouldPhysicsCollisionLayersCollide(xx layer1, xx layer2);
+        }
+    };
+    object_vs_object_layer_filter = Jolt.ObjectLayerPairFilter_Create(null, object_vs_object_layer_filter_funcs, .{});
+
+    object_vs_broad_phase_layer_filter_funcs := Jolt.ObjectVsBroadPhaseLayerFilter_Funcs.{
+        ShouldCollide = (data : *void, layer1 : Jolt.ObjectLayer, layer2 : Jolt.BroadPhaseLayer) -> bool #c_call {
+            push_context,defer_pop;
+            return ShouldPhysicsCollisionLayersCollide(xx layer1, xx layer2);
+        }
+    };
+    object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilter_Create(null, object_vs_broad_phase_layer_filter_funcs, .{});
 
     system_settings := Jolt.PhysicsSystemSettings.{
         maxBodies=Physics_Max_Bodies,
@@ -142,7 +135,7 @@ InitPhysicsWorld :: (world : *World) {
         objectLayerPairFilter=object_vs_object_layer_filter,
         objectVsBroadPhaseLayerFilter=object_vs_broad_phase_layer_filter,
     };
-    system = Jolt.PhysicsSystem_Create(*system_settings);
+    system = Jolt.PhysicsSystem_Create(system_settings);
 
     body_interface = Jolt.PhysicsSystem_GetBodyInterface(system);
 
@@ -154,6 +147,8 @@ DestroyPhysicsWorld :: (world : *World) {
 
     Jolt.PhysicsSystem_Destroy(system);
     Jolt.JobSystem_Destroy(job_system);
+    Jolt.TempAllocator_Destroy(temp_allocator);
+    Jolt.DebugRenderer_Destroy(debug_renderer);
 
     system = null;
     job_system = null;
@@ -162,12 +157,12 @@ DestroyPhysicsWorld :: (world : *World) {
 UpdatePhysicsWorld :: (world : *World) {
     using world.physics;
 
-    Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, job_system);
+    Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, temp_allocator, job_system);
 
-    Jolt.DebugRenderer_NextFrame(g_physics.debug_renderer, world);
+    Jolt.DebugRenderer_NextFrame(debug_renderer);
 
     if g_physics.debug_draw_settings.enabled {
-        draw_settings : Jolt.DrawSettings;
+        draw_settings : Jolt.BodyManager_DrawSettings;
         draw_settings.drawShape = g_physics.debug_draw_settings.draw_colliders;
         draw_settings.drawShapeWireframe = g_physics.debug_draw_settings.draw_colliders_wireframe;
         draw_settings.drawShapeColor = g_physics.debug_draw_settings.collider_color;
@@ -177,7 +172,7 @@ UpdatePhysicsWorld :: (world : *World) {
         draw_settings.drawVelocity = g_physics.debug_draw_settings.draw_velocity;
         draw_settings.drawMassAndInertia = g_physics.debug_draw_settings.draw_mass_and_inertia;
 
-        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, g_physics.debug_renderer, null);
+        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, debug_renderer, null);
     }
 
     for * world.RigidBodyComponent_storage {
@@ -187,8 +182,7 @@ UpdatePhysicsWorld :: (world : *World) {
 
         entity := GetEntity(world, it.entity_index);
 
-        world_transform : Mat4f;
-        Jolt.BodyInterface_GetWorldTransform(body_interface, it.jolt_body_id, xx *world_transform);
+        world_transform := cast,force(Mat4f, Jolt.BodyInterface_GetWorldTransform(body_interface, it.jolt_body_id));
 
         world_transform = Transposed(world_transform);
         SetWorldTransformNoScale(world, entity, world_transform);
@@ -200,31 +194,48 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         return .{};
     }
 
-    // @Todo: BAD! HEAP ALLOCATION! BAD! The bindings are bad since they don't allow you to create a filter
-    // on the stack. Also functions exist to get default filters from the system and they do not allocate,
-    // but the bindings do not expose them...
-    // For now this is fine, but we need to do something about it.
-    broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null);
+    broad_phase_layer_filter_funcs := Jolt.BroadPhaseLayerFilter_Funcs.{
+        ShouldCollide = (user_data : *void, layer : Jolt.BroadPhaseLayer) -> bool #c_call {
+            return true;
+        }
+    };
+    broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null, broad_phase_layer_filter_funcs, .{});
     defer Jolt.BroadPhaseLayerFilter_Destroy(broad_phase_layer_filter);
 
-    object_layer_filter := Jolt.ObjectLayerFilter_Create(null);
+    object_layer_filter_funcs := Jolt.ObjectLayerFilter_Funcs.{
+        ShouldCollide = (user_data : *void, layer : Jolt.ObjectLayer) -> bool #c_call {
+            return true;
+        }
+    };
+    object_layer_filter := Jolt.ObjectLayerFilter_Create(null, object_layer_filter_funcs, .{});
     defer Jolt.ObjectLayerFilter_Destroy(object_layer_filter);
 
-    body_filter := Jolt.BodyFilter_Create(null);
+    body_filter_funcs := Jolt.BodyFilter_Funcs.{
+        ShouldCollide = (user_data : *void, body_id : Jolt.BodyID) -> bool #c_call {
+            return true;
+        },
+
+        ShouldCollideLocked = (user_data : *void, body_id : *Jolt.Body) -> bool #c_call {
+            return true;
+        }
+    };
+    body_filter := Jolt.BodyFilter_Create(null, body_filter_funcs, .{});
     defer Jolt.BodyFilter_Destroy(body_filter);
 
     narrow_phase := Jolt.PhysicsSystem_GetNarrowPhaseQuery(world.physics.system);
 
     ray_vector := ray_direction * ray_length;
 
+    ray : Jolt.RRayCast;
+    ray.origin = Jolt.XYZ(ray_origin);
+    ray.direction = Jolt.XYZ(ray_vector);
     result : Jolt.RayCastResult;
-    hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, *ray_origin, *ray_vector, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
+    hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
     if !hit {
         return .{};
     }
 
-    point : Vec3f;
-    Jolt.RayCast_GetPointOnRay(*ray_origin, *ray_vector, result.fraction, *point);
+    point := Jolt.RRayCast_GetPointOnRay(*ray, result.fraction);
 
     collider : *Component;
     rigid_body : *RigidBodyComponent;
@@ -241,7 +252,7 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         if body_lock_read.body {
             rigid_body = cast(*RigidBodyComponent, Jolt.Body_GetUserData(body_lock_read.body));
 
-            Jolt.Body_GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, *point, *normal);
+            normal = Jolt.ToXYZ(Jolt.Body_GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
 
             shape := Jolt.Body_GetShape(body_lock_read.body);
 
@@ -257,9 +268,9 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 
     return .{
         hit=true,
-        point=point,
+        point=Jolt.ToXYZ(point),
         normal=normal,
-        dist=Length(point - ray_origin),
+        dist=Length(Jolt.ToXYZ(point) - ray_origin),
         entity=ifx collider then GetEntity(world, collider.entity_index) else ifx rigid_body then GetEntity(world, rigid_body.entity_index),
         collider=collider,
     };
