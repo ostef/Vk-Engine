@@ -174,6 +174,30 @@ const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_Defau
     return JPH_ObjectLayerFilter_Create(filter, funcs, allocator);
 }
 
+JPH_RayCast JPH_RayCast_Transformed(const JPH_RayCast *ray, JPH_Mat44 transform) {
+    return ToC(ToCpp(ray)->Transformed(ToCpp(transform)));
+}
+
+JPH_RayCast JPH_RayCast_Translated(const JPH_RayCast *ray, JPH_Vec3 translation) {
+    return ToC(ToCpp(ray)->Translated(ToCpp(translation)));
+}
+
+JPH_Vec3 JPH_RayCast_GetPointOnRay(const JPH_RayCast *ray, float fraction) {
+    return ToC(ToCpp(ray)->GetPointOnRay(fraction));
+}
+
+JPH_RRayCast JPH_RRayCast_Transformed(const JPH_RRayCast *ray, JPH_RMat44 transform) {
+    return ToC(ToCpp(ray)->Transformed(ToCpp(transform)));
+}
+
+JPH_RRayCast JPH_RRayCast_Translated(const JPH_RRayCast *ray, JPH_RVec3 translation) {
+    return ToC(ToCpp(ray)->Translated(ToCpp(translation)));
+}
+
+JPH_RVec3 JPH_RRayCast_GetPointOnRay(const JPH_RRayCast *ray, float fraction) {
+    return ToC(ToCpp(ray)->GetPointOnRay(fraction));
+}
+
 JPH_RayCastSettings JPH_RayCastSettings_Default() {
     auto result = JPH::RayCastSettings();
     return *reinterpret_cast<JPH_RayCastSettings *>(&result);

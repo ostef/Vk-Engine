@@ -79,7 +79,7 @@ typedef struct JPH_BodyCreationSettings {
     JPH_Vec3 angularVelocity;
     uint64_t userData;
     JPH_ObjectLayer objectLayer;
-    JPH_CollisionGroup collisionGrou;
+    JPH_CollisionGroup collisionGroup;
     JPH_EMotionType motionType;
     JPH_EAllowedDOFs allowedDOFs;
     bool allowDynamicOrKinematic;

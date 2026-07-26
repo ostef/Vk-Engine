@@ -49,8 +49,8 @@ JPH_Vec3 JPH_EmptyShapeSettings_GetCenterOfMass(const JPH_EmptyShapeSettings *se
     return ToC(ToCpp(settings)->mCenterOfMass);
 }
 
-JPH_PlaneShapeSettings *JPH_PlaneShapeSettings_Create(JPH_Plane plane, const JPH_PhysicsMaterial *material, float halfExtent) {
-    return ToC(new JPH::PlaneShapeSettings(ToCpp(plane), ToCpp(material), halfExtent));
+JPH_PlaneShapeSettings *JPH_PlaneShapeSettings_Create() {
+    return ToC(new JPH::PlaneShapeSettings);
 }
 
 void JPH_PlaneShapeSettings_Destroy(JPH_PlaneShapeSettings *settings) {

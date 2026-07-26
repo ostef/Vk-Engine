@@ -126,10 +126,18 @@ typedef struct JPH_RayCast {
     JPH_Vec3 direction;
 } JPH_RayCast;
 
+JOLTC_API JPH_RayCast JPH_RayCast_Transformed(const JPH_RayCast *ray, JPH_Mat44 transform);
+JOLTC_API JPH_RayCast JPH_RayCast_Translated(const JPH_RayCast *ray, JPH_Vec3 translation);
+JOLTC_API JPH_Vec3 JPH_RayCast_GetPointOnRay(const JPH_RayCast *ray, float fraction);
+
 typedef struct JPH_RRayCast {
     JPH_RVec3 origin;
     JPH_Vec3 direction;
 } JPH_RRayCast;
+
+JOLTC_API JPH_RRayCast JPH_RRayCast_Transformed(const JPH_RRayCast *ray, JPH_RMat44 transform);
+JOLTC_API JPH_RRayCast JPH_RRayCast_Translated(const JPH_RRayCast *ray, JPH_RVec3 translation);
+JOLTC_API JPH_RVec3 JPH_RRayCast_GetPointOnRay(const JPH_RRayCast *ray, float fraction);
 
 typedef uint8_t JPH_EBackFaceMode;
 enum JPH_EBackFaceMode_ {
