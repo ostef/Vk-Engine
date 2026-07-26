@@ -57,7 +57,16 @@ else()
     set(JOLTC_LIB_TYPE STATIC)
 endif()
 
-add_library(JoltC ${JOLTC_LIB_TYPE} JoltC.cpp)
+set(JOLTC_SRC_FILES
+    ${CMAKE_SOURCE_DIR}/JoltC_Core.cpp
+    ${CMAKE_SOURCE_DIR}/JoltC_Collision.cpp
+    ${CMAKE_SOURCE_DIR}/JoltC_Body.cpp
+    ${CMAKE_SOURCE_DIR}/JoltC_System.cpp
+    ${CMAKE_SOURCE_DIR}/JoltC_Shapes.cpp
+    ${CMAKE_SOURCE_DIR}/JoltC_DebugRenderer.cpp
+)
+
+add_library(JoltC ${JOLTC_LIB_TYPE} ${JOLTC_SRC_FILES})
 
 if (MSVC)
 	# Enable warnings
