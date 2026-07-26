@@ -7,6 +7,10 @@
     JPH_ASSERT(alignof(c_type) == alignof(cpp_type));
 
 void ABITests() {
+    using uint64 = uint64_t;
+
+    JPH_ASSERT(JOLTC_VERSION_FEATURES == JPH_VERSION_FEATURES, "JoltC and Jolt feature bits mismatch");
+
     ABI_TEST(JPH_Float3, JPH::Float3);
     ABI_TEST(JPH_UVec4, JPH::UVec4);
     ABI_TEST(JPH_Vec3, JPH::Vec3);
