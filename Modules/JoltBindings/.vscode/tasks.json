@@ -4,10 +4,20 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build",
+            "label": "Build Bindings",
             "type": "shell",
-            "command": "make",
-            "args": ["-C", "${workspaceFolder}/Source/JoltC"],
+            "command": "jai",
+            "args": ["generate.jai", "-", "combined_shared_libs"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Build Hello World",
+            "type": "shell",
+            "command": "jai",
+            "args": ["Examples/hello_world.jai"],
             "group": {
                 "kind": "build",
                 "isDefault": true

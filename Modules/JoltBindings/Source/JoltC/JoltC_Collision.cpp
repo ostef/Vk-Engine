@@ -181,7 +181,7 @@ JPH_RayCastSettings JPH_RayCastSettings_Default() {
 
 bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast ray, JPH_ECollisionCollectorType collectorType, void *data, JPH_BroadPhaseQuery_CastRayHitCallback callback, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter) {
     switch (collectorType) {
-    case JPH_ECollisionCollectorType_Any: {
+    case JPH_ECollisionCollectorType_AnyHit: {
         JPH::AnyHitCollisionCollector<JPH::RayCastBodyCollector> collector;
         ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
 
@@ -196,7 +196,7 @@ bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast r
         }
     } break;
 
-    case JPH_ECollisionCollectorType_Closest: {
+    case JPH_ECollisionCollectorType_ClosestHit: {
         JPH::ClosestHitCollisionCollector<JPH::RayCastBodyCollector> collector;
         ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
 
@@ -211,14 +211,14 @@ bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast r
         }
     } break;
 
-    case JPH_ECollisionCollectorType_AllSorted:
-    case JPH_ECollisionCollectorType_All: {
+    case JPH_ECollisionCollectorType_AllHitsSorted:
+    case JPH_ECollisionCollectorType_AllHits: {
         JPH::AllHitCollisionCollector<JPH::RayCastBodyCollector> collector;
         ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
 
         if (collector.HadHit()) {
             if (callback) {
-                if (collectorType == JPH_ECollisionCollectorType_AllSorted) {
+                if (collectorType == JPH_ECollisionCollectorType_AllHitsSorted) {
                     collector.Sort();
                 }
 

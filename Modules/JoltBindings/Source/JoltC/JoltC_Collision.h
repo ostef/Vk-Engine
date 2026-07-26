@@ -91,7 +91,7 @@ JOLTC_API JPH_BodyFilter *JPH_BodyFilter_Create(void *data, JPH_BodyFilter_Funcs
 JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_Allocator allocator);
 JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_Allocator allocator);
 JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_Allocator allocator);
-JOLTC_API void JPH_BodyFilter_Destroy(JPH_ObjectLayerFilter *self);
+JOLTC_API void JPH_BodyFilter_Destroy(JPH_BodyFilter *self);
 
 typedef struct JPH_ShapeFilter_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);
@@ -101,7 +101,7 @@ typedef struct JPH_ShapeFilter_Funcs {
 
 JOLTC_API JPH_ShapeFilter *JPH_ShapeFilter_Create(void *data, JPH_ShapeFilter_Funcs funcs, JPH_Allocator allocator);
 JOLTC_API JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_Allocator allocator);
-JOLTC_API void JPH_ShapeFilter_Destroy(JPH_ObjectLayerFilter *self);
+JOLTC_API void JPH_ShapeFilter_Destroy(JPH_ShapeFilter *self);
 
 // Default filters
 
@@ -132,7 +132,7 @@ typedef struct JPH_RRayCast {
 } JPH_RRayCast;
 
 typedef uint8_t JPH_EBackFaceMode;
-enum {
+enum JPH_EBackFaceMode_ {
     JPH_EBackFaceMode_IgnoreBackFaces,
     JPH_EBackFaceMode_CollideWithBackFaces,
 };
@@ -151,11 +151,11 @@ typedef struct JPH_AABoxCast {
 } JPH_AABoxCast;
 
 typedef uint32_t JPH_ECollisionCollectorType;
-enum {
-    JPH_ECollisionCollectorType_Any,
-    JPH_ECollisionCollectorType_Closest,
-    JPH_ECollisionCollectorType_AllSorted,
-    JPH_ECollisionCollectorType_All,
+enum JPH_ECollisionCollectorType_ {
+    JPH_ECollisionCollectorType_AnyHit,
+    JPH_ECollisionCollectorType_ClosestHit,
+    JPH_ECollisionCollectorType_AllHitsSorted,
+    JPH_ECollisionCollectorType_AllHits,
 };
 
 typedef struct JPH_BroadPhaseCastResult {
@@ -181,7 +181,7 @@ JOLTC_API bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH
 // JOLTC_API bool JPH_BroadPhaseQuery_CollideOrientedBox(const JPH_BroadPhaseQuery *query, JPH_OrientedBox box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
 // JOLTC_API bool JPH_BroadPhaseQuery_CastAABox(const JPH_BroadPhaseQuery *query, JPH_AABoxCast box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *inObjectLayerFilter);
 
-bool JPH_NarrowPhaseQuery_CastRay(const JPH_NarrowPhaseQuery *query, JPH_RRayCast ray, JPH_RayCastResult *ioHit, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter);
+JOLTC_API bool JPH_NarrowPhaseQuery_CastRay(const JPH_NarrowPhaseQuery *query, JPH_RRayCast ray, JPH_RayCastResult *ioHit, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter);
 // void JPH_NarrowPhaseQuery_CastRay(const JPH_NarrowPhaseQuery *query, JPH_RRayCast ray, const RayCastSettings &inRayCastSettings, CastRayCollector &ioCollector, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter, const ShapeFilter &inShapeFilter);
 // void JPH_NarrowPhaseQuery_CollidePoint(const JPH_NarrowPhaseQuery *query, RVec3Arg inPoint, CollidePointCollector &ioCollector, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter, const ShapeFilter &inShapeFilter);
 // void JPH_NarrowPhaseQuery_CollideShape(const JPH_NarrowPhaseQuery *query, const Shape *inShape, Vec3Arg inShapeScale, RMat44Arg inCenterOfMassTransform, const CollideShapeSettings &inCollideShapeSettings, RVec3Arg inBaseOffset, CollideShapeCollector &ioCollector, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter, const ShapeFilter &inShapeFilter);

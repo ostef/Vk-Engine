@@ -4,10 +4,10 @@
 
 static
 void Trace(const char *fmt, ...) {
-	va_list list;
-	va_start(list, fmt);
+    va_list list;
+    va_start(list, fmt);
     vprintf(fmt, list);
-	va_end(list);
+    va_end(list);
 
     printf("\n");
 }
@@ -15,8 +15,8 @@ void Trace(const char *fmt, ...) {
 static
 bool AssertFailed(const char *expression, const char *message, const char *file, uint32_t line) {
     printf("Assertion failed at file %s:%u: (%s) %s\n", file, line, expression, message ? message : "");
-	// Breakpoint
-	return true;
+    // Breakpoint
+    return true;
 }
 
 enum {

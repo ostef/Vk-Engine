@@ -8,12 +8,12 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/Source/JoltC/example",
+            "program": "${workspaceRoot}/Examples/hello_world",
             "args": [],
             "environment": [],
             "cwd": "${workspaceRoot}",
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Build"
+            "preLaunchTask": "Build Hello World"
         }
     ]
 }

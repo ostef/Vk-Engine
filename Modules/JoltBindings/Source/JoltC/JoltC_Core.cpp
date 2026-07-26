@@ -1,6 +1,9 @@
 #include <JoltC.hpp>
 #include <JoltC_Core.h>
 
+#include <stdarg.h>
+#include <stdio.h>
+
 // Math functions
 
 JPH_Plane JPH_Plane_Make(JPH_Vec3 normal, float constant) {
@@ -54,6 +57,33 @@ JPH_AABox JPH_BroadPhaseQuery_GetBounds(const JPH_BroadPhaseQuery *query) {
 void JPH_RegisterDefaultAllocator() {
     JPH::RegisterDefaultAllocator();
 }
+
+static
+void DefaultTrace(const char *fmt, ...) {
+    va_list list;
+    va_start(list, fmt);
+    vprintf(fmt, list);
+    va_end(list);
+
+    printf("\n");
+}
+
+void JPH_RegisterDefaultTraceHandler() {
+    JPH_SetTraceHandler(DefaultTrace);
+}
+
+static
+bool DefaultAssertFailed(const char *expression, const char *message, const char *file, uint32_t line) {
+    printf("Assertion failed at file %s:%u: (%s) %s\n", file, line, expression, message ? message : "");
+    // Breakpoint
+    return true;
+}
+
+#ifdef JOLTC_ENABLE_ASSERTS
+void JPH_RegisterDefaultAssertFailedHandler() {
+    JPH_SetAssertFailedHandler(DefaultAssertFailed);
+}
+#endif
 
 void JPH_SetAllocatorFunctions(JPH_AllocateFunction allocate, JPH_ReallocateFunction reallocate, JPH_FreeFunction free, JPH_AlignedAllocateFunction alignedAllocate, JPH_AlignedFreeFunction alignedFree) {
     JPH::Allocate = allocate;

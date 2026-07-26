@@ -1,1 +1,4 @@
-example
+Examples/hello_world
+*.so
+*.a
+

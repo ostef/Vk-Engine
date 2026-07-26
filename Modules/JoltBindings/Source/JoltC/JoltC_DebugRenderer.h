@@ -11,33 +11,33 @@ typedef struct JPH_DebugRenderer  JPH_DebugRenderer;
 typedef struct JPH_BodyDrawFilter JPH_BodyDrawFilter;
 
 typedef uint32_t JPH_DebugRenderer_ECastShadow;
-enum {
+enum JPH_DebugRenderer_ECastShadow_ {
     JPH_DebugRenderer_ECastShadow_On,
     JPH_DebugRenderer_ECastShadow_Off,
 };
 
 typedef uint32_t JPH_DebugRenderer_EDrawMode;
-enum {
+enum JPH_DebugRenderer_EDrawMode_ {
     JPH_DebugRenderer_EDrawMode_Solid,
     JPH_DebugRenderer_EDrawMode_Wireframe,
 };
 
 typedef uint32_t JPH_DebugRenderer_ECullMode;
-enum {
+enum JPH_DebugRenderer_ECullMode_ {
     JPH_DebugRenderer_ECullMode_CullBackFace,
     JPH_DebugRenderer_ECullMode_CullFrontFace,
     JPH_DebugRenderer_ECullMode_Off,
 };
 
 typedef uint32_t JPH_ESoftBodyConstraintColor;
-enum {
+enum JPH_ESoftBodyConstraintColor_ {
     JPH_ESoftBodyConstraintColor_ConstraintType,
     JPH_ESoftBodyConstraintColor_ConstraintGroup,
     JPH_ESoftBodyConstraintColor_ConstraintOrder,
 };
 
 typedef uint32_t JPH_BodyManager_EShapeColor;
-enum {
+enum JPH_BodyManager_EShapeColor_ {
     JPH_BodyManager_EShapeColor_InstanceColor,
     JPH_BodyManager_EShapeColor_ShapeTypeColor,
     JPH_BodyManager_EShapeColor_MotionTypeColor,

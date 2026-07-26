@@ -301,6 +301,10 @@ typedef bool (*JPH_AssertFailedHandler)(const char *expression, const char *mess
 #endif
 
 JOLTC_API void JPH_RegisterDefaultAllocator();
+JOLTC_API void JPH_RegisterDefaultTraceHandler();
+#ifdef JOLTC_ENABLE_ASSERTS
+JOLTC_API void JPH_RegisterDefaultAssertFailedHandler();
+#endif
 JOLTC_API void JPH_SetAllocatorFunctions(JPH_AllocateFunction allocate, JPH_ReallocateFunction reallocate, JPH_FreeFunction free, JPH_AlignedAllocateFunction alignedAllocate, JPH_AlignedFreeFunction alignedFree);
 JOLTC_API void JPH_SetTraceHandler(JPH_TraceHandler handler);
 #ifdef JOLTC_ENABLE_ASSERTS

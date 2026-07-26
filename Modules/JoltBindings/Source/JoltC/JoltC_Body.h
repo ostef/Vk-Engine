@@ -26,32 +26,32 @@ typedef struct JPH_BodyManager_BodyStats {
 } JPH_BodyManager_BodyStats;
 
 typedef uint8_t JPH_EBodyType;
-enum {
+enum JPH_EBodyType_ {
     JPH_EBodyType_RigidBody,
     JPH_EBodyType_SoftBody,
 };
 
 typedef uint32_t JPH_ECanSleep;
-enum {
+enum JPH_ECanSleep_ {
     JPH_ECanSleep_CannotSleep,
     JPH_ECanSleep_CanSleep,
 };
 
 typedef uint8_t JPH_EMotionQuality;
-enum {
+enum JPH_EMotionQuality_ {
     JPH_EMotionQuality_Discrete,
     JPH_EMotionQuality_LinearCast,
 };
 
 typedef uint8_t JPH_EMotionType;
-enum {
+enum JPH_EMotionType_ {
     JPH_EMotionType_Static,
     JPH_EMotionType_Kinematic,
     JPH_EMotionType_Dynamic,
 };
 
 typedef uint8_t JPH_EAllowedDOFs;
-enum {
+enum JPH_EAllowedDOFs_ {
     JPH_EAllowedDOFs_None = 0,
     JPH_EAllowedDOFs_All = 0xff,
     JPH_EAllowedDOFs_TranslationX = 1 << 0,
@@ -66,7 +66,7 @@ enum {
 // BodyCreationSettings
 
 typedef uint8_t JPH_EOverrideMassProperties;
-enum {
+enum JPH_EOverrideMassProperties_ {
     JPH_EOverrideMassProperties_CalculateMassAndInertia,
     JPH_EOverrideMassProperties_CalculateInertia,
     JPH_EOverrideMassProperties_MassAndInertiaProvided
@@ -139,7 +139,7 @@ JOLTC_API JPH_SoftBodyCreationSettings JPH_SoftBodyCreationSettings_Default();
 // BodyInterface
 
 typedef uint32_t JPH_EActivation;
-enum {
+enum JPH_EActivation_ {
     JPH_EActivation_Activate,
     JPH_EActivation_DontActivate,
 };

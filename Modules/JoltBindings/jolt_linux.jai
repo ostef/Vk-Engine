@@ -1,10 +1,36 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai
+// jai generate.jai - combined_shared_libs
 //
 
 
+
+JPH_PROFILE_ENABLED :: 1;
+JPH_DEBUG_RENDERER :: 1;
+JPH_ENABLE_ASSERTS :: 1;
+JPH_OBJECT_STREAM :: 1;
+JOLTC_VERSION_FEATURE_BIT_1 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_2 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_3 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_4 :: 1;
+
+JOLTC_VERSION_FEATURE_BIT_5 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_6 :: 1;
+
+JOLTC_VERSION_FEATURE_BIT_7 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_8 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_9 :: 0;
+
+JOLTC_VERSION_FEATURE_BIT_10 :: 1;
+
+JOLTC_VERSION_FEATURE_BIT_11 :: 1;
 
 JOLTC_VECTOR_ALIGNMENT :: 16;
 JOLTC_DVECTOR_ALIGNMENT :: 32;
@@ -23,73 +49,17 @@ TempAllocator :: struct {}
 JobSystem :: struct {}
 SharedMutex :: struct {}
 
-Bool :: u32;
-
-// @Todo: ensure vector type alignment
+// Math
 Float3 :: struct {
     x: float;
     y: float;
     z: float;
 }
 
-UVec4 :: union {
-    struct {
-        x: u32;
-        y: u32;
-        z: u32;
-        w: u32;
-    }
-
-    values: [4] u32;
-}
-
-Mat44 :: struct {
-    cols: [4] Vec4 #align 16;
-}
-
-DVec3 :: union {
-    struct {
-        x: float64;
-        y: float64;
-        z: float64;
-    }
-
-    values: [4] float64;
-}
-
-DVec4 :: union {
-    struct {
-        x: float64;
-        y: float64;
-        z: float64;
-        w: float64;
-    }
-
-    values: [4] float64;
-}
-
-DMat44 :: struct {
-    cols: [3] Vec4 #align 16;
-    col3: DVec3 #align 32;
-}
-
 RVec3 :: Vec3;
 RMat44 :: Mat44;
 
 Color :: u32;
-
-AABox :: struct {
-    min: Vec3;
-    max: Vec3;
-
-    _:   [0] u8 #align 16; // Force AABox alignment to match the C/C++ equivalent
-}
-
-Plane :: struct {
-    normalAndConstant: Vec4;
-
-    _:                 [0] u8 #align 16; // Force Plane alignment to match the C/C++ equivalent
-}
 
 Plane_Make :: (normal: Vec3, constant: float) -> Plane #foreign JoltC "JPH_Plane_Make";
 Plane_Offset :: (plane: Plane, distance: float) -> Plane #foreign JoltC "JPH_Plane_Offset";
@@ -98,6 +68,14 @@ Plane_GetTransformed :: (plane: Plane, transform: Mat44) -> Plane #foreign JoltC
 Plane_SignedDistance :: (plane: Plane, point: Vec3) -> float #foreign JoltC "JPH_Plane_SignedDistance";
 Plane_ProjectPointOnPlane :: (plane: Plane, point: Vec3) -> Vec3 #foreign JoltC "JPH_Plane_ProjectPointOnPlane";
 Plane_FromPointAndNormal :: (point: Vec3, normal: Vec3) -> Plane #foreign JoltC "JPH_Plane_FromPointAndNormal";
+
+OrientedBox :: struct {
+    orientation: Mat44;
+    halfExtents: Vec3;
+}
+
+OrientedBox_OverlapsAABox :: (box: *OrientedBox, otherBox: AABox, epsilon: float) -> bool #foreign JoltC "JPH_OrientedBox_OverlapsAABox";
+OrientedBox_OverlapsOrientedBox :: (box: *OrientedBox, otherBox: OrientedBox, epsilon: float) -> bool #foreign JoltC "JPH_OrientedBox_OverlapsOrientedBox";
 
 PhysicsSettings :: struct {
     maxInFlightBodyPairs:                 s32;
@@ -149,13 +127,18 @@ AlignedFreeFunction :: #type (block: *void) -> void #c_call;
 
 TraceHandler :: #type (fmt: *u8, __args: ..Any) -> void #c_call;
 
-// @Todo: ifdef enable asserts
 AssertFailedHandler :: #type (expression: *u8, message: *u8, file: *u8, line: u32) -> bool #c_call;
 
 RegisterDefaultAllocator :: () -> void #foreign JoltC "JPH_RegisterDefaultAllocator";
+RegisterDefaultTraceHandler :: () -> void #foreign JoltC "JPH_RegisterDefaultTraceHandler";
+
+RegisterDefaultAssertFailedHandler :: () -> void #foreign JoltC "JPH_RegisterDefaultAssertFailedHandler";
+
 SetAllocatorFunctions :: (allocate: AllocateFunction, reallocate: ReallocateFunction, free: FreeFunction, alignedAllocate: AlignedAllocateFunction, alignedFree: AlignedFreeFunction) -> void #foreign JoltC "JPH_SetAllocatorFunctions";
 SetTraceHandler :: (handler: TraceHandler) -> void #foreign JoltC "JPH_SetTraceHandler";
+
 SetAssertFailedHandler :: (handler: AssertFailedHandler) -> void #foreign JoltC "JPH_SetAssertFailedHandler";
+
 CreateFactory :: () -> void #foreign JoltC "JPH_CreateFactory";
 DestroyFactory :: () -> void #foreign JoltC "JPH_DestroyFactory";
 RegisterTypes :: () -> void #foreign JoltC "JPH_RegisterTypes";
@@ -179,86 +162,10 @@ Allocator_Free :: (allocator: Allocator, ptr: *void) -> void #foreign JoltC "JPH
 
 GetJoltVersionID :: () -> u64 #foreign JoltC "JPH_GetJoltVersionID";
 
+// Forward decls
+BodyID :: u32;
+
 PhysicsMaterial :: struct {}
-BroadPhaseLayerInterface :: struct {}
-ObjectVsBroadPhaseLayerFilter :: struct {}
-ObjectLayerPairFilter :: struct {}
-BroadPhaseLayerFilter :: struct {}
-ObjectLayerFilter :: struct {}
-GroupFilter :: struct {}
-BroadPhaseQuery :: struct {}
-NarrowPhaseQuery :: struct {}
-
-BroadPhaseLayer :: u8;
-
-ObjectLayer :: u16;
-
-CollisionGroup_GroupID :: u32;
-CollisionGroup_SubGroupID :: u32;
-
-CollisionGroup :: struct {
-    groupFilter: *GroupFilter;
-    groupID:     CollisionGroup_GroupID;
-    subGroupID:  CollisionGroup_SubGroupID;
-}
-
-BroadPhaseLayerInterface_Funcs :: struct {
-    Destruct:               #type (data: *void) -> void #c_call;
-    GetNumBroadPhaseLayers: #type (data: *void) -> u32 #c_call;
-    GetBroadPhaseLayer:     #type (data: *void, layer: ObjectLayer) -> BroadPhaseLayer #c_call;
-}
-
-BroadPhaseLayerInterface_Create :: (data: *void, funcs: BroadPhaseLayerInterface_Funcs, allocator: Allocator) -> *BroadPhaseLayerInterface #foreign JoltC "JPH_BroadPhaseLayerInterface_Create";
-BroadPhaseLayerInterface_Destroy :: (self: *BroadPhaseLayerInterface) -> void #foreign JoltC "JPH_BroadPhaseLayerInterface_Destroy";
-
-ObjectVsBroadPhaseLayerFilter_Funcs :: struct {
-    Destruct:      #type (data: *void) -> void #c_call;
-    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: BroadPhaseLayer) -> bool #c_call;
-}
-
-ObjectVsBroadPhaseLayerFilter_Create :: (data: *void, funcs: ObjectVsBroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *ObjectVsBroadPhaseLayerFilter #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Create";
-ObjectVsBroadPhaseLayerFilter_Destroy :: (self: *ObjectVsBroadPhaseLayerFilter) -> void #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Destroy";
-
-ObjectLayerPairFilter_Funcs :: struct {
-    Destruct:      #type (data: *void) -> void #c_call;
-    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: ObjectLayer) -> bool #c_call;
-}
-
-ObjectLayerPairFilter_Create :: (data: *void, funcs: ObjectLayerPairFilter_Funcs, allocator: Allocator) -> *ObjectLayerPairFilter #foreign JoltC "JPH_ObjectLayerPairFilter_Create";
-ObjectLayerPairFilter_Destroy :: (self: *ObjectLayerPairFilter) -> void #foreign JoltC "JPH_ObjectLayerPairFilter_Destroy";
-
-BroadPhaseLayerFilter_Funcs :: struct {
-    Destruct:      #type (data: *void) -> void #c_call;
-    ShouldCollide: #type (data: *void, layer: BroadPhaseLayer) -> bool #c_call;
-}
-
-BroadPhaseLayerFilter_Create :: (data: *void, funcs: BroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *BroadPhaseLayerFilter #foreign JoltC "JPH_BroadPhaseLayerFilter_Create";
-BroadPhaseLayerFilter_Destroy :: (self: *BroadPhaseLayerFilter) -> void #foreign JoltC "JPH_BroadPhaseLayerFilter_Destroy";
-
-ObjectLayerFilter_Funcs :: struct {
-    Destruct:      #type (data: *void) -> void #c_call;
-    ShouldCollide: #type (data: *void, layer: ObjectLayer) -> bool #c_call;
-}
-
-ObjectLayerFilter_Create :: (data: *void, funcs: ObjectLayerFilter_Funcs, allocator: Allocator) -> *ObjectLayerFilter #foreign JoltC "JPH_ObjectLayerFilter_Create";
-ObjectLayerFilter_Destroy :: (self: *ObjectLayerFilter) -> void #foreign JoltC "JPH_ObjectLayerFilter_Destroy";
-
-// Default filters
-DefaultBroadPhaseLayerFilter :: struct {
-    objectVsBroadPhaseLayerFilter: *ObjectVsBroadPhaseLayerFilter;
-    layer:                         ObjectLayer;
-}
-
-DefaultBroadPhaseLayerFilter_ShouldCollide :: (data: *void, layer: BroadPhaseLayer) -> bool #foreign JoltC "JPH_DefaultBroadPhaseLayerFilter_ShouldCollide";
-DefaultBroadPhaseLayerFilter_CreateFilter :: (filter: *DefaultBroadPhaseLayerFilter, allocator: Allocator) -> *BroadPhaseLayerFilter #foreign JoltC "JPH_DefaultBroadPhaseLayerFilter_CreateFilter";
-
-DefaultObjectLayerFilter :: struct {
-    objectLayerPairFilter: *ObjectLayerPairFilter;
-    layer:                 ObjectLayer;
-}
-
-DefaultObjectLayerFilter_ShouldCollide :: (data: *void, layer: ObjectLayer) -> bool #foreign JoltC "JPH_DefaultObjectLayerFilter_ShouldCollide";
-DefaultObjectLayerFilter_CreateFilter :: (filter: *DefaultObjectLayerFilter, allocator: Allocator) -> *ObjectLayerFilter #foreign JoltC "JPH_DefaultObjectLayerFilter_CreateFilter";
 
 ShapeSettings :: struct {}
 ConvexShapeSettings :: struct {}
@@ -470,8 +377,7 @@ IndexedTriangle :: struct {
     userData:      u32;
 }
 
-MeshShapeSettings_EBuildQuality :: u32;
-MeshShapeSettings_EBuildQuality_1 :: enum u32 {
+MeshShapeSettings_EBuildQuality :: enum u32 {
     FavorRuntimePerformance :: 0;
     FavorBuildSpeed         :: 1;
 
@@ -543,8 +449,7 @@ HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle :: (settings: *HeightFie
 // Shape
 SubShapeID :: u32;
 
-Shape_EShapeType :: u8;
-Shape_EShapeType_1 :: enum u32 {
+EShapeType :: enum u8 {
     Convex      :: 0;
     Compound    :: 1;
     Decorated   :: 2;
@@ -558,22 +463,21 @@ Shape_EShapeType_1 :: enum u32 {
     Plane       :: 10;
     Empty       :: 11;
 
-    JPH_Shape_EShapeType_Convex      :: Convex;
-    JPH_Shape_EShapeType_Compound    :: Compound;
-    JPH_Shape_EShapeType_Decorated   :: Decorated;
-    JPH_Shape_EShapeType_Mesh        :: Mesh;
-    JPH_Shape_EShapeType_HeightField :: HeightField;
-    JPH_Shape_EShapeType_SoftBody    :: SoftBody;
-    JPH_Shape_EShapeType_User1       :: User1;
-    JPH_Shape_EShapeType_User2       :: User2;
-    JPH_Shape_EShapeType_User3       :: User3;
-    JPH_Shape_EShapeType_User4       :: User4;
-    JPH_Shape_EShapeType_Plane       :: Plane;
-    JPH_Shape_EShapeType_Empty       :: Empty;
+    JPH_EShapeType_Convex      :: Convex;
+    JPH_EShapeType_Compound    :: Compound;
+    JPH_EShapeType_Decorated   :: Decorated;
+    JPH_EShapeType_Mesh        :: Mesh;
+    JPH_EShapeType_HeightField :: HeightField;
+    JPH_EShapeType_SoftBody    :: SoftBody;
+    JPH_EShapeType_User1       :: User1;
+    JPH_EShapeType_User2       :: User2;
+    JPH_EShapeType_User3       :: User3;
+    JPH_EShapeType_User4       :: User4;
+    JPH_EShapeType_Plane       :: Plane;
+    JPH_EShapeType_Empty       :: Empty;
 }
 
-Shape_EShapeSubType :: u8;
-Shape_EShapeSubType_1 :: enum u32 {
+EShapeSubType :: enum u8 {
     Sphere             :: 0;
     Box                :: 1;
     Triangle           :: 2;
@@ -609,40 +513,40 @@ Shape_EShapeSubType_1 :: enum u32 {
     TaperedCylinder    :: 32;
     Empty              :: 33;
 
-    JPH_Shape_EShapeSubType_Sphere             :: Sphere;
-    JPH_Shape_EShapeSubType_Box                :: Box;
-    JPH_Shape_EShapeSubType_Triangle           :: Triangle;
-    JPH_Shape_EShapeSubType_Capsule            :: Capsule;
-    JPH_Shape_EShapeSubType_TaperedCapsule     :: TaperedCapsule;
-    JPH_Shape_EShapeSubType_Cylinder           :: Cylinder;
-    JPH_Shape_EShapeSubType_ConvexHull         :: ConvexHull;
-    JPH_Shape_EShapeSubType_StaticCompound     :: StaticCompound;
-    JPH_Shape_EShapeSubType_MutableCompound    :: MutableCompound;
-    JPH_Shape_EShapeSubType_RotatedTranslated  :: RotatedTranslated;
-    JPH_Shape_EShapeSubType_Scaled             :: Scaled;
-    JPH_Shape_EShapeSubType_OffsetCenterOfMass :: OffsetCenterOfMass;
-    JPH_Shape_EShapeSubType_Mesh               :: Mesh;
-    JPH_Shape_EShapeSubType_HeightField        :: HeightField;
-    JPH_Shape_EShapeSubType_SoftBody           :: SoftBody;
-    JPH_Shape_EShapeSubType_User1              :: User1;
-    JPH_Shape_EShapeSubType_User2              :: User2;
-    JPH_Shape_EShapeSubType_User3              :: User3;
-    JPH_Shape_EShapeSubType_User4              :: User4;
-    JPH_Shape_EShapeSubType_User5              :: User5;
-    JPH_Shape_EShapeSubType_User6              :: User6;
-    JPH_Shape_EShapeSubType_User7              :: User7;
-    JPH_Shape_EShapeSubType_User8              :: User8;
-    JPH_Shape_EShapeSubType_UserConvex1        :: UserConvex1;
-    JPH_Shape_EShapeSubType_UserConvex2        :: UserConvex2;
-    JPH_Shape_EShapeSubType_UserConvex3        :: UserConvex3;
-    JPH_Shape_EShapeSubType_UserConvex4        :: UserConvex4;
-    JPH_Shape_EShapeSubType_UserConvex5        :: UserConvex5;
-    JPH_Shape_EShapeSubType_UserConvex6        :: UserConvex6;
-    JPH_Shape_EShapeSubType_UserConvex7        :: UserConvex7;
-    JPH_Shape_EShapeSubType_UserConvex8        :: UserConvex8;
-    JPH_Shape_EShapeSubType_Plane              :: Plane;
-    JPH_Shape_EShapeSubType_TaperedCylinder    :: TaperedCylinder;
-    JPH_Shape_EShapeSubType_Empty              :: Empty;
+    JPH_EShapeSubType_Sphere             :: Sphere;
+    JPH_EShapeSubType_Box                :: Box;
+    JPH_EShapeSubType_Triangle           :: Triangle;
+    JPH_EShapeSubType_Capsule            :: Capsule;
+    JPH_EShapeSubType_TaperedCapsule     :: TaperedCapsule;
+    JPH_EShapeSubType_Cylinder           :: Cylinder;
+    JPH_EShapeSubType_ConvexHull         :: ConvexHull;
+    JPH_EShapeSubType_StaticCompound     :: StaticCompound;
+    JPH_EShapeSubType_MutableCompound    :: MutableCompound;
+    JPH_EShapeSubType_RotatedTranslated  :: RotatedTranslated;
+    JPH_EShapeSubType_Scaled             :: Scaled;
+    JPH_EShapeSubType_OffsetCenterOfMass :: OffsetCenterOfMass;
+    JPH_EShapeSubType_Mesh               :: Mesh;
+    JPH_EShapeSubType_HeightField        :: HeightField;
+    JPH_EShapeSubType_SoftBody           :: SoftBody;
+    JPH_EShapeSubType_User1              :: User1;
+    JPH_EShapeSubType_User2              :: User2;
+    JPH_EShapeSubType_User3              :: User3;
+    JPH_EShapeSubType_User4              :: User4;
+    JPH_EShapeSubType_User5              :: User5;
+    JPH_EShapeSubType_User6              :: User6;
+    JPH_EShapeSubType_User7              :: User7;
+    JPH_EShapeSubType_User8              :: User8;
+    JPH_EShapeSubType_UserConvex1        :: UserConvex1;
+    JPH_EShapeSubType_UserConvex2        :: UserConvex2;
+    JPH_EShapeSubType_UserConvex3        :: UserConvex3;
+    JPH_EShapeSubType_UserConvex4        :: UserConvex4;
+    JPH_EShapeSubType_UserConvex5        :: UserConvex5;
+    JPH_EShapeSubType_UserConvex6        :: UserConvex6;
+    JPH_EShapeSubType_UserConvex7        :: UserConvex7;
+    JPH_EShapeSubType_UserConvex8        :: UserConvex8;
+    JPH_EShapeSubType_Plane              :: Plane;
+    JPH_EShapeSubType_TaperedCylinder    :: TaperedCylinder;
+    JPH_EShapeSubType_Empty              :: Empty;
 }
 
 MassProperties :: struct {
@@ -661,8 +565,8 @@ MassProperties_Scale :: (massProperties: *MassProperties, scale: Vec3) -> void #
 Shape_AddRef :: (shape: *Shape) -> void #foreign JoltC "JPH_Shape_AddRef";
 Shape_Release :: (shape: *Shape) -> void #foreign JoltC "JPH_Shape_Release";
 
-Shape_GetType :: (shape: *Shape) -> Shape_EShapeType #foreign JoltC "JPH_Shape_GetType";
-Shape_GetSubType :: (shape: *Shape) -> Shape_EShapeSubType #foreign JoltC "JPH_Shape_GetSubType";
+Shape_GetType :: (shape: *Shape) -> EShapeType #foreign JoltC "JPH_Shape_GetType";
+Shape_GetSubType :: (shape: *Shape) -> EShapeSubType #foreign JoltC "JPH_Shape_GetSubType";
 
 Shape_GetUserData :: (shape: *Shape) -> u64 #foreign JoltC "JPH_Shape_GetUserData";
 Shape_SetUserData :: (shape: *Shape, userData: u64) -> void #foreign JoltC "JPH_Shape_SetUserData";
@@ -680,12 +584,12 @@ Shape_GetLeafShape :: (shape: *Shape, subShapeID: SubShapeID, outRemainder: *Sub
 Shape_GetMaterial :: (shape: *Shape, subShapeID: SubShapeID) -> *PhysicsMaterial #foreign JoltC "JPH_Shape_GetMaterial";
 Shape_GetSurfaceNormal :: (shape: *Shape, subShapeID: SubShapeID, localSurfacePosition: Vec3) -> Vec3 #foreign JoltC "JPH_Shape_GetSurfaceNormal";
 
-SupportingFace :: struct {
+Shape_SupportingFace :: struct {
     size:     u32;
     elements: [32] Vec3 #align 16;
 }
 
-Shape_GetSupportingFace :: (shape: *Shape, subShapeID: SubShapeID, direction: Vec3, scale: Vec3, centerOfMassTransform: Mat44, outVertices: *SupportingFace) -> void #foreign JoltC "JPH_Shape_GetSupportingFace";
+Shape_GetSupportingFace :: (shape: *Shape, subShapeID: SubShapeID, direction: Vec3, scale: Vec3, centerOfMassTransform: Mat44, outVertices: *Shape_SupportingFace) -> void #foreign JoltC "JPH_Shape_GetSupportingFace";
 
 Shape_GetSubShapeUserData :: (shape: *Shape, subShapeID: SubShapeID) -> u64 #foreign JoltC "JPH_Shape_GetSubShapeUserData";
 
@@ -814,14 +718,192 @@ HeightFieldShape_GetMaxHeightValue :: (shape: *HeightFieldShape) -> float #forei
 HeightFieldShape_GetHeights :: (shape: *HeightFieldShape, x: u32, y: u32, sizeX: u32, sizeY: u32, outHeights: *float, heightsStride: s64) -> void #foreign JoltC "JPH_HeightFieldShape_GetHeights";
 HeightFieldShape_SetHeights :: (shape: *HeightFieldShape, x: u32, y: u32, sizeX: u32, sizeY: u32, inHeights: *float, heightsStride: s64, allocator: *TempAllocator, activeEdgeCosThresholdAngle: float) -> void #foreign JoltC "JPH_HeightFieldShape_SetHeights";
 
+// Forward declarations
+Body :: struct {}
+
+BroadPhaseLayerInterface :: struct {}
+ObjectVsBroadPhaseLayerFilter :: struct {}
+ObjectLayerPairFilter :: struct {}
+BroadPhaseLayerFilter :: struct {}
+ObjectLayerFilter :: struct {}
+GroupFilter :: struct {}
+BodyFilter :: struct {}
+ShapeFilter :: struct {}
+BroadPhaseQuery :: struct {}
+NarrowPhaseQuery :: struct {}
+
+BroadPhaseLayer :: u8;
+
+ObjectLayer :: u16;
+
+CollisionGroup_GroupID :: u32;
+CollisionGroup_SubGroupID :: u32;
+
+CollisionGroup :: struct {
+    groupFilter: *GroupFilter;
+    groupID:     CollisionGroup_GroupID;
+    subGroupID:  CollisionGroup_SubGroupID;
+}
+
+BroadPhaseLayerInterface_Funcs :: struct {
+    Destruct:               #type (data: *void) -> void #c_call;
+    GetNumBroadPhaseLayers: #type (data: *void) -> u32 #c_call;
+    GetBroadPhaseLayer:     #type (data: *void, layer: ObjectLayer) -> BroadPhaseLayer #c_call;
+
+    GetBroadPhaseLayerName: #type (data: *void, layer: BroadPhaseLayer) -> *u8 #c_call;
+}
+
+BroadPhaseLayerInterface_Create :: (data: *void, funcs: BroadPhaseLayerInterface_Funcs, allocator: Allocator) -> *BroadPhaseLayerInterface #foreign JoltC "JPH_BroadPhaseLayerInterface_Create";
+BroadPhaseLayerInterface_Destroy :: (self: *BroadPhaseLayerInterface) -> void #foreign JoltC "JPH_BroadPhaseLayerInterface_Destroy";
+
+ObjectVsBroadPhaseLayerFilter_Funcs :: struct {
+    Destruct:      #type (data: *void) -> void #c_call;
+    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: BroadPhaseLayer) -> bool #c_call;
+}
+
+ObjectVsBroadPhaseLayerFilter_Create :: (data: *void, funcs: ObjectVsBroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *ObjectVsBroadPhaseLayerFilter #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Create";
+ObjectVsBroadPhaseLayerFilter_Destroy :: (self: *ObjectVsBroadPhaseLayerFilter) -> void #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Destroy";
+
+ObjectLayerPairFilter_Funcs :: struct {
+    Destruct:      #type (data: *void) -> void #c_call;
+    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: ObjectLayer) -> bool #c_call;
+}
+
+ObjectLayerPairFilter_Create :: (data: *void, funcs: ObjectLayerPairFilter_Funcs, allocator: Allocator) -> *ObjectLayerPairFilter #foreign JoltC "JPH_ObjectLayerPairFilter_Create";
+ObjectLayerPairFilter_Destroy :: (self: *ObjectLayerPairFilter) -> void #foreign JoltC "JPH_ObjectLayerPairFilter_Destroy";
+
+BroadPhaseLayerFilter_Funcs :: struct {
+    Destruct:      #type (data: *void) -> void #c_call;
+    ShouldCollide: #type (data: *void, layer: BroadPhaseLayer) -> bool #c_call;
+}
+
+BroadPhaseLayerFilter_Create :: (data: *void, funcs: BroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *BroadPhaseLayerFilter #foreign JoltC "JPH_BroadPhaseLayerFilter_Create";
+BroadPhaseLayerFilter_Destroy :: (self: *BroadPhaseLayerFilter) -> void #foreign JoltC "JPH_BroadPhaseLayerFilter_Destroy";
+
+ObjectLayerFilter_Funcs :: struct {
+    Destruct:      #type (data: *void) -> void #c_call;
+    ShouldCollide: #type (data: *void, layer: ObjectLayer) -> bool #c_call;
+}
+
+ObjectLayerFilter_Create :: (data: *void, funcs: ObjectLayerFilter_Funcs, allocator: Allocator) -> *ObjectLayerFilter #foreign JoltC "JPH_ObjectLayerFilter_Create";
+ObjectLayerFilter_Destroy :: (self: *ObjectLayerFilter) -> void #foreign JoltC "JPH_ObjectLayerFilter_Destroy";
+
+BodyFilter_Funcs :: struct {
+    Destruct:            #type (data: *void) -> void #c_call;
+    ShouldCollide:       #type (data: *void, bodyID: BodyID) -> bool #c_call;
+    ShouldCollideLocked: #type (data: *void, body: *Body) -> bool #c_call;
+}
+
+BodyFilter_Create :: (data: *void, funcs: BodyFilter_Funcs, allocator: Allocator) -> *BodyFilter #foreign JoltC "JPH_BodyFilter_Create";
+IgnoreMultipleBodiesFilter_Create :: (bodyIDs: *BodyID, numBodies: s32, allocator: Allocator) -> *BodyFilter #foreign JoltC "JPH_IgnoreMultipleBodiesFilter_Create";
+IgnoreSingleBodyFilter_Create :: (bodyID: BodyID, allocator: Allocator) -> *BodyFilter #foreign JoltC "JPH_IgnoreSingleBodyFilter_Create";
+IgnoreSingleBodyFilterChained_Create :: (bodyID: BodyID, otherFilter: *BodyFilter, allocator: Allocator) -> *BodyFilter #foreign JoltC "JPH_IgnoreSingleBodyFilterChained_Create";
+BodyFilter_Destroy :: (self: *BodyFilter) -> void #foreign JoltC "JPH_BodyFilter_Destroy";
+
+ShapeFilter_Funcs :: struct {
+    Destruct:            #type (data: *void) -> void #c_call;
+    ShouldCollide:       #type (data: *void, shape2: *Shape, subShapeIDOfShape2: SubShapeID) -> bool #c_call;
+    ShapesShouldCollide: #type (data: *void, shape1: *Shape, subShapeIDOfShape1: SubShapeID, shape2: *Shape, subShapeIDOfShape2: SubShapeID) -> bool #c_call;
+}
+
+ShapeFilter_Create :: (data: *void, funcs: ShapeFilter_Funcs, allocator: Allocator) -> *ShapeFilter #foreign JoltC "JPH_ShapeFilter_Create";
+ReversedShapeFilter_Create :: (other: *ShapeFilter, allocator: Allocator) -> *ShapeFilter #foreign JoltC "JPH_ReversedShapeFilter_Create";
+ShapeFilter_Destroy :: (self: *ShapeFilter) -> void #foreign JoltC "JPH_ShapeFilter_Destroy";
+
+// Default filters
+DefaultBroadPhaseLayerFilter :: struct {
+    objectVsBroadPhaseLayerFilter: *ObjectVsBroadPhaseLayerFilter;
+    layer:                         ObjectLayer;
+}
+
+DefaultBroadPhaseLayerFilter_ShouldCollide :: (data: *void, layer: BroadPhaseLayer) -> bool #foreign JoltC "JPH_DefaultBroadPhaseLayerFilter_ShouldCollide";
+DefaultBroadPhaseLayerFilter_CreateFilter :: (filter: *DefaultBroadPhaseLayerFilter, allocator: Allocator) -> *BroadPhaseLayerFilter #foreign JoltC "JPH_DefaultBroadPhaseLayerFilter_CreateFilter";
+
+DefaultObjectLayerFilter :: struct {
+    objectLayerPairFilter: *ObjectLayerPairFilter;
+    layer:                 ObjectLayer;
+}
+
+DefaultObjectLayerFilter_ShouldCollide :: (data: *void, layer: ObjectLayer) -> bool #foreign JoltC "JPH_DefaultObjectLayerFilter_ShouldCollide";
+DefaultObjectLayerFilter_CreateFilter :: (filter: *DefaultObjectLayerFilter, allocator: Allocator) -> *ObjectLayerFilter #foreign JoltC "JPH_DefaultObjectLayerFilter_CreateFilter";
+
+RayCast :: struct {
+    origin:    Vec3;
+    direction: Vec3;
+
+    _:         [0] u8 #align 16; // Force RayCast alignment to match the C/C++ equivalent
+}
+
+RRayCast :: struct {
+    origin:    RVec3;
+    direction: Vec3;
+
+    _:         [0] u8 #align 16; // Force RRayCast alignment to match the C/C++ equivalent
+}
+
+EBackFaceMode :: enum u8 {
+    IgnoreBackFaces      :: 0;
+    CollideWithBackFaces :: 1;
+
+    JPH_EBackFaceMode_IgnoreBackFaces      :: IgnoreBackFaces;
+    JPH_EBackFaceMode_CollideWithBackFaces :: CollideWithBackFaces;
+}
+
+RayCastSettings :: struct {
+    backFaceModeTriangles: EBackFaceMode;
+    backFaceModeConvex:    EBackFaceMode;
+    treatConvexAsSolid:    bool;
+}
+
+RayCastSettings_Default :: () -> RayCastSettings #foreign JoltC "JPH_RayCastSettings_Default";
+
+AABoxCast :: struct {
+    box:       AABox;
+    direction: Vec3;
+}
+
+ECollisionCollectorType :: enum u32 {
+    AnyHit        :: 0;
+    ClosestHit    :: 1;
+    AllHitsSorted :: 2;
+    AllHits       :: 3;
+
+    JPH_ECollisionCollectorType_AnyHit        :: AnyHit;
+    JPH_ECollisionCollectorType_ClosestHit    :: ClosestHit;
+    JPH_ECollisionCollectorType_AllHitsSorted :: AllHitsSorted;
+    JPH_ECollisionCollectorType_AllHits       :: AllHits;
+}
+
+BroadPhaseCastResult :: struct {
+    bodyID:   BodyID;
+    fraction: float;
+}
+
+RayCastResult :: struct {
+    bodyID:      BodyID;
+    fraction:    float;
+    subShapeID2: SubShapeID;
+}
+
+BroadPhaseQuery_CastRayHitCallback :: #type (data: *void, hit: *BroadPhaseCastResult) -> void #c_call;
+BroadPhaseQuery_CastRayCollectCallback :: #type (data: *void, hit: *BroadPhaseCastResult) -> float #c_call;
+
+BroadPhaseQuery_GetBounds :: (query: *BroadPhaseQuery) -> AABox #foreign JoltC "JPH_BroadPhaseQuery_GetBounds";
+BroadPhaseQuery_CastRay :: (query: *BroadPhaseQuery, ray: RayCast, collectorType: ECollisionCollectorType, data: *void, callback: BroadPhaseQuery_CastRayHitCallback, broadPhaseLayerFilter: *BroadPhaseLayerFilter, objectLayerFilter: *ObjectLayerFilter) -> bool #foreign JoltC "JPH_BroadPhaseQuery_CastRay";
+
+// JOLTC_API bool JPH_BroadPhaseQuery_CollideAABox(const JPH_BroadPhaseQuery *query, JPH_AABox box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+// JOLTC_API bool JPH_BroadPhaseQuery_CollideSphere(const JPH_BroadPhaseQuery *query, JPH_Vec3 center, float radius, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+// JOLTC_API bool JPH_BroadPhaseQuery_CollidePoint(const JPH_BroadPhaseQuery *query, JPH_Vec3 point, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+// JOLTC_API bool JPH_BroadPhaseQuery_CollideOrientedBox(const JPH_BroadPhaseQuery *query, JPH_OrientedBox box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+// JOLTC_API bool JPH_BroadPhaseQuery_CastAABox(const JPH_BroadPhaseQuery *query, JPH_AABoxCast box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *inObjectLayerFilter);
+NarrowPhaseQuery_CastRay :: (query: *NarrowPhaseQuery, ray: RRayCast, ioHit: *RayCastResult, broadPhaseLayerFilter: *BroadPhaseLayerFilter, objectLayerFilter: *ObjectLayerFilter, bodyFilter: *BodyFilter) -> bool #foreign JoltC "JPH_NarrowPhaseQuery_CastRay";
+
 BodyInterface :: struct {}
 BodyLockInterface :: struct {}
-Body :: struct {}
+
 MotionProperties :: struct {}
 SoftBodyMotionProperties :: struct {}
 SoftBodySharedSettings :: struct {}
-
-BodyID :: u32;
 
 BodyManager_BodyStats :: struct {
     numBodies:                u32;
@@ -835,8 +917,7 @@ BodyManager_BodyStats :: struct {
     numActiveSoftBodies:      u32;
 }
 
-EBodyType :: u8;
-EBodyType_1 :: enum u32 {
+EBodyType :: enum u8 {
     RigidBody :: 0;
     SoftBody  :: 1;
 
@@ -845,7 +926,7 @@ EBodyType_1 :: enum u32 {
 }
 
 ECanSleep :: u32;
-ECanSleep_1 :: enum u32 {
+ECanSleep_ :: enum u32 {
     CannotSleep :: 0;
     CanSleep    :: 1;
 
@@ -853,8 +934,7 @@ ECanSleep_1 :: enum u32 {
     JPH_ECanSleep_CanSleep    :: CanSleep;
 }
 
-EMotionQuality :: u8;
-EMotionQuality_1 :: enum u32 {
+EMotionQuality :: enum u8 {
     Discrete   :: 0;
     LinearCast :: 1;
 
@@ -862,8 +942,7 @@ EMotionQuality_1 :: enum u32 {
     JPH_EMotionQuality_LinearCast :: LinearCast;
 }
 
-EMotionType :: u8;
-EMotionType_1 :: enum u32 {
+EMotionType :: enum u8 {
     Static    :: 0;
     Kinematic :: 1;
     Dynamic   :: 2;
@@ -873,8 +952,7 @@ EMotionType_1 :: enum u32 {
     JPH_EMotionType_Dynamic   :: Dynamic;
 }
 
-EAllowedDOFs :: u8;
-EAllowedDOFs_1 :: enum u32 {
+EAllowedDOFs :: enum u8 {
     None         :: 0;
     All          :: 255;
     TranslationX :: 1;
@@ -896,9 +974,7 @@ EAllowedDOFs_1 :: enum u32 {
     JPH_EAllowedDOFs_Plane2D      :: Plane2D;
 }
 
-// BodyCreationSettings
-EOverrideMassProperties :: u8;
-EOverrideMassProperties_1 :: enum u32 {
+EOverrideMassProperties :: enum u8 {
     CalculateMassAndInertia :: 0;
     CalculateInertia        :: 1;
     MassAndInertiaProvided  :: 2;
@@ -971,9 +1047,7 @@ SoftBodyCreationSettings :: struct {
 
 SoftBodyCreationSettings_Default :: () -> SoftBodyCreationSettings #foreign JoltC "JPH_SoftBodyCreationSettings_Default";
 
-// BodyInterface
-EActivation :: u32;
-EActivation_1 :: enum u32 {
+EActivation :: enum u32 {
     Activate     :: 0;
     DontActivate :: 1;
 
@@ -1206,6 +1280,111 @@ Body_ApplyBodyCreationSettings :: (body: *Body, bodyCreationSettings: *BodyCreat
 Body_GetSoftBodyCreationSettings :: (body: *Body) -> SoftBodyCreationSettings #foreign JoltC "JPH_Body_GetSoftBodyCreationSettings";
 Body_ApplySoftBodyCreationSettings :: (body: *Body, softBodyCreationSettings: *SoftBodyCreationSettings, bplInterface: *BroadPhaseLayerInterface) -> void #foreign JoltC "JPH_Body_ApplySoftBodyCreationSettings";
 
+DebugRenderer :: struct {}
+BodyDrawFilter :: struct {}
+
+DebugRenderer_ECastShadow :: u32;
+DebugRenderer_ECastShadow_ :: enum u32 {
+    On  :: 0;
+    Off :: 1;
+
+    JPH_DebugRenderer_ECastShadow_On  :: On;
+    JPH_DebugRenderer_ECastShadow_Off :: Off;
+}
+
+DebugRenderer_EDrawMode :: u32;
+DebugRenderer_EDrawMode_ :: enum u32 {
+    Solid     :: 0;
+    Wireframe :: 1;
+
+    JPH_DebugRenderer_EDrawMode_Solid     :: Solid;
+    JPH_DebugRenderer_EDrawMode_Wireframe :: Wireframe;
+}
+
+DebugRenderer_ECullMode :: u32;
+DebugRenderer_ECullMode_ :: enum u32 {
+    CullBackFace  :: 0;
+    CullFrontFace :: 1;
+    Off           :: 2;
+
+    JPH_DebugRenderer_ECullMode_CullBackFace  :: CullBackFace;
+    JPH_DebugRenderer_ECullMode_CullFrontFace :: CullFrontFace;
+    JPH_DebugRenderer_ECullMode_Off           :: Off;
+}
+
+ESoftBodyConstraintColor :: enum u32 {
+    ConstraintType  :: 0;
+    ConstraintGroup :: 1;
+    ConstraintOrder :: 2;
+
+    JPH_ESoftBodyConstraintColor_ConstraintType  :: ConstraintType;
+    JPH_ESoftBodyConstraintColor_ConstraintGroup :: ConstraintGroup;
+    JPH_ESoftBodyConstraintColor_ConstraintOrder :: ConstraintOrder;
+}
+
+BodyManager_EShapeColor :: enum u32 {
+    InstanceColor   :: 0;
+    ShapeTypeColor  :: 1;
+    MotionTypeColor :: 2;
+    SleepColor      :: 3;
+    IslandColor     :: 4;
+    MaterialColor   :: 5;
+
+    JPH_BodyManager_EShapeColor_InstanceColor   :: InstanceColor;
+    JPH_BodyManager_EShapeColor_ShapeTypeColor  :: ShapeTypeColor;
+    JPH_BodyManager_EShapeColor_MotionTypeColor :: MotionTypeColor;
+    JPH_BodyManager_EShapeColor_SleepColor      :: SleepColor;
+    JPH_BodyManager_EShapeColor_IslandColor     :: IslandColor;
+    JPH_BodyManager_EShapeColor_MaterialColor   :: MaterialColor;
+}
+
+BodyManager_DrawSettings :: struct {
+    drawGetSupportFunction:              bool;
+    drawSupportDirection:                bool;
+    drawGetSupportingFace:               bool;
+    drawShape:                           bool;
+    drawShapeWireframe:                  bool;
+    drawShapeColor:                      BodyManager_EShapeColor;
+    drawBoundingBox:                     bool;
+    drawCenterOfMassTransform:           bool;
+    drawWorldTransform:                  bool;
+    drawVelocity:                        bool;
+    drawMassAndInertia:                  bool;
+    drawSleepStats:                      bool;
+    drawSoftBodyVertices:                bool;
+    drawSoftBodyVertexVelocities:        bool;
+    drawSoftBodyEdgeConstraints:         bool;
+    drawSoftBodyBendConstraints:         bool;
+    drawSoftBodyVolumeConstraints:       bool;
+    drawSoftBodySkinConstraints:         bool;
+    drawSoftBodyLRAConstraints:          bool;
+    drawSoftBodyRods:                    bool;
+    drawSoftBodyRodStates:               bool;
+    drawSoftBodyRodBendTwistConstraints: bool;
+    drawSoftBodyPredictedBounds:         bool;
+    drawSoftBodyConstraintColor:         ESoftBodyConstraintColor;
+}
+
+DebugRendererSimple_Funcs :: struct {
+    Destruct:     #type (data: *void) -> void #c_call;
+    DrawLine:     #type (data: *void, from: RVec3, to: RVec3, color: Color) -> void #c_call;
+    DrawTriangle: #type (data: *void, v1: RVec3, v2: RVec3, v3: RVec3, color: Color, castShadow: DebugRenderer_ECastShadow) -> void #c_call;
+    DrawText3D:   #type (data: *void, position: RVec3, str: *u8, strLength: u64, color: Color, height: float) -> void #c_call;
+}
+
+DebugRendererSimple_Create :: (data: *void, funcs: DebugRendererSimple_Funcs, allocator: Allocator) -> *DebugRenderer #foreign JoltC "JPH_DebugRendererSimple_Create";
+DebugRenderer_Destroy :: (self: *DebugRenderer) -> void #foreign JoltC "JPH_DebugRenderer_Destroy";
+DebugRenderer_NextFrame :: (self: *DebugRenderer) -> void #foreign JoltC "JPH_DebugRenderer_NextFrame";
+
+// @Todo: other DebugRenderer functions
+BodyDrawFilter_Funcs :: struct {
+    Destruct:   #type (data: *void) -> void #c_call;
+    ShouldDraw: #type (data: *void, body: *Body) -> bool #c_call;
+}
+
+BodyDrawFilter_Create :: (data: *void, funcs: BodyDrawFilter_Funcs, allocator: Allocator) -> *BodyDrawFilter #foreign JoltC "JPH_BodyDrawFilter_Create";
+BodyDrawFilter_Destroy :: (self: *BodyDrawFilter) -> void #foreign JoltC "JPH_BodyDrawFilter_Destroy";
+
 PhysicsSystem :: struct {}
 
 PhysicsSystemSettings :: struct {
@@ -1252,8 +1431,7 @@ PhysicsSystem_GetDefaultLayerFilter :: (system: *PhysicsSystem, layer: ObjectLay
 
 PhysicsSystem_OptimizeBroadPhase :: (system: *PhysicsSystem) -> void #foreign JoltC "JPH_PhysicsSystem_OptimizeBroadPhase";
 
-EPhysicsUpdateError :: u32;
-EPhysicsUpdateError_1 :: enum u32 {
+EPhysicsUpdateError :: enum u32 {
     None                   :: 0;
     ManifoldCacheFull      :: 1;
     BodyPairCacheFull      :: 2;
@@ -1267,6 +1445,11 @@ EPhysicsUpdateError_1 :: enum u32 {
 
 PhysicsSystem_Update :: (system: *PhysicsSystem, deltaTime: float, collisionSteps: s32, tempAllocator: *TempAllocator, jobSystem: *JobSystem) -> EPhysicsUpdateError #foreign JoltC "JPH_PhysicsSystem_Update";
 
+PhysicsSystem_DrawBodies :: (system: *PhysicsSystem, settings: *BodyManager_DrawSettings, renderer: *DebugRenderer, bodyFilter: *BodyDrawFilter) -> void #foreign JoltC "JPH_PhysicsSystem_DrawBodies";
+PhysicsSystem_DrawConstraints :: (system: *PhysicsSystem, renderer: *DebugRenderer) -> void #foreign JoltC "JPH_PhysicsSystem_DrawConstraints";
+PhysicsSystem_DrawConstraintLimits :: (system: *PhysicsSystem, renderer: *DebugRenderer) -> void #foreign JoltC "JPH_PhysicsSystem_DrawConstraintLimits";
+PhysicsSystem_DrawConstraintReferenceFrame :: (system: *PhysicsSystem, renderer: *DebugRenderer) -> void #foreign JoltC "JPH_PhysicsSystem_DrawConstraintReferenceFrame";
+
 #scope_file
 
-JoltC :: #library,no_dll "./Libs/Linux/libJoltC";
+JoltC :: #library "./Libs/Linux/libJoltC";

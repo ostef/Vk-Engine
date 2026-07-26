@@ -1,6 +1,9 @@
 // Jolt v5.6.0 via C wrapper
 
-// To compile do `jai generate.jai - build`
+// To compile do `jai generate.jai - build` or do it manually:
+// > cd Source/JoltC
+// > cmake -B .build
+// > cmake --build .build
 
 #run {
     set_build_options_dc(.{do_output=false});
@@ -40,16 +43,15 @@
 }
 
 Declarations_To_Omit :: string.[
-    "JPH_Quat", "JPH_Vec3", "JPH_Vec4",
+    "JPH_UVec4", "JPH_Vec3", "JPH_Vec4", "JPH_Mat44", "JPH_DVec3", "JPH_DMat44", "JPH_Quat", "JPH_AABox", "JPH_Plane", "JOLTC_VERSION_FEATURES"
 ];
 
 GenerateBindings :: (shared_libs : bool, combined_shared_libs : bool) -> bool {
     using opts : Generate_Bindings_Options;
 
-    // strip_flags = 0;
     visitor = Visitor;
+    auto_detect_enum_prefixes = false;
     generate_compile_time_struct_checks = false;
-    // generate_library_declarations = false;
 
     output_filename: string;
     #if OS == .LINUX {
@@ -67,6 +69,19 @@ GenerateBindings :: (shared_libs : bool, combined_shared_libs : bool) -> bool {
 
     array_add(*include_paths, "Source/JoltC");
     array_add(*source_files, "Source/JoltC/JoltC.h");
+
+    // @Todo: get these reliably based on the compile options
+    // array_add(*extra_clang_arguments, "-DJPH_DOUBLE_PRECISION");
+    // array_add(*extra_clang_arguments, "-DJPH_CROSS_PLATFORM_DETERMINISTIC");
+    // array_add(*extra_clang_arguments, "-DJPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
+    array_add(*extra_clang_arguments, "-DJPH_PROFILE_ENABLED");
+    // array_add(*extra_clang_arguments, "-DJPH_EXTERNAL_PROFILE");
+    array_add(*extra_clang_arguments, "-DJPH_DEBUG_RENDERER");
+    // array_add(*extra_clang_arguments, "-DJPH_DISABLE_TEMP_ALLOCATOR");
+    // array_add(*extra_clang_arguments, "-DJPH_DISABLE_CUSTOM_ALLOCATOR");
+    // array_add(*extra_clang_arguments, "-DJPH_OBJECT_LAYER_BITS=32");
+    array_add(*extra_clang_arguments, "-DJPH_ENABLE_ASSERTS");
+    array_add(*extra_clang_arguments, "-DJPH_OBJECT_STREAM");
 
     array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
 
@@ -162,9 +177,73 @@ BuildJoltC :: (build_shared_libs : bool, build_combined_shared_libs : bool, buil
 }
 
 Visitor :: (decl : *Declaration, parent_decl : *Declaration) -> Declaration_Visit_Result {
+    GetAssociatedEnumName :: (name : string) -> string {
+        if name.count > 1 && name[name.count - 1] != #char "_" {
+            return tprint("%_", name);
+        }
+
+        return name;
+    }
+
+    FixupEnumDecl :: (type : *CType) -> bool {
+        if !type.type_of_typedef {
+            return false;
+        }
+
+        old_name := type.type_of_typedef.name;
+        if !old_name {
+            return false;
+        }
+
+        new_name := GetAssociatedEnumName(old_name);
+
+        for context.generator.global_scope.members {
+            if it.kind != .ENUM || it.name != new_name {
+                continue;
+            }
+
+            enum_decl := cast(*Enum) it;
+
+            // Don't output the integer typedef
+            type.type_of_typedef.decl_flags |= .OMIT_FROM_OUTPUT;
+
+            // Make sure the enums like 'Focus_Flags_' get outputted as 'FocusFlags'
+            if enum_decl.output_name.count > 2 && enum_decl.output_name[enum_decl.output_name.count - 1] == #char "_" {
+                enum_decl.output_name.count -= 1;
+            }
+
+            // Swap in the enum for the typedef
+            enum_decl.type = type.type_of_typedef.type;
+
+            type.type_of_typedef = null;
+            type.type_of_enum = enum_decl;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    FixupEnumDecl :: (decl : *Declaration) {
+        if decl.kind == .DECLARATION && FixupEnumDecl(decl.type) {
+            decl.decl_flags |= .NEEDS_DEFAULT_ARGUMENT_CAST;
+        }
+    }
+
     if array_find(Declarations_To_Omit, decl.name) {
         decl.decl_flags |= .OMIT_FROM_OUTPUT;
         return .STOP;
+    }
+
+    // We want to generate the correct strongly typed enum,
+    // so each time we have an argument, return type or a struct member that
+    // is a typedef, we search all the members we've compiled
+    // so far to find the correct enum type
+    if parent_decl
+    && (parent_decl.kind == .FUNCTION || parent_decl.kind == .STRUCT) {
+        FixupEnumDecl(decl);
+    } else if decl.type && decl.type.type_of_function {
+        FixupEnumDecl(decl.type.type_of_function.return_type);
     }
 
     return .RECURSE;

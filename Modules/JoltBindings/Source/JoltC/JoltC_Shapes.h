@@ -214,7 +214,7 @@ typedef struct JPH_IndexedTriangle {
 } JPH_IndexedTriangle;
 
 typedef uint32_t JPH_MeshShapeSettings_EBuildQuality;
-enum {
+enum JPH_MeshShapeSettings_EBuildQuality_ {
     JPH_MeshShapeSettings_EBuildQuality_FavorRuntimePerformance,
     JPH_MeshShapeSettings_EBuildQuality_FavorBuildSpeed,
 };
@@ -285,7 +285,7 @@ JOLTC_API float JPH_HeightFieldShapeSettings_GetActiveEdgeCosThresholdAngle(cons
 typedef uint32_t JPH_SubShapeID;
 
 typedef uint8_t JPH_EShapeType;
-enum {
+enum JPH_EShapeType_ {
     JPH_EShapeType_Convex,
     JPH_EShapeType_Compound,
     JPH_EShapeType_Decorated,
@@ -301,7 +301,7 @@ enum {
 };
 
 typedef uint8_t JPH_EShapeSubType;
-enum {
+enum JPH_EShapeSubType_ {
     JPH_EShapeSubType_Sphere,
     JPH_EShapeSubType_Box,
     JPH_EShapeSubType_Triangle,
