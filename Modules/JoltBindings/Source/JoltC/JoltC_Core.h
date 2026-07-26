@@ -226,3 +226,11 @@ JOLTC_API void *JPH_Allocator_Allocate(JPH_Allocator allocator, uint64_t size);
 JOLTC_API void JPH_Allocator_Free(JPH_Allocator allocator, void *ptr);
 
 JOLTC_API uint64_t JPH_GetJoltVersionID();
+
+// Forward decls
+
+typedef uint32_t JPH_BodyID;
+
+#define JPH_cInvalidBodyID 0xffffffff
+
+typedef struct JPH_PhysicsMaterial JPH_PhysicsMaterial;

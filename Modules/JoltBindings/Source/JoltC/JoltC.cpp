@@ -8,6 +8,9 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Geometry/AABox.h>
+#include <Jolt/Geometry/OrientedBox.h>
+#include <Jolt/Geometry/Plane.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
@@ -74,123 +77,7 @@
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #endif
 
-// Math conversion
-
-static inline JPH::Float3 ToCpp(JPH_Float3 v) {
-    return *reinterpret_cast<JPH::Float3 *>(&v);
-}
-
-static inline JPH_Float3 ToC(JPH::Float3 v) {
-    return *reinterpret_cast<JPH_Float3 *>(&v);
-}
-
-static inline JPH::Vec3 ToCpp(JPH_Vec3 v) {
-    return *reinterpret_cast<JPH::Vec3 *>(&v);
-}
-
-static inline JPH_Vec3 ToC(JPH::Vec3 v) {
-    return *reinterpret_cast<JPH_Vec3 *>(&v);
-}
-
-static inline JPH::Vec4 ToCpp(JPH_Vec4 v) {
-    return *reinterpret_cast<JPH::Vec4 *>(&v);
-}
-
-static inline JPH_Vec4 ToC(JPH::Vec4 v) {
-    return *reinterpret_cast<JPH_Vec4 *>(&v);
-}
-
-static inline JPH::Mat44 ToCpp(JPH_Mat44 v) {
-    return *reinterpret_cast<JPH::Mat44 *>(&v);
-}
-
-static inline JPH_Mat44 ToC(JPH::Mat44 v) {
-    return *reinterpret_cast<JPH_Mat44 *>(&v);
-}
-
-static inline JPH::DVec3 ToCpp(JPH_DVec3 v) {
-    return *reinterpret_cast<JPH::DVec3 *>(&v);
-}
-
-static inline JPH_DVec3 ToC(JPH::DVec3 v) {
-    return *reinterpret_cast<JPH_DVec3 *>(&v);
-}
-
-static inline JPH::DMat44 ToCpp(JPH_DMat44 v) {
-    return *reinterpret_cast<JPH::DMat44 *>(&v);
-}
-
-static inline JPH_DMat44 ToC(JPH::DMat44 v) {
-    return *reinterpret_cast<JPH_DMat44 *>(&v);
-}
-
-static inline JPH::Quat ToCpp(JPH_Quat v) {
-    return *reinterpret_cast<JPH::Quat *>(&v);
-}
-
-static inline JPH_Quat ToC(JPH::Quat v) {
-    return *reinterpret_cast<JPH_Quat *>(&v);
-}
-
-static inline JPH::AABox ToCpp(JPH_AABox v) {
-    return *reinterpret_cast<JPH::AABox *>(&v);
-}
-
-static inline JPH_AABox ToC(JPH::AABox v) {
-    return *reinterpret_cast<JPH_AABox *>(&v);
-}
-
-static inline JPH::Plane ToCpp(JPH_Plane v) {
-    return *reinterpret_cast<JPH::Plane *>(&v);
-}
-
-static inline JPH_Plane ToC(JPH::Plane v) {
-    return *reinterpret_cast<JPH_Plane *>(&v);
-}
-
-JPH_Plane JPH_Plane_Make(JPH_Vec3 normal, float constant) {
-    JPH_Plane plane;
-    plane.normalAndConstant.x = normal.x;
-    plane.normalAndConstant.y = normal.y;
-    plane.normalAndConstant.z = normal.z;
-    plane.normalAndConstant.w = constant;
-
-    return plane;
-}
-
-JPH_Plane JPH_Plane_Offset(JPH_Plane plane, float distance) {
-    return ToC(ToCpp(plane).Offset(distance));
-}
-
-JPH_Plane JPH_Plane_Scaled(JPH_Plane plane, JPH_Vec3 scale) {
-    return ToC(ToCpp(plane).Scaled(ToCpp(scale)));
-}
-
-JPH_Plane JPH_Plane_GetTransformed(JPH_Plane plane, JPH_Mat44 transform) {
-    return ToC(ToCpp(plane).GetTransformed(ToCpp(transform)));
-}
-
-float JPH_Plane_SignedDistance(JPH_Plane plane, JPH_Vec3 point) {
-    return ToCpp(plane).SignedDistance(ToCpp(point));
-}
-
-JPH_Vec3 JPH_Plane_ProjectPointOnPlane(JPH_Plane plane, JPH_Vec3 point) {
-    return ToC(ToCpp(plane).ProjectPointOnPlane(ToCpp(point)));
-}
-
-JPH_Plane JPH_Plane_FromPointAndNormal(JPH_Vec3 point, JPH_Vec3 normal) {
-    return ToC(JPH::Plane::sFromPointAndNormal(ToCpp(point), ToCpp(normal)));
-}
-
-static inline JPH::IndexedTriangle ToCpp(JPH_IndexedTriangle v) {
-    return *reinterpret_cast<JPH::IndexedTriangle *>(&v);
-}
-
-static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
-    return *reinterpret_cast<JPH_IndexedTriangle *>(&v);
-}
-
-#define DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(c_type, cpp_type) \
+#define DEFINE_CONVERSION_FUNCTIONS(c_type, cpp_type) \
     static inline const cpp_type &ToCpp(const c_type &v) { \
         return reinterpret_cast<const cpp_type &>(v); \
     } \
@@ -251,82 +138,137 @@ static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
         delete ToCpp(self); \
     }
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_PhysicsSystem, JPH::PhysicsSystem);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BodyInterface, JPH::BodyInterface);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BodyLockInterface, JPH::BodyLockInterface);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BroadPhaseQuery, JPH::BroadPhaseQuery);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_NarrowPhaseQuery, JPH::NarrowPhaseQuery);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TempAllocator, JPH::TempAllocator);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_JobSystem, JPH::JobSystem);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_SharedMutex, JPH::SharedMutex);
+// Math conversion
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerInterface, JPH::BroadPhaseLayerInterface);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilter, JPH::ObjectVsBroadPhaseLayerFilter);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ObjectLayerPairFilter, JPH::ObjectLayerPairFilter);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerFilter, JPH::BroadPhaseLayerFilter);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ObjectLayerFilter, JPH::ObjectLayerFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Float3, JPH::Float3);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Vec3, JPH::Vec3);
+DEFINE_CONVERSION_FUNCTIONS(JPH_DVec3, JPH::DVec3);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Vec4, JPH::Vec4);
+DEFINE_CONVERSION_FUNCTIONS(JPH_UVec4, JPH::UVec4);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Mat44, JPH::Mat44);
+DEFINE_CONVERSION_FUNCTIONS(JPH_DMat44, JPH::DMat44);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Quat, JPH::Quat);
+DEFINE_CONVERSION_FUNCTIONS(JPH_AABox, JPH::AABox);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Plane, JPH::Plane);
+
+JPH_Plane JPH_Plane_Make(JPH_Vec3 normal, float constant) {
+    JPH_Plane plane;
+    plane.normalAndConstant.x = normal.x;
+    plane.normalAndConstant.y = normal.y;
+    plane.normalAndConstant.z = normal.z;
+    plane.normalAndConstant.w = constant;
+
+    return plane;
+}
+
+JPH_Plane JPH_Plane_Offset(JPH_Plane plane, float distance) {
+    return ToC(ToCpp(plane).Offset(distance));
+}
+
+JPH_Plane JPH_Plane_Scaled(JPH_Plane plane, JPH_Vec3 scale) {
+    return ToC(ToCpp(plane).Scaled(ToCpp(scale)));
+}
+
+JPH_Plane JPH_Plane_GetTransformed(JPH_Plane plane, JPH_Mat44 transform) {
+    return ToC(ToCpp(plane).GetTransformed(ToCpp(transform)));
+}
+
+float JPH_Plane_SignedDistance(JPH_Plane plane, JPH_Vec3 point) {
+    return ToCpp(plane).SignedDistance(ToCpp(point));
+}
+
+JPH_Vec3 JPH_Plane_ProjectPointOnPlane(JPH_Plane plane, JPH_Vec3 point) {
+    return ToC(ToCpp(plane).ProjectPointOnPlane(ToCpp(point)));
+}
+
+JPH_Plane JPH_Plane_FromPointAndNormal(JPH_Vec3 point, JPH_Vec3 normal) {
+    return ToC(JPH::Plane::sFromPointAndNormal(ToCpp(point), ToCpp(normal)));
+}
+
+static inline JPH::IndexedTriangle ToCpp(JPH_IndexedTriangle v) {
+    return *reinterpret_cast<JPH::IndexedTriangle *>(&v);
+}
+
+static inline JPH_IndexedTriangle ToC(JPH::IndexedTriangle v) {
+    return *reinterpret_cast<JPH_IndexedTriangle *>(&v);
+}
+
+DEFINE_CONVERSION_FUNCTIONS(JPH_PhysicsSystem, JPH::PhysicsSystem);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BodyInterface, JPH::BodyInterface);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BodyLockInterface, JPH::BodyLockInterface);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseQuery, JPH::BroadPhaseQuery);
+DEFINE_CONVERSION_FUNCTIONS(JPH_NarrowPhaseQuery, JPH::NarrowPhaseQuery);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TempAllocator, JPH::TempAllocator);
+DEFINE_CONVERSION_FUNCTIONS(JPH_JobSystem, JPH::JobSystem);
+DEFINE_CONVERSION_FUNCTIONS(JPH_SharedMutex, JPH::SharedMutex);
+
+DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerInterface, JPH::BroadPhaseLayerInterface);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilter, JPH::ObjectVsBroadPhaseLayerFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerPairFilter, JPH::ObjectLayerPairFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerFilter, JPH::BroadPhaseLayerFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerFilter, JPH::ObjectLayerFilter);
 
 #ifdef JPH_DEBUG_RENDERER
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_DebugRenderer, JPH::DebugRenderer);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BodyDrawFilter, JPH::BodyDrawFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_DebugRenderer, JPH::DebugRenderer);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BodyDrawFilter, JPH::BodyDrawFilter);
 
 #endif
 
 // Shape settings
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ShapeSettings, JPH::ShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ConvexShapeSettings, JPH::ConvexShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_SphereShapeSettings, JPH::SphereShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BoxShapeSettings, JPH::BoxShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_PlaneShapeSettings, JPH::PlaneShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TriangleShapeSettings, JPH::TriangleShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CapsuleShapeSettings, JPH::CapsuleShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TaperedCapsuleShapeSettings, JPH::TaperedCapsuleShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CylinderShapeSettings, JPH::CylinderShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TaperedCylinderShapeSettings, JPH::TaperedCylinderShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ConvexHullShapeSettings, JPH::ConvexHullShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CompoundShapeSettings, JPH::CompoundShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_StaticCompoundShapeSettings, JPH::StaticCompoundShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MutableCompoundShapeSettings, JPH::MutableCompoundShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MeshShapeSettings, JPH::MeshShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_HeightFieldShapeSettings, JPH::HeightFieldShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_DecoratedShapeSettings, JPH::DecoratedShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_RotatedTranslatedShapeSettings, JPH::RotatedTranslatedShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ScaledShapeSettings, JPH::ScaledShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_OffsetCenterOfMassShapeSettings, JPH::OffsetCenterOfMassShapeSettings);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_EmptyShapeSettings, JPH::EmptyShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ShapeSettings, JPH::ShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ConvexShapeSettings, JPH::ConvexShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_SphereShapeSettings, JPH::SphereShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BoxShapeSettings, JPH::BoxShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_PlaneShapeSettings, JPH::PlaneShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TriangleShapeSettings, JPH::TriangleShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CapsuleShapeSettings, JPH::CapsuleShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TaperedCapsuleShapeSettings, JPH::TaperedCapsuleShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CylinderShapeSettings, JPH::CylinderShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TaperedCylinderShapeSettings, JPH::TaperedCylinderShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ConvexHullShapeSettings, JPH::ConvexHullShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CompoundShapeSettings, JPH::CompoundShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_StaticCompoundShapeSettings, JPH::StaticCompoundShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_MutableCompoundShapeSettings, JPH::MutableCompoundShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_MeshShapeSettings, JPH::MeshShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_HeightFieldShapeSettings, JPH::HeightFieldShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_DecoratedShapeSettings, JPH::DecoratedShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_RotatedTranslatedShapeSettings, JPH::RotatedTranslatedShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ScaledShapeSettings, JPH::ScaledShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_OffsetCenterOfMassShapeSettings, JPH::OffsetCenterOfMassShapeSettings);
+DEFINE_CONVERSION_FUNCTIONS(JPH_EmptyShapeSettings, JPH::EmptyShapeSettings);
 
 // Shapes
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_Shape, JPH::Shape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ConvexShape, JPH::ConvexShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_SphereShape, JPH::SphereShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_BoxShape, JPH::BoxShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_PlaneShape, JPH::PlaneShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TriangleShape, JPH::TriangleShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CapsuleShape, JPH::CapsuleShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TaperedCapsuleShape, JPH::TaperedCapsuleShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CylinderShape, JPH::CylinderShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_TaperedCylinderShape, JPH::TaperedCylinderShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ConvexHullShape, JPH::ConvexHullShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_CompoundShape, JPH::CompoundShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_StaticCompoundShape, JPH::StaticCompoundShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MutableCompoundShape, JPH::MutableCompoundShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MeshShape, JPH::MeshShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_HeightFieldShape, JPH::HeightFieldShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_DecoratedShape, JPH::DecoratedShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_RotatedTranslatedShape, JPH::RotatedTranslatedShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_ScaledShape, JPH::ScaledShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_OffsetCenterOfMassShape, JPH::OffsetCenterOfMassShape);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_EmptyShape, JPH::EmptyShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Shape, JPH::Shape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ConvexShape, JPH::ConvexShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_SphereShape, JPH::SphereShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BoxShape, JPH::BoxShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_PlaneShape, JPH::PlaneShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TriangleShape, JPH::TriangleShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CapsuleShape, JPH::CapsuleShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TaperedCapsuleShape, JPH::TaperedCapsuleShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CylinderShape, JPH::CylinderShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TaperedCylinderShape, JPH::TaperedCylinderShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ConvexHullShape, JPH::ConvexHullShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_CompoundShape, JPH::CompoundShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_StaticCompoundShape, JPH::StaticCompoundShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_MutableCompoundShape, JPH::MutableCompoundShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_MeshShape, JPH::MeshShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_HeightFieldShape, JPH::HeightFieldShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_DecoratedShape, JPH::DecoratedShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_RotatedTranslatedShape, JPH::RotatedTranslatedShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ScaledShape, JPH::ScaledShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_OffsetCenterOfMassShape, JPH::OffsetCenterOfMassShape);
+DEFINE_CONVERSION_FUNCTIONS(JPH_EmptyShape, JPH::EmptyShape);
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_PhysicsMaterial, JPH::PhysicsMaterial);
+DEFINE_CONVERSION_FUNCTIONS(JPH_PhysicsMaterial, JPH::PhysicsMaterial);
 
 // Body
 
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_Body, JPH::Body);
-DEFINE_OPAQUE_TYPE_CONVERSION_FUNCTIONS(JPH_MotionProperties, JPH::MotionProperties);
+DEFINE_CONVERSION_FUNCTIONS(JPH_Body, JPH::Body);
+DEFINE_CONVERSION_FUNCTIONS(JPH_MotionProperties, JPH::MotionProperties);
 
 // Core
 
@@ -2957,4 +2899,83 @@ JPH_SoftBodyCreationSettings JPH_Body_GetSoftBodyCreationSettings(const JPH_Body
 
 void JPH_Body_ApplySoftBodyCreationSettings(JPH_Body *body, const JPH_SoftBodyCreationSettings *softBodyCreationSettings, const JPH_BroadPhaseLayerInterface *bplInterface) {
     ToCpp(body)->ApplySoftBodyCreationSettings(*ToCpp(softBodyCreationSettings), *ToCpp(bplInterface));
+}
+
+JPH_RayCastSettings JPH_RayCastSettings_Default() {
+    auto result = JPH::RayCastSettings();
+    return *reinterpret_cast<JPH_RayCastSettings *>(&result);
+}
+
+DEFINE_CONVERSION_FUNCTIONS(JPH_RayCast, JPH::RayCast);
+DEFINE_CONVERSION_FUNCTIONS(JPH_RRayCast, JPH::RRayCast);
+DEFINE_CONVERSION_FUNCTIONS(JPH_OrientedBox, JPH::OrientedBox);
+
+bool JPH_OrientedBox_OverlapsAABox(const JPH_OrientedBox *box, JPH_AABox otherBox, float epsilon) {
+    return ToCpp(box)->Overlaps(ToCpp(otherBox), epsilon);
+}
+
+bool JPH_OrientedBox_OverlapsOrientedBox(const JPH_OrientedBox *box, JPH_OrientedBox otherBox, float epsilon) {
+    return ToCpp(box)->Overlaps(ToCpp(otherBox), epsilon);
+}
+
+JPH_AABox JPH_BroadPhaseQuery_GetBounds(const JPH_BroadPhaseQuery *query) {
+    return ToC(ToCpp(query)->GetBounds());
+}
+
+bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast ray, JPH_ECollisionCollectorType collectorType, void *data, JPH_BroadPhaseQuery_CastRayHitCallback callback, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter) {
+    switch (collectorType) {
+    case JPH_ECollisionCollectorType_Any: {
+        JPH::AnyHitCollisionCollector<JPH::RayCastBodyCollector> collector;
+        ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
+
+        if (collector.HadHit()) {
+            JPH_BroadPhaseCastResult result;
+            result.bodyID = collector.mHit.mBodyID.GetIndexAndSequenceNumber();
+            result.fraction = collector.mHit.mFraction;
+            if (callback) {
+                callback(data, &result);
+            }
+            return true;
+        }
+    } break;
+    case JPH_ECollisionCollectorType_Closest: {
+        JPH::ClosestHitCollisionCollector<JPH::RayCastBodyCollector> collector;
+        ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
+
+        if (collector.HadHit()) {
+            JPH_BroadPhaseCastResult result;
+            result.bodyID = collector.mHit.mBodyID.GetIndexAndSequenceNumber();
+            result.fraction = collector.mHit.mFraction;
+            if (callback) {
+                callback(data, &result);
+            }
+            return true;
+        }
+    } break;
+    case JPH_ECollisionCollectorType_AllSorted:
+    case JPH_ECollisionCollectorType_All: {
+        JPH::AllHitCollisionCollector<JPH::RayCastBodyCollector> collector;
+        ToCpp(query)->CastRay(ToCpp(ray), collector, *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter));
+
+        if (collector.HadHit()) {
+            if (callback) {
+                if (collectorType == JPH_ECollisionCollectorType_AllSorted) {
+                    collector.Sort();
+                }
+
+                JPH_BroadPhaseCastResult result;
+
+                for (const auto &hit : collector.mHits) {
+                    result.bodyID = hit.mBodyID.GetIndexAndSequenceNumber();
+                    result.fraction = hit.mFraction;
+                    callback(data, &result);
+                }
+            }
+
+            return true;
+        }
+    } break;
+    }
+
+    return false;
 }

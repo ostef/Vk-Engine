@@ -13,10 +13,6 @@ typedef struct JPH_MotionProperties          JPH_MotionProperties;
 typedef struct JPH_SoftBodyMotionProperties  JPH_SoftBodyMotionProperties;
 typedef struct JPH_SoftBodySharedSettings    JPH_SoftBodySharedSettings;
 
-typedef uint32_t JPH_BodyID;
-
-#define JPH_cInvalidBodyID 0xffffffff
-
 typedef struct JPH_BodyManager_BodyStats {
     uint32_t numBodies;
     uint32_t maxBodies;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <JoltC_Core.h>
+#include <JoltC_Shapes.h>
 
-typedef struct JPH_PhysicsMaterial               JPH_PhysicsMaterial;
 typedef struct JPH_BroadPhaseLayerInterface      JPH_BroadPhaseLayerInterface;
 typedef struct JPH_ObjectVsBroadPhaseLayerFilter JPH_ObjectVsBroadPhaseLayerFilter;
 typedef struct JPH_ObjectLayerPairFilter         JPH_ObjectLayerPairFilter;
@@ -93,5 +93,77 @@ typedef struct JPH_DefaultObjectLayerFilter {
 
 JOLTC_API bool JPH_DefaultObjectLayerFilter_ShouldCollide(const void *data, JPH_ObjectLayer layer);
 JOLTC_API const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_DefaultObjectLayerFilter *filter, JPH_Allocator allocator);
+
+// BroadPhaseQuery
+
+typedef struct JPH_RayCast {
+    JPH_Vec3 origin;
+    JPH_Vec3 direction;
+} JPH_RayCast;
+
+typedef struct JPH_RRayCast {
+    JPH_RVec3 origin;
+    JPH_Vec3 direction;
+} JPH_RRayCast;
+
+typedef uint8_t JPH_EBackFaceMode;
+enum {
+    JPH_EBackFaceMode_IgnoreBackFaces,
+    JPH_EBackFaceMode_CollideWithBackFaces,
+};
+
+typedef struct JPH_RayCastSettings {
+    JPH_EBackFaceMode backFaceModeTriangles;
+    JPH_EBackFaceMode backFaceModeConvex;
+    bool treatConvexAsSolid;
+} JPH_RayCastSettings;
+
+JOLTC_API JPH_RayCastSettings JPH_RayCastSettings_Default();
+
+typedef struct JPH_OrientedBox {
+    JPH_Mat44 orientation;
+    JPH_Vec3 halfExtents;
+} JPH_OrientedBox;
+
+JOLTC_API bool JPH_OrientedBox_OverlapsAABox(const JPH_OrientedBox *box, JPH_AABox otherBox, float epsilon);
+JOLTC_API bool JPH_OrientedBox_OverlapsOrientedBox(const JPH_OrientedBox *box, JPH_OrientedBox otherBox, float epsilon);
+
+typedef struct JPH_AABoxCast {
+    JPH_AABox box;
+    JPH_Vec3 direction;
+} JPH_AABoxCast;
+
+// For now we have a simplified version of the body collector
+
+typedef uint32_t JPH_ECollisionCollectorType;
+enum {
+    JPH_ECollisionCollectorType_Any,
+    JPH_ECollisionCollectorType_Closest,
+    JPH_ECollisionCollectorType_AllSorted,
+    JPH_ECollisionCollectorType_All,
+};
+
+typedef struct JPH_BroadPhaseCastResult {
+    JPH_BodyID bodyID;
+    float fraction;
+} JPH_BroadPhaseCastResult;
+
+typedef struct JPH_RayCastResult {
+    JPH_BodyID bodyID;
+    float fraction;
+    JPH_SubShapeID subShapeID2;
+} JPH_RayCastResult;
+
+typedef void (*JPH_BroadPhaseQuery_CastRayHitCallback)(void *data, const JPH_BroadPhaseCastResult *hit);
+typedef float (*JPH_BroadPhaseQuery_CastRayCollectCallback)(void *data, const JPH_BroadPhaseCastResult *hit);
+
+JOLTC_API JPH_AABox JPH_BroadPhaseQuery_GetBounds(const JPH_BroadPhaseQuery *query);
+JOLTC_API bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast ray, JPH_ECollisionCollectorType collectorType, void *data, JPH_BroadPhaseQuery_CastRayHitCallback callback, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+
+JOLTC_API bool JPH_BroadPhaseQuery_CollideAABox(const JPH_BroadPhaseQuery *query, JPH_AABox box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+JOLTC_API bool JPH_BroadPhaseQuery_CollideSphere(const JPH_BroadPhaseQuery *query, JPH_Vec3 center, float radius, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+JOLTC_API bool JPH_BroadPhaseQuery_CollidePoint(const JPH_BroadPhaseQuery *query, JPH_Vec3 point, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+JOLTC_API bool JPH_BroadPhaseQuery_CollideOrientedBox(const JPH_BroadPhaseQuery *query, JPH_OrientedBox box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter);
+JOLTC_API bool JPH_BroadPhaseQuery_CastAABox(const JPH_BroadPhaseQuery *query, JPH_AABoxCast box, JPH_ECollisionCollectorType collectorType, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *inObjectLayerFilter);
 
 // @Todo: ShapeFilter

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JoltC_Core.h>
-#include <JoltC_Collision.h>
 
 typedef struct JPH_ShapeSettings                   JPH_ShapeSettings;
 typedef struct JPH_ConvexShapeSettings             JPH_ConvexShapeSettings;
