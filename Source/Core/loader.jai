@@ -55,7 +55,7 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
         src_lib_path := TPrint("Bin/%.%", id, Lib_Ext);
         dst_lib_path := TPrint("Bin/%.copy.%", id, Lib_Ext);
         if !copy_file(src_lib_path, dst_lib_path) {
-            LogError("Could not copy module library '%' to '%'", src_lib_path, dst_lib_path);
+            Panic("Could not copy module library '%' to '%'", src_lib_path, dst_lib_path);
             return false;
         }
 
@@ -64,7 +64,8 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
         if !g_module_libraries[id] {
             error := get_error_value();
             error_msg := get_error_string(error);
-            LogError("Could not load '%': %", dst_lib_path, error_msg);
+            Panic("Could not load '%': %", dst_lib_path, error_msg);
+
             return false;
         }
 
@@ -73,7 +74,7 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
             FreeLibrary(g_module_libraries[id]);
             g_module_libraries[id] = null;
 
-            LogError("Could not load ModuleHandshake procedure of module %", id);
+            Panic("Could not load ModuleHandshake procedure of module %", id);
             return false;
         }
     }
@@ -82,8 +83,8 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
     if !g_modules[id] {
         FreeLibrary(g_module_libraries[id]);
         g_module_libraries[id] = null;
+        Panic("Could not load module %", id);
 
-        LogError("Could not load module %", id);
         return false;
     }
 

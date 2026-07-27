@@ -496,6 +496,11 @@ UpdateEditorWorld :: (world : *World) {
 
     ExecuteEntityCallback(world, "OnDebugDraw");
     ExecuteComponentCallback(world, "OnDebugDraw");
+
+    physics_debug_draw_settings := GetPhysicsDebugDrawSettings();
+    if physics_debug_draw_settings.enabled_in_editor {
+        DebugDrawPhysicsBodies(world, physics_debug_draw_settings);
+    }
 }
 
 UpdateEditor :: () {

@@ -16,7 +16,7 @@
   @cast_point_shadows 5: false
 
 [RigidBodyComponent]
-@layer 2: Default
+@layer 2: Moving
 @motion_type 3: Dynamic
 @motion_quality 5: Discrete
 @activate_on_create 4: true

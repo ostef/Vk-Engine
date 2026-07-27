@@ -15,17 +15,15 @@
   @cast_shadows 4: true
   @cast_point_shadows 5: false
 
-[BoxColliderComponent]
+[RigidBodyComponent]
+@layer 2: NonMoving
+@motion_type 3: Static
+@motion_quality 5: Discrete
+@activate_on_create 4: true
+
+[PlaneColliderComponent]
 @_ 1:
   @local_position 2: [0, 0, 0]
   @local_rotation 3: [0, 0, 0, 1]
   @local_scale 4: [1, 1, 1]
-@half_extents 2: [1, 0.01, 1]
-@density 3: 1
-@margin 4: 0.01
-
-[RigidBodyComponent]
-@layer 2: Default
-@motion_type 3: Static
-@motion_quality 5: Discrete
-@activate_on_create 4: true
+@half_extent 2: 1

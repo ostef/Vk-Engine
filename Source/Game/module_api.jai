@@ -4,6 +4,7 @@ GameModule :: struct {
     #as base : Module;
     CastRay : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
     CopyWorld : (dest : *World, src : *World);
+    DebugDrawPhysicsBodies : (world : *World, settings : PhysicsDebugDrawSettings);
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
     DisablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
@@ -14,6 +15,7 @@ GameModule :: struct {
     GetPhysicsSettings : () -> *PhysicsSettings;
     InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
+    PhysicsDebugRendererNextFrame : ();
     SaveWorldToDirectory : (world : *World, output_directory : string);
     SetPhysicsDebugRendererTarget : (world : *World);
     ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
@@ -34,6 +36,11 @@ CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_dire
 CopyWorld :: inline (dest : *World, src : *World) {
     Assert(g_Game != null, "Game module is null");
     g_Game.CopyWorld(dest, src);
+} @NoProfile
+
+DebugDrawPhysicsBodies :: inline (world : *World, settings : PhysicsDebugDrawSettings) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.DebugDrawPhysicsBodies(world, settings);
 } @NoProfile
 
 DestroyKilledEntities :: inline (world : *World) {
@@ -84,6 +91,11 @@ InitWorld :: inline (world : *World) {
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.LoadWorldFromDirectory(world, directory);
+} @NoProfile
+
+PhysicsDebugRendererNextFrame :: inline () {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.PhysicsDebugRendererNextFrame();
 } @NoProfile
 
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {

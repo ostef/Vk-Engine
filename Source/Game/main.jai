@@ -8,6 +8,7 @@ g_module := GameModule.{
     base.OnModuleLoad=OnModuleLoad,
     base.Initialize=InitializeGame,
     base.Shutdown=ShutdownGame,
+    base.MainLoop=UpdateGame,
 };
 
 #program_export
@@ -31,9 +32,19 @@ OnModuleLoad :: (id : ModuleID) {
 }
 
 InitializeGame :: (global_init : bool) {
+    Remap_Context();
+
     InitPhysics();
 }
 
 ShutdownGame :: (global_shutdown : bool) {
+    Remap_Context();
+
     ShutdownPhysics();
+}
+
+UpdateGame :: () {
+    Remap_Context();
+
+    PhysicsDebugRendererNextFrame();
 }

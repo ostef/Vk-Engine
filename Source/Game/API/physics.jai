@@ -11,12 +11,20 @@ Physics_Num_Updates_Per_Second :: 60;
 Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
 Physics_Num_Collision_Steps :: 1;
 
-PhysicsCollisionLayer :: enum u32 {
-    Default;
+PhysicsCollisionLayer :: enum Jolt.ObjectLayer {
+    NonMoving;
+    Moving;
     Foliage;
 }
 
 Physics_Num_Collision_Layers :: #run type_info(PhysicsCollisionLayer).names.count;
+
+PhysicsBroadPhaseLayer :: enum Jolt.BroadPhaseLayer {
+    NonMoving;
+    Moving;
+}
+
+Physics_Num_Broad_Phase_Layers ::  #run type_info(PhysicsBroadPhaseLayer).names.count;
 
 #insert -> string {
     builder : StringBuilder;
@@ -49,6 +57,7 @@ PhysicsGlobals :: struct {
 
 PhysicsDebugDrawSettings :: struct {
     enabled := false; @Serialize(9)
+    enabled_in_editor := false; @Serialize(10)
     draw_colliders := true; @Serialize(1)
     draw_colliders_wireframe := true; @Serialize(2)
     collider_color := Jolt.BodyManager_EShapeColor.SleepColor; @Serialize(3)
@@ -64,9 +73,9 @@ PhysicsWorld :: struct {
     temp_allocator : *Jolt.TempAllocator;
     job_system : *Jolt.JobSystem;
     body_interface : *Jolt.BodyInterface;
-    broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
-    object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
-    object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilter;
+    broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterfaceTable;
+    object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilterTable;
+    object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilterTable;
 }
 
 RayCastResult :: struct {
@@ -92,7 +101,7 @@ PhysicsMotionQuality :: enum u8 {
 RigidBodyComponent :: struct {
     #as using _ : Component; @Serialize(1) @InspectorNoTree
 
-    layer := PhysicsCollisionLayer.Default; @Serialize(2)
+    layer := PhysicsCollisionLayer.Moving; @Serialize(2)
     motion_type := PhysicsMotionType.Dynamic; @Serialize(3)
     motion_quality := PhysicsMotionQuality.Discrete; @Serialize(5)
     activate_on_create := true; @Serialize(4)
