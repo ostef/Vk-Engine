@@ -163,8 +163,14 @@ DEFINE_CONVERSION_FUNCTIONS(JPH_SharedMutex, JPH::SharedMutex);
 // Collision
 
 DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerInterface, JPH::BroadPhaseLayerInterface);
-DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilter, JPH::ObjectVsBroadPhaseLayerFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerInterfaceTable, JPH::BroadPhaseLayerInterfaceTable);
+DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerInterfaceMask, JPH::BroadPhaseLayerInterfaceMask);
 DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerPairFilter, JPH::ObjectLayerPairFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerPairFilterTable, JPH::ObjectLayerPairFilterTable);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerPairFilterMask, JPH::ObjectLayerPairFilterMask);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilter, JPH::ObjectVsBroadPhaseLayerFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilterTable, JPH::ObjectVsBroadPhaseLayerFilterTable);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectVsBroadPhaseLayerFilterMask, JPH::ObjectVsBroadPhaseLayerFilterMask);
 DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerFilter, JPH::BroadPhaseLayerFilter);
 DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerFilter, JPH::ObjectLayerFilter);
 DEFINE_CONVERSION_FUNCTIONS(JPH_GroupFilter, JPH::GroupFilter);

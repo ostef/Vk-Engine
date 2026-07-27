@@ -16,7 +16,7 @@ BEGIN_INTERFACE_WRAPPER_CLASS(BroadPhaseLayerInterface);
         return JPH::BroadPhaseLayer(0);
     }
 
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
     virtual const char *GetBroadPhaseLayerName(JPH::BroadPhaseLayer layer) const override {
         if (funcs.GetBroadPhaseLayerName) {
             return funcs.GetBroadPhaseLayerName(data, layer.GetValue());
@@ -28,6 +28,103 @@ BEGIN_INTERFACE_WRAPPER_CLASS(BroadPhaseLayerInterface);
 END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(BroadPhaseLayerInterface);
+
+uint32_t JPH_BroadPhaseLayerInterface_GetNumBroadPhaseLayers(const JPH_BroadPhaseLayerInterface *bplInterface) {
+    return ToCpp(bplInterface)->GetNumBroadPhaseLayers();
+}
+
+JPH_BroadPhaseLayer JPH_BroadPhaseLayerInterface_GetBroadPhaseLayer(const JPH_BroadPhaseLayerInterface *bplInterface, JPH_ObjectLayer objectLayer) {
+    return ToCpp(bplInterface)->GetBroadPhaseLayer(objectLayer).GetValue();
+}
+
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+
+const char *JPH_BroadPhaseLayerInterface_GetBroadPhaseLayerName(const JPH_BroadPhaseLayerInterface *bplInterface, JPH_BroadPhaseLayer broadPhaseLayer) {
+    return ToCpp(bplInterface)->GetBroadPhaseLayerName(JPH::BroadPhaseLayer(broadPhaseLayer));
+}
+
+#endif
+
+JPH_BroadPhaseLayerInterfaceTable *JPH_BroadPhaseLayerInterfaceTable_Create(uint32_t numObjectLayers, uint32_t numBroadPhaseLayers) {
+    return ToC(new JPH::BroadPhaseLayerInterfaceTable(numObjectLayers, numBroadPhaseLayers));
+}
+
+void JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(JPH_BroadPhaseLayerInterfaceTable *table, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer) {
+    ToCpp(table)->MapObjectToBroadPhaseLayer(objectLayer, JPH::BroadPhaseLayer(broadPhaseLayer));
+}
+
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+
+void JPH_BroadPhaseLayerInterfaceTable_SetBroadPhaseLayerName(JPH_BroadPhaseLayerInterfaceTable *table, JPH_BroadPhaseLayer broadPhaseLayer, const char *name) {
+    ToCpp(table)->SetBroadPhaseLayerName(JPH::BroadPhaseLayer(broadPhaseLayer), name);
+}
+
+#endif
+
+JPH_BroadPhaseLayerInterfaceMask *JPH_BroadPhaseLayerInterfaceMask_Create(uint32_t numBroadPhaseLayers) {
+    return ToC(new JPH::BroadPhaseLayerInterfaceMask(numBroadPhaseLayers));
+}
+
+void JPH_BroadPhaseLayerInterfaceMask_ConfigureLayer(JPH_BroadPhaseLayerInterfaceMask *mask, JPH_BroadPhaseLayer broadPhaseLayer, uint32_t groupsToInclude, uint32_t groupsToExclude) {
+    ToCpp(mask)->ConfigureLayer(JPH::BroadPhaseLayer(broadPhaseLayer), groupsToInclude, groupsToExclude);
+}
+
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+
+void JPH_BroadPhaseLayerInterfaceMask_SetBroadPhaseLayerName(JPH_BroadPhaseLayerInterfaceMask *mask, JPH_BroadPhaseLayer broadPhaseLayer, const char *name) {
+    ToCpp(mask)->SetBroadPhaseLayerName(JPH::BroadPhaseLayer(broadPhaseLayer), name);
+}
+
+#endif
+
+BEGIN_INTERFACE_WRAPPER_CLASS(ObjectLayerPairFilter);
+
+    virtual bool ShouldCollide(JPH::ObjectLayer layer1, JPH::ObjectLayer layer2) const override {
+        if (funcs.ShouldCollide) {
+            return funcs.ShouldCollide(data, layer1, layer2);
+        }
+        return true;
+    }
+
+END_INTERFACE_WRAPPER_CLASS();
+
+DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ObjectLayerPairFilter);
+
+bool JPH_ObjectLayerPairFilter_ShouldCollide(const JPH_ObjectLayerPairFilter *filter, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2) {
+    return ToCpp(filter)->ShouldCollide(layer1, layer2);
+}
+
+JPH_ObjectLayerPairFilterTable *JPH_ObjectLayerPairFilterTable_Create(uint32_t numObjectLayers) {
+    return ToC(new JPH::ObjectLayerPairFilterTable(numObjectLayers));
+}
+
+uint32_t JPH_ObjectLayerPairFilterTable_GetNumObjectLayers(const JPH_ObjectLayerPairFilterTable *table) {
+    return ToCpp(table)->GetNumObjectLayers();
+}
+
+void JPH_ObjectLayerPairFilterTable_EnableCollision(JPH_ObjectLayerPairFilterTable *table, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2) {
+    ToCpp(table)->EnableCollision(layer1, layer2);
+}
+
+void JPH_ObjectLayerPairFilterTable_DisableCollision(JPH_ObjectLayerPairFilterTable *table, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2) {
+    ToCpp(table)->DisableCollision(layer1, layer2);
+}
+
+JPH_ObjectLayerPairFilterMask *JPH_ObjectLayerPairFilterMask_Create() {
+    return ToC(new JPH::ObjectLayerPairFilterMask);
+}
+
+uint32_t JPH_ObjectLayerPairFilterMask_GetGroup(JPH_ObjectLayer objectLayer) {
+    return JPH::ObjectLayerPairFilterMask::sGetGroup(objectLayer);
+}
+
+uint32_t JPH_ObjectLayerPairFilterMask_GetMask(JPH_ObjectLayer objectLayer) {
+    return JPH::ObjectLayerPairFilterMask::sGetMask(objectLayer);
+}
+
+JPH_ObjectLayer JPH_ObjectLayerPairFilterMask_GetObjectLayer(uint32_t group, uint32_t mask) {
+    return JPH::ObjectLayerPairFilterMask::sGetObjectLayer(group, mask);
+}
 
 BEGIN_INTERFACE_WRAPPER_CLASS(ObjectVsBroadPhaseLayerFilter);
 
@@ -42,18 +139,17 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ObjectVsBroadPhaseLayerFilter);
 
-BEGIN_INTERFACE_WRAPPER_CLASS(ObjectLayerPairFilter);
+bool JPH_ObjectVsBroadPhaseLayerFilter_ShouldCollide(const JPH_ObjectVsBroadPhaseLayerFilter *filter, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer) {
+    return ToCpp(filter)->ShouldCollide(objectLayer, JPH::BroadPhaseLayer(broadPhaseLayer));
+}
 
-    virtual bool ShouldCollide(JPH::ObjectLayer layer1, JPH::ObjectLayer layer2) const override {
-        if (funcs.ShouldCollide) {
-            return funcs.ShouldCollide(data, layer1, layer2);
-        }
-        return true;
-    }
+JPH_ObjectVsBroadPhaseLayerFilterTable *JPH_ObjectVsBroadPhaseLayerFilterTable_Create(const JPH_BroadPhaseLayerInterface *bplInterface, uint32_t numBroadPhaseLayers, const JPH_ObjectLayerPairFilter *objectLayerPairFilter, uint32_t numObjectLayers) {
+    return ToC(new JPH::ObjectVsBroadPhaseLayerFilterTable(*ToCpp(bplInterface), numBroadPhaseLayers, *ToCpp(objectLayerPairFilter), numObjectLayers));
+}
 
-END_INTERFACE_WRAPPER_CLASS();
-
-DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ObjectLayerPairFilter);
+JPH_ObjectVsBroadPhaseLayerFilterMask *JPH_ObjectVsBroadPhaseLayerFilterMask_Create(const JPH_BroadPhaseLayerInterfaceMask *bplInterface) {
+    return ToC(new JPH::ObjectVsBroadPhaseLayerFilterMask(*ToCpp(bplInterface)));
+}
 
 BEGIN_INTERFACE_WRAPPER_CLASS(BroadPhaseLayerFilter);
 
@@ -103,7 +199,7 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(BodyFilter);
 
-JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_Allocator allocator) {
+JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_Allocator allocator) {
     void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreMultipleBodiesFilter));
     auto filter = new(ptr) JPH::IgnoreMultipleBodiesFilter;
     for (int i = 0; i < numBodies; i += 1) {
@@ -113,12 +209,12 @@ JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID
     return ToC(filter);
 }
 
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_Allocator allocator) {
+JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_Allocator allocator) {
     void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilter));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilter(JPH::BodyID(bodyID)));
 }
 
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_Allocator allocator) {
+JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_Allocator allocator) {
     void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilterChained));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilterChained(JPH::BodyID(bodyID), *ToCpp(otherFilter)));
 }
@@ -143,7 +239,7 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ShapeFilter);
 
-JOLTC_API JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_Allocator allocator) {
+JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_Allocator allocator) {
     void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::ReversedShapeFilter));
     return ToC(new(ptr) JPH::ReversedShapeFilter(*ToCpp(other)));
 }

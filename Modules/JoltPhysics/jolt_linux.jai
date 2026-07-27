@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai - build combined_shared_libs
+// jai generate.jai - combined_shared_libs
 //
 
 
@@ -722,8 +722,14 @@ HeightFieldShape_SetHeights :: (shape: *HeightFieldShape, x: u32, y: u32, sizeX:
 Body :: struct {}
 
 BroadPhaseLayerInterface :: struct {}
-ObjectVsBroadPhaseLayerFilter :: struct {}
+BroadPhaseLayerInterfaceTable :: struct {}
+BroadPhaseLayerInterfaceMask :: struct {}
 ObjectLayerPairFilter :: struct {}
+ObjectLayerPairFilterTable :: struct {}
+ObjectLayerPairFilterMask :: struct {}
+ObjectVsBroadPhaseLayerFilter :: struct {}
+ObjectVsBroadPhaseLayerFilterTable :: struct {}
+ObjectVsBroadPhaseLayerFilterMask :: struct {}
 BroadPhaseLayerFilter :: struct {}
 ObjectLayerFilter :: struct {}
 GroupFilter :: struct {}
@@ -745,6 +751,7 @@ CollisionGroup :: struct {
     subGroupID:  CollisionGroup_SubGroupID;
 }
 
+// Interfaces
 BroadPhaseLayerInterface_Funcs :: struct {
     Destruct:               #type (data: *void) -> void #c_call;
     GetNumBroadPhaseLayers: #type (data: *void) -> u32 #c_call;
@@ -755,14 +762,20 @@ BroadPhaseLayerInterface_Funcs :: struct {
 
 BroadPhaseLayerInterface_Create :: (data: *void, funcs: BroadPhaseLayerInterface_Funcs, allocator: Allocator) -> *BroadPhaseLayerInterface #foreign JoltC "JPH_BroadPhaseLayerInterface_Create";
 BroadPhaseLayerInterface_Destroy :: (self: *BroadPhaseLayerInterface) -> void #foreign JoltC "JPH_BroadPhaseLayerInterface_Destroy";
+BroadPhaseLayerInterface_GetNumBroadPhaseLayers :: (bplInterface: *BroadPhaseLayerInterface) -> u32 #foreign JoltC "JPH_BroadPhaseLayerInterface_GetNumBroadPhaseLayers";
+BroadPhaseLayerInterface_GetBroadPhaseLayer :: (bplInterface: *BroadPhaseLayerInterface, objectLayer: ObjectLayer) -> BroadPhaseLayer #foreign JoltC "JPH_BroadPhaseLayerInterface_GetBroadPhaseLayer";
 
-ObjectVsBroadPhaseLayerFilter_Funcs :: struct {
-    Destruct:      #type (data: *void) -> void #c_call;
-    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: BroadPhaseLayer) -> bool #c_call;
-}
+BroadPhaseLayerInterface_GetBroadPhaseLayerName :: (bplInterface: *BroadPhaseLayerInterface, broadPhaseLayer: BroadPhaseLayer) -> *u8 #foreign JoltC "JPH_BroadPhaseLayerInterface_GetBroadPhaseLayerName";
 
-ObjectVsBroadPhaseLayerFilter_Create :: (data: *void, funcs: ObjectVsBroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *ObjectVsBroadPhaseLayerFilter #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Create";
-ObjectVsBroadPhaseLayerFilter_Destroy :: (self: *ObjectVsBroadPhaseLayerFilter) -> void #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Destroy";
+BroadPhaseLayerInterfaceTable_Create :: (numObjectLayers: u32, numBroadPhaseLayers: u32) -> *BroadPhaseLayerInterfaceTable #foreign JoltC "JPH_BroadPhaseLayerInterfaceTable_Create";
+BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer :: (table: *BroadPhaseLayerInterfaceTable, objectLayer: ObjectLayer, broadPhaseLayer: BroadPhaseLayer) -> void #foreign JoltC "JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer";
+
+BroadPhaseLayerInterfaceTable_SetBroadPhaseLayerName :: (table: *BroadPhaseLayerInterfaceTable, broadPhaseLayer: BroadPhaseLayer, name: *u8) -> void #foreign JoltC "JPH_BroadPhaseLayerInterfaceTable_SetBroadPhaseLayerName";
+
+BroadPhaseLayerInterfaceMask_Create :: (numBroadPhaseLayers: u32) -> *BroadPhaseLayerInterfaceMask #foreign JoltC "JPH_BroadPhaseLayerInterfaceMask_Create";
+BroadPhaseLayerInterfaceMask_ConfigureLayer :: (mask: *BroadPhaseLayerInterfaceMask, broadPhaseLayer: BroadPhaseLayer, groupsToInclude: u32, groupsToExclude: u32) -> void #foreign JoltC "JPH_BroadPhaseLayerInterfaceMask_ConfigureLayer";
+
+BroadPhaseLayerInterfaceMask_SetBroadPhaseLayerName :: (mask: *BroadPhaseLayerInterfaceMask, broadPhaseLayer: BroadPhaseLayer, name: *u8) -> void #foreign JoltC "JPH_BroadPhaseLayerInterfaceMask_SetBroadPhaseLayerName";
 
 ObjectLayerPairFilter_Funcs :: struct {
     Destruct:      #type (data: *void) -> void #c_call;
@@ -771,6 +784,29 @@ ObjectLayerPairFilter_Funcs :: struct {
 
 ObjectLayerPairFilter_Create :: (data: *void, funcs: ObjectLayerPairFilter_Funcs, allocator: Allocator) -> *ObjectLayerPairFilter #foreign JoltC "JPH_ObjectLayerPairFilter_Create";
 ObjectLayerPairFilter_Destroy :: (self: *ObjectLayerPairFilter) -> void #foreign JoltC "JPH_ObjectLayerPairFilter_Destroy";
+ObjectLayerPairFilter_ShouldCollide :: (filter: *ObjectLayerPairFilter, layer1: ObjectLayer, layer2: ObjectLayer) -> bool #foreign JoltC "JPH_ObjectLayerPairFilter_ShouldCollide";
+
+ObjectLayerPairFilterTable_Create :: (numObjectLayers: u32) -> *ObjectLayerPairFilterTable #foreign JoltC "JPH_ObjectLayerPairFilterTable_Create";
+ObjectLayerPairFilterTable_GetNumObjectLayers :: (table: *ObjectLayerPairFilterTable) -> u32 #foreign JoltC "JPH_ObjectLayerPairFilterTable_GetNumObjectLayers";
+ObjectLayerPairFilterTable_EnableCollision :: (table: *ObjectLayerPairFilterTable, layer1: ObjectLayer, layer2: ObjectLayer) -> void #foreign JoltC "JPH_ObjectLayerPairFilterTable_EnableCollision";
+ObjectLayerPairFilterTable_DisableCollision :: (table: *ObjectLayerPairFilterTable, layer1: ObjectLayer, layer2: ObjectLayer) -> void #foreign JoltC "JPH_ObjectLayerPairFilterTable_DisableCollision";
+
+ObjectLayerPairFilterMask_Create :: () -> *ObjectLayerPairFilterMask #foreign JoltC "JPH_ObjectLayerPairFilterMask_Create";
+ObjectLayerPairFilterMask_GetGroup :: (objectLayer: ObjectLayer) -> u32 #foreign JoltC "JPH_ObjectLayerPairFilterMask_GetGroup";
+ObjectLayerPairFilterMask_GetMask :: (objectLayer: ObjectLayer) -> u32 #foreign JoltC "JPH_ObjectLayerPairFilterMask_GetMask";
+ObjectLayerPairFilterMask_GetObjectLayer :: (group: u32, mask: u32) -> ObjectLayer #foreign JoltC "JPH_ObjectLayerPairFilterMask_GetObjectLayer";
+
+ObjectVsBroadPhaseLayerFilter_Funcs :: struct {
+    Destruct:      #type (data: *void) -> void #c_call;
+    ShouldCollide: #type (data: *void, layer1: ObjectLayer, layer2: BroadPhaseLayer) -> bool #c_call;
+}
+
+ObjectVsBroadPhaseLayerFilter_Create :: (data: *void, funcs: ObjectVsBroadPhaseLayerFilter_Funcs, allocator: Allocator) -> *ObjectVsBroadPhaseLayerFilter #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Create";
+ObjectVsBroadPhaseLayerFilter_Destroy :: (self: *ObjectVsBroadPhaseLayerFilter) -> void #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_Destroy";
+ObjectVsBroadPhaseLayerFilter_ShouldCollide :: (filter: *ObjectVsBroadPhaseLayerFilter, objectLayer: ObjectLayer, broadPhaseLayer: BroadPhaseLayer) -> bool #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilter_ShouldCollide";
+
+ObjectVsBroadPhaseLayerFilterTable_Create :: (bplInterface: *BroadPhaseLayerInterface, numBroadPhaseLayers: u32, objectLayerPairFilter: *ObjectLayerPairFilter, numObjectLayers: u32) -> *ObjectVsBroadPhaseLayerFilterTable #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilterTable_Create";
+ObjectVsBroadPhaseLayerFilterMask_Create :: (bplInterface: *BroadPhaseLayerInterfaceMask) -> *ObjectVsBroadPhaseLayerFilterMask #foreign JoltC "JPH_ObjectVsBroadPhaseLayerFilterMask_Create";
 
 BroadPhaseLayerFilter_Funcs :: struct {
     Destruct:      #type (data: *void) -> void #c_call;

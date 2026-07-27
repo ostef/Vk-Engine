@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     JPH_BroadPhaseLayerInterface *bplInterface = JPH_BroadPhaseLayerInterface_Create(NULL, (JPH_BroadPhaseLayerInterface_Funcs){
             .GetNumBroadPhaseLayers=BroadPhaseLayerInterface_GetNumBroadPhaseLayers,
             .GetBroadPhaseLayer=BroadPhaseLayerInterface_GetBroadPhaseLayer,
-            #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
+            #if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
             .GetBroadPhaseLayerName=BroadPhaseLayerInterface_GetBroadPhaseLayerName,
             #endif
         }, (JPH_Allocator){});

@@ -6,20 +6,26 @@
 // Forward declarations
 struct JPH_Body;
 
-typedef struct JPH_BroadPhaseLayerInterface      JPH_BroadPhaseLayerInterface;
-typedef struct JPH_ObjectVsBroadPhaseLayerFilter JPH_ObjectVsBroadPhaseLayerFilter;
-typedef struct JPH_ObjectLayerPairFilter         JPH_ObjectLayerPairFilter;
-typedef struct JPH_BroadPhaseLayerFilter         JPH_BroadPhaseLayerFilter;
-typedef struct JPH_ObjectLayerFilter             JPH_ObjectLayerFilter;
-typedef struct JPH_GroupFilter                   JPH_GroupFilter;
-typedef struct JPH_BodyFilter                    JPH_BodyFilter;
-typedef struct JPH_ShapeFilter                   JPH_ShapeFilter;
-typedef struct JPH_BroadPhaseQuery               JPH_BroadPhaseQuery;
-typedef struct JPH_NarrowPhaseQuery              JPH_NarrowPhaseQuery;
+typedef struct JPH_BroadPhaseLayerInterface           JPH_BroadPhaseLayerInterface;
+typedef struct JPH_BroadPhaseLayerInterfaceTable      JPH_BroadPhaseLayerInterfaceTable;
+typedef struct JPH_BroadPhaseLayerInterfaceMask       JPH_BroadPhaseLayerInterfaceMask;
+typedef struct JPH_ObjectLayerPairFilter              JPH_ObjectLayerPairFilter;
+typedef struct JPH_ObjectLayerPairFilterTable         JPH_ObjectLayerPairFilterTable;
+typedef struct JPH_ObjectLayerPairFilterMask          JPH_ObjectLayerPairFilterMask;
+typedef struct JPH_ObjectVsBroadPhaseLayerFilter      JPH_ObjectVsBroadPhaseLayerFilter;
+typedef struct JPH_ObjectVsBroadPhaseLayerFilterTable JPH_ObjectVsBroadPhaseLayerFilterTable;
+typedef struct JPH_ObjectVsBroadPhaseLayerFilterMask  JPH_ObjectVsBroadPhaseLayerFilterMask;
+typedef struct JPH_BroadPhaseLayerFilter              JPH_BroadPhaseLayerFilter;
+typedef struct JPH_ObjectLayerFilter                  JPH_ObjectLayerFilter;
+typedef struct JPH_GroupFilter                        JPH_GroupFilter;
+typedef struct JPH_BodyFilter                         JPH_BodyFilter;
+typedef struct JPH_ShapeFilter                        JPH_ShapeFilter;
+typedef struct JPH_BroadPhaseQuery                    JPH_BroadPhaseQuery;
+typedef struct JPH_NarrowPhaseQuery                   JPH_NarrowPhaseQuery;
 
 typedef uint8_t JPH_BroadPhaseLayer;
 
-#if !defined(JPH_OBJECT_LAYER_BITS) || JPH_OBJECT_LAYER_BITS == 16
+#if !defined(JOLTC_OBJECT_LAYER_BITS) || JPH_OBJECT_LAYER_BITS == 16
     typedef uint16_t JPH_ObjectLayer;
 #elif JPH_OBJECT_LAYER_BITS == 32
     typedef uint32_t JPH_ObjectLayer;
@@ -36,26 +42,37 @@ typedef struct JPH_CollisionGroup {
     JPH_CollisionGroup_SubGroupID subGroupID;
 } JPH_CollisionGroup;
 
+// Interfaces
+
 typedef struct JPH_BroadPhaseLayerInterface_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);
     uint32_t (JOLTC_CALL *GetNumBroadPhaseLayers)(const void *data);
     JPH_BroadPhaseLayer (JOLTC_CALL *GetBroadPhaseLayer)(const void *data, JPH_ObjectLayer layer);
 
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
     const char *(JOLTC_CALL *GetBroadPhaseLayerName)(const void *data, JPH_BroadPhaseLayer layer);
 #endif
 } JPH_BroadPhaseLayerInterface_Funcs;
 
 JOLTC_API JPH_BroadPhaseLayerInterface *JPH_BroadPhaseLayerInterface_Create(void *data, JPH_BroadPhaseLayerInterface_Funcs funcs, JPH_Allocator allocator);
 JOLTC_API void JPH_BroadPhaseLayerInterface_Destroy(JPH_BroadPhaseLayerInterface *self);
+JOLTC_API uint32_t JPH_BroadPhaseLayerInterface_GetNumBroadPhaseLayers(const JPH_BroadPhaseLayerInterface *bplInterface);
+JOLTC_API JPH_BroadPhaseLayer JPH_BroadPhaseLayerInterface_GetBroadPhaseLayer(const JPH_BroadPhaseLayerInterface *bplInterface, JPH_ObjectLayer objectLayer);
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+JOLTC_API const char *JPH_BroadPhaseLayerInterface_GetBroadPhaseLayerName(const JPH_BroadPhaseLayerInterface *bplInterface, JPH_BroadPhaseLayer broadPhaseLayer);
+#endif
 
-typedef struct JPH_ObjectVsBroadPhaseLayerFilter_Funcs {
-    void (JOLTC_CALL *Destruct)(void *data);
-    bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_ObjectLayer layer1, JPH_BroadPhaseLayer layer2);
-} JPH_ObjectVsBroadPhaseLayerFilter_Funcs;
+JOLTC_API JPH_BroadPhaseLayerInterfaceTable *JPH_BroadPhaseLayerInterfaceTable_Create(uint32_t numObjectLayers, uint32_t numBroadPhaseLayers);
+JOLTC_API void JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(JPH_BroadPhaseLayerInterfaceTable *table, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer);
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+JOLTC_API void JPH_BroadPhaseLayerInterfaceTable_SetBroadPhaseLayerName(JPH_BroadPhaseLayerInterfaceTable *table, JPH_BroadPhaseLayer broadPhaseLayer, const char *name);
+#endif
 
-JOLTC_API JPH_ObjectVsBroadPhaseLayerFilter *JPH_ObjectVsBroadPhaseLayerFilter_Create(void *data, JPH_ObjectVsBroadPhaseLayerFilter_Funcs funcs, JPH_Allocator allocator);
-JOLTC_API void JPH_ObjectVsBroadPhaseLayerFilter_Destroy(JPH_ObjectVsBroadPhaseLayerFilter *self);
+JOLTC_API JPH_BroadPhaseLayerInterfaceMask *JPH_BroadPhaseLayerInterfaceMask_Create(uint32_t numBroadPhaseLayers);
+JOLTC_API void JPH_BroadPhaseLayerInterfaceMask_ConfigureLayer(JPH_BroadPhaseLayerInterfaceMask *mask, JPH_BroadPhaseLayer broadPhaseLayer, uint32_t groupsToInclude, uint32_t groupsToExclude);
+#if defined(JOLTC_EXTERNAL_PROFILE) || defined(JOLTC_PROFILE_ENABLED)
+JOLTC_API void JPH_BroadPhaseLayerInterfaceMask_SetBroadPhaseLayerName(JPH_BroadPhaseLayerInterfaceMask *mask, JPH_BroadPhaseLayer broadPhaseLayer, const char *name);
+#endif
 
 typedef struct JPH_ObjectLayerPairFilter_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);
@@ -64,6 +81,32 @@ typedef struct JPH_ObjectLayerPairFilter_Funcs {
 
 JOLTC_API JPH_ObjectLayerPairFilter *JPH_ObjectLayerPairFilter_Create(void *data, JPH_ObjectLayerPairFilter_Funcs funcs, JPH_Allocator allocator);
 JOLTC_API void JPH_ObjectLayerPairFilter_Destroy(JPH_ObjectLayerPairFilter *self);
+JOLTC_API bool JPH_ObjectLayerPairFilter_ShouldCollide(const JPH_ObjectLayerPairFilter *filter, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2);
+
+JOLTC_API JPH_ObjectLayerPairFilterTable *JPH_ObjectLayerPairFilterTable_Create(uint32_t numObjectLayers);
+JOLTC_API uint32_t JPH_ObjectLayerPairFilterTable_GetNumObjectLayers(const JPH_ObjectLayerPairFilterTable *table);
+JOLTC_API void JPH_ObjectLayerPairFilterTable_EnableCollision(JPH_ObjectLayerPairFilterTable *table, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2);
+JOLTC_API void JPH_ObjectLayerPairFilterTable_DisableCollision(JPH_ObjectLayerPairFilterTable *table, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2);
+
+#define JPH_ObjectLayerPairFilterMask_cNumBits (JOLTC_OBJECT_LAYER_BITS / 2)
+#define JPH_ObjectLayerPairFilterMask_cMask ((1 << JPH_ObjectLayerPairFilterMask_cNumBits) - 1)
+
+JOLTC_API JPH_ObjectLayerPairFilterMask *JPH_ObjectLayerPairFilterMask_Create();
+JOLTC_API uint32_t JPH_ObjectLayerPairFilterMask_GetGroup(JPH_ObjectLayer objectLayer);
+JOLTC_API uint32_t JPH_ObjectLayerPairFilterMask_GetMask(JPH_ObjectLayer objectLayer);
+JOLTC_API JPH_ObjectLayer JPH_ObjectLayerPairFilterMask_GetObjectLayer(uint32_t group, uint32_t mask);
+
+typedef struct JPH_ObjectVsBroadPhaseLayerFilter_Funcs {
+    void (JOLTC_CALL *Destruct)(void *data);
+    bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_ObjectLayer layer1, JPH_BroadPhaseLayer layer2);
+} JPH_ObjectVsBroadPhaseLayerFilter_Funcs;
+
+JOLTC_API JPH_ObjectVsBroadPhaseLayerFilter *JPH_ObjectVsBroadPhaseLayerFilter_Create(void *data, JPH_ObjectVsBroadPhaseLayerFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API void JPH_ObjectVsBroadPhaseLayerFilter_Destroy(JPH_ObjectVsBroadPhaseLayerFilter *self);
+JOLTC_API bool JPH_ObjectVsBroadPhaseLayerFilter_ShouldCollide(const JPH_ObjectVsBroadPhaseLayerFilter *filter, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer);
+
+JOLTC_API JPH_ObjectVsBroadPhaseLayerFilterTable *JPH_ObjectVsBroadPhaseLayerFilterTable_Create(const JPH_BroadPhaseLayerInterface *bplInterface, uint32_t numBroadPhaseLayers, const JPH_ObjectLayerPairFilter *objectLayerPairFilter, uint32_t numObjectLayers);
+JOLTC_API JPH_ObjectVsBroadPhaseLayerFilterMask *JPH_ObjectVsBroadPhaseLayerFilterMask_Create(const JPH_BroadPhaseLayerInterfaceMask *bplInterface);
 
 typedef struct JPH_BroadPhaseLayerFilter_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);
