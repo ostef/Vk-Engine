@@ -4,7 +4,7 @@ GetPhysicsGlobals :: () -> *PhysicsGlobals {
     return *g_physics;
 } @ModuleAPI
 
-GetPhysicsSettings :: () -> *PhysicsSettings {
+GetPhysicsGlobalSettings :: () -> *PhysicsGlobalSettings {
     return *g_physics.settings;
 } @ModuleAPI
 

@@ -11,8 +11,8 @@ GameModule :: struct {
     EnablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
     GetDefaultMaterial : () -> *Asset(DataType=Material);
     GetPhysicsDebugDrawSettings : () -> *PhysicsDebugDrawSettings;
+    GetPhysicsGlobalSettings : () -> *PhysicsGlobalSettings;
     GetPhysicsGlobals : () -> *PhysicsGlobals;
-    GetPhysicsSettings : () -> *PhysicsSettings;
     InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
     PhysicsDebugRendererNextFrame : ();
@@ -73,14 +73,14 @@ GetPhysicsDebugDrawSettings :: inline () -> *PhysicsDebugDrawSettings {
     return g_Game.GetPhysicsDebugDrawSettings();
 } @NoProfile
 
+GetPhysicsGlobalSettings :: inline () -> *PhysicsGlobalSettings {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.GetPhysicsGlobalSettings();
+} @NoProfile
+
 GetPhysicsGlobals :: inline () -> *PhysicsGlobals {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetPhysicsGlobals();
-} @NoProfile
-
-GetPhysicsSettings :: inline () -> *PhysicsSettings {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.GetPhysicsSettings();
 } @NoProfile
 
 InitWorld :: inline (world : *World) {

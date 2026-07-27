@@ -44,12 +44,12 @@ Physics_Num_Broad_Phase_Layers ::  #run type_info(PhysicsBroadPhaseLayer).names.
 // Triangular number with N = Physics_Num_Collision_Layers
 Physics_Collision_Layer_Matrix_Size :: #run (Physics_Num_Collision_Layers * (Physics_Num_Collision_Layers + 1)) / 2;
 
-PhysicsSettings :: struct {
+PhysicsGlobalSettings :: struct {
     collision_layer_matrix : [Physics_Collision_Layer_Matrix_Size]bool;
 }
 
 PhysicsGlobals :: struct {
-    settings : PhysicsSettings;
+    settings : PhysicsGlobalSettings;
     debug_draw_settings : PhysicsDebugDrawSettings;
     debug_renderer : *Jolt.DebugRenderer;
     debug_renderer_target_world : *World;

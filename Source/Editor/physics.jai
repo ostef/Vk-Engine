@@ -80,7 +80,7 @@ PhysicsMenu :: (world : *World) {
     if ImGui.BeginMenu("Physics") {
         defer ImGui.EndMenu();
 
-        settings := GetPhysicsSettings();
+        settings := GetPhysicsGlobalSettings();
         if ImGui.MenuItem("Global Settings", selected=g_show_physics_global_settings) {
             g_show_physics_global_settings = true;
         }
