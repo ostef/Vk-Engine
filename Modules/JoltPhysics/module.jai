@@ -1,5 +1,3 @@
-Linalg :: #import "Linalg";
-
 UVec4 :: struct {
     x: u32 #align JOLTC_VECTOR_ALIGNMENT;
     y: u32;
@@ -17,14 +15,6 @@ Vec3 :: struct {
 
     #overlay(x)
     values: [4]float;
-}
-
-ToXYZ :: inline (v : Vec3) -> Linalg.Vec3f #no_context {
-    return .{v.x, v.y, v.z};
-}
-
-XYZ :: inline (v : Linalg.Vec3f) -> Vec3 #no_context {
-    return .{v.x, v.y, v.z};
 }
 
 Vec4 :: struct {

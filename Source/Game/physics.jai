@@ -32,7 +32,7 @@ InitPhysics :: () {
             rgba := cast(*u8, *color);
 
             world := g_physics.debug_renderer_target_world;
-            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, Jolt.ToXYZ(from), Jolt.ToXYZ(to));
+            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, FromJolt(from), FromJolt(to));
         }
     };
     debug_renderer = Jolt.DebugRendererSimple_Create(null, debug_renderer_funcs, .{});
@@ -214,9 +214,9 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     ray_vector := ray_direction * ray_length;
 
     ray : Jolt.RRayCast;
-    ray.origin = Jolt.XYZ(ray_origin);
-    ray.direction = Jolt.XYZ(ray_vector);
-    Println("%", ray);
+    ray.origin = ToJolt(ray_origin);
+    ray.direction = ToJolt(ray_vector);
+    // Println("%", ray);
 
     result : Jolt.RayCastResult;
     hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
@@ -242,7 +242,7 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         if body_lock_read.body {
             rigid_body = cast(*RigidBodyComponent, Jolt.Body_GetUserData(body_lock_read.body));
 
-            normal = Jolt.ToXYZ(Jolt.Body_GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
+            normal = FromJolt(Jolt.Body_GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
 
             shape := Jolt.Body_GetShape(body_lock_read.body);
 
@@ -258,9 +258,9 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 
     return .{
         hit=true,
-        point=Jolt.ToXYZ(point),
+        point=FromJolt(point),
         normal=normal,
-        dist=Length(Jolt.ToXYZ(point) - ray_origin),
+        dist=Length(FromJolt(point) - ray_origin),
         entity=ifx collider then GetEntity(world, collider.entity_index) else ifx rigid_body then GetEntity(world, rigid_body.entity_index),
         collider=collider,
     };

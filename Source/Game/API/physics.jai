@@ -109,22 +109,22 @@ RigidBodyComponent :: struct {
         for :AllSphereColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{Jolt.XYZ(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
         }
         for :AllCapsuleColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{Jolt.XYZ(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
         }
         for :AllBoxColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{Jolt.XYZ(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
         }
         for :AllPlaneColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
             ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{Jolt.XYZ(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
         }
 
         final_shape : *Jolt.Shape;
@@ -167,7 +167,7 @@ RigidBodyComponent :: struct {
         }
 
         body_settings := Jolt.BodyCreationSettings_Default();
-        body_settings.position = Jolt.XYZ(world_position);
+        body_settings.position = ToJolt(world_position);
         body_settings.rotation = xx,force world_rotation;
         body_settings.motionType = jolt_motion_type;
         body_settings.motionQuality = jolt_motion_quality;
@@ -225,11 +225,11 @@ CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderCo
 
     world_scale := GetWorldScale(world, entity, sphere);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, Jolt.XYZ(world_scale)) {
+        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for sphere collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, Jolt.XYZ(world_scale));
+        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
         Jolt.Shape_SetUserData(shape, xx sphere);
     }
 
@@ -263,11 +263,11 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
 
     world_scale := GetWorldScale(world, entity, capsule);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, Jolt.XYZ(world_scale)) {
+        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for capsule collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, Jolt.XYZ(world_scale));
+        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
         Jolt.Shape_SetUserData(shape, xx capsule);
     }
 
@@ -290,7 +290,7 @@ AllBoxColliderComponents :: #bake_arguments AllEntityComponents(T=BoxColliderCom
 
 CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponent) -> *Jolt.Shape {
     settings := Jolt.BoxShapeSettings_Create();
-    Jolt.BoxShapeSettings_SetHalfExtent(settings, Jolt.XYZ(box.half_extents));
+    Jolt.BoxShapeSettings_SetHalfExtent(settings, ToJolt(box.half_extents));
     Jolt.BoxShapeSettings_SetConvexRadius(settings, box.margin);
     Jolt.ConvexShapeSettings_SetDensity(xx settings, box.density);
 
@@ -299,11 +299,11 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
 
     world_scale := GetWorldScale(world, entity, box);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, Jolt.XYZ(world_scale)) {
+        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for box collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, Jolt.XYZ(world_scale));
+        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
         Jolt.Shape_SetUserData(shape, xx box);
     }
 
@@ -323,7 +323,7 @@ PlaneColliderComponent :: struct {
 AllPlaneColliderComponents :: #bake_arguments AllEntityComponents(T=PlaneColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComponent) -> *Jolt.Shape {
-    p := Jolt.Plane_FromPointAndNormal(Jolt.XYZ(plane.local_position), Jolt.XYZ(UpVector(plane.local_rotation)));
+    p := Jolt.Plane_FromPointAndNormal(ToJolt(plane.local_position), ToJolt(UpVector(plane.local_rotation)));
 
     settings := Jolt.PlaneShapeSettings_Create();
     Jolt.PlaneShapeSettings_SetPlane(settings, p);
@@ -334,11 +334,11 @@ CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComp
 
     world_scale := GetWorldScale(world, entity, plane);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, Jolt.XYZ(world_scale)) {
+        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for plane collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, Jolt.XYZ(world_scale));
+        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
         Jolt.Shape_SetUserData(shape, xx plane);
     }
 
@@ -352,3 +352,79 @@ MeshColliderComponent :: struct {
 } @Component @Category(Physics/Colliders)
 
 AllMeshColliderComponents :: #bake_arguments AllEntityComponents(T=MeshColliderComponent);
+
+ToJolt :: inline (v : Vec4u) -> Jolt.UVec4 #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w==v.w};
+}
+
+FromJolt :: inline (v : Jolt.UVec4) -> Vec4u #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w=v.w};
+}
+
+ToJolt :: inline (v : Vec3f) -> Jolt.Vec3 #no_context {
+    return .{x=v.x, y=v.y, z=v.z, values[3]=v.z};
+}
+
+FromJolt :: inline (v : Jolt.Vec3) -> Vec3f #no_context {
+    return .{x=v.x, y=v.y, z=v.z};
+}
+
+ToJolt :: inline (v : Vec4f) -> Jolt.Vec4 #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w=v.w};
+}
+
+FromJolt :: inline (v : Jolt.Vec4) -> Vec4f #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w=v.w};
+}
+
+ToJolt :: inline (m : Mat4f) -> Jolt.Mat44 #no_context {
+    return .{
+        cols[0].x=m.r0c0, cols[0].y=m.r1c0, cols[0].z=m.r2c0, cols[0].w=m.r3c0,
+        cols[1].x=m.r0c1, cols[1].y=m.r1c1, cols[1].z=m.r2c1, cols[1].w=m.r3c1,
+        cols[2].x=m.r0c2, cols[2].y=m.r1c2, cols[2].z=m.r2c2, cols[2].w=m.r3c2,
+        cols[3].x=m.r0c3, cols[3].y=m.r1c3, cols[3].z=m.r2c3, cols[3].w=m.r3c3,
+    };
+}
+
+FromJolt :: inline (m : Jolt.Mat44) -> Mat4f #no_context {
+    return .{
+        cols[0].x, cols[1].x, cols[2].x, cols[3].x,
+        cols[0].y, cols[1].y, cols[2].y, cols[3].y,
+        cols[0].z, cols[1].z, cols[2].z, cols[3].z,
+        cols[0].w, cols[1].w, cols[2].w, cols[3].w,
+    };
+}
+
+ToJolt :: inline (v : Quatf) -> Jolt.Quat #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w=v.w};
+}
+
+FromJolt :: inline (v : Jolt.Quat) -> Quatf #no_context {
+    return .{x=v.x, y=v.y, z=v.z, w=v.w};
+}
+
+ToJolt :: inline (v : Vec3d) -> Jolt.DVec3 #no_context {
+    return .{x=v.x, y=v.y, z=v.z, values[3]=v.z};
+}
+
+FromJolt :: inline (v : Jolt.DVec3) -> Vec3d #no_context {
+    return .{x=v.x, y=v.y, z=v.z};
+}
+
+ToJolt :: inline (m : Mat4d) -> Jolt.DMat44 #no_context {
+    return .{
+        cols[0].x=m.r0c0, cols[0].y=m.r1c0, cols[0].z=m.r2c0, cols[0].w=m.r3c0,
+        cols[1].x=m.r0c1, cols[1].y=m.r1c1, cols[1].z=m.r2c1, cols[1].w=m.r3c1,
+        cols[2].x=m.r0c2, cols[2].y=m.r1c2, cols[2].z=m.r2c2, cols[2].w=m.r3c2,
+        col3.x=m.r0c3, col3.y=m.r1c3, col3.z=m.r2c3, col3.w=1,
+    };
+}
+
+FromJolt :: inline (m : Jolt.DMat44) -> Mat4d #no_context {
+    return .{
+        cols[0].x, cols[1].x, cols[2].x, col3.x,
+        cols[0].y, cols[1].y, cols[2].y, col3.y,
+        cols[0].z, cols[1].z, cols[2].z, col3.z,
+        cols[0].w, cols[1].w, cols[2].w, 1,
+    };
+}
