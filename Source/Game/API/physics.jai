@@ -44,6 +44,7 @@ PhysicsGlobals :: struct {
     settings : PhysicsSettings;
     debug_draw_settings : PhysicsDebugDrawSettings;
     debug_renderer : *Jolt.DebugRenderer;
+    debug_renderer_target_world : *World;
 }
 
 PhysicsDebugDrawSettings :: struct {
@@ -62,7 +63,6 @@ PhysicsWorld :: struct {
     system : *Jolt.PhysicsSystem;
     temp_allocator : *Jolt.TempAllocator;
     job_system : *Jolt.JobSystem;
-    debug_renderer : *Jolt.DebugRenderer;
     body_interface : *Jolt.BodyInterface;
     broad_phase_layer_interface : *Jolt.BroadPhaseLayerInterface;
     object_vs_broad_phase_layer_filter : *Jolt.ObjectVsBroadPhaseLayerFilter;
@@ -277,7 +277,7 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
 BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    half_extents : Vec3f = .{1,1,1}; @Serialize(2)
+    half_extents : Vec3f = .{0.5,0.5,0.5}; @Serialize(2)
     density : float = 1; @Serialize(3)
     margin : float = 0.01; @Serialize(4)
 
@@ -314,24 +314,20 @@ PlaneColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
     half_extent : float = 1; @Serialize(2)
-    density : float = 1; @Serialize(3)
 
-    // OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-    //     DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
-    // }
+    OnDebugDrawSelected :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
+        DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, .{half_extent,0,half_extent}, world_transform);
+    }
 } @Component @Category(Physics/Colliders)
 
 AllPlaneColliderComponents :: #bake_arguments AllEntityComponents(T=PlaneColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComponent) -> *Jolt.Shape {
-    normal := UpVector(plane.local_rotation);
-    distance := Dot(normal, plane.local_position);
-    p := Jolt.Plane_Make(Jolt.XYZ(normal), distance);
+    p := Jolt.Plane_FromPointAndNormal(Jolt.XYZ(plane.local_position), Jolt.XYZ(UpVector(plane.local_rotation)));
 
     settings := Jolt.PlaneShapeSettings_Create();
     Jolt.PlaneShapeSettings_SetPlane(settings, p);
     Jolt.PlaneShapeSettings_SetHalfExtent(settings, plane.half_extent);
-    Jolt.ConvexShapeSettings_SetDensity(xx settings, plane.density);
 
     shape : *Jolt.Shape = xx Jolt.PlaneShapeSettings_CreateShape(settings);
     Jolt.Shape_SetUserData(shape, xx plane);

@@ -15,6 +15,7 @@ GameModule :: struct {
     InitWorld : (world : *World);
     LoadWorldFromDirectory : (world : *World, directory : string);
     SaveWorldToDirectory : (world : *World, output_directory : string);
+    SetPhysicsDebugRendererTarget : (world : *World);
     ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
     UpdatePhysicsCollisionLayerMatrix : ();
@@ -88,6 +89,11 @@ LoadWorldFromDirectory :: inline (world : *World, directory : string) {
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.SaveWorldToDirectory(world, output_directory);
+} @NoProfile
+
+SetPhysicsDebugRendererTarget :: inline (world : *World) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.SetPhysicsDebugRendererTarget(world);
 } @NoProfile
 
 ShouldPhysicsCollisionLayersCollide :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {

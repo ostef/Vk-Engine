@@ -10,6 +10,7 @@
 #load "input.jai";
 #load "asset.jai";
 #load "cvar.jai";
+#load "jolt.jai";
 
 #load "Graphics/Vulkan/vulkan.jai";
 #load "Graphics/gpu_frame_profiler.jai";
@@ -100,9 +101,13 @@ InitializeCore :: (global_init : bool) {
     InitTextureUpload();
 
     InitAssets();
+
+    InitJolt();
 }
 
 ShutdownCore :: (global_shutdown : bool) {
+    ShutdownJolt();
+
     DestroyAllAssetCaches();
 
     CleanupTextureUpload();

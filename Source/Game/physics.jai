@@ -12,31 +12,34 @@ GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
     return *g_physics.debug_draw_settings;
 } @ModuleAPI
 
+SetPhysicsDebugRendererTarget :: (world : *World) {
+    g_physics.debug_renderer_target_world = world;
+} @ModuleAPI
+
 InitPhysics :: () {
     LogSectionScope(*Log_Physics);
 
-    LogMessage("Jolt version ID: %\n", FormatInt.{value=Jolt.GetJoltVersionID(), base=16});
-
-    Jolt.RegisterDefaultAllocator();
-    Jolt.RegisterDefaultTraceHandler();
-    #if Jolt.ENABLE_ASSERTS {
-        Jolt.RegisterDefaultAssertFailedHandler();
-    }
-
-    Jolt.CreateFactory();
-
-    Jolt.RegisterTypes();
-
     using g_physics;
 
-    LogMessage("Initialized Jolt" ,, log_section=*Log_Physics);
+    debug_renderer_funcs := Jolt.DebugRendererSimple_Funcs.{
+        DrawLine = (user_data : *void, from : Jolt.RVec3, to : Jolt.RVec3, color : Jolt.Color) #c_call {
+            if !g_physics.debug_renderer_target_world {
+                return;
+            }
+
+            push_context,defer_pop;
+
+            rgba := cast(*u8, *color);
+
+            world := g_physics.debug_renderer_target_world;
+            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, Jolt.ToXYZ(from), Jolt.ToXYZ(to));
+        }
+    };
+    debug_renderer = Jolt.DebugRendererSimple_Create(null, debug_renderer_funcs, .{});
 }
 
 ShutdownPhysics :: () {
-    Jolt.UnregisterTypes();
-    Jolt.DestroyFactory();
-
-    LogMessage("Shut down Jolt" ,, log_section=*Log_Physics);
+    Jolt.DebugRenderer_Destroy(g_physics.debug_renderer);
 }
 
 GetPhysicsCollisionLayersMatrixIndex :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> int {
@@ -74,22 +77,6 @@ InitPhysicsWorld :: (world : *World) {
     LogSectionScope(*Log_Physics);
 
     using world.physics;
-
-    debug_renderer_funcs := Jolt.DebugRendererSimple_Funcs.{
-        DrawLine = (user_data : *void, from : Jolt.RVec3, to : Jolt.RVec3, color : Jolt.Color) #c_call {
-            if !user_data {
-                return;
-            }
-
-            push_context,defer_pop;
-
-            rgba := cast(*u8, *color);
-
-            world := cast(*World, user_data);
-            DebugDrawLine(world, .{rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0}, Jolt.ToXYZ(from), Jolt.ToXYZ(to));
-        }
-    };
-    debug_renderer = Jolt.DebugRendererSimple_Create(world, debug_renderer_funcs, .{});
 
     temp_allocator = Jolt.TempAllocatorImpl_Create(5 * 1024 * 1024);
 
@@ -148,7 +135,6 @@ DestroyPhysicsWorld :: (world : *World) {
     Jolt.PhysicsSystem_Destroy(system);
     Jolt.JobSystem_Destroy(job_system);
     Jolt.TempAllocator_Destroy(temp_allocator);
-    Jolt.DebugRenderer_Destroy(debug_renderer);
 
     system = null;
     job_system = null;
@@ -159,7 +145,7 @@ UpdatePhysicsWorld :: (world : *World) {
 
     Jolt.PhysicsSystem_Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, temp_allocator, job_system);
 
-    Jolt.DebugRenderer_NextFrame(debug_renderer);
+    Jolt.DebugRenderer_NextFrame(g_physics.debug_renderer);
 
     if g_physics.debug_draw_settings.enabled {
         draw_settings : Jolt.BodyManager_DrawSettings;
@@ -172,7 +158,8 @@ UpdatePhysicsWorld :: (world : *World) {
         draw_settings.drawVelocity = g_physics.debug_draw_settings.draw_velocity;
         draw_settings.drawMassAndInertia = g_physics.debug_draw_settings.draw_mass_and_inertia;
 
-        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, debug_renderer, null);
+        SetPhysicsDebugRendererTarget(world);
+        Jolt.PhysicsSystem_DrawBodies(system, *draw_settings, g_physics.debug_renderer, null);
     }
 
     for * world.RigidBodyComponent_storage {
@@ -229,8 +216,11 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     ray : Jolt.RRayCast;
     ray.origin = Jolt.XYZ(ray_origin);
     ray.direction = Jolt.XYZ(ray_vector);
+    Println("%", ray);
+
     result : Jolt.RayCastResult;
     hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
+
     if !hit {
         return .{};
     }
