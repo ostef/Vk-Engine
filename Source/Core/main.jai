@@ -76,11 +76,11 @@ g_default_num_worker_threads : s32;
 
 GetNumCPUs :: inline () -> s32 {
     return g_num_cpus;
-}
+} @ModuleAPI
 
 GetDefaultNumWorkerThreads :: inline () -> s32 {
     return g_default_num_worker_threads;
-}
+} @ModuleAPI
 
 InitializeCore :: (global_init : bool) {
     context.print_style.struct_printer = CoreStructPrinter;

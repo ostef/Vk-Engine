@@ -76,6 +76,7 @@ CoreModule :: struct {
     GetCVarString : (name : string, default : string = "") -> string, exists : bool;
     GetCVarUInt : (name : string, default : u32 = 0) -> u32, exists : bool;
     GetDataDirectoryAbsolutePath : () -> string;
+    GetDefaultNumWorkerThreads : () -> s32;
     GetDeltaTime : () -> float;
     GetEnvironmentMapsToGenerate : () -> []*EnvironmentMap;
     GetFrameInFlight : () -> s64;
@@ -96,6 +97,7 @@ CoreModule :: struct {
     GetMousePointPosition : (window : *void) -> x : s32, y : s32;
     GetMousePointPositionVector : (window : *void) -> Vector(N=2, T=float32);
     GetMouseWheel : () -> Vector(N=2, T=float32);
+    GetNumCPUs : () -> s32;
     GetPointPenetrationInBox : (point_inside_box : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32);
     GetRawMouseDelta : () -> Vector(N=2, T=float32);
     GetVkAllocationCallbacks : () -> *VkAllocationCallbacks;
@@ -547,6 +549,11 @@ GetDataDirectoryAbsolutePath :: inline () -> string {
     return g_Core.GetDataDirectoryAbsolutePath();
 } @NoProfile
 
+GetDefaultNumWorkerThreads :: inline () -> s32 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetDefaultNumWorkerThreads();
+} @NoProfile
+
 GetDeltaTime :: inline () -> float {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetDeltaTime();
@@ -648,6 +655,11 @@ GetMousePointPositionVector :: inline (window : *void) -> Vector(N=2, T=float32)
 GetMouseWheel :: inline () -> Vector(N=2, T=float32) {
     Assert(g_Core != null, "Core module is null");
     return g_Core.GetMouseWheel();
+} @NoProfile
+
+GetNumCPUs :: inline () -> s32 {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.GetNumCPUs();
 } @NoProfile
 
 GetPointPenetrationInBox :: inline (point_inside_box : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> Vector(N=3, T=float32) {

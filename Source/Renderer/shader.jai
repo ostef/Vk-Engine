@@ -120,6 +120,41 @@ CleanupSPIRVFiles :: () {
 LoadAllShaders :: () -> bool {
     LogSectionScope(*Log_Shaders);
 
+    WaitForGPUIdle();
+
+    CleanupSPIRVFiles();
+
+    start_time := Basic.current_time_monotonic();
+
+    LoadShaderWorker :: (group : *Thread_Group, thread : *Thread, work : *void) -> Thread_Continue_Status {
+        shader := cast(*LoadedShader, work);
+        ReloadShader(shader);
+
+        return .CONTINUE;
+    }
+
+    thread_group : Thread_Group;
+    init(*thread_group, GetDefaultNumWorkerThreads(), LoadShaderWorker);
+    thread_group.name = "Load Shaders";
+    thread_group.logging = false;
+
+    start(*thread_group);
+    defer shutdown(*thread_group);
+
+    for * g_shaders {
+        add_work(*thread_group, it);
+    }
+
+    remaining_work := g_shaders.count;
+    while remaining_work {
+        finished := get_completed_work(*thread_group);
+        remaining_work -= finished.count;
+
+        Basic.sleep_milliseconds(5);
+    }
+
+    end_time := Basic.current_time_monotonic();
+
     CleanupSPIRVFiles();
 
     init(*g_shader_file_watcher, ShaderFileChangeCallback, events_to_watch=.MODIFIED, merge_window_seconds=1);
@@ -127,18 +162,6 @@ LoadAllShaders :: () -> bool {
     if !add_directories(*g_shader_file_watcher, "Shaders") {
         LogError("Could not watch Shaders directory for changes");
     }
-
-    start_time := Basic.current_time_monotonic();
-
-    for * g_shaders {
-        if !ReloadShader(it) {
-            return false;
-        }
-    }
-
-    end_time := Basic.current_time_monotonic();
-
-    CleanupSPIRVFiles();
 
     LogMessage("Loaded all shaders in % s", Basic.to_float64_seconds(end_time - start_time));
 
@@ -183,8 +206,14 @@ ShaderFileChangeCallback :: (watcher : *File_Watcher(void), change : *File_Chang
     filename := get_absolute_path(change.full_path,, Temp);
     path_overwrite_separators(filename, #char "/");
 
+    device_idle := false;
     for * g_shaders {
         if ArrayFindFirst(it.dependencies, filename) != -1 {
+            if !device_idle {
+                WaitForGPUIdle();
+                device_idle = true;
+            }
+
             ReloadShader(it);
         }
     }
@@ -194,8 +223,6 @@ ShaderFileChangeCallback :: (watcher : *File_Watcher(void), change : *File_Chang
 
 ReloadShader :: (shader : *LoadedShader) -> bool {
     LogSectionScope(*Log_Shaders);
-
-    WaitForGPUIdle();
 
     dependencies : [..]string;
     defer {

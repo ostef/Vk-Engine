@@ -255,6 +255,7 @@ LoadGfxShader :: (name : string, extra_compiler_args : []string = .[], dependenc
         return .{};
     }
 
+    // Retrieve the dependencies using glslc
     if dependencies {
         ArrayPop(*args);
         ArrayPush(*args, "-M");
