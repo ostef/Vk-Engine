@@ -52,8 +52,8 @@ LoadModule :: (id : ModuleID, first_time : bool) -> bool {
     if id == .Core {
         handshake = ModuleHandshake;
     } else {
-        src_lib_path := TPrint("ModuleLibs/%.%", id, Lib_Ext);
-        dst_lib_path := TPrint("ModuleLibs/%.copy.%", id, Lib_Ext);
+        src_lib_path := TPrint("Bin/%.%", id, Lib_Ext);
+        dst_lib_path := TPrint("Bin/%.copy.%", id, Lib_Ext);
         if !copy_file(src_lib_path, dst_lib_path) {
             LogError("Could not copy module library '%' to '%'", src_lib_path, dst_lib_path);
             return false;
@@ -124,7 +124,7 @@ UnloadModule :: (id : ModuleID, last_time : bool) {
     if g_module_libraries[id] {
         FreeLibrary(g_module_libraries[id]);
 
-        lib_path := TPrint("ModuleLibs/%.copy.%", id, Lib_Ext);
+        lib_path := TPrint("Bin/%.copy.%", id, Lib_Ext);
         if file_exists(lib_path) {
             if !file_delete(lib_path) {
                 LogError("Could not delete file '%'", lib_path);
@@ -174,7 +174,7 @@ LoaderMain :: () {
 
     init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=1);
     defer deinit(g_modules_watcher);
-    add_directories(*g_modules_watcher, "ModuleLibs");
+    add_directories(*g_modules_watcher, "Bin");
 
     while !g_quit {
         ResetTemporaryStorage();

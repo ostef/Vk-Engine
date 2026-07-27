@@ -52,12 +52,12 @@ BuildModule :: ($module : ModuleID) -> bool {
     ws := compiler_create_workspace(name);
 
     options := get_build_options(ws);
+    options.output_path = "Bin";
     if module == .Core {
         options.output_type = .EXECUTABLE;
         options.output_executable_name = "Vk";
     } else {
         options.output_type = .DYNAMIC_LIBRARY;
-        options.output_path = "ModuleLibs";
         options.output_executable_name = name;
     }
     options.import_path = get_build_options().import_path;
@@ -152,9 +152,9 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
     lib_file : string;
     source_dir := TPrint("Source/%", module);
     if module == .Core {
-        lib_file = ifx OS == .WINDOWS then "Vk.exe" else "Vk";
+        lib_file = ifx OS == .WINDOWS then "Bin/Vk.exe" else "Bin/Vk";
     } else {
-        lib_file = TPrint("ModuleLibs/%.%", module, Lib_Ext);
+        lib_file = TPrint("Bin/%.%", module, Lib_Ext);
     }
 
     if CompareFileTimes(lib_file, source_dir) {
@@ -292,7 +292,7 @@ Build :: () {
         Basic.exit(1);
     }
 
-    make_directory_if_it_does_not_exist("ModuleLibs");
+    make_directory_if_it_does_not_exist("Bin");
 
     if generate_bindings {
         for Bindings_To_Generate {
@@ -320,8 +320,21 @@ Build :: () {
     }
 
     #if OS == .WINDOWS {
-        if !file_exists("ImGui.dll") {
-            copy_file("Modules/ImGui/win/ImGui.dll", "ImGui.dll");
+        if !file_exists("Bin/SDL2.dll") {
+            copy_file("Modules/SDL/windows/SDL2.dll", "Bin/SDL2.dll");
+        }
+        if !file_exists("Bin/JoltC.dll") {
+            copy_file("Modules/JoltPhysics/Libs/Windows/JoltC.dll", "Bin/JoltC.dll");
+        }
+        if !file_exists("Bin/ImGui.dll") {
+            copy_file("Modules/ImGui/win/ImGui.dll", "Bin/ImGui.dll");
+        }
+    } else #if OS == .LINUX {
+        if !file_exists("Bin/libJoltC.so") {
+            copy_file("Modules/JoltPhysics/Libs/Linux/libJoltC.so", "Bin/libJoltC.so");
+        }
+        if !file_exists("Bin/ImGui.so") {
+            copy_file("Modules/ImGui/linux/ImGui.so", "Bin/ImGui.so");
         }
     }
 }

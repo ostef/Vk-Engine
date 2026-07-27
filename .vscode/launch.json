@@ -8,7 +8,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/Vk",
+            "program": "${workspaceRoot}/Bin/Vk",
             "args": [],
             "environment": [],
             "cwd": "${workspaceRoot}",
