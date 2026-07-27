@@ -43,11 +43,15 @@ END_INTERFACE_WRAPPER_CLASS();
 
 JPH_DebugRenderer *JPH_DebugRendererSimple_Create(void *data, JPH_DebugRendererSimple_Funcs funcs, JPH_Allocator allocator) {
     void *ptr = JPH_Allocator_Allocate(allocator, sizeof(DebugRendererSimpleWrapper));
-    return ToC(reinterpret_cast<JPH::DebugRenderer *>(new(ptr) DebugRendererSimpleWrapper(data, funcs, allocator)));
+    auto renderer = static_cast<JPH::DebugRenderer *>(new(ptr) DebugRendererSimpleWrapper(data, funcs, allocator));
+    JPH::DebugRenderer::sInstance = renderer;
+
+    return ToC(renderer);
 }
 
 void JPH_DebugRenderer_Destroy(JPH_DebugRenderer *self) {
     delete ToCpp(self);
+    JPH::DebugRenderer::sInstance = nullptr;
 }
 
 void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer *self) {
