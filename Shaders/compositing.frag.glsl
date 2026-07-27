@@ -48,7 +48,7 @@ float4 GetEntityOutline(float2 tex_coords, float2 texel_size) {
 }
 
 void main() {
-    float3 color = FXAA(u_hdr_color_texture, in_position, 1 / u_viewpoint.viewport_size).rgb;
+    float3 color = textureLod(u_hdr_color_texture, in_position, 0).rgb; //FXAA(u_hdr_color_texture, in_position, 1 / u_viewpoint.viewport_size).rgb;
 
     int2 bloom_size = textureSize(u_bloom_texture, 0);
     float4 bloom = UpsampleTent9(u_bloom_texture, in_position, 1 / float2(bloom_size));
