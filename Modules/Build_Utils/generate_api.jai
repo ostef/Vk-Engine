@@ -9,6 +9,12 @@ APIProcedure :: struct {
 ModuleAPIWorkspaceBuildInfo :: struct {
     api_procedures : [..]APIProcedure;
     generated_module_api_code : bool;
+    context_type : *Type_Info_Struct;
+    generated_module_context_type : bool;
+
+    module_api_code : string;
+    module_foreign_wrappers_code : string;
+    module_context_type_code : string;
 }
 
 g_module_api_workspace_build_info : [15]ModuleAPIWorkspaceBuildInfo;
@@ -95,6 +101,31 @@ CompareAPIProcedures :: (a : APIProcedure, b : APIProcedure) -> int {
     }
 
     return CompareTypes(a.decl.type, b.decl.type);
+}
+
+SetContextType :: (workspace : Workspace, decl : *Code_Declaration) -> bool {
+    using info := *g_module_api_workspace_build_info[workspace];
+
+    if !decl.expression || decl.expression.kind != .STRUCT {
+        return false;
+    }
+
+    type := cast(*Code_Struct, decl.expression).defined_type;
+    SetContextType(workspace, type);
+
+    return true;
+}
+
+SetContextType :: (workspace : Workspace, type : *Type_Info) {
+    using info := *g_module_api_workspace_build_info[workspace];
+
+    Assert(type != null, "Context type is null");
+    Assert(context_type == null || context_type == xx type, "Context type has already been set");
+    Assert(type.type == .STRUCT, "Context type is not a struct");
+
+    context_type = xx type;
+
+    LogMessage("Found context type");
 }
 
 AddModuleAPIProcedure :: (workspace : Workspace, decl : *Code_Declaration) -> bool {
@@ -430,6 +461,30 @@ AppendProcedureHeader :: (builder : *StringBuilder, header : *Code_Procedure_Hea
     }
 }
 
+GenerateModuleContextType :: (workspace : Workspace, target : *Message, name : string) {
+    using info := *g_module_api_workspace_build_info[workspace];
+
+    if !target || !context_type || generated_module_context_type {
+        return;
+    }
+
+    defer generated_module_context_type = true;
+
+    builder : StringBuilder;
+
+    Appendln(*builder, "%Context :: struct {", name);
+    for context_type.members {
+        Append(*builder, "    % : ", it.name);
+        AppendType(*builder, it.type);
+        Appendln(*builder, ";");
+    }
+    Appendln(*builder, "}");
+
+    module_context_type_code = StringBuilderBuild(*builder);
+
+    LogMessage("Generated module context type");
+}
+
 GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : string) {
     using info := *g_module_api_workspace_build_info[workspace];
 
@@ -460,10 +515,9 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
 
     builder : StringBuilder;
 
-    Appendln(*builder, "// This file was auto-generated. Do not modify it\n");
-
     Appendln(*builder, "%Module :: struct {", name);
     Appendln(*builder, "    #as base : Module;");
+
     for * api_procedures {
         if it.overload_index > 0 {
             it.name = TPrint("%_%", it.decl.name, it.overload_index);
@@ -477,7 +531,7 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
     }
     Appendln(*builder, "}");
 
-    Append(*builder, "\n");
+    module_api_code = StringBuilderBuild(*builder);
 
     Appendln(*builder, "#if Import_Mode == .Foreign {");
     Appendln(*builder, "g_%1 : *%1Module;", name);
@@ -537,27 +591,53 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
 
     Appendln(*builder, "}");
 
-    module_api := StringBuilderBuild(*builder);
+    module_foreign_wrappers_code = StringBuilderBuild(*builder);
+
+    initialize_api_builder : StringBuilder;
+    Appendln(*initialize_api_builder, "InitializeAPI :: (module : *%Module) #c_call {", name);
+    for api_procedures {
+        Appendln(*initialize_api_builder, "    module.% = %;", it.name, it.decl.name);
+    }
+    Appendln(*initialize_api_builder, "} @NoProfile");
+
+    initialize_api := StringBuilderBuild(*initialize_api_builder);
+
+    add_build_string(module_api_code, workspace, target);
+    add_build_string(initialize_api, workspace, target);
+
+    LogMessage("Generated module API code");
+}
+
+WriteModuleAPIFile :: (workspace : Workspace, target : *Message, name : string, with_context_type := false) -> bool {
+    using info := *g_module_api_workspace_build_info[workspace];
+
+    if !generated_module_api_code {
+        LogError("Module API code was not generated");
+        return false;
+    }
+
+    if with_context_type && !generated_module_context_type {
+        LogError("Module context type code was not generated");
+        return false;
+    }
+
+    result : string;
+    if with_context_type {
+        result = SPrint("// This file was auto-generated. Do not modify it\n\n%\n%\n%", module_context_type_code, module_api_code, module_foreign_wrappers_code);
+    } else {
+        result = SPrint("// This file was auto-generated. Do not modify it\n\n%\n%", module_api_code, module_foreign_wrappers_code);
+    }
 
     filename := TPrint("Source/%/module_api.jai", name);
     current_contents := read_entire_file(filename);
     // @Speed
     // Avoid writing the file if the result ends up being the same, so we
     // don't rebuild depending modules unnecessarily
-    if module_api != current_contents {
-        write_entire_file(filename, module_api);
+    if result != current_contents {
+        write_entire_file(filename, result);
     }
 
-    Appendln(*builder, "InitializeAPI :: (module : *%Module) #c_call {", name);
-    for api_procedures {
-        Appendln(*builder, "    module.% = %;", it.name, it.decl.name);
-    }
-    Appendln(*builder, "} @NoProfile");
+    LogMessage("Outputted module API code to file '%'", filename);
 
-    initialize_api := StringBuilderBuild(*builder);
-
-    add_build_string(module_api, workspace, target);
-    add_build_string(initialize_api, workspace, target);
-
-    LogMessage("Generated module API code");
+    return true;
 }

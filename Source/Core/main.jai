@@ -23,6 +23,25 @@
 #load "Physics/intersection.jai";
 #load "Physics/collision_mesh.jai";
 
+Top_Level_Scope :: #code();
+
+GenerateContextProxyType :: () {
+    #insert,scope(Top_Level_Scope) -> string {
+        builder : StringBuilder;
+
+        Appendln(*builder, "ContextProxy :: struct {");
+
+        info := type_info(#Context);
+        for info.members {
+            Appendln(*builder, "    % : %;", it.name, get_type(it.type));
+        }
+
+        Appendln(*builder, "} @ModuleContext");
+
+        return StringBuilderBuild(*builder);
+    }
+}
+
 g_module := CoreModule.{
     base.Initialize=InitializeCore,
     base.Shutdown=ShutdownCore,
@@ -38,6 +57,10 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleUnload :: (id : ModuleID) {
+    // Prevent DCE from removing these
+    random_get();
+    GenerateContextProxyType();
+
     // Profiling data potentially includes Source_Code_Locations from other modules,
     // so we need to clear it to avoid a potential crash
     ClearProfilingData(*g_cpu_profiler);

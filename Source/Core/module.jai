@@ -15,6 +15,10 @@ Math :: #import "Math";
 Basic :: #import "Basic";
 using,only(.["+","-","*","/","<",">","=="]) Basic;
 
+Print_Style :: Basic.Print_Style; // Needed for CoreContext
+
+#import "Random"; // Adds random_state to the context, needed to keep the same context between modules
+
 #load "API/asset.jai";
 #load "API/input.jai";
 #load "API/cpu_frame_profiler.jai";
@@ -67,4 +71,65 @@ GUID :: struct {
 
 operator== :: inline (a : GUID, b : GUID) -> bool {
     return a.low == b.low && a.high == b.high;
+}
+
+#if Import_Mode == .Foreign {
+
+AssertContextMatchesCore :: () {
+    LogSectionScope(*(Log_Section.{name="ModuleLoader"}));
+
+    context_info := type_info(#Context);
+    core_info := type_info(CoreContext);
+
+    matches := true;
+    defer if !matches {
+        builder : StringBuilder;
+
+        LogError("Context type mismatch");
+
+        Appendln(*builder, "struct {");
+        for core_info.members {
+            Appendln(*builder, "    % : %;", it.name, cast(*Type, *it.type).*);
+        }
+        Appendln(*builder, "}");
+
+        LogError("Core context:\n%", StringBuilderBuild(*builder));
+
+        Appendln(*builder, "struct {");
+        for context_info.members {
+            Appendln(*builder, "    % : %;", it.name, cast(*Type, *it.type).*);
+        }
+        Appendln(*builder, "}");
+
+        LogError("Current context:\n%", StringBuilderBuild(*builder));
+
+        Panic("Context type mismatch");
+    }
+
+    if context_info.members.count != core_info.members.count {
+        matches = false;
+        return;
+    }
+
+    for i : 0..context_info.members.count - 1 {
+        a := context_info.members[i];
+        b := core_info.members[i];
+
+        if a.offset_in_bytes != b.offset_in_bytes {
+            matches = false;
+            return;
+        }
+
+        if a.name != b.name {
+            matches = false;
+            return;
+        }
+
+        if a.type != b.type {
+            matches = false;
+            return;
+        }
+    }
+}
+
 }

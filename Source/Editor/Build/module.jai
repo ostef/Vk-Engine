@@ -61,6 +61,12 @@ HandleCompilerMessage :: (msg : *Message) {
 
             GenerateModuleAPICode(msg.workspace, editor_import, "Editor");
         }
+
+    case .COMPLETE;
+        if !WriteModuleAPIFile(msg.workspace, editor_import, "Editor") {
+            LogError("Could not write module API file");
+            compiler_set_workspace_status(.FAILED);
+        }
     }
 }
 

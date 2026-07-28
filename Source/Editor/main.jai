@@ -7,7 +7,6 @@ ImGui_SDL :: #import "ImGui/Impl/SDL";
 #import "File";
 #import "File_Utilities";
 #import "Paged_Array";
-#import "Remap_Context"(false);
 
 #load "utils.jai";
 #load "material_design_icons.jai";
@@ -52,7 +51,7 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleLoad :: (id : ModuleID) {
-    Remap_Context();
+    AssertContextMatchesCore();
 
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
@@ -61,8 +60,6 @@ OnModuleLoad :: (id : ModuleID) {
 }
 
 OnModuleUnload :: (id : ModuleID) {
-    Remap_Context();
-
     ClearCPUProfilerWindowEventList();
 }
 
@@ -173,8 +170,6 @@ ExitPlayMode :: () {
 }
 
 InitializeEditor :: (global_init : bool) {
-    Remap_Context();
-
     LogSectionScope(*Log_Editor);
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -241,8 +236,6 @@ InitializeEditor :: (global_init : bool) {
 }
 
 ShutdownEditor :: (global_shutdown : bool) {
-    Remap_Context();
-
     if global_shutdown {
         state := SaveState();
         write_entire_file(".EditorState/editor.txt", cast(string, state));
@@ -296,8 +289,6 @@ AllEditorState :: struct {
 }
 
 SaveState :: () -> []u8 {
-    Remap_Context();
-
     all_state := AllEditorState.{
         selected_entities=g_editor_selected_entities,
         material_editor=g_material_editor,
@@ -337,8 +328,6 @@ SaveState :: () -> []u8 {
 }
 
 LoadState :: (state : []u8) {
-    Remap_Context();
-
     defer Free(state.data);
 
     using all_state : AllEditorState;
@@ -504,8 +493,6 @@ UpdateEditorWorld :: (world : *World) {
 }
 
 UpdateEditor :: () {
-    Remap_Context();
-
     ImGui_SDL.NewFrame();
     ImGui.NewFrame();
 

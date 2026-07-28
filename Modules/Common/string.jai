@@ -178,12 +178,6 @@ StringJoin :: (args : ..string) -> string
     return .{total_size, data};
 }
 
-StringJoin :: (allocator : Allocator, args : ..string) -> string
-#deprecated "Use a context argument instead: StringJoin(\"Hello\", \"Sailor\",, allocator)"
-{
-    return StringJoin(..args,, allocator);
-}
-
 StringSplit :: (str : string, split : u8) -> [..]string
 {
     String :: #import "String";

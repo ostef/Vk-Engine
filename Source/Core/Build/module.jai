@@ -37,13 +37,24 @@ HandleCompilerMessage :: (msg : *Message) {
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             GenerateAssetCode(msg.workspace, core_import);
+
             GenerateModuleAPICode(msg.workspace, core_import, "Core");
+            GenerateModuleContextType(msg.workspace, core_import, "Core");
+        }
+
+    case .COMPLETE;
+        if !WriteModuleAPIFile(msg.workspace, core_import, "Core", with_context_type=true) {
+            LogError("Could not write module API file");
+            compiler_set_workspace_status(.FAILED);
         }
     }
 }
 
 HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
     for note : decl.notes {
+        if note.text == "ModuleContext" {
+            SetContextType(workspace, decl);
+        }
         if note.text == "ModuleAPI" {
             AddModuleAPIProcedure(workspace, decl);
         }

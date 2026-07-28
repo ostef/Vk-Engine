@@ -49,7 +49,14 @@ HandleCompilerMessage :: (msg : *Message) {
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
             GenerateEntityCode(msg.workspace, game_import);
+
             GenerateModuleAPICode(msg.workspace, game_import, "Game");
+        }
+
+    case .COMPLETE;
+        if !WriteModuleAPIFile(msg.workspace, game_import, "Game") {
+            LogError("Could not write module API file");
+            compiler_set_workspace_status(.FAILED);
         }
     }
 }

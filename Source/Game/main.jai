@@ -1,5 +1,4 @@
 #import "SDL";
-#import "Remap_Context"(false);
 
 #load "world.jai";
 #load "physics.jai";
@@ -24,7 +23,7 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
 }
 
 OnModuleLoad :: (id : ModuleID) {
-    Remap_Context();
+    AssertContextMatchesCore();
 
     if id == {
     case .Renderer; g_Renderer = xx GetModule(.Renderer);
@@ -32,19 +31,13 @@ OnModuleLoad :: (id : ModuleID) {
 }
 
 InitializeGame :: (global_init : bool) {
-    Remap_Context();
-
     InitPhysics();
 }
 
 ShutdownGame :: (global_shutdown : bool) {
-    Remap_Context();
-
     ShutdownPhysics();
 }
 
 UpdateGame :: () {
-    Remap_Context();
-
     PhysicsDebugRendererNextFrame();
 }

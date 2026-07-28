@@ -1,7 +1,6 @@
 #import "Vulkan";
 #import "SDL";
 #import "Thread";
-#import "Remap_Context"(false);
 
 #load "shader.jai";
 #load "glsl_packing.jai";
@@ -29,6 +28,7 @@ g_module := RendererModule.{
     base.Shutdown=ShutdownRenderer,
     base.MainLoop=RendererLoop,
     base.OnEvent=OnEvent,
+    base.OnModuleLoad=OnModuleLoad,
 };
 
 #program_export
@@ -38,6 +38,10 @@ ModuleHandshake :: (core : *CoreModule) -> *Module #c_call {
     InitializeAPI(*g_module);
 
     return *g_module;
+}
+
+OnModuleLoad :: (id : ModuleID) {
+    AssertContextMatchesCore();
 }
 
 #if Reverse_Depth_Range {
@@ -78,8 +82,6 @@ LoadDefaultAssets :: () {
 }
 
 InitializeRenderer :: (global_init : bool) {
-    Remap_Context();
-
     if !LoadAllShaders() {
         Basic.exit(1);
     }
@@ -140,8 +142,6 @@ InitializeRenderer :: (global_init : bool) {
 }
 
 ShutdownRenderer :: (global_shutdown : bool) {
-    Remap_Context();
-
     WaitForRenderThread();
     StopRenderThread();
     WaitForGPUIdle();
@@ -232,8 +232,6 @@ ShutdownRenderer :: (global_shutdown : bool) {
 g_should_recreate_render_targets : bool;
 
 OnEvent :: (event : SDL_Event) {
-    Remap_Context();
-
     if event.type == SDL_WINDOWEVENT {
         if event.window.event == SDL_WINDOWEVENT_RESIZED
         || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED {
@@ -243,8 +241,6 @@ OnEvent :: (event : SDL_Event) {
 }
 
 RendererLoop :: () {
-    Remap_Context();
-
     ProcessShaderDirectoryChanges();
 
     if !(SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS) {
@@ -257,25 +253,19 @@ RendererLoop :: () {
 }
 
 AddViewpointToRender :: (viewpoint : ViewpointToRender) {
-    Remap_Context();
-
     ArrayPush(*g_viewpoints_to_render, viewpoint);
 } @ModuleAPI
 
 AddWorldToRender :: (world : WorldToRender) -> int {
-    Remap_Context();
-
     ArrayPush(*g_worlds_to_render, world);
 
     return g_worlds_to_render.count - 1;
 } @ModuleAPI
 
 WaitForRenderThread :: () {
-    Remap_Context();
 } @ModuleAPI
 
 SubmitFrameToRenderThread :: () {
-    Remap_Context();
 
     imgui_draw_data := ImGui.GetDrawData();
     CopyImGuiDrawData(*g_imgui_draw_data, imgui_draw_data);
@@ -289,7 +279,6 @@ SubmitFrameToRenderThread :: () {
 } @ModuleAPI
 
 StopRenderThread :: () {
-    Remap_Context();
 } @ModuleAPI
 
 DestroyRenderTargets :: () {

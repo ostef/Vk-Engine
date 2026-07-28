@@ -87,11 +87,6 @@ InitPhysicsWorld :: (world : *World) {
     Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsCollisionLayer.Foliage, xx PhysicsBroadPhaseLayer.NonMoving);
     Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsCollisionLayer.Moving, xx PhysicsBroadPhaseLayer.Moving);
 
-    Println("% broad phase layers", Jolt.BroadPhaseLayerInterface_GetNumBroadPhaseLayers(xx broad_phase_layer_interface));
-    for i : 0..Physics_Num_Collision_Layers - 1 {
-        Println("layer % => %", cast(PhysicsCollisionLayer, i), cast(PhysicsBroadPhaseLayer) Jolt.BroadPhaseLayerInterface_GetBroadPhaseLayer(xx broad_phase_layer_interface, xx i));
-    }
-
     #if Jolt.EXTERNAL_PROFILE || Jolt.PROFILE_ENABLED {
         for type_info(PhysicsBroadPhaseLayer).names {
             Jolt.BroadPhaseLayerInterfaceTable_SetBroadPhaseLayerName(broad_phase_layer_interface, xx type_info(PhysicsBroadPhaseLayer).values[it_index], it.data);
@@ -103,23 +98,7 @@ InitPhysicsWorld :: (world : *World) {
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.NonMoving);
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.Moving);
 
-    Print("\n");
-
-    for i : 0..Physics_Num_Collision_Layers - 1 {
-        for j : 0..Physics_Num_Collision_Layers - 1 {
-            Println("% => %, %", cast(PhysicsCollisionLayer, i), cast(PhysicsCollisionLayer, j), Jolt.ObjectLayerPairFilter_ShouldCollide(xx object_vs_object_layer_filter, xx i, xx j));
-        }
-    }
-
     object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable_Create(xx broad_phase_layer_interface, Physics_Num_Broad_Phase_Layers, xx object_vs_object_layer_filter, Physics_Num_Collision_Layers);
-
-    Print("\n");
-
-    for i : 0..Physics_Num_Collision_Layers - 1 {
-        for j : 0..Physics_Num_Broad_Phase_Layers - 1 {
-            Println("% => %, %", cast(PhysicsCollisionLayer, i), cast(PhysicsBroadPhaseLayer, j), Jolt.ObjectVsBroadPhaseLayerFilter_ShouldCollide(xx object_vs_object_layer_filter, xx i, xx j));
-        }
-    }
 
     system_settings := Jolt.PhysicsSystemSettings.{
         maxBodies=Physics_Max_Bodies,

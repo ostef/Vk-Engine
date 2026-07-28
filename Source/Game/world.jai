@@ -427,8 +427,6 @@ GetDefaultMaterial :: inline () -> *Asset(Material) {
 } @ModuleAPI
 
 SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
-    Remap_Context();
-
     world_to_render.debug_renderer = world.debug_renderer;
     world.debug_renderer = .{};
 

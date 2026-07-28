@@ -1,5 +1,14 @@
 // This file was auto-generated. Do not modify it
 
+CoreContext :: struct {
+    base : Context_Base;
+    log_section : *Log_Section;
+    panicking : bool;
+    print_style : Print_Style;
+    profiling : ProfilingThreadContext;
+    random_state : Random_State;
+}
+
 CoreModule :: struct {
     #as base : Module;
     AddBarrier_1 : (cmd_buffer : *GfxCommandBuffer);

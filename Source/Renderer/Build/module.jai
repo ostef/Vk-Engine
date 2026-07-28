@@ -45,10 +45,15 @@ HandleCompilerMessage :: (msg : *Message) {
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
             Core.GenerateAssetCode(msg.workspace, core_import);
             GenerateBindingSetCode(msg.workspace, renderer_import);
+
             GenerateModuleAPICode(msg.workspace, renderer_import, "Renderer");
         }
 
     case .COMPLETE;
+        if !WriteModuleAPIFile(msg.workspace, renderer_import, "Renderer") {
+            LogError("Could not write module API file");
+            compiler_set_workspace_status(.FAILED);
+        }
         GenerateShaderCode();
     }
 }
