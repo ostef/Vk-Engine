@@ -1,5 +1,7 @@
 #include <JoltC.hpp>
 
+#include <iostream>
+
 BEGIN_INTERFACE_WRAPPER_CLASS(BroadPhaseLayerInterface);
 
     virtual uint32_t GetNumBroadPhaseLayers() const override {
@@ -299,6 +301,15 @@ JPH_RayCastSettings JPH_RayCastSettings_Default() {
     return *reinterpret_cast<JPH_RayCastSettings *>(&result);
 }
 
+JPH_RayCastResult JPH_RayCastResult_Default() {
+    auto result = JPH::RayCastResult();
+    return *reinterpret_cast<JPH_RayCastResult *>(&result);
+}
+
+JPH_AABox JPH_BroadPhaseQuery_GetBounds(const JPH_BroadPhaseQuery *query) {
+    return ToC(ToCpp(query)->GetBounds());
+}
+
 bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast ray, JPH_ECollisionCollectorType collectorType, void *data, JPH_BroadPhaseQuery_CastRayHitCallback callback, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter) {
     switch (collectorType) {
     case JPH_ECollisionCollectorType_AnyHit: {
@@ -360,5 +371,20 @@ bool JPH_BroadPhaseQuery_CastRay(const JPH_BroadPhaseQuery *query, JPH_RayCast r
 }
 
 bool JPH_NarrowPhaseQuery_CastRay(const JPH_NarrowPhaseQuery *query, JPH_RRayCast ray, JPH_RayCastResult *ioHit, const JPH_BroadPhaseLayerFilter *broadPhaseLayerFilter, const JPH_ObjectLayerFilter *objectLayerFilter, const JPH_BodyFilter *bodyFilter) {
+    JPH::BroadPhaseLayerFilter defaultBroadPhaseLayerFilter;
+    if (!broadPhaseLayerFilter) {
+        broadPhaseLayerFilter = ToC(&defaultBroadPhaseLayerFilter);
+    }
+
+    JPH::ObjectLayerFilter defaultObjectLayerFilter;
+    if (!objectLayerFilter) {
+        objectLayerFilter = ToC(&defaultObjectLayerFilter);
+    }
+
+    JPH::BodyFilter defaultBodyFilter;
+    if (!bodyFilter) {
+        bodyFilter = ToC(&defaultBodyFilter);
+    }
+
     return ToCpp(query)->CastRay(ToCpp(ray), *ToCpp(ioHit), *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter), *ToCpp(bodyFilter));
 }

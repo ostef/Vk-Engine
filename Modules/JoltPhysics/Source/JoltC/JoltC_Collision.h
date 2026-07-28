@@ -220,6 +220,8 @@ typedef struct JPH_RayCastResult {
     JPH_SubShapeID subShapeID2;
 } JPH_RayCastResult;
 
+JOLTC_API JPH_RayCastResult JPH_RayCastResult_Default();
+
 typedef void (*JPH_BroadPhaseQuery_CastRayHitCallback)(void *data, const JPH_BroadPhaseCastResult *hit);
 typedef float (*JPH_BroadPhaseQuery_CastRayCollectCallback)(void *data, const JPH_BroadPhaseCastResult *hit);
 

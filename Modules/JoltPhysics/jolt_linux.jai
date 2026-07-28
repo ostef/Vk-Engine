@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai - combined_shared_libs
+// jai generate.jai - build combined_shared_libs
 //
 
 
@@ -928,6 +928,8 @@ RayCastResult :: struct {
     fraction:    float;
     subShapeID2: SubShapeID;
 }
+
+RayCastResult_Default :: () -> RayCastResult #foreign JoltC "JPH_RayCastResult_Default";
 
 BroadPhaseQuery_CastRayHitCallback :: #type (data: *void, hit: *BroadPhaseCastResult) -> void #c_call;
 BroadPhaseQuery_CastRayCollectCallback :: #type (data: *void, hit: *BroadPhaseCastResult) -> float #c_call;

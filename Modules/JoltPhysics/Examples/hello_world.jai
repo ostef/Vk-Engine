@@ -106,6 +106,7 @@ main :: () {
 
     floor := Jolt.BodyInterface_CreateBody(body_interface, *floor_settings);
     Jolt.BodyInterface_AddBody(body_interface, Jolt.Body_GetID(floor), .Activate);
+    print("Created floor: %\n", Jolt.Body_GetID(floor));
 
     sphere_shape_settings := Jolt.SphereShapeSettings_Create();
     defer Jolt.SphereShapeSettings_Destroy(sphere_shape_settings);
@@ -121,6 +122,7 @@ main :: () {
     sphere_settings.shapePtr = sphere_shape;
 
     sphere_id := Jolt.BodyInterface_CreateAndAddBody(body_interface, *sphere_settings, .Activate);
+    print("Created sphere: %\n", sphere_id);
 
     Jolt.BodyInterface_SetLinearVelocity(body_interface, sphere_id, .{0,-5,0});
 
@@ -137,6 +139,21 @@ main :: () {
 
         Collision_Steps :: 1;
         Jolt.PhysicsSystem_Update(system, Delta_Time, Collision_Steps, temp_allocator, job_system);
+
+        query := Jolt.PhysicsSystem_GetNarrowPhaseQuery(system);
+
+        ray := Jolt.RRayCast.{
+            origin=.{0, 1, -5},
+            direction=.{0, 0, 50},
+        };
+
+        ray_cast_result := Jolt.RayCastResult_Default();
+        hit := Jolt.NarrowPhaseQuery_CastRay(query, ray, *ray_cast_result, null, null, null);
+
+        if (hit) {
+            hit_point := Jolt.RRayCast_GetPointOnRay(*ray, ray_cast_result.fraction);
+            print("Hit, Fraction = %, Point = (%, %, %), BodyID = %\n", ray_cast_result.fraction, hit_point.x, hit_point.y, hit_point.z, ray_cast_result.bodyID);
+        }
     }
 
     Jolt.BodyInterface_RemoveBody(body_interface, sphere_id);
@@ -144,4 +161,10 @@ main :: () {
 
     Jolt.BodyInterface_RemoveBody(body_interface, Jolt.Body_GetID(floor));
     Jolt.BodyInterface_DestroyBody(body_interface, Jolt.Body_GetID(floor));
+}
+
+#run {
+    #import "File_Utilities";
+
+    copy_file("../Libs/Linux/libJoltC.so", "libJoltC.so");
 }

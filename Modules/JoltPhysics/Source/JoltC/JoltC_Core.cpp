@@ -48,10 +48,6 @@ bool JPH_OrientedBox_OverlapsOrientedBox(const JPH_OrientedBox *box, JPH_Oriente
     return ToCpp(box)->Overlaps(ToCpp(otherBox), epsilon);
 }
 
-JPH_AABox JPH_BroadPhaseQuery_GetBounds(const JPH_BroadPhaseQuery *query) {
-    return ToC(ToCpp(query)->GetBounds());
-}
-
 // Core functions
 
 void JPH_RegisterDefaultAllocator() {

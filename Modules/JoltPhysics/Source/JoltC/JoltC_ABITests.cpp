@@ -6,6 +6,11 @@
     JPH_ASSERT(sizeof(c_type) == sizeof(cpp_type)); \
     JPH_ASSERT(alignof(c_type) == alignof(cpp_type));
 
+#define OFFSET_OF(T, field) ((uint64_t)&((const T *)(0))->field)
+
+#define ABI_TEST_OFFSET_OF(c_type, c_field, cpp_type, cpp_field) \
+    JPH_ASSERT(OFFSET_OF(c_type, c_field) == OFFSET_OF(cpp_type, cpp_field));
+
 void ABITests() {
     using uint64 = uint64_t;
 
@@ -34,7 +39,13 @@ void ABITests() {
     ABI_TEST(JPH_RayCastSettings, JPH::RayCastSettings);
     ABI_TEST(JPH_AABoxCast, JPH::AABoxCast);
     ABI_TEST(JPH_BroadPhaseCastResult, JPH::BroadPhaseCastResult);
+    ABI_TEST_OFFSET_OF(JPH_BroadPhaseCastResult, bodyID, JPH::BroadPhaseCastResult, mBodyID);
+    ABI_TEST_OFFSET_OF(JPH_BroadPhaseCastResult, fraction, JPH::BroadPhaseCastResult, mFraction);
+
     ABI_TEST(JPH_RayCastResult, JPH::RayCastResult);
+    ABI_TEST_OFFSET_OF(JPH_RayCastResult, bodyID, JPH::RayCastResult, mBodyID);
+    ABI_TEST_OFFSET_OF(JPH_RayCastResult, fraction, JPH::RayCastResult, mFraction);
+    ABI_TEST_OFFSET_OF(JPH_RayCastResult, subShapeID2, JPH::RayCastResult, mSubShapeID2);
 
     ABI_TEST(JPH_IndexedTriangle, JPH::IndexedTriangle);
     ABI_TEST(JPH_MeshShapeSettings_EBuildQuality, JPH::MeshShapeSettings::EBuildQuality);
