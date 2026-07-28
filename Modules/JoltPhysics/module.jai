@@ -1,5 +1,5 @@
 UVec4 :: struct {
-    x: u32 #align JOLTC_VECTOR_ALIGNMENT;
+    x: u32 #align VECTOR_ALIGNMENT;
     y: u32;
     z: u32;
     w: u32;
@@ -9,7 +9,7 @@ UVec4 :: struct {
 }
 
 Vec3 :: struct {
-    x: float #align JOLTC_VECTOR_ALIGNMENT;
+    x: float #align VECTOR_ALIGNMENT;
     y: float;
     z: float;
 
@@ -18,7 +18,7 @@ Vec3 :: struct {
 }
 
 Vec4 :: struct {
-    x: float #align JOLTC_VECTOR_ALIGNMENT;
+    x: float #align VECTOR_ALIGNMENT;
     y: float;
     z: float;
     w: float;
@@ -32,7 +32,7 @@ Mat44 :: struct {
 }
 
 DVec3 :: union {
-    x: float64 #align JOLTC_DVECTOR_ALIGNMENT;
+    x: float64 #align DVECTOR_ALIGNMENT;
     y: float64;
     z: float64;
 
@@ -46,7 +46,7 @@ DMat44 :: struct {
 }
 
 Quat :: struct {
-    x: float #align JOLTC_VECTOR_ALIGNMENT;
+    x: float #align VECTOR_ALIGNMENT;
     y: float;
     z: float;
     w: float;
@@ -68,60 +68,38 @@ Plane :: struct {
     #load "jolt_linux.jai";
 }
 
-#if #exists(JPH_DOUBLE_PRECISION) {
-    DOUBLE_PRECISION :: JPH_DOUBLE_PRECISION == 1;
-} else {
-    DOUBLE_PRECISION :: false;
+#if !#exists(DOUBLE_PRECISION) {
+    DOUBLE_PRECISION :: 0;
 }
-#if #exists(JPH_CROSS_PLATFORM_DETERMINISTIC) {
-    CROSS_PLATFORM_DETERMINISTIC :: JPH_CROSS_PLATFORM_DETERMINISTIC == 1;
-} else {
-    CROSS_PLATFORM_DETERMINISTIC :: false;
+#if !#exists(CROSS_PLATFORM_DETERMINISTIC) {
+    CROSS_PLATFORM_DETERMINISTIC :: 0;
 }
-#if #exists(JPH_FLOATING_POINT_EXCEPTIONS_ENABLED) {
-    FLOATING_POINT_EXCEPTIONS_ENABLED :: JPH_FLOATING_POINT_EXCEPTIONS_ENABLED == 1;
-} else {
-    FLOATING_POINT_EXCEPTIONS_ENABLED :: false;
+#if !#exists(FLOATING_POINT_EXCEPTIONS_ENABLED) {
+    FLOATING_POINT_EXCEPTIONS_ENABLED :: 0;
 }
-#if #exists(JPH_PROFILE_ENABLED) {
-    PROFILE_ENABLED :: JPH_PROFILE_ENABLED == 1;
-} else {
-    PROFILE_ENABLED :: false;
+#if !#exists(PROFILE_ENABLED) {
+    PROFILE_ENABLED :: 0;
 }
-#if #exists(JPH_EXTERNAL_PROFILE) {
-    EXTERNAL_PROFILE :: JPH_EXTERNAL_PROFILE == 1;
-} else {
-    EXTERNAL_PROFILE :: false;
+#if !#exists(EXTERNAL_PROFILE) {
+    EXTERNAL_PROFILE :: 0;
 }
-#if #exists(JPH_DEBUG_RENDERER) {
-    DEBUG_RENDERER :: JPH_DEBUG_RENDERER == 1;
-} else {
-    DEBUG_RENDERER :: false;
+#if !#exists(DEBUG_RENDERER) {
+    DEBUG_RENDERER :: 0;
 }
-#if #exists(JPH_DISABLE_TEMP_ALLOCATOR) {
-    DISABLE_TEMP_ALLOCATOR :: JPH_DISABLE_TEMP_ALLOCATOR == 1;
-} else {
-    DISABLE_TEMP_ALLOCATOR :: false;
+#if !#exists(DISABLE_TEMP_ALLOCATOR) {
+    DISABLE_TEMP_ALLOCATOR :: 0;
 }
-#if #exists(JPH_DISABLE_CUSTOM_ALLOCATOR) {
-    DISABLE_CUSTOM_ALLOCATOR :: JPH_DISABLE_CUSTOM_ALLOCATOR == 1;
-} else {
-    DISABLE_CUSTOM_ALLOCATOR :: false;
+#if !#exists(DISABLE_CUSTOM_ALLOCATOR) {
+    DISABLE_CUSTOM_ALLOCATOR :: 0;
 }
-#if #exists(JPH_OBJECT_LAYER_BITS) {
-    OBJECT_LAYER_BITS :: JPH_OBJECT_LAYER_BITS;
-} else {
+#if !#exists(OBJECT_LAYER_BITS) {
     OBJECT_LAYER_BITS :: 16;
 }
-#if #exists(JPH_ENABLE_ASSERTS) {
-    ENABLE_ASSERTS :: JPH_ENABLE_ASSERTS == 1;
-} else {
-    ENABLE_ASSERTS :: false;
+#if !#exists(ENABLE_ASSERTS) {
+    ENABLE_ASSERTS :: 0;
 }
-#if #exists(JPH_OBJECT_STREAM) {
-    OBJECT_STREAM :: JPH_OBJECT_STREAM == 1;
-} else {
-    OBJECT_STREAM :: false;
+#if !#exists(OBJECT_STREAM) {
+    OBJECT_STREAM :: 0;
 }
 
-JOLTC_VERSION_FEATURES :: cast(u64, JOLTC_VERSION_FEATURE_BIT_1) | (JOLTC_VERSION_FEATURE_BIT_2 << 1) | (JOLTC_VERSION_FEATURE_BIT_3 << 2) | (JOLTC_VERSION_FEATURE_BIT_4 << 3) | (JOLTC_VERSION_FEATURE_BIT_5 << 4) | (JOLTC_VERSION_FEATURE_BIT_6 << 5) | (JOLTC_VERSION_FEATURE_BIT_7 << 6) | (JOLTC_VERSION_FEATURE_BIT_8 << 7) | (JOLTC_VERSION_FEATURE_BIT_9 << 8) | (JOLTC_VERSION_FEATURE_BIT_10 << 9) | (JOLTC_VERSION_FEATURE_BIT_11 << 10);
+VERSION_FEATURES :: cast(u64, VERSION_FEATURE_BIT_1) | (VERSION_FEATURE_BIT_2 << 1) | (VERSION_FEATURE_BIT_3 << 2) | (VERSION_FEATURE_BIT_4 << 3) | (VERSION_FEATURE_BIT_5 << 4) | (VERSION_FEATURE_BIT_6 << 5) | (VERSION_FEATURE_BIT_7 << 6) | (VERSION_FEATURE_BIT_8 << 7) | (VERSION_FEATURE_BIT_9 << 8) | (VERSION_FEATURE_BIT_10 << 9) | (VERSION_FEATURE_BIT_11 << 10);

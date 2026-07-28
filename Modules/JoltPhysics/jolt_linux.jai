@@ -6,44 +6,44 @@
 
 
 
-JPH_PROFILE_ENABLED :: 1;
-JPH_DEBUG_RENDERER :: 1;
-JPH_ENABLE_ASSERTS :: 1;
-JPH_OBJECT_STREAM :: 1;
-JOLTC_VERSION_FEATURE_BIT_1 :: 0;
+PROFILE_ENABLED :: 1;
+DEBUG_RENDERER :: 1;
+ENABLE_ASSERTS :: 1;
+OBJECT_STREAM :: 1;
+VERSION_FEATURE_BIT_1 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_2 :: 0;
+VERSION_FEATURE_BIT_2 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_3 :: 0;
+VERSION_FEATURE_BIT_3 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_4 :: 1;
+VERSION_FEATURE_BIT_4 :: 1;
 
-JOLTC_VERSION_FEATURE_BIT_5 :: 0;
+VERSION_FEATURE_BIT_5 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_6 :: 1;
+VERSION_FEATURE_BIT_6 :: 1;
 
-JOLTC_VERSION_FEATURE_BIT_7 :: 0;
+VERSION_FEATURE_BIT_7 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_8 :: 0;
+VERSION_FEATURE_BIT_8 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_9 :: 0;
+VERSION_FEATURE_BIT_9 :: 0;
 
-JOLTC_VERSION_FEATURE_BIT_10 :: 1;
+VERSION_FEATURE_BIT_10 :: 1;
 
-JOLTC_VERSION_FEATURE_BIT_11 :: 1;
+VERSION_FEATURE_BIT_11 :: 1;
 
-JOLTC_VECTOR_ALIGNMENT :: 16;
-JOLTC_DVECTOR_ALIGNMENT :: 32;
+VECTOR_ALIGNMENT :: 16;
+DVECTOR_ALIGNMENT :: 32;
 
-JPH_cDefaultCollisionTolerance :: 1.0e-4;
-JPH_cDefaultPenetrationTolerance :: 1.0e-4;
-JPH_cDefaultConvexRadius :: 0.05;
-JPH_cCapsuleProjectionSlop :: 0.02;
-JPH_cDefaultInternalEdgeRemovalVertexToleranceSq :: 1.0e-8;
-JPH_cMaxPhysicsJobs :: 2048;
-JPH_cMaxPhysicsBarriers :: 8;
+cDefaultCollisionTolerance :: 1.0e-4;
+cDefaultPenetrationTolerance :: 1.0e-4;
+cDefaultConvexRadius :: 0.05;
+cCapsuleProjectionSlop :: 0.02;
+cDefaultInternalEdgeRemovalVertexToleranceSq :: 1.0e-8;
+cMaxPhysicsJobs :: 2048;
+cMaxPhysicsBarriers :: 8;
 
-JPH_cInvalidBodyID :: 0xffffffff;
+cInvalidBodyID :: 0xffffffff;
 
 TempAllocator :: struct {}
 JobSystem :: struct {}
@@ -867,7 +867,7 @@ RayCast :: struct {
     origin:    Vec3;
     direction: Vec3;
 
-    _:         [0] u8 #align 16; // Force RayCast alignment to match the C/C++ equivalent
+    _:         [0] u8 #align 16; // Force JPH_RayCast alignment to match the C/C++ equivalent
 }
 
 RayCast_Transformed :: (ray: *RayCast, transform: Mat44) -> RayCast #foreign JoltC "JPH_RayCast_Transformed";
@@ -878,7 +878,7 @@ RRayCast :: struct {
     origin:    RVec3;
     direction: Vec3;
 
-    _:         [0] u8 #align 16; // Force RRayCast alignment to match the C/C++ equivalent
+    _:         [0] u8 #align 16; // Force JPH_RRayCast alignment to match the C/C++ equivalent
 }
 
 RRayCast_Transformed :: (ray: *RRayCast, transform: RMat44) -> RRayCast #foreign JoltC "JPH_RRayCast_Transformed";

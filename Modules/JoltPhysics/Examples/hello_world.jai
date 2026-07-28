@@ -29,7 +29,7 @@ main :: () {
     temp_allocator := Jolt.TempAllocatorImpl_Create(1 * 1024 * 1024);
     defer Jolt.TempAllocator_Destroy(temp_allocator);
 
-    job_system := Jolt.JobSystemThreadPool_Create(Jolt.JPH_cMaxPhysicsJobs, Jolt.JPH_cMaxPhysicsBarriers, -1);
+    job_system := Jolt.JobSystemThreadPool_Create(Jolt.cMaxPhysicsJobs, Jolt.cMaxPhysicsBarriers, -1);
     defer Jolt.JobSystem_Destroy(job_system);
 
     bpl_interface_funcs := Jolt.BroadPhaseLayerInterface_Funcs.{

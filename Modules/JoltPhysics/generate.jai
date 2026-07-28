@@ -66,6 +66,7 @@ GenerateBindings :: (shared_libs : bool, combined_shared_libs : bool) -> bool {
     }
 
     array_add(*strip_prefixes, "JPH_");
+    array_add(*strip_prefixes, "JOLTC_");
 
     array_add(*include_paths, "Source/JoltC");
     array_add(*source_files, "Source/JoltC/JoltC.h");
