@@ -80,7 +80,7 @@ InitPhysicsWorld :: (world : *World) {
 
     temp_allocator = Jolt.TempAllocatorImpl_Create(5 * 1024 * 1024);
 
-    job_system = Jolt.JobSystemThreadPool_Create(Jolt.JPH_cMaxPhysicsJobs, Jolt.JPH_cMaxPhysicsBarriers, -1);
+    job_system = Jolt.JobSystemThreadPool_Create(Jolt.cMaxPhysicsJobs, Jolt.cMaxPhysicsBarriers, -1);
 
     broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable_Create(Physics_Num_Collision_Layers, Physics_Num_Broad_Phase_Layers);
     Jolt.BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsCollisionLayer.NonMoving, xx PhysicsBroadPhaseLayer.NonMoving);
@@ -94,7 +94,6 @@ InitPhysicsWorld :: (world : *World) {
     }
 
     object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable_Create(Physics_Num_Collision_Layers);
-    // Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.NonMoving, xx PhysicsCollisionLayer.Moving);
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.NonMoving);
     Jolt.ObjectLayerPairFilterTable_EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.Moving);
 
@@ -212,7 +211,6 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     ray : Jolt.RRayCast;
     ray.origin = ToJolt(ray_origin);
     ray.direction = ToJolt(ray_vector);
-    // Println("%", ray);
 
     result : Jolt.RayCastResult;
     hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
