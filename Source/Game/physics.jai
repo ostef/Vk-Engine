@@ -176,44 +176,16 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         return .{};
     }
 
-    broad_phase_layer_filter_funcs := Jolt.BroadPhaseLayerFilter_Funcs.{
-        ShouldCollide = (user_data : *void, layer : Jolt.BroadPhaseLayer) -> bool #c_call {
-            return true;
-        }
-    };
-    broad_phase_layer_filter := Jolt.BroadPhaseLayerFilter_Create(null, broad_phase_layer_filter_funcs, .{});
-    defer Jolt.BroadPhaseLayerFilter_Destroy(broad_phase_layer_filter);
-
-    object_layer_filter_funcs := Jolt.ObjectLayerFilter_Funcs.{
-        ShouldCollide = (user_data : *void, layer : Jolt.ObjectLayer) -> bool #c_call {
-            return true;
-        }
-    };
-    object_layer_filter := Jolt.ObjectLayerFilter_Create(null, object_layer_filter_funcs, .{});
-    defer Jolt.ObjectLayerFilter_Destroy(object_layer_filter);
-
-    body_filter_funcs := Jolt.BodyFilter_Funcs.{
-        ShouldCollide = (user_data : *void, body_id : Jolt.BodyID) -> bool #c_call {
-            return true;
-        },
-
-        ShouldCollideLocked = (user_data : *void, body_id : *Jolt.Body) -> bool #c_call {
-            return true;
-        }
-    };
-    body_filter := Jolt.BodyFilter_Create(null, body_filter_funcs, .{});
-    defer Jolt.BodyFilter_Destroy(body_filter);
-
-    narrow_phase := Jolt.PhysicsSystem_GetNarrowPhaseQuery(world.physics.system);
-
     ray_vector := ray_direction * ray_length;
 
     ray : Jolt.RRayCast;
     ray.origin = ToJolt(ray_origin);
     ray.direction = ToJolt(ray_vector);
 
-    result : Jolt.RayCastResult;
-    hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, broad_phase_layer_filter, object_layer_filter, body_filter);
+    result := Jolt.RayCastResult_Default();
+
+    narrow_phase := Jolt.PhysicsSystem_GetNarrowPhaseQuery(world.physics.system);
+    hit := Jolt.NarrowPhaseQuery_CastRay(narrow_phase, ray, *result, null, null, null);
 
     if !hit {
         return .{};
