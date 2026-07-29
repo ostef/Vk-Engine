@@ -2,49 +2,173 @@
 
 #include <JoltC_Core.h>
 
-typedef struct JPH_ShapeSettings                   JPH_ShapeSettings;
-typedef struct JPH_ConvexShapeSettings             JPH_ConvexShapeSettings;
-typedef struct JPH_SphereShapeSettings             JPH_SphereShapeSettings;
-typedef struct JPH_BoxShapeSettings                JPH_BoxShapeSettings;
-typedef struct JPH_PlaneShapeSettings              JPH_PlaneShapeSettings;
-typedef struct JPH_TriangleShapeSettings           JPH_TriangleShapeSettings;
-typedef struct JPH_CapsuleShapeSettings            JPH_CapsuleShapeSettings;
-typedef struct JPH_TaperedCapsuleShapeSettings     JPH_TaperedCapsuleShapeSettings;
-typedef struct JPH_CylinderShapeSettings           JPH_CylinderShapeSettings;
-typedef struct JPH_TaperedCylinderShapeSettings    JPH_TaperedCylinderShapeSettings;
-typedef struct JPH_ConvexHullShapeSettings         JPH_ConvexHullShapeSettings;
-typedef struct JPH_CompoundShapeSettings           JPH_CompoundShapeSettings;
-typedef struct JPH_StaticCompoundShapeSettings     JPH_StaticCompoundShapeSettings;
-typedef struct JPH_MutableCompoundShapeSettings    JPH_MutableCompoundShapeSettings;
-typedef struct JPH_MeshShapeSettings               JPH_MeshShapeSettings;
-typedef struct JPH_HeightFieldShapeSettings        JPH_HeightFieldShapeSettings;
-typedef struct JPH_DecoratedShapeSettings          JPH_DecoratedShapeSettings;
-typedef struct JPH_RotatedTranslatedShapeSettings  JPH_RotatedTranslatedShapeSettings;
-typedef struct JPH_ScaledShapeSettings             JPH_ScaledShapeSettings;
-typedef struct JPH_OffsetCenterOfMassShapeSettings JPH_OffsetCenterOfMassShapeSettings;
-typedef struct JPH_EmptyShapeSettings              JPH_EmptyShapeSettings;
+typedef struct JPH_ShapeSettings {
+    char opaque;
+} JPH_ShapeSettings;
 
-typedef struct JPH_Shape                   JPH_Shape;
-typedef struct JPH_ConvexShape             JPH_ConvexShape;
-typedef struct JPH_SphereShape             JPH_SphereShape;
-typedef struct JPH_BoxShape                JPH_BoxShape;
-typedef struct JPH_PlaneShape              JPH_PlaneShape;
-typedef struct JPH_TriangleShape           JPH_TriangleShape;
-typedef struct JPH_CapsuleShape            JPH_CapsuleShape;
-typedef struct JPH_TaperedCapsuleShape     JPH_TaperedCapsuleShape;
-typedef struct JPH_CylinderShape           JPH_CylinderShape;
-typedef struct JPH_TaperedCylinderShape    JPH_TaperedCylinderShape;
-typedef struct JPH_ConvexHullShape         JPH_ConvexHullShape;
-typedef struct JPH_CompoundShape           JPH_CompoundShape;
-typedef struct JPH_StaticCompoundShape     JPH_StaticCompoundShape;
-typedef struct JPH_MutableCompoundShape    JPH_MutableCompoundShape;
-typedef struct JPH_MeshShape               JPH_MeshShape;
-typedef struct JPH_HeightFieldShape        JPH_HeightFieldShape;
-typedef struct JPH_DecoratedShape          JPH_DecoratedShape;
-typedef struct JPH_RotatedTranslatedShape  JPH_RotatedTranslatedShape;
-typedef struct JPH_ScaledShape             JPH_ScaledShape;
-typedef struct JPH_OffsetCenterOfMassShape JPH_OffsetCenterOfMassShape;
-typedef struct JPH_EmptyShape              JPH_EmptyShape;
+typedef struct JPH_EmptyShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_EmptyShapeSettings;
+
+typedef struct JPH_PlaneShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_PlaneShapeSettings;
+
+typedef struct JPH_MeshShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_MeshShapeSettings;
+
+typedef struct JPH_HeightFieldShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_HeightFieldShapeSettings;
+
+typedef struct JPH_ConvexShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_ConvexShapeSettings;
+
+typedef struct JPH_SphereShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_SphereShapeSettings;
+
+typedef struct JPH_BoxShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_BoxShapeSettings;
+
+typedef struct JPH_TriangleShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_TriangleShapeSettings;
+
+typedef struct JPH_CapsuleShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_CapsuleShapeSettings;
+
+typedef struct JPH_TaperedCapsuleShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_TaperedCapsuleShapeSettings;
+
+typedef struct JPH_CylinderShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_CylinderShapeSettings;
+
+typedef struct JPH_TaperedCylinderShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_TaperedCylinderShapeSettings;
+
+typedef struct JPH_ConvexHullShapeSettings {
+    JPH_ConvexShapeSettings base;
+} JPH_ConvexHullShapeSettings;
+
+typedef struct JPH_CompoundShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_CompoundShapeSettings;
+
+typedef struct JPH_StaticCompoundShapeSettings {
+    JPH_CompoundShapeSettings base;
+} JPH_StaticCompoundShapeSettings;
+
+typedef struct JPH_MutableCompoundShapeSettings {
+    JPH_CompoundShapeSettings base;
+} JPH_MutableCompoundShapeSettings;
+
+typedef struct JPH_DecoratedShapeSettings {
+    JPH_ShapeSettings base;
+} JPH_DecoratedShapeSettings;
+
+typedef struct JPH_RotatedTranslatedShapeSettings {
+    JPH_DecoratedShapeSettings base;
+} JPH_RotatedTranslatedShapeSettings;
+
+typedef struct JPH_ScaledShapeSettings {
+    JPH_DecoratedShapeSettings base;
+} JPH_ScaledShapeSettings;
+
+typedef struct JPH_OffsetCenterOfMassShapeSettings {
+    JPH_DecoratedShapeSettings base;
+} JPH_OffsetCenterOfMassShapeSettings;
+
+typedef struct JPH_Shape {
+    char opaque;
+} JPH_Shape;
+
+typedef struct JPH_EmptyShape {
+    JPH_Shape base;
+} JPH_EmptyShape;
+
+typedef struct JPH_PlaneShape {
+    JPH_Shape base;
+} JPH_PlaneShape;
+
+typedef struct JPH_MeshShape {
+    JPH_Shape base;
+} JPH_MeshShape;
+
+typedef struct JPH_HeightFieldShape {
+    JPH_Shape base;
+} JPH_HeightFieldShape;
+
+typedef struct JPH_ConvexShape {
+    JPH_Shape base;
+} JPH_ConvexShape;
+
+typedef struct JPH_SphereShape {
+    JPH_ConvexShape base;
+} JPH_SphereShape;
+
+typedef struct JPH_BoxShape {
+    JPH_ConvexShape base;
+} JPH_BoxShape;
+
+typedef struct JPH_TriangleShape {
+    JPH_ConvexShape base;
+} JPH_TriangleShape;
+
+typedef struct JPH_CapsuleShape {
+    JPH_ConvexShape base;
+} JPH_CapsuleShape;
+
+typedef struct JPH_TaperedCapsuleShape {
+    JPH_ConvexShape base;
+} JPH_TaperedCapsuleShape;
+
+typedef struct JPH_CylinderShape {
+    JPH_ConvexShape base;
+} JPH_CylinderShape;
+
+typedef struct JPH_TaperedCylinderShape {
+    JPH_ConvexShape base;
+} JPH_TaperedCylinderShape;
+
+typedef struct JPH_ConvexHullShape {
+    JPH_ConvexShape base;
+} JPH_ConvexHullShape;
+
+typedef struct JPH_CompoundShape {
+    JPH_Shape base;
+} JPH_CompoundShape;
+
+typedef struct JPH_StaticCompoundShape {
+    JPH_CompoundShape base;
+} JPH_StaticCompoundShape;
+
+typedef struct JPH_MutableCompoundShape {
+    JPH_CompoundShape base;
+} JPH_MutableCompoundShape;
+
+typedef struct JPH_DecoratedShape {
+    JPH_Shape base;
+} JPH_DecoratedShape;
+
+typedef struct JPH_RotatedTranslatedShape {
+    JPH_DecoratedShape base;
+} JPH_RotatedTranslatedShape;
+
+typedef struct JPH_ScaledShape {
+    JPH_DecoratedShape base;
+} JPH_ScaledShape;
+
+typedef struct JPH_OffsetCenterOfMassShape {
+    JPH_DecoratedShape base;
+} JPH_OffsetCenterOfMassShape;
 
 // @Todo: add aliases for inherited methods
 

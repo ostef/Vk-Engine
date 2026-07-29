@@ -60,16 +60,16 @@ int main(int argc, char **argv) {
     JPH_ObjectLayerPairFilterTable_EnableCollision(objectLayerPairFilter, ObjectLayer_NonMoving, ObjectLayer_Moving);
     JPH_ObjectLayerPairFilterTable_EnableCollision(objectLayerPairFilter, ObjectLayer_Moving, ObjectLayer_Moving);
 
-    JPH_ObjectVsBroadPhaseLayerFilterTable *objectVsBroadPhaseLayerFilter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create((JPH_BroadPhaseLayerInterface *)bplInterface, 2, (JPH_ObjectLayerPairFilter *)objectLayerPairFilter, 2);
+    JPH_ObjectVsBroadPhaseLayerFilterTable *objectVsBroadPhaseLayerFilter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create(&bplInterface->base, 2, &objectLayerPairFilter->base, 2);
 
     JPH_PhysicsSystemSettings systemSettings = {
         .maxBodies=1024,
         .numBodyMutexes=0,
         .maxBodyPairs=1024,
         .maxContactConstraints=1024,
-        .broadPhaseLayerInterface=(JPH_BroadPhaseLayerInterface *)bplInterface,
-        .objectVsBroadPhaseLayerFilter=(JPH_ObjectVsBroadPhaseLayerFilter *)objectVsBroadPhaseLayerFilter,
-        .objectLayerPairFilter=(JPH_ObjectLayerPairFilter *)objectLayerPairFilter,
+        .broadPhaseLayerInterface=&bplInterface->base,
+        .objectVsBroadPhaseLayerFilter=&objectVsBroadPhaseLayerFilter->base,
+        .objectLayerPairFilter=&objectLayerPairFilter->base,
     };
     JPH_PhysicsSystem *system = JPH_PhysicsSystem_Create(systemSettings);
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     JPH_BoxShapeSettings *floorShapeSettings = JPH_BoxShapeSettings_Create();
     JPH_BoxShapeSettings_SetHalfExtent(floorShapeSettings, JPH_Vec3_Make(100, 1, 100));
 
-    JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)floorShapeSettings);
+    JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape(&floorShapeSettings->base.base);
 
     JPH_BodyCreationSettings floorSettings = JPH_BodyCreationSettings_Default();
     floorSettings.position = JPH_RVec3_Make(0, -1, 0);
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     JPH_SphereShapeSettings *sphereShapeSettings = JPH_SphereShapeSettings_Create();
     JPH_SphereShapeSettings_SetRadius(sphereShapeSettings, 0.5f);
 
-    JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)sphereShapeSettings);
+    JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape(&sphereShapeSettings->base.base);
 
     JPH_BodyCreationSettings sphereSettings = JPH_BodyCreationSettings_Default();
     sphereSettings.position = JPH_RVec3_Make(0, 2, 0);
@@ -145,9 +145,9 @@ int main(int argc, char **argv) {
 
     JPH_PhysicsSystem_Destroy(system);
 
-    JPH_ObjectVsBroadPhaseLayerFilter_Destroy((JPH_ObjectVsBroadPhaseLayerFilter *)objectVsBroadPhaseLayerFilter);
-    JPH_ObjectLayerPairFilter_Destroy((JPH_ObjectLayerPairFilter *)objectLayerPairFilter);
-    JPH_BroadPhaseLayerInterface_Destroy((JPH_BroadPhaseLayerInterface *)bplInterface);
+    JPH_ObjectVsBroadPhaseLayerFilter_Destroy(&objectVsBroadPhaseLayerFilter->base);
+    JPH_ObjectLayerPairFilter_Destroy(&objectLayerPairFilter->base);
+    JPH_BroadPhaseLayerInterface_Destroy(&bplInterface->base);
 
     JPH_JobSystem_Destroy(jobSystem);
     JPH_TempAllocator_Destroy(tempAllocator);
