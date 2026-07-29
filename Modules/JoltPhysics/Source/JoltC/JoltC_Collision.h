@@ -6,15 +6,42 @@
 // Forward declarations
 struct JPH_Body;
 
-typedef struct JPH_BroadPhaseLayerInterface           JPH_BroadPhaseLayerInterface;
-typedef struct JPH_BroadPhaseLayerInterfaceTable      JPH_BroadPhaseLayerInterfaceTable;
-typedef struct JPH_BroadPhaseLayerInterfaceMask       JPH_BroadPhaseLayerInterfaceMask;
-typedef struct JPH_ObjectLayerPairFilter              JPH_ObjectLayerPairFilter;
-typedef struct JPH_ObjectLayerPairFilterTable         JPH_ObjectLayerPairFilterTable;
-typedef struct JPH_ObjectLayerPairFilterMask          JPH_ObjectLayerPairFilterMask;
-typedef struct JPH_ObjectVsBroadPhaseLayerFilter      JPH_ObjectVsBroadPhaseLayerFilter;
-typedef struct JPH_ObjectVsBroadPhaseLayerFilterTable JPH_ObjectVsBroadPhaseLayerFilterTable;
-typedef struct JPH_ObjectVsBroadPhaseLayerFilterMask  JPH_ObjectVsBroadPhaseLayerFilterMask;
+typedef struct JPH_BroadPhaseLayerInterface {
+    char opaque;
+} JPH_BroadPhaseLayerInterface;
+
+typedef struct JPH_BroadPhaseLayerInterfaceTable {
+    JPH_BroadPhaseLayerInterface base;
+} JPH_BroadPhaseLayerInterfaceTable;
+
+typedef struct JPH_BroadPhaseLayerInterfaceMask {
+    JPH_BroadPhaseLayerInterface base;
+} JPH_BroadPhaseLayerInterfaceMask;
+
+typedef struct JPH_ObjectLayerPairFilter {
+    char opaque;
+} JPH_ObjectLayerPairFilter;
+
+typedef struct JPH_ObjectLayerPairFilterTable {
+    JPH_ObjectLayerPairFilter base;
+} JPH_ObjectLayerPairFilterTable;
+
+typedef struct JPH_ObjectLayerPairFilterMask {
+    JPH_ObjectLayerPairFilter base;
+} JPH_ObjectLayerPairFilterMask;
+
+typedef struct JPH_ObjectVsBroadPhaseLayerFilter {
+    char opaque;
+} JPH_ObjectVsBroadPhaseLayerFilter;
+
+typedef struct JPH_ObjectVsBroadPhaseLayerFilterTable {
+    JPH_ObjectVsBroadPhaseLayerFilter base;
+} JPH_ObjectVsBroadPhaseLayerFilterTable;
+
+typedef struct JPH_ObjectVsBroadPhaseLayerFilterMask {
+    JPH_ObjectVsBroadPhaseLayerFilter base;
+} JPH_ObjectVsBroadPhaseLayerFilterMask;
+
 typedef struct JPH_BroadPhaseLayerFilter              JPH_BroadPhaseLayerFilter;
 typedef struct JPH_ObjectLayerFilter                  JPH_ObjectLayerFilter;
 typedef struct JPH_GroupFilter                        JPH_GroupFilter;

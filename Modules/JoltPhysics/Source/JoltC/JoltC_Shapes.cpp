@@ -1,5 +1,7 @@
 #include <JoltC.hpp>
 
+JOLTC_SUPPRESS_WARNINGS()
+
 #define CREATE_SHAPE_IMPL(name) \
     JPH_##name *JPH_##name##Settings_CreateShape(JPH_##name##Settings *settings) { \
         auto result = ToCpp(settings)->Create(); \
@@ -1248,3 +1250,5 @@ void JPH_HeightFieldShape_GetHeights(const JPH_HeightFieldShape *shape, uint32_t
 void JPH_HeightFieldShape_SetHeights(JPH_HeightFieldShape *shape, uint32_t x, uint32_t y, uint32_t sizeX, uint32_t sizeY, const float *inHeights, intptr_t heightsStride, JPH_TempAllocator *allocator, float activeEdgeCosThresholdAngle) {
     ToCpp(shape)->SetHeights(x, y, sizeX, sizeY, inHeights, heightsStride, *ToCpp(allocator), activeEdgeCosThresholdAngle);
 }
+
+JOLTC_POP_WARNINGS()

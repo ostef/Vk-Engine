@@ -94,12 +94,12 @@ main :: () {
     floor_shape_settings := Jolt.BoxShapeSettings_Create();
     defer Jolt.BoxShapeSettings_Destroy(floor_shape_settings);
 
-    Jolt.BoxShapeSettings_SetHalfExtent(floor_shape_settings, .{100, 1, 100});
+    Jolt.BoxShapeSettings_SetHalfExtent(floor_shape_settings, Jolt.Vec3_Make(100, 1, 100));
 
     floor_shape := Jolt.ShapeSettings_CreateShape(xx floor_shape_settings);
 
     floor_settings := Jolt.BodyCreationSettings_Default();
-    floor_settings.position = .{0,-1,0};
+    floor_settings.position = Jolt.Vec3_Make(0,-1,0);
     floor_settings.objectLayer = xx ObjectLayer.NonMoving;
     floor_settings.motionType = .Static;
     floor_settings.shapePtr = floor_shape;
@@ -116,7 +116,7 @@ main :: () {
     sphere_shape := Jolt.ShapeSettings_CreateShape(xx sphere_shape_settings);
 
     sphere_settings := Jolt.BodyCreationSettings_Default();
-    sphere_settings.position = .{0,2,0};
+    sphere_settings.position = Jolt.Vec3_Make(0,2,0);
     sphere_settings.objectLayer = xx ObjectLayer.Moving;
     sphere_settings.motionType = .Dynamic;
     sphere_settings.shapePtr = sphere_shape;
@@ -124,7 +124,7 @@ main :: () {
     sphere_id := Jolt.BodyInterface_CreateAndAddBody(body_interface, *sphere_settings, .Activate);
     print("Created sphere: %\n", sphere_id);
 
-    Jolt.BodyInterface_SetLinearVelocity(body_interface, sphere_id, .{0,-5,0});
+    Jolt.BodyInterface_SetLinearVelocity(body_interface, sphere_id, Jolt.Vec3_Make(0,-5,0));
 
     Jolt.PhysicsSystem_OptimizeBroadPhase(system);
 
@@ -143,8 +143,8 @@ main :: () {
         query := Jolt.PhysicsSystem_GetNarrowPhaseQuery(system);
 
         ray := Jolt.RRayCast.{
-            origin=.{0, 1, -5},
-            direction=.{0, 0, 50},
+            origin=Jolt.Vec3_Make(0, 1, -5),
+            direction=Jolt.Vec3_Make(0, 0, 50),
         };
 
         ray_cast_result := Jolt.RayCastResult_Default();
@@ -166,5 +166,9 @@ main :: () {
 #run {
     #import "File_Utilities";
 
-    copy_file("../Libs/Linux/libJoltC.so", "libJoltC.so");
+    #if OS == .WINDOWS {
+        copy_file("../Libs/Windows/JoltC.dll", "JoltC.dll");
+    } else #if OS == .LINUX {
+        copy_file("../Libs/Linux/libJoltC.so", "libJoltC.so");
+    }
 }

@@ -17,6 +17,14 @@ WorkspaceBuildInfo :: struct {
     core_import : *Message_Import;
     renderer_import : *Message_Import;
     game_import : *Message_Import;
+
+    codegen_phase : enum {
+        Assets;
+        Entities;
+        ModuleAPI;
+
+        AllDone;
+    };
 }
 
 g_workspace_build_info : [15]WorkspaceBuildInfo;
@@ -47,10 +55,22 @@ HandleCompilerMessage :: (msg : *Message) {
     case .PHASE;
         phase := cast(*Message_Phase, msg);
         if phase.phase == .TYPECHECKED_ALL_WE_CAN {
-            Core.GenerateAssetCode(msg.workspace, core_import);
-            GenerateEntityCode(msg.workspace, game_import);
+            if codegen_phase == {
+            case .Assets;
+                if Core.GenerateAssetCode(msg.workspace, core_import) {
+                    codegen_phase = .Entities;
+                }
 
-            GenerateModuleAPICode(msg.workspace, game_import, "Game");
+            case .Entities;
+                if GenerateEntityCode(msg.workspace, game_import) {
+                    codegen_phase = .ModuleAPI;
+                }
+
+            case .ModuleAPI;
+                if GenerateModuleAPICode(msg.workspace, game_import, "Game") {
+                    codegen_phase = .AllDone;
+                }
+            }
         }
 
     case .COMPLETE;

@@ -1,6 +1,7 @@
 #include <JoltC.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 static
 void Trace(const char *fmt, ...) {
@@ -29,55 +30,11 @@ enum {
     BroadPhaseLayer_Moving,
 };
 
-static
-uint32_t BroadPhaseLayerInterface_GetNumBroadPhaseLayers(const void *data) {
-    return 2;
-}
-
-static
-JPH_BroadPhaseLayer BroadPhaseLayerInterface_GetBroadPhaseLayer(const void *data, JPH_ObjectLayer layer) {
-    switch (layer) {
-    case ObjectLayer_NonMoving: return BroadPhaseLayer_NonMoving;
-    case ObjectLayer_Moving:    return BroadPhaseLayer_Moving;
-    default:                    return 0;
-    }
-}
-
-static
-const char *BroadPhaseLayerInterface_GetBroadPhaseLayerName(const void *data, JPH_BroadPhaseLayer layer) {
-    switch (layer) {
-    case BroadPhaseLayer_NonMoving: return "NonMoving";
-    case BroadPhaseLayer_Moving:    return "Moving";
-    default:                        return "Invalid";
-    }
-}
-
-static
-bool ObjectLayerPairFilter_ShouldCollide(const void *data, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2) {
-    switch (layer1) {
-    case ObjectLayer_NonMoving:
-        return layer2 == ObjectLayer_Moving;
-    case ObjectLayer_Moving:
-        return true;
-    default:
-        return false;
-    }
-}
-
-static
-bool ObjectVsBroadPhaseLayerFilter_ShouldCollide(const void *data, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer) {
-    switch (objectLayer) {
-    case ObjectLayer_NonMoving:
-        return broadPhaseLayer == BroadPhaseLayer_Moving;
-    case ObjectLayer_Moving:
-        return true;
-    default:
-        return false;
-    }
-}
-
 int main(int argc, char **argv) {
-    printf("Jolt version ID: %lx\n", JPH_GetJoltVersionID());
+    (void)argc;
+    (void)argv;
+
+    printf("Jolt version ID: %" PRIx64 "\n", JPH_GetJoltVersionID());
 
     JPH_RegisterDefaultAllocator();
     JPH_SetTraceHandler(Trace);
@@ -103,28 +60,28 @@ int main(int argc, char **argv) {
     JPH_ObjectLayerPairFilterTable_EnableCollision(objectLayerPairFilter, ObjectLayer_NonMoving, ObjectLayer_Moving);
     JPH_ObjectLayerPairFilterTable_EnableCollision(objectLayerPairFilter, ObjectLayer_Moving, ObjectLayer_Moving);
 
-    JPH_ObjectVsBroadPhaseLayerFilterTable *objectVsBroadPhaseLayerFilter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create((JPH_BroadPhaseLayerInterface *)bplInterface, 2, (JPH_ObjectLayerPairFilter *)objectLayerPairFilter, 2);
+    JPH_ObjectVsBroadPhaseLayerFilterTable *objectVsBroadPhaseLayerFilter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create(&bplInterface->base, 2, &objectLayerPairFilter->base, 2);
 
     JPH_PhysicsSystemSettings systemSettings = {
         .maxBodies=1024,
         .numBodyMutexes=0,
         .maxBodyPairs=1024,
         .maxContactConstraints=1024,
-        .broadPhaseLayerInterface=(JPH_BroadPhaseLayerInterface *)bplInterface,
-        .objectVsBroadPhaseLayerFilter=(JPH_ObjectVsBroadPhaseLayerFilter *)objectVsBroadPhaseLayerFilter,
-        .objectLayerPairFilter=(JPH_ObjectLayerPairFilter *)objectLayerPairFilter,
+        .broadPhaseLayerInterface=&bplInterface->base,
+        .objectVsBroadPhaseLayerFilter=&objectVsBroadPhaseLayerFilter->base,
+        .objectLayerPairFilter=&objectLayerPairFilter->base,
     };
     JPH_PhysicsSystem *system = JPH_PhysicsSystem_Create(systemSettings);
 
     JPH_BodyInterface *bodyInterface = JPH_PhysicsSystem_GetBodyInterface(system);
 
     JPH_BoxShapeSettings *floorShapeSettings = JPH_BoxShapeSettings_Create();
-    JPH_BoxShapeSettings_SetHalfExtent(floorShapeSettings, (JPH_Vec3){100, 1, 100});
+    JPH_BoxShapeSettings_SetHalfExtent(floorShapeSettings, JPH_Vec3_Make(100, 1, 100));
 
-    JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)floorShapeSettings);
+    JPH_Shape *floorShape = JPH_ShapeSettings_CreateShape(&floorShapeSettings->base.base);
 
     JPH_BodyCreationSettings floorSettings = JPH_BodyCreationSettings_Default();
-    floorSettings.position = (JPH_RVec3){0, -1, 0};
+    floorSettings.position = JPH_RVec3_Make(0, -1, 0);
     floorSettings.rotation = JPH_Quat_sIdentity;
     floorSettings.objectLayer = ObjectLayer_NonMoving;
     floorSettings.motionType = JPH_EMotionType_Static;
@@ -137,10 +94,10 @@ int main(int argc, char **argv) {
     JPH_SphereShapeSettings *sphereShapeSettings = JPH_SphereShapeSettings_Create();
     JPH_SphereShapeSettings_SetRadius(sphereShapeSettings, 0.5f);
 
-    JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape((JPH_ShapeSettings *)sphereShapeSettings);
+    JPH_Shape *sphereShape = JPH_ShapeSettings_CreateShape(&sphereShapeSettings->base.base);
 
     JPH_BodyCreationSettings sphereSettings = JPH_BodyCreationSettings_Default();
-    sphereSettings.position = (JPH_RVec3){0, 2, 0};
+    sphereSettings.position = JPH_RVec3_Make(0, 2, 0);
     sphereSettings.rotation = JPH_Quat_sIdentity;
     sphereSettings.objectLayer = ObjectLayer_Moving;
     sphereSettings.motionType = JPH_EMotionType_Dynamic;
@@ -149,7 +106,7 @@ int main(int argc, char **argv) {
     JPH_BodyID sphereID = JPH_BodyInterface_CreateAndAddBody(bodyInterface, &sphereSettings, JPH_EActivation_Activate);
     printf("Created sphere: %u\n", sphereID);
 
-    JPH_BodyInterface_SetLinearVelocity(bodyInterface, sphereID, (JPH_Vec3){0, -5, 0});
+    JPH_BodyInterface_SetLinearVelocity(bodyInterface, sphereID, JPH_Vec3_Make(0, -5, 0));
 
     JPH_PhysicsSystem_OptimizeBroadPhase(system);
 
@@ -167,9 +124,9 @@ int main(int argc, char **argv) {
 
         const JPH_NarrowPhaseQuery *query = JPH_PhysicsSystem_GetNarrowPhaseQuery(system);
 
-        JPH_RRayCast ray = {};
-        ray.origin = (JPH_Vec3){0, 1, -5};
-        ray.direction = (JPH_Vec3){0, 0, 50};
+        JPH_RRayCast ray;
+        ray.origin = JPH_RVec3_Make(0, 1, -5);
+        ray.direction = JPH_Vec3_Make(0, 0, 50);
 
         JPH_RayCastResult rayCastResult = JPH_RayCastResult_Default();
         bool hit = JPH_NarrowPhaseQuery_CastRay(query, ray, &rayCastResult, NULL, NULL, NULL);
@@ -188,9 +145,9 @@ int main(int argc, char **argv) {
 
     JPH_PhysicsSystem_Destroy(system);
 
-    JPH_ObjectVsBroadPhaseLayerFilter_Destroy((JPH_ObjectVsBroadPhaseLayerFilter *)objectVsBroadPhaseLayerFilter);
-    JPH_ObjectLayerPairFilter_Destroy((JPH_ObjectLayerPairFilter *)objectLayerPairFilter);
-    JPH_BroadPhaseLayerInterface_Destroy((JPH_BroadPhaseLayerInterface *)bplInterface);
+    JPH_ObjectVsBroadPhaseLayerFilter_Destroy(&objectVsBroadPhaseLayerFilter->base);
+    JPH_ObjectLayerPairFilter_Destroy(&objectLayerPairFilter->base);
+    JPH_BroadPhaseLayerInterface_Destroy(&bplInterface->base);
 
     JPH_JobSystem_Destroy(jobSystem);
     JPH_TempAllocator_Destroy(tempAllocator);

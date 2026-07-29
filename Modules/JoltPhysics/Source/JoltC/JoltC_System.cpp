@@ -1,5 +1,7 @@
 #include <JoltC.hpp>
 
+JOLTC_SUPPRESS_WARNINGS()
+
 JPH_PhysicsSystem *JPH_PhysicsSystem_Create(JPH_PhysicsSystemSettings settings) {
     auto system = new JPH::PhysicsSystem();
     system->Init(
@@ -204,3 +206,5 @@ void JPH_PhysicsSystem_DrawConstraintReferenceFrame(JPH_PhysicsSystem *system, J
 }
 
 #endif
+
+JOLTC_POP_WARNINGS()
