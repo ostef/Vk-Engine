@@ -1,6 +1,7 @@
 #import "SDL";
 
 #load "world.jai";
+#load "entity.jai";
 #load "physics.jai";
 
 g_module := GameModule.{

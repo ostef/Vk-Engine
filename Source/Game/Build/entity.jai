@@ -86,26 +86,14 @@ HandleDeclarationForEntity :: (workspace : Workspace, decl : *Code_Declaration) 
     }
 }
 
-GenerateEntityCode :: (workspace : Workspace, target : *Message) {
+GenerateEntityCode :: (workspace : Workspace, target : *Message) -> bool {
     using _ := *g_entity_workspace_build_info[workspace];
 
     if !target || !entity_type || !component_type || generated_entity_code {
-        return;
+        return generated_entity_code;
     }
 
     defer generated_entity_code = true;
-
-    if !entity_type {
-        // ReportErrorsForUnresolvedIdentifiersInAllFiles(workspace);
-        compiler_report("Entity type is null when calling GenerateEntityCode.", mode=.ERROR_CONTINUABLE);
-        return;
-    }
-
-    if !component_type {
-        // ReportErrorsForUnresolvedIdentifiersInAllFiles(workspace);
-        compiler_report("Component type is null when calling GenerateEntityCode.", mode=.ERROR_CONTINUABLE);
-        return;
-    }
 
     for entity_decls {
         TypecheckEntityStruct(workspace, cast(*Code_Struct) it.expression);
@@ -168,6 +156,8 @@ GenerateEntityCode :: (workspace : Workspace, target : *Message) {
     add_build_string(StringBuilderBuild(*builder), workspace, target);
 
     LogMessage("Generated entity code");
+
+    return true;
 }
 
 ContainsPointerTo :: (

@@ -135,6 +135,10 @@ AddModuleAPIProcedure :: (workspace : Workspace, decl : *Code_Declaration) -> bo
         return false;
     }
 
+    if generated_module_api_code {
+        compiler_report("Found ModuleAPI procedure after having generated the module API code", make_location(decl));
+    }
+
     // @Todo: make sure it is not polymorphic
 
     ArrayPush(*api_procedures, .{decl=decl});
@@ -485,11 +489,11 @@ GenerateModuleContextType :: (workspace : Workspace, target : *Message, name : s
     LogMessage("Generated module context type");
 }
 
-GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : string) {
+GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : string) -> bool {
     using info := *g_module_api_workspace_build_info[workspace];
 
     if !target || generated_module_api_code {
-        return;
+        return generated_module_api_code;
     }
 
     defer generated_module_api_code = true;
@@ -606,6 +610,8 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
     add_build_string(initialize_api, workspace, target);
 
     LogMessage("Generated module API code");
+
+    return true;
 }
 
 WriteModuleAPIFile :: (workspace : Workspace, target : *Message, name : string, with_context_type := false) -> bool {

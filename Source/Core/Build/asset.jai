@@ -16,11 +16,11 @@ AddAssetType :: (workspace : Workspace, decl : *Code_Declaration) {
     ArrayPush(*asset_types, xx struct_expr.defined_type);
 }
 
-GenerateAssetCode :: (workspace : Workspace, target : *Message) {
+GenerateAssetCode :: (workspace : Workspace, target : *Message) -> bool {
     using info := *g_asset_workspace_build_info[workspace];
 
     if !target || generated_asset_code {
-        return;
+        return generated_asset_code;
     }
 
     defer generated_asset_code = true;
@@ -39,4 +39,6 @@ GenerateAssetCode :: (workspace : Workspace, target : *Message) {
     add_build_string(StringBuilderBuild(*builder), workspace, target);
 
     LogMessage("Generated asset code");
+
+    return true;
 }
