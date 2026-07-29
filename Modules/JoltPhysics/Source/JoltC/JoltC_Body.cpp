@@ -1,5 +1,7 @@
 #include <JoltC.hpp>
 
+JOLTC_SUPPRESS_WARNINGS()
+
 JPH_BodyCreationSettings JPH_BodyCreationSettings_Default() {
     auto result = JPH::BodyCreationSettings();
     return *reinterpret_cast<JPH_BodyCreationSettings *>(&result);
@@ -850,3 +852,5 @@ JPH_SoftBodyCreationSettings JPH_Body_GetSoftBodyCreationSettings(const JPH_Body
 void JPH_Body_ApplySoftBodyCreationSettings(JPH_Body *body, const JPH_SoftBodyCreationSettings *softBodyCreationSettings, const JPH_BroadPhaseLayerInterface *bplInterface) {
     ToCpp(body)->ApplySoftBodyCreationSettings(*ToCpp(softBodyCreationSettings), *ToCpp(bplInterface));
 }
+
+JOLTC_POP_WARNINGS()

@@ -4,7 +4,36 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+JOLTC_SUPPRESS_WARNINGS()
+
 // Math functions
+
+JPH_Vec3 JPH_Vec3_Make(float x, float y, float z) {
+    JPH_Vec3 v;
+    v.x = x;
+    v.y = y;
+    v.z = z;
+    v.z2 = z;
+    return v;
+}
+
+JPH_DVec3 JPH_DVec3_Make(double x, double y, double z) {
+    JPH_DVec3 v;
+    v.x = x;
+    v.y = y;
+    v.z = z;
+    v.z2 = z;
+    return v;
+}
+
+JPH_RVec3 JPH_RVec3_Make(JPH_Real x, JPH_Real y, JPH_Real z) {
+    JPH_RVec3 v;
+    v.x = x;
+    v.y = y;
+    v.z = z;
+    v.z2 = z;
+    return v;
+}
 
 JPH_Plane JPH_Plane_Make(JPH_Vec3 normal, float constant) {
     JPH_Plane plane;
@@ -209,3 +238,5 @@ JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarr
 void JPH_JobSystem_Destroy(JPH_JobSystem *job_system) {
     delete ToCpp(job_system);
 }
+
+JOLTC_POP_WARNINGS()

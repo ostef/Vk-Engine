@@ -3,19 +3,20 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdalign.h>
 
 #if defined(JOLTC_SHARED_LIBRARY)
   #if defined(JOLTC_BUILD_SHARED_LIBRARY)
     #if defined(_WIN32)
       #define JOLTC_EXPORT __declspec(dllexport)
     #else
-      #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+      #define JOLTC_EXPORT __attribute__((visibility("default")))
     #endif
   #else
     #if defined(_WIN32)
       #define JOLTC_EXPORT __declspec(dllimport)
     #else
-      #define JOLTC_EXPORT __attribute__ ((visibility ("default")))
+      #define JOLTC_EXPORT __attribute__((visibility("default")))
     #endif
   #endif
 #else
@@ -61,7 +62,7 @@
   #define JOLTC_DISABLE_CUSTOM_ALLOCATOR
 #endif
 #ifdef JPH_OBJECT_LAYER_BITS
-  #define JOLTC_OBJECT_LAYER_BITS
+  #define JOLTC_OBJECT_LAYER_BITS JPH_OBJECT_LAYER_BITS
 #endif
 #ifdef JPH_ENABLE_ASSERTS
   #define JOLTC_ENABLE_ASSERTS
@@ -154,37 +155,41 @@ typedef struct JPH_Float3 {
     float x, y, z;
 } JPH_Float3;
 
-typedef union JPH_UVec4 {
-    struct {
-        uint32_t x, y, z, w;
-    };
-    uint32_t values[4];
-} JPH_UVec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+typedef struct JPH_UVec4 {
+    alignas(JOLTC_VECTOR_ALIGNMENT) uint32_t x;
+    uint32_t y;
+    uint32_t z;
+    uint32_t w;
+} JPH_UVec4;
 
-typedef union JPH_Vec3 {
-    struct {
-        float x, y, z;
-    };
-    float values[4];
-} JPH_Vec3 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+typedef struct JPH_Vec3 {
+    alignas(JOLTC_VECTOR_ALIGNMENT) float x;
+    float y;
+    float z;
+    float z2;
+} JPH_Vec3;
 
-typedef union JPH_Vec4 {
-    struct {
-        float x, y, z, w;
-    };
-    float values[4];
-} JPH_Vec4 __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+JOLTC_API JPH_Vec3 JPH_Vec3_Make(float x, float y, float z);
+
+typedef struct JPH_Vec4 {
+    alignas(JOLTC_VECTOR_ALIGNMENT) float x;
+    float y;
+    float z;
+    float w;
+} JPH_Vec4;
 
 typedef struct JPH_Mat44 {
     JPH_Vec4 cols[4];
 } JPH_Mat44;
 
-typedef union JPH_DVec3 {
-    struct {
-        double x, y, z;
-    };
-    double values[4];
-} JPH_DVec3 __attribute__((aligned(JOLTC_DVECTOR_ALIGNMENT)));
+typedef struct JPH_DVec3 {
+    alignas(JOLTC_DVECTOR_ALIGNMENT) double x;
+    double y;
+    double z;
+    double z2;
+} JPH_DVec3;
+
+JOLTC_API JPH_DVec3 JPH_DVec3_Make(double x, double y, double z);
 
 typedef struct JPH_DMat44 {
     JPH_Vec4 cols[3];
@@ -195,20 +200,24 @@ typedef struct JPH_DMat44 {
 
 typedef JPH_DVec3  JPH_RVec3;
 typedef JPH_DMat44 JPH_RMat44;
+typedef double     JPH_Real;
 
 #else
 
 typedef JPH_Vec3  JPH_RVec3;
 typedef JPH_Mat44 JPH_RMat44;
+typedef float     JPH_Real;
 
 #endif
 
-typedef union JPH_Quat {
-    struct {
-        float x, y, z, w;
-    };
-    float values[4];
-} JPH_Quat __attribute__((aligned(JOLTC_VECTOR_ALIGNMENT)));
+JOLTC_API JPH_RVec3 JPH_RVec3_Make(JPH_Real x, JPH_Real y, JPH_Real z);
+
+typedef struct JPH_Quat {
+    alignas(JOLTC_VECTOR_ALIGNMENT) float x;
+    float y;
+    float z;
+    float w;
+} JPH_Quat;
 
 #define JPH_Quat_sIdentity ((JPH_Quat){0.0f, 0.0f, 0.0f, 1.0f})
 

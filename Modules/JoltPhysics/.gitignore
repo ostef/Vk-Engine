@@ -1,4 +1,7 @@
 Examples/hello_world
 *.so
+*.dll
 *.a
+*.lib
+*.pdb
 

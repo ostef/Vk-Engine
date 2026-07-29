@@ -388,8 +388,8 @@ JOLTC_API void JPH_Shape_GetSubmergedVolume(const JPH_Shape *shape, JPH_Mat44 ce
 // @Todo: Shape::CollidePoint
 
 typedef struct JPH_Shape_GetTrianglesContext {
-    uint8_t data[4288];
-} JPH_Shape_GetTrianglesContext __attribute__((aligned(16)));
+    alignas(16) uint8_t data[4288];
+} JPH_Shape_GetTrianglesContext;
 
 JOLTC_API void JPH_Shape_GetTrianglesStart(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, JPH_AABox box, JPH_Vec3 positionCOM, JPH_Quat rotation, JPH_Vec3 scale);
 JOLTC_API uint32_t JPH_Shape_GetTrianglesNext(const JPH_Shape *shape, JPH_Shape_GetTrianglesContext *ioContext, uint32_t maxTrianglesRequested, JPH_Float3 *outTriangleVertices, const JPH_PhysicsMaterial **outMaterials);

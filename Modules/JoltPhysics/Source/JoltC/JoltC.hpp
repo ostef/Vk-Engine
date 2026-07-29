@@ -1,6 +1,28 @@
 #pragma once
 
+#ifdef _MSC_VER
+#define JOLTC_SUPPRESS_WARNINGS() \
+    __pragma(warning (push)) \
+    __pragma(warning (disable : 4127)) \
+    __pragma(warning (disable : 4514)) \
+    __pragma(warning (disable : 4100))
+
+#define JOLTC_POP_WARNINGS() __pragma(warning (pop))
+#else
+#define JOLTC_SUPPRESS_WARNINGS()
+#define JOLTC_POP_WARNINGS()
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4820) // Padding added after data member
+#endif
+
 #include <JoltC.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <Jolt/Jolt.h>
 
@@ -122,6 +144,10 @@
         name##Wrapper(void *data, JPH_##name##_Funcs funcs, JPH_Allocator allocator) \
             : data(data), funcs(funcs), allocator(allocator) { \
         } \
+    \
+        name##Wrapper() = delete; \
+        name##Wrapper(const name##Wrapper &) = delete; \
+        name##Wrapper &operator=(const name##Wrapper &) = delete; \
     \
         virtual ~name##Wrapper() override { \
             if (funcs.Destruct) { \

@@ -66,6 +66,8 @@ Plane :: struct {
 
 #if OS == .LINUX {
     #load "jolt_linux.jai";
+} else #if OS == .WINDOWS {
+    #load "jolt_windows.jai";
 }
 
 #if !#exists(DOUBLE_PRECISION) {

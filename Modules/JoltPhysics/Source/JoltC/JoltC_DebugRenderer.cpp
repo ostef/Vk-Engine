@@ -1,5 +1,7 @@
 #include <JoltC.hpp>
 
+JOLTC_SUPPRESS_WARNINGS()
+
 #ifdef JPH_DEBUG_RENDERER
 
 BEGIN_INTERFACE_WRAPPER_CLASS(BodyDrawFilter);
@@ -59,3 +61,5 @@ void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer *self) {
 }
 
 #endif
+
+JOLTC_POP_WARNINGS()

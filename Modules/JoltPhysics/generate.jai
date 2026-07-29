@@ -54,7 +54,14 @@ GenerateBindings :: (shared_libs : bool, combined_shared_libs : bool) -> bool {
     generate_compile_time_struct_checks = false;
 
     output_filename: string;
-    #if OS == .LINUX {
+    #if OS == .WINDOWS {
+        output_filename = "jolt_windows.jai";
+
+        if !combined_shared_libs {
+            array_add(*libraries, .{filename="Libs/Windows/Jolt", identifier="Jolt"});
+        }
+        array_add(*libraries, .{filename="Libs/Windows/JoltC", identifier="JoltC"});
+    } else #if OS == .LINUX {
         output_filename = "jolt_linux.jai";
 
         if !combined_shared_libs {
@@ -104,6 +111,7 @@ BuildJoltC :: (build_shared_libs : bool, build_combined_shared_libs : bool, buil
 
         configure : [..]string;
         array_add(*configure, "cmake", "-B", ".build");
+        array_add(*configure, "-DUSE_STATIC_MSVC_RUNTIME_LIBRARY=ON");
         array_add(*configure, tprint("-DBUILD_SHARED_LIBS=%", ifx build_shared_libs then "ON" else "OFF"));
         array_add(*configure, tprint("-DJOLTC_BUILD_COMBINED_SHARED_LIBS=%", ifx build_combined_shared_libs then "ON" else "OFF"));
         array_add(*configure, tprint("-DCMAKE_BUILD_TYPE=%", build_type));
@@ -144,7 +152,36 @@ BuildJoltC :: (build_shared_libs : bool, build_combined_shared_libs : bool, buil
 
     log("Copying library files");
 
-    #if OS == .LINUX {
+    #if OS == .WINDOWS {
+        // Purge the lib directory because files with different configuration conflict each other
+        if run_command("rm", "-rf", "Libs/Windows").exit_code != 0 {
+            return false;
+        }
+
+        make_directory_if_it_does_not_exist("Libs/Windows", recursive=true);
+
+        if !build_combined_shared_libs {
+            if !copy_file("Source/JoltC/.build/_deps/joltphysics-build/Debug/Jolt.lib", "Libs/Windows/Jolt.lib") {
+                return false;
+            }
+            if !copy_file("Source/JoltC/.build/_deps/joltphysics-build/Debug/Jolt.pdb", "Libs/Windows/Jolt.pdb") {
+                return false;
+            }
+            if build_shared_libs && !copy_file("Source/JoltC/.build/_deps/joltphysics-build/Debug/Jolt.dll", "Libs/Windows/Jolt.dll") {
+                return false;
+            }
+        }
+
+        if !copy_file("Source/JoltC/.build/Debug/JoltC.lib", "Libs/Windows/JoltC.lib") {
+            return false;
+        }
+        if !copy_file("Source/JoltC/.build/Debug/JoltC.pdb", "Libs/Windows/JoltC.pdb") {
+            return false;
+        }
+        if (build_shared_libs || build_combined_shared_libs) && !copy_file("Source/JoltC/.build/Debug/JoltC.dll", "Libs/Windows/JoltC.dll") {
+            return false;
+        }
+    } else #if OS == .LINUX {
         // Purge the lib directory because files with different configuration conflict each other
         if run_command("rm", "-rf", "Libs/Linux").exit_code != 0 {
             return false;

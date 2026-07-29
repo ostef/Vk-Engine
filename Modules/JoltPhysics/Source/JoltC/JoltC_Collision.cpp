@@ -1,6 +1,6 @@
 #include <JoltC.hpp>
 
-#include <iostream>
+JOLTC_SUPPRESS_WARNINGS()
 
 BEGIN_INTERFACE_WRAPPER_CLASS(BroadPhaseLayerInterface);
 
@@ -194,7 +194,6 @@ BEGIN_INTERFACE_WRAPPER_CLASS(BodyFilter);
         } else {
             return ShouldCollide(body.GetID());
         }
-        return true;
     }
 
 END_INTERFACE_WRAPPER_CLASS();
@@ -388,3 +387,5 @@ bool JPH_NarrowPhaseQuery_CastRay(const JPH_NarrowPhaseQuery *query, JPH_RRayCas
 
     return ToCpp(query)->CastRay(ToCpp(ray), *ToCpp(ioHit), *ToCpp(broadPhaseLayerFilter), *ToCpp(objectLayerFilter), *ToCpp(bodyFilter));
 }
+
+JOLTC_POP_WARNINGS()
