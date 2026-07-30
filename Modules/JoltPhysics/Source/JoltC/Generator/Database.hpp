@@ -213,33 +213,6 @@ enum {
     Type_Named,
 };
 
-static const char *TypeKind_Str[] = {
-    "invalid",
-    "unknown",
-    "void",
-    "bool",
-    "char",
-    "uint8_t",
-    "uint16_t",
-    "uint32_t",
-    "uint64_t",
-    "uint128_t",
-    "int8_t",
-    "int16_t",
-    "int32_t",
-    "int64_t",
-    "int128_t",
-    "float",
-    "double",
-    "pointer",
-    "array",
-    "struct",
-    "enum",
-    "function",
-    "typedef",
-    "named",
-};
-
 typedef uint8_t TypeFlags;
 enum {
     TypeFlag_Const    = 1 << 0,

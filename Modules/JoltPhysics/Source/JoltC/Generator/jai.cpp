@@ -1,41 +1,5 @@
 #include <Jai.hpp>
 
-void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Struct *s) {
-    if (s->parent_struct) {
-        AppendJaiFullName(options, builder, s->parent_struct);
-        builder.Append(".");
-    }
-
-    builder.Append("%.*s", FStr(s->basename));
-}
-
-void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Enum *e) {
-    if (e->parent_struct) {
-        AppendJaiFullName(options, builder, e->parent_struct);
-        builder.Append(".");
-    }
-
-    builder.Append("%.*s", FStr(e->basename));
-}
-
-void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Typedef *t) {
-    if (t->parent_struct) {
-        AppendJaiFullName(options, builder, t->parent_struct);
-        builder.Append(".");
-    }
-
-    builder.Append("%.*s", FStr(t->basename));
-}
-
-void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Define *def) {
-    if (def->parent_struct) {
-        AppendJaiFullName(options, builder, def->parent_struct);
-        builder.Append(".");
-    }
-
-    builder.Append("%.*s", FStr(def->basename));
-}
-
 void AppendJaiType(const JaiGenerateOptions &options, StringBuilder &builder, Type *type, int indentation) {
     if (!type) {
         builder.AppendString("<null>");
@@ -172,9 +136,45 @@ void AppendJaiType(const JaiGenerateOptions &options, StringBuilder &builder, Ty
     }
 }
 
-void AppendJaiStruct(const JaiGenerateOptions &options, StringBuilder &builder, Struct *s, int indentation) {
+void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Struct *s) {
+    if (s->parent_struct) {
+        AppendJaiFullName(options, builder, s->parent_struct);
+        builder.Append(".");
+    }
+
+    builder.Append("%.*s", FStr(s->basename));
+}
+
+void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Enum *e) {
+    if (e->parent_struct) {
+        AppendJaiFullName(options, builder, e->parent_struct);
+        builder.Append(".");
+    }
+
+    builder.Append("%.*s", FStr(e->basename));
+}
+
+void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Typedef *t) {
+    if (t->parent_struct) {
+        AppendJaiFullName(options, builder, t->parent_struct);
+        builder.Append(".");
+    }
+
+    builder.Append("%.*s", FStr(t->basename));
+}
+
+void AppendJaiFullName(const JaiGenerateOptions &options, StringBuilder &builder, Define *def) {
+    if (def->parent_struct) {
+        AppendJaiFullName(options, builder, def->parent_struct);
+        builder.Append(".");
+    }
+
+    builder.Append("%.*s", FStr(def->basename));
+}
+
+bool AppendJaiStruct(const JaiGenerateOptions &options, StringBuilder &builder, Struct *s, int indentation) {
     if (options.strip_declarations.Contains(s->name)) {
-        return;
+        return false;
     }
 
     builder.Append("%.*s :: struct {\n", FStr(s->basename));
@@ -267,11 +267,13 @@ void AppendJaiStruct(const JaiGenerateOptions &options, StringBuilder &builder, 
     }
 
     builder.Append("}\n");
+
+    return true;
 }
 
-void AppendJaiEnum(const JaiGenerateOptions &options, StringBuilder &builder, Enum *e, int indentation) {
+bool AppendJaiEnum(const JaiGenerateOptions &options, StringBuilder &builder, Enum *e, int indentation) {
     if (options.strip_declarations.Contains(e->name)) {
-        return;
+        return false;
     }
 
     auto real_name = e->associated_typedef ? e->associated_typedef->basename : e->basename;
@@ -300,21 +302,25 @@ void AppendJaiEnum(const JaiGenerateOptions &options, StringBuilder &builder, En
 
     builder.AppendIndentation(indentation);
     builder.Append("}\n");
+
+    return true;
 }
 
-void AppendJaiTypedef(const JaiGenerateOptions &options, StringBuilder &builder, Typedef *t, int indentation) {
+bool AppendJaiTypedef(const JaiGenerateOptions &options, StringBuilder &builder, Typedef *t, int indentation) {
     if (options.strip_declarations.Contains(t->name)) {
-        return;
+        return false;
     }
 
     builder.Append("%.*s :: ", FStr(t->basename));
     AppendJaiType(options, builder, t->type, indentation);
     builder.Append(";\n");
+
+    return true;
 }
 
-void AppendJaiFunction(const JaiGenerateOptions &options, StringBuilder &builder, Function *func, int indentation) {
+bool AppendJaiFunction(const JaiGenerateOptions &options, StringBuilder &builder, Function *func, int indentation) {
     if (options.strip_declarations.Contains(func->name)) {
-        return;
+        return false;
     }
 
     builder.Append("%.*s :: (", FStr(func->basename));
@@ -334,11 +340,13 @@ void AppendJaiFunction(const JaiGenerateOptions &options, StringBuilder &builder
     AppendJaiType(options, builder, func->return_type, indentation);
 
     builder.Append(" #foreign JoltC \"%.*s\";\n", FStr(func->name));
+
+    return true;
 }
 
-void AppendJaiDefine(const JaiGenerateOptions &options, StringBuilder &builder, Define *def, int indentation) {
+bool AppendJaiDefine(const JaiGenerateOptions &options, StringBuilder &builder, Define *def, int indentation) {
     if (options.strip_declarations.Contains(def->name)) {
-        return;
+        return false;
     }
 
     builder.Append("%.*s :: ", FStr(def->basename));
@@ -373,4 +381,67 @@ void AppendJaiDefine(const JaiGenerateOptions &options, StringBuilder &builder, 
     }
 
     builder.Append(";\n");
+
+    return true;
+}
+
+void AppendJaiCode(const JaiGenerateOptions &options, const Database &db, StringBuilder &builder) {
+    builder.Append("// Defines\n\n");
+
+    for (int64_t i = 0; i < db.all_defines.count; i += 1) {
+        auto def = db.all_defines[i];
+        if (def->parent_struct) {
+            continue;
+        }
+
+        AppendJaiDefine(options, builder, def, 0);
+    }
+
+    builder.Append("\n// Typedefs\n\n");
+
+    for (int64_t i = 0; i < db.all_typedefs.count; i += 1) {
+        auto t = db.all_typedefs[i];
+        if (t->parent_struct || t->associated_enum || t->associated_struct) {
+            continue;
+        }
+
+        AppendJaiTypedef(options, builder, t, 0);
+    }
+
+    builder.Append("\n// Enums\n\n");
+
+    for (int64_t i = 0; i < db.all_enums.count; i += 1) {
+        auto e = db.all_enums[i];
+        if (e->parent_struct) {
+            continue;
+        }
+
+        if (AppendJaiEnum(options, builder, e, 0)) {
+            builder.Append("\n");
+        }
+    }
+
+    builder.Append("// Structs\n\n");
+
+    for (int64_t i = 0; i < db.all_structs.count; i += 1) {
+        auto s = db.all_structs[i];
+        if (s->parent_struct) {
+            continue;
+        }
+
+        if (AppendJaiStruct(options, builder, s, 0)) {
+            builder.Append("\n");
+        }
+    }
+
+    builder.Append("// Functions\n\n");
+
+    for (int64_t i = 0; i < db.all_functions.count; i += 1) {
+        auto func = db.all_functions[i];
+        if (func->parent_struct) {
+            continue;
+        }
+
+        AppendJaiFunction(options, builder, func, 0);
+    }
 }

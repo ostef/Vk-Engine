@@ -7,13 +7,13 @@ int g_num_errors;
 void Error(const char *fmt, ...) {
     va_list va;
 
-    printf("\x1b[1;31mError:\x1b[0m ");
+    fprintf(stderr, "\x1b[1;31mError:\x1b[0m ");
 
     va_start(va, fmt);
-    vprintf(fmt, va);
+    vfprintf(stderr, fmt, va);
     va_end(va);
 
-    printf("\n");
+    fprintf(stderr, "\n");
 
     g_num_errors += 1;
 }
@@ -21,13 +21,13 @@ void Error(const char *fmt, ...) {
 void ErrorExit(const char *fmt, ...) {
     va_list va;
 
-    printf("\x1b[1;31mError:\x1b[0m ");
+    fprintf(stderr, "\x1b[1;31mError:\x1b[0m ");
 
     va_start(va, fmt);
-    vprintf(fmt, va);
+    vfprintf(stderr, fmt, va);
     va_end(va);
 
-    printf("\n");
+    fprintf(stderr, "\n");
 
     exit(1);
 }

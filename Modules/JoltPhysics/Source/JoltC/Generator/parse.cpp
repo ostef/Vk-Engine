@@ -22,27 +22,18 @@ Typedef *ParseTypedef(ParseContext &ctx, CXCursor cursor);
     if (in_system_header) { \
         return CXChildVisit_Continue; \
     } \
-    enum CXCursorKind parent_kind = clang_getCursorKind(parent); \
     enum CXCursorKind kind = clang_getCursorKind(cursor);
 
 static
 enum CXChildVisitResult StructVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data) {
     VISITOR_PREAMBLE();
 
-    SourceCodeRange range = GetSourceCodeRange(cursor);
-
-    // const char *name = clang_getCString(clang_getCursorSpelling(cursor));
-    // if (name && name[0]) {
-    //     printf("%s %d %s (%s) at %s:%d:%d\n", GetDeclName(parent), kind, clang_getCString(clang_getCursorKindSpelling(kind)), name, range.filename, (int)range.start_line, (int)range.start_character);
-    // } else {
-    //     printf("%s %d %s at %s:%d:%d\n", GetDeclName(parent), kind, clang_getCString(clang_getCursorKindSpelling(kind)), range.filename, (int)range.start_line, (int)range.start_character);
-    // }
-
     switch (kind) {
         case CXCursor_VarDecl:
         case CXCursor_FieldDecl: {
             ParseVariable(ctx, cursor);
         } break;
+        default: break;
     }
 
     return CXChildVisit_Continue;
@@ -91,6 +82,7 @@ enum CXChildVisitResult EnumVisitor(CXCursor cursor, CXCursor parent, CXClientDa
         case CXCursor_EnumConstantDecl: {
             ctx.parent_enum->values.Push(EnumValue(cursor));
         } break;
+        default: break;
     }
 
     return CXChildVisit_Continue;
@@ -122,14 +114,13 @@ enum CXChildVisitResult FunctionVisitor(CXCursor cursor, CXCursor parent, CXClie
             Variable *var = ParseVariable(ctx, cursor);
             ctx.parent_func->parameters.Push(var);
         } break;
+        default: break;
     }
 
     return CXChildVisit_Continue;
 }
 
 Function *ParseFunction(ParseContext &ctx, CXCursor cursor) {
-    enum CXCursorKind kind = clang_getCursorKind(cursor);
-
     Function *func = new Function(cursor);
     ctx.db.all_functions.Push(func);
 
@@ -159,7 +150,6 @@ Typedef *ParseTypedef(ParseContext &ctx, CXCursor cursor) {
 }
 
 Define *ParseDefine(ParseContext &ctx, CXCursor cursor) {
-    bool function_like = clang_Cursor_isMacroFunctionLike(cursor);
     if (clang_Cursor_isMacroFunctionLike(cursor)) {
         return nullptr;
     }
@@ -187,21 +177,21 @@ Define *ParseDefine(ParseContext &ctx, CXCursor cursor) {
         tok->text = strdup(clang_getCString(clang_getTokenSpelling(ctx.tu, clang_tok)));
 
         switch (clang_getTokenKind(clang_tok)) {
-        case CXToken_Punctuation: {
-            tok->kind = Token_Punctuation;
-        } break;
-        case CXToken_Keyword: {
-            tok->kind = Token_Keyword;
-        } break;
-        case CXToken_Identifier: {
-            tok->kind = Token_Identifier;
-        } break;
-        case CXToken_Literal: {
-            tok->kind = Token_Literal;
-        } break;
-        case CXToken_Comment: {
-            tok->kind = Token_Comment;
-        } break;
+            case CXToken_Punctuation: {
+                tok->kind = Token_Punctuation;
+            } break;
+            case CXToken_Keyword: {
+                tok->kind = Token_Keyword;
+            } break;
+            case CXToken_Identifier: {
+                tok->kind = Token_Identifier;
+            } break;
+            case CXToken_Literal: {
+                tok->kind = Token_Literal;
+            } break;
+            case CXToken_Comment: {
+                tok->kind = Token_Comment;
+            } break;
         }
     }
 
@@ -242,6 +232,8 @@ enum CXChildVisitResult TopLevelVisitor(CXCursor cursor, CXCursor parent, CXClie
         case CXCursor_FunctionDecl: {
             ParseFunction(ctx, cursor);
         } break;
+
+        default: break;
     }
 
     return CXChildVisit_Continue;
@@ -411,6 +403,7 @@ void ParseFiles(const ParseOptions &options, Database &db) {
                     const char *cstr = clang_getCString(str);
                     printf("%s\n", cstr);
                 } break;
+                default: break;
             }
         }
     }

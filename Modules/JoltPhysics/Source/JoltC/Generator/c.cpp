@@ -20,6 +20,33 @@ void AppendType(StringBuilder &builder, Type *type, int indentation) {
 }
 
 void AppendTypePrefix(StringBuilder &builder, Type *type, int indentation) {
+    static const char *TypeKind_Str[] = {
+        "invalid",
+        "unknown",
+        "void",
+        "bool",
+        "char",
+        "uint8_t",
+        "uint16_t",
+        "uint32_t",
+        "uint64_t",
+        "uint128_t",
+        "int8_t",
+        "int16_t",
+        "int32_t",
+        "int64_t",
+        "int128_t",
+        "float",
+        "double",
+        "pointer",
+        "array",
+        "struct",
+        "enum",
+        "function",
+        "typedef",
+        "named",
+    };
+
     if (!type) {
         builder.AppendString("<null>");
         return;

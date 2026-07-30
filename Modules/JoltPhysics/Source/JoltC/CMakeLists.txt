@@ -190,3 +190,4 @@ else()
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/Examples/HelloWorld.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/Generator/Generator.cmake)

@@ -52,10 +52,7 @@ Define *Database::GetDefine(const String &name) const {
 }
 
 Type *Database::GetType(CXType type) {
-    CXType original_type = type;
-
     int64_t size = clang_Type_getSizeOf(type);
-    int64_t alignment = clang_Type_getAlignOf(type);
 
     Type *result = nullptr;
     TypeFlags flags = 0;
@@ -414,47 +411,47 @@ void Database::PostProcess(const PostProcessOptions &options) {
 }
 
 Struct::Struct(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 EnumValue::EnumValue(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)),
       signed_value(clang_getEnumConstantDeclValue(cursor)),
       unsigned_value(clang_getEnumConstantDeclUnsignedValue(cursor)) {}
 
 Enum::Enum(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Typedef::Typedef(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Variable::Variable(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Function::Function(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Define::Define(CXCursor cursor)
-    : name(GetDeclName(cursor)),
+    : source_code_range(GetSourceCodeRange(cursor)),
+      name(GetDeclName(cursor)),
       basename(name),
-      source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 String GetDeclName(CXCursor cursor) {
@@ -464,8 +461,10 @@ String GetDeclName(CXCursor cursor) {
 
     CXString spelling = clang_getCursorSpelling(cursor);
     const char *str = clang_getCString(spelling);
+    str = strdup(str);
+    clang_disposeString(spelling);
 
-    return String(strdup(str));
+    return String(str);
 }
 
 SourceCodeRange GetSourceCodeRange(CXSourceRange range) {

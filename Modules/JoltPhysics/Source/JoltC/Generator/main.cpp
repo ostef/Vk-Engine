@@ -4,13 +4,57 @@
 #include <Jai.hpp>
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
+    if (argc == 1) {
+        printf("Usage: Generator files... -l {output_language} [options...]\n");
+        printf("Valid options are:\n");
+        printf("  -I {include_dir}: set an include directory\n");
+        printf("  -D {definition}: set a compiler define\n");
+        printf("  -o {output_file}: set the output file (default is stdout)\n");
+        exit(1);
+    }
 
     ParseOptions options = {};
-    options.defines.Push("JPH_DEBUG_RENDERER");
-    options.include_dirs.Push("..");
-    options.files.Push("../JoltC.h");
+
+    String output_filename;
+    String output_language;
+    for (int i = 1; i < argc; i += 1) {
+        String arg = argv[i];
+        if (arg == "-o") {
+            if (i == argc - 1) {
+                ErrorExit("Expected argument to -o option");
+            }
+
+            i += 1;
+            output_filename = argv[i];
+        } else if (arg == "-I") {
+            if (i == argc - 1) {
+                ErrorExit("Expected argument to -I option");
+            }
+
+            i += 1;
+            options.include_dirs.Push(argv[i]);
+        } else if (arg == "-D") {
+            if (i == argc - 1) {
+                ErrorExit("Expected argument to -D option");
+            }
+
+            i += 1;
+            options.defines.Push(argv[i]);
+        } else if (arg == "-l") {
+            if (i == argc - 1) {
+                ErrorExit("Expected argument to -l option");
+            }
+
+            i += 1;
+            output_language = argv[i];
+        } else {
+            options.files.Push(arg);
+        }
+    }
+
+    if (output_language == "") {
+        ErrorExit("You need to set the output language with to -l option");
+    }
 
     Database db = {};
     ParseFiles(options, db);
@@ -28,6 +72,7 @@ int main(int argc, char **argv) {
     generate_options.strip_declarations.Push("JOLTC_API");
     generate_options.strip_declarations.Push("JOLTC_VERSION_FEATURES");
 
+    // Only pick-up the JOLTC #defines
     generate_options.strip_declarations.Push("JPH_DOUBLE_PRECISION");
     generate_options.strip_declarations.Push("JPH_CROSS_PLATFORM_DETERMINISTIC");
     generate_options.strip_declarations.Push("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
@@ -52,67 +97,16 @@ int main(int argc, char **argv) {
 
     StringBuilder builder;
 
-    builder.Append("// Defines\n\n");
-
-    for (int64_t i = 0; i < db.all_defines.count; i += 1) {
-        auto def = db.all_defines[i];
-        if (def->parent_struct) {
-            continue;
-        }
-
-        AppendJaiDefine(generate_options, builder, def, 0);
-    }
-
-    builder.Append("\n// Typedefs\n\n");
-
-    for (int64_t i = 0; i < db.all_typedefs.count; i += 1) {
-        auto t = db.all_typedefs[i];
-        if (t->parent_struct || t->associated_enum || t->associated_struct) {
-            continue;
-        }
-
-        AppendJaiTypedef(generate_options, builder, t, 0);
-    }
-
-    builder.Append("\n// Enums\n\n");
-
-    for (int64_t i = 0; i < db.all_enums.count; i += 1) {
-        auto e = db.all_enums[i];
-        if (e->parent_struct) {
-            continue;
-        }
-
-        AppendJaiEnum(generate_options, builder, e, 0);
-        builder.Append("\n");
-    }
-
-    builder.Append("// Structs\n\n");
-
-    for (int64_t i = 0; i < db.all_structs.count; i += 1) {
-        auto s = db.all_structs[i];
-        if (s->parent_struct) {
-            continue;
-        }
-
-        AppendJaiStruct(generate_options, builder, s, 0);
-        builder.Append("\n");
-    }
-
-    builder.Append("// Functions\n\n");
-
-    for (int64_t i = 0; i < db.all_functions.count; i += 1) {
-        auto func = db.all_functions[i];
-        if (func->parent_struct) {
-            continue;
-        }
-
-        AppendJaiFunction(generate_options, builder, func, 0);
+    if (output_language == "jai") {
+        AppendJaiCode(generate_options, db, builder);
+    } else {
+        ErrorExit("Invalid language %*s", FStr(output_language));
     }
 
     auto str = builder.Build();
-    // printf("%.*s", FStr(str));
-
-    if (WriteEntireFile("../../../jolt_linux.jai", str.data, str.count) <= 0) {
-        Error("Could not write file '../../../jolt_linux.jai'");
+    if (output_filename == "") {
+        printf("%.*s", FStr(str));
+    } else if (WriteEntireFile(output_filename.ToCStr(), str.data, str.count) <= 0) {
+        Error("Could not write file '%.*s'", FStr(output_filename));
     }
 }
