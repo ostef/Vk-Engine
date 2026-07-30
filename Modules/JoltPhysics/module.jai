@@ -60,6 +60,10 @@ Quat :: struct {
 }
 
 #if OS == .LINUX {
+    #if !BUILD_COMBINED_SHARED_LIBS {
+        Jolt :: #library "./Libs/Linux/libJolt";
+    }
+
     JoltC :: #library "./Libs/Linux/libJoltC";
 
     #load "jolt_linux.jai";

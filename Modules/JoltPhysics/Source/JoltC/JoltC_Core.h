@@ -312,15 +312,15 @@ typedef struct JPH_PhysicsSettings {
     bool checkActiveEdges;
 } JPH_PhysicsSettings;
 
-JOLTC_API JPH_TempAllocator *JPH_TempAllocatorImpl_Create(size_t size);
-JOLTC_API JPH_TempAllocator *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size);
-JOLTC_API JPH_TempAllocator *JPH_TempAllocatorMalloc_Create();
+JOLTC_API JPH_TempAllocatorImpl *JPH_TempAllocatorImpl_Create(size_t size);
+JOLTC_API JPH_TempAllocatorImplWithMallocFallback *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size);
+JOLTC_API JPH_TempAllocatorMalloc *JPH_TempAllocatorMalloc_Create();
 JOLTC_API void JPH_TempAllocator_Destroy(JPH_TempAllocator *allocator);
 JOLTC_API void *JPH_TempAllocator_Allocate(JPH_TempAllocator *allocator, uint32_t size);
 JOLTC_API void JPH_TempAllocator_Free(JPH_TempAllocator *allocator, void *ptr, uint32_t size);
 
-JOLTC_API JPH_JobSystem *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs);
-JOLTC_API JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads);
+JOLTC_API JPH_JobSystemSingleThreaded *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs);
+JOLTC_API JPH_JobSystemThreadPool *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads);
 JOLTC_API void JPH_JobSystem_Destroy(JPH_JobSystem *job_system);
 
 // @Todo: ifdef custom allocators

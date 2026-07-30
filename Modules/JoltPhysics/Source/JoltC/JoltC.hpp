@@ -183,7 +183,12 @@ DEFINE_CONVERSION_FUNCTIONS(JPH_PhysicsSystem, JPH::PhysicsSystem);
 DEFINE_CONVERSION_FUNCTIONS(JPH_BodyInterface, JPH::BodyInterface);
 DEFINE_CONVERSION_FUNCTIONS(JPH_BodyLockInterface, JPH::BodyLockInterface);
 DEFINE_CONVERSION_FUNCTIONS(JPH_TempAllocator, JPH::TempAllocator);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TempAllocatorImpl, JPH::TempAllocatorImpl);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TempAllocatorImplWithMallocFallback, JPH::TempAllocatorImplWithMallocFallback);
+DEFINE_CONVERSION_FUNCTIONS(JPH_TempAllocatorMalloc, JPH::TempAllocatorMalloc);
 DEFINE_CONVERSION_FUNCTIONS(JPH_JobSystem, JPH::JobSystem);
+DEFINE_CONVERSION_FUNCTIONS(JPH_JobSystemThreadPool, JPH::JobSystemThreadPool);
+DEFINE_CONVERSION_FUNCTIONS(JPH_JobSystemSingleThreaded, JPH::JobSystemSingleThreaded);
 DEFINE_CONVERSION_FUNCTIONS(JPH_SharedMutex, JPH::SharedMutex);
 
 // Collision

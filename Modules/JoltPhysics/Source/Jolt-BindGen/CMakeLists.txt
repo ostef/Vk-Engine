@@ -1,3 +1,11 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
+project(Jolt-BindGen LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD          17)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS        OFF)
+
 find_package(LLVM REQUIRED CONFIG
     NO_CMAKE_ENVIRONMENT_PATH
     NO_SYSTEM_ENVIRONMENT_PATH
@@ -31,15 +39,16 @@ endif()
 
 message(STATUS "Found libclang: ${LIBCLANG_LIBRARY}")
 
-set(GENERATOR_SRC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Generator/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Generator/core.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Generator/database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Generator/parse.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Generator/jai.cpp
+set(JOLT_BINDGEN_SRC_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/parse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/jai.cpp
 )
 
-add_executable(Generator ${GENERATOR_SRC_FILES})
-target_include_directories(Generator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Generator)
-target_include_directories(Generator PRIVATE ${LLVM_INCLUDE_DIRS})
-target_link_libraries(Generator PRIVATE ${LIBCLANG_LIBRARY})
+add_executable(Jolt-BindGen ${JOLT_BINDGEN_SRC_FILES})
+
+target_include_directories(Jolt-BindGen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(Jolt-BindGen PRIVATE ${LLVM_INCLUDE_DIRS})
+target_link_libraries(Jolt-BindGen PRIVATE ${LIBCLANG_LIBRARY})

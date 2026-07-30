@@ -18,4 +18,5 @@ bool AppendJaiEnum(const JaiGenerateOptions &options, StringBuilder &builder, En
 bool AppendJaiTypedef(const JaiGenerateOptions &options, StringBuilder &builder, Typedef *t, int indentation);
 bool AppendJaiFunction(const JaiGenerateOptions &options, StringBuilder &builder, Function *func, int indentation);
 bool AppendJaiDefine(const JaiGenerateOptions &options, StringBuilder &builder, Define *def, int indentation);
+
 void AppendJaiCode(const JaiGenerateOptions &options, const Database &db, StringBuilder &builder);

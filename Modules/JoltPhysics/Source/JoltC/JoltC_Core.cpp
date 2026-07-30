@@ -203,16 +203,16 @@ uint64_t JPH_GetJoltVersionID() {
     return JPH_VERSION_ID;
 }
 
-JPH_TempAllocator *JPH_TempAllocatorImpl_Create(size_t size) {
-    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorImpl(size)));
+JPH_TempAllocatorImpl *JPH_TempAllocatorImpl_Create(size_t size) {
+    return ToC(new JPH::TempAllocatorImpl(size));
 }
 
-JPH_TempAllocator *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size) {
-    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorImplWithMallocFallback(size)));
+JPH_TempAllocatorImplWithMallocFallback *JPH_TempAllocatorImplWithMallocFallback_Create(uint32_t size) {
+    return ToC(new JPH::TempAllocatorImplWithMallocFallback(size));
 }
 
-JPH_TempAllocator *JPH_TempAllocatorMalloc_Create() {
-    return ToC(static_cast<JPH::TempAllocator *>(new JPH::TempAllocatorMalloc));
+JPH_TempAllocatorMalloc *JPH_TempAllocatorMalloc_Create() {
+    return ToC(new JPH::TempAllocatorMalloc);
 }
 
 void JPH_TempAllocator_Destroy(JPH_TempAllocator *allocator) {
@@ -227,12 +227,12 @@ void JPH_TempAllocator_Free(JPH_TempAllocator *allocator, void *ptr, uint32_t si
     ToCpp(allocator)->Free(ptr, size);
 }
 
-JPH_JobSystem *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs) {
-    return ToC(static_cast<JPH::JobSystem *>(new JPH::JobSystemSingleThreaded(maxJobs)));
+JPH_JobSystemSingleThreaded *JPH_JobSystemSingleThreaded_Create(uint32_t maxJobs) {
+    return ToC(new JPH::JobSystemSingleThreaded(maxJobs));
 }
 
-JPH_JobSystem *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads) {
-    return ToC(static_cast<JPH::JobSystem *>(new JPH::JobSystemThreadPool(maxJobs, maxBarriers, numThreads)));
+JPH_JobSystemThreadPool *JPH_JobSystemThreadPool_Create(uint32_t maxJobs, uint32_t maxBarriers, int numThreads) {
+    return ToC(new JPH::JobSystemThreadPool(maxJobs, maxBarriers, numThreads));
 }
 
 void JPH_JobSystem_Destroy(JPH_JobSystem *job_system) {

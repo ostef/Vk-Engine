@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
     JPH_CreateFactory();
     JPH_RegisterTypes();
 
-    JPH_TempAllocator *tempAllocator = JPH_TempAllocatorImpl_Create(1 * 1024 * 1024);
-    JPH_JobSystem *jobSystem = JPH_JobSystemThreadPool_Create(JPH_cMaxPhysicsJobs, JPH_cMaxPhysicsBarriers, -1);
+    JPH_TempAllocatorImpl *tempAllocator = JPH_TempAllocatorImpl_Create(1 * 1024 * 1024);
+    JPH_JobSystemThreadPool *jobSystem = JPH_JobSystemThreadPool_Create(JPH_cMaxPhysicsJobs, JPH_cMaxPhysicsBarriers, -1);
 
     JPH_BroadPhaseLayerInterfaceTable *bplInterface = JPH_BroadPhaseLayerInterfaceTable_Create(2, 2);
     JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bplInterface, ObjectLayer_NonMoving, BroadPhaseLayer_NonMoving);
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
         printf("Step %d: Position = (%f, %f, %f), Velocity = (%f, %f, %f)\n", step, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
 
         const int cCollisionSteps = 1;
-        JPH_PhysicsSystem_Update(system, cDeltaTime, cCollisionSteps, tempAllocator, jobSystem);
+        JPH_PhysicsSystem_Update(system, cDeltaTime, cCollisionSteps, &tempAllocator->base, &jobSystem->base);
 
         const JPH_NarrowPhaseQuery *query = JPH_PhysicsSystem_GetNarrowPhaseQuery(system);
 
@@ -149,8 +149,8 @@ int main(int argc, char **argv) {
     JPH_ObjectLayerPairFilter_Destroy(&objectLayerPairFilter->base);
     JPH_BroadPhaseLayerInterface_Destroy(&bplInterface->base);
 
-    JPH_JobSystem_Destroy(jobSystem);
-    JPH_TempAllocator_Destroy(tempAllocator);
+    JPH_JobSystem_Destroy(&jobSystem->base);
+    JPH_TempAllocator_Destroy(&tempAllocator->base);
 
     JPH_UnregisterTypes();
     JPH_DestroyFactory();
