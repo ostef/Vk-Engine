@@ -81,7 +81,7 @@ typedef struct JPH_BroadPhaseLayerInterface_Funcs {
 #endif
 } JPH_BroadPhaseLayerInterface_Funcs;
 
-JOLTC_API JPH_BroadPhaseLayerInterface *JPH_BroadPhaseLayerInterface_Create(void *data, JPH_BroadPhaseLayerInterface_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_BroadPhaseLayerInterface *JPH_BroadPhaseLayerInterface_Create(void *data, JPH_BroadPhaseLayerInterface_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_BroadPhaseLayerInterface_Destroy(JPH_BroadPhaseLayerInterface *self);
 JOLTC_API uint32_t JPH_BroadPhaseLayerInterface_GetNumBroadPhaseLayers(const JPH_BroadPhaseLayerInterface *bplInterface);
 JOLTC_API JPH_BroadPhaseLayer JPH_BroadPhaseLayerInterface_GetBroadPhaseLayer(const JPH_BroadPhaseLayerInterface *bplInterface, JPH_ObjectLayer objectLayer);
@@ -106,7 +106,7 @@ typedef struct JPH_ObjectLayerPairFilter_Funcs {
     bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2);
 } JPH_ObjectLayerPairFilter_Funcs;
 
-JOLTC_API JPH_ObjectLayerPairFilter *JPH_ObjectLayerPairFilter_Create(void *data, JPH_ObjectLayerPairFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_ObjectLayerPairFilter *JPH_ObjectLayerPairFilter_Create(void *data, JPH_ObjectLayerPairFilter_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_ObjectLayerPairFilter_Destroy(JPH_ObjectLayerPairFilter *self);
 JOLTC_API bool JPH_ObjectLayerPairFilter_ShouldCollide(const JPH_ObjectLayerPairFilter *filter, JPH_ObjectLayer layer1, JPH_ObjectLayer layer2);
 
@@ -128,7 +128,7 @@ typedef struct JPH_ObjectVsBroadPhaseLayerFilter_Funcs {
     bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_ObjectLayer layer1, JPH_BroadPhaseLayer layer2);
 } JPH_ObjectVsBroadPhaseLayerFilter_Funcs;
 
-JOLTC_API JPH_ObjectVsBroadPhaseLayerFilter *JPH_ObjectVsBroadPhaseLayerFilter_Create(void *data, JPH_ObjectVsBroadPhaseLayerFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_ObjectVsBroadPhaseLayerFilter *JPH_ObjectVsBroadPhaseLayerFilter_Create(void *data, JPH_ObjectVsBroadPhaseLayerFilter_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_ObjectVsBroadPhaseLayerFilter_Destroy(JPH_ObjectVsBroadPhaseLayerFilter *self);
 JOLTC_API bool JPH_ObjectVsBroadPhaseLayerFilter_ShouldCollide(const JPH_ObjectVsBroadPhaseLayerFilter *filter, JPH_ObjectLayer objectLayer, JPH_BroadPhaseLayer broadPhaseLayer);
 
@@ -140,7 +140,7 @@ typedef struct JPH_BroadPhaseLayerFilter_Funcs {
     bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_BroadPhaseLayer layer);
 } JPH_BroadPhaseLayerFilter_Funcs;
 
-JOLTC_API JPH_BroadPhaseLayerFilter *JPH_BroadPhaseLayerFilter_Create(void *data, JPH_BroadPhaseLayerFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_BroadPhaseLayerFilter *JPH_BroadPhaseLayerFilter_Create(void *data, JPH_BroadPhaseLayerFilter_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_BroadPhaseLayerFilter_Destroy(JPH_BroadPhaseLayerFilter *self);
 
 typedef struct JPH_ObjectLayerFilter_Funcs {
@@ -148,7 +148,7 @@ typedef struct JPH_ObjectLayerFilter_Funcs {
     bool (JOLTC_CALL *ShouldCollide)(const void *data, JPH_ObjectLayer layer);
 } JPH_ObjectLayerFilter_Funcs;
 
-JOLTC_API JPH_ObjectLayerFilter *JPH_ObjectLayerFilter_Create(void *data, JPH_ObjectLayerFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_ObjectLayerFilter *JPH_ObjectLayerFilter_Create(void *data, JPH_ObjectLayerFilter_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_ObjectLayerFilter_Destroy(JPH_ObjectLayerFilter *self);
 
 typedef struct JPH_BodyFilter_Funcs {
@@ -157,10 +157,10 @@ typedef struct JPH_BodyFilter_Funcs {
     bool (JOLTC_CALL *ShouldCollideLocked)(const void *data, const struct JPH_Body *body);
 } JPH_BodyFilter_Funcs;
 
-JOLTC_API JPH_BodyFilter *JPH_BodyFilter_Create(void *data, JPH_BodyFilter_Funcs funcs, JPH_Allocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_Allocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_Allocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_Allocator allocator);
+JOLTC_API JPH_BodyFilter *JPH_BodyFilter_Create(void *data, JPH_BodyFilter_Funcs funcs, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_BodyFilter_Destroy(JPH_BodyFilter *self);
 
 typedef struct JPH_ShapeFilter_Funcs {
@@ -169,8 +169,8 @@ typedef struct JPH_ShapeFilter_Funcs {
     bool (JOLTC_CALL *ShapesShouldCollide)(const void *data, const JPH_Shape *shape1, JPH_SubShapeID subShapeIDOfShape1, const JPH_Shape *shape2, JPH_SubShapeID subShapeIDOfShape2);
 } JPH_ShapeFilter_Funcs;
 
-JOLTC_API JPH_ShapeFilter *JPH_ShapeFilter_Create(void *data, JPH_ShapeFilter_Funcs funcs, JPH_Allocator allocator);
-JOLTC_API JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_Allocator allocator);
+JOLTC_API JPH_ShapeFilter *JPH_ShapeFilter_Create(void *data, JPH_ShapeFilter_Funcs funcs, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_ShapeFilter_Destroy(JPH_ShapeFilter *self);
 
 // Default filters
@@ -181,7 +181,7 @@ typedef struct JPH_DefaultBroadPhaseLayerFilter {
 } JPH_DefaultBroadPhaseLayerFilter;
 
 JOLTC_API bool JPH_DefaultBroadPhaseLayerFilter_ShouldCollide(const void *data, JPH_BroadPhaseLayer layer);
-JOLTC_API const JPH_BroadPhaseLayerFilter *JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_Allocator allocator);
+JOLTC_API const JPH_BroadPhaseLayerFilter *JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_JoltCAllocator allocator);
 
 typedef struct JPH_DefaultObjectLayerFilter {
     const JPH_ObjectLayerPairFilter *objectLayerPairFilter;
@@ -189,7 +189,7 @@ typedef struct JPH_DefaultObjectLayerFilter {
 } JPH_DefaultObjectLayerFilter;
 
 JOLTC_API bool JPH_DefaultObjectLayerFilter_ShouldCollide(const void *data, JPH_ObjectLayer layer);
-JOLTC_API const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_DefaultObjectLayerFilter *filter, JPH_Allocator allocator);
+JOLTC_API const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_DefaultObjectLayerFilter *filter, JPH_JoltCAllocator allocator);
 
 typedef struct JPH_RayCast {
     JPH_Vec3 origin;

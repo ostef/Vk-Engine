@@ -37,21 +37,38 @@ struct Database {
     Array<Typedef *> all_typedefs;
     Array<Variable *> all_variables;
     Array<Function *> all_functions;
+    Array<Type *> all_types;
 
     Struct *GetStruct(const String &name) const;
     Enum *GetEnum(const String &name) const;
     Typedef *GetTypedef(const String &name) const;
     Function *GetFunction(const String &name) const;
-    Type *GetType(CXType type) const;
+    Type *GetType(CXType type);
+
+    struct PostProcessOptions {
+        Array<String> strip_prefixes;
+    };
+
+    void PostProcess(const PostProcessOptions &options);
 };
 
 struct Struct {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
     bool is_union;
 
     Array<Variable *> fields;
+
+    // Filled in after everything has been parsed
+    Struct *parent_struct = nullptr;
+    Struct *base_struct = nullptr;
+    Array<Struct *> sub_structs;
+    Array<Enum *> sub_enums;
+    Array<Typedef *> sub_typedefs;
+    Array<Function *> methods;
+    Array<Function *> functions;
 
     Struct(CXCursor cursor);
 };
@@ -59,6 +76,7 @@ struct Struct {
 struct EnumValue {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
     int64_t signed_value = 0;
     uint64_t unsigned_value = 0;
@@ -69,9 +87,14 @@ struct EnumValue {
 struct Enum {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
     Array<EnumValue> values;
     Type *base_type = nullptr;
+
+    // Filled in after everything has been parsed
+    Typedef *associated_typedef = nullptr;
+    Struct *parent_struct = nullptr;
 
     Enum(CXCursor cursor);
 };
@@ -79,8 +102,14 @@ struct Enum {
 struct Typedef {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
     Type *type;
+
+    // Filled in after everything has been parsed
+    Struct *parent_struct = nullptr;
+    Enum *associated_enum = nullptr;
+    Struct *associated_struct = nullptr;
 
     Typedef(CXCursor cursor);
 };
@@ -88,6 +117,7 @@ struct Typedef {
 struct Variable {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
 
     Type *type = nullptr;
@@ -95,14 +125,25 @@ struct Variable {
     Variable(CXCursor cursor);
 };
 
+typedef uint8_t FunctionFlags;
+enum {
+    FunctionFlag_Method = 1 << 0,
+    FunctionFlag_Const  = 1 << 1,
+};
+
 struct Function {
     SourceCodeRange source_code_range;
     String name;
+    String basename;
     CXCursor cursor;
 
     TypeFunction *type = nullptr;
     Array<Variable *> parameters;
     Type *return_type = nullptr;
+
+    // Filled in after everything has been parsed
+    Struct *parent_struct = nullptr;
+    FunctionFlags flags = 0;
 
     Function(CXCursor cursor);
 };
@@ -217,8 +258,15 @@ struct TypeTypedef : Type {
 struct TypeNamed : Type {
     String name;
 
+    // Filled in after everything has been parsed
+    Struct *resolved_struct = nullptr;
+    Enum *resolved_enum = nullptr;
+    Typedef *resolved_typedef = nullptr;
+
     TypeNamed(TypeFlags flags, const String &name) : Type(Type_Named, flags), name(name) {}
 };
 
 String GetDeclName(CXCursor cursor);
 SourceCodeRange GetSourceCodeRange(CXCursor cursor);
+
+String GetParentName(const String &str);

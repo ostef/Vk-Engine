@@ -200,8 +200,8 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(BodyFilter);
 
-JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_Allocator allocator) {
-    void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreMultipleBodiesFilter));
+JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator) {
+    void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreMultipleBodiesFilter));
     auto filter = new(ptr) JPH::IgnoreMultipleBodiesFilter;
     for (int i = 0; i < numBodies; i += 1) {
         filter->IgnoreBody(JPH::BodyID(bodyIDs[i]));
@@ -210,13 +210,13 @@ JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs,
     return ToC(filter);
 }
 
-JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_Allocator allocator) {
-    void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilter));
+JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator) {
+    void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilter));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilter(JPH::BodyID(bodyID)));
 }
 
-JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_Allocator allocator) {
-    void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilterChained));
+JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator) {
+    void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilterChained));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilterChained(JPH::BodyID(bodyID), *ToCpp(otherFilter)));
 }
 
@@ -240,8 +240,8 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ShapeFilter);
 
-JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_Allocator allocator) {
-    void *ptr = JPH_Allocator_Allocate(allocator, sizeof(JPH::ReversedShapeFilter));
+JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator) {
+    void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::ReversedShapeFilter));
     return ToC(new(ptr) JPH::ReversedShapeFilter(*ToCpp(other)));
 }
 
@@ -252,7 +252,7 @@ bool JPH_DefaultBroadPhaseLayerFilter_ShouldCollide(const void *data, JPH_BroadP
     return ToCpp(filter->objectVsBroadPhaseLayerFilter)->ShouldCollide(filter->layer, JPH::BroadPhaseLayer(layer));
 }
 
-const JPH_BroadPhaseLayerFilter *JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_Allocator allocator) {
+const JPH_BroadPhaseLayerFilter *JPH_DefaultBroadPhaseLayerFilter_CreateFilter(JPH_DefaultBroadPhaseLayerFilter *filter, JPH_JoltCAllocator allocator) {
     JPH_BroadPhaseLayerFilter_Funcs funcs = {};
     funcs.ShouldCollide = JPH_DefaultBroadPhaseLayerFilter_ShouldCollide;
 
@@ -264,7 +264,7 @@ bool JPH_DefaultObjectLayerFilter_ShouldCollide(const void *data, JPH_ObjectLaye
     return ToCpp(filter->objectLayerPairFilter)->ShouldCollide(filter->layer, layer);
 }
 
-const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_DefaultObjectLayerFilter *filter, JPH_Allocator allocator) {
+const JPH_ObjectLayerFilter *JPH_DefaultObjectLayerFilter_CreateFilter(JPH_DefaultObjectLayerFilter *filter, JPH_JoltCAllocator allocator) {
     JPH_ObjectLayerFilter_Funcs funcs = {};
     funcs.ShouldCollide = JPH_DefaultObjectLayerFilter_ShouldCollide;
 

@@ -2,7 +2,7 @@ LLVM_DIR=/usr/lib/llvm-20
 
 TARGET=generate
 
-SOURCE_FILES=main.cpp core.cpp parse.cpp database.cpp
+SOURCE_FILES=main.cpp core.cpp parse.cpp database.cpp jai.cpp
 OBJ_FILES=$(addsuffix .o,$(SOURCE_FILES))
 DEP_FILES=$(addsuffix .d,$(SOURCE_FILES))
 

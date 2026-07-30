@@ -91,18 +91,38 @@ bool String::EndsWith(const String &other) const {
     return strncmp(data + count - other.count, other.data, other.count) == 0;
 }
 
-void String::TrimLeft(int64_t count) {
-    if (count < 0) {
-        return;
+String String::TrimLeft(int64_t count) const {
+    String result = *this;
+
+    if (count <= 0) {
+        return result;
     }
 
-    if (count > this->count) {
-        data += this->count;
-        this->count = 0;
+    if (count > result.count) {
+        result.data += result.count;
+        result.count = 0;
     }
 
-    data += count;
-    this->count -= count;
+    result.data += count;
+    result.count -= count;
+
+    return result;
+}
+
+String String::TrimRight(int64_t count) const {
+    String result = *this;
+
+    if (count <= 0) {
+        return result;
+    }
+
+    if (count > result.count) {
+        result.count = 0;
+    }
+
+    result.count -= count;
+
+    return result;
 }
 
 void StringBuilder::Reserve(int64_t new_capacity) {
@@ -112,6 +132,19 @@ void StringBuilder::Reserve(int64_t new_capacity) {
 
     data = reinterpret_cast<char *>(realloc(data, new_capacity));
     capacity = new_capacity;
+}
+
+void StringBuilder::Erase(int64_t count) {
+    if (count <= 0) {
+        return;
+    }
+
+    if (count > this->count) {
+        this->count = 0;
+        return;
+    }
+
+    this->count -= count;
 }
 
 void StringBuilder::AppendByte(char byte) {

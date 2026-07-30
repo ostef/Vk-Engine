@@ -6,131 +6,131 @@
 #include <stdalign.h>
 
 #if defined(JOLTC_SHARED_LIBRARY)
-  #if defined(JOLTC_BUILD_SHARED_LIBRARY)
-    #if defined(_WIN32)
-      #define JOLTC_EXPORT __declspec(dllexport)
+    #if defined(JOLTC_BUILD_SHARED_LIBRARY)
+        #if defined(_WIN32)
+            #define JOLTC_EXPORT __declspec(dllexport)
+        #else
+            #define JOLTC_EXPORT __attribute__((visibility("default")))
+        #endif
     #else
-      #define JOLTC_EXPORT __attribute__((visibility("default")))
+        #if defined(_WIN32)
+            #define JOLTC_EXPORT __declspec(dllimport)
+        #else
+            #define JOLTC_EXPORT __attribute__((visibility("default")))
+        #endif
     #endif
-  #else
-    #if defined(_WIN32)
-      #define JOLTC_EXPORT __declspec(dllimport)
-    #else
-      #define JOLTC_EXPORT __attribute__((visibility("default")))
-    #endif
-  #endif
 #else
   #define JOLTC_EXPORT
 #endif
 
 #if defined(__cplusplus)
-  #define JOLTC_EXTERN extern "C"
+    #define JOLTC_EXTERN extern "C"
 #else
-  #define JOLTC_EXTERN extern
+    #define JOLTC_EXTERN extern
 #endif
 
 #define JOLTC_API JOLTC_EXTERN JOLTC_EXPORT
 
 #if defined(_WIN32)
-  #define JOLTC_CALL __cdecl
+    #define JOLTC_CALL __cdecl
 #else
-  #define JOLTC_CALL
+    #define JOLTC_CALL
 #endif
 
 #ifdef JPH_DOUBLE_PRECISION
-  #define JOLTC_DOUBLE_PRECISION
+    #define JOLTC_DOUBLE_PRECISION
 #endif
 #ifdef JPH_CROSS_PLATFORM_DETERMINISTIC
-  #define JOLTC_CROSS_PLATFORM_DETERMINISTIC
+    #define JOLTC_CROSS_PLATFORM_DETERMINISTIC
 #endif
 #ifdef JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-  #define JOLTC_FLOATING_POINT_EXCEPTIONS_ENABLED
+    #define JOLTC_FLOATING_POINT_EXCEPTIONS_ENABLED
 #endif
 #ifdef JPH_PROFILE_ENABLED
-  #define JOLTC_PROFILE_ENABLED
+    #define JOLTC_PROFILE_ENABLED
 #endif
 #ifdef JPH_EXTERNAL_PROFILE
-  #define JOLTC_EXTERNAL_PROFILE
+    #define JOLTC_EXTERNAL_PROFILE
 #endif
 #ifdef JPH_DEBUG_RENDERER
-  #define JOLTC_DEBUG_RENDERER
+    #define JOLTC_DEBUG_RENDERER
 #endif
 #ifdef JPH_DISABLE_TEMP_ALLOCATOR
-  #define JOLTC_DISABLE_TEMP_ALLOCATOR
+    #define JOLTC_DISABLE_TEMP_ALLOCATOR
 #endif
 #ifdef JPH_DISABLE_CUSTOM_ALLOCATOR
-  #define JOLTC_DISABLE_CUSTOM_ALLOCATOR
+    #define JOLTC_DISABLE_CUSTOM_ALLOCATOR
 #endif
 #ifdef JPH_OBJECT_LAYER_BITS
-  #define JOLTC_OBJECT_LAYER_BITS JPH_OBJECT_LAYER_BITS
+    #define JOLTC_OBJECT_LAYER_BITS JPH_OBJECT_LAYER_BITS
 #endif
 #ifdef JPH_ENABLE_ASSERTS
-  #define JOLTC_ENABLE_ASSERTS
+    #define JOLTC_ENABLE_ASSERTS
 #endif
 #ifdef JPH_OBJECT_STREAM
-  #define JOLTC_OBJECT_STREAM
+    #define JOLTC_OBJECT_STREAM
 #endif
 
 #ifdef JOLTC_DOUBLE_PRECISION
-	#define JOLTC_VERSION_FEATURE_BIT_1 1
+    #define JOLTC_VERSION_FEATURE_BIT_1 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_1 0
+    #define JOLTC_VERSION_FEATURE_BIT_1 0
 #endif
 #ifdef JOLTC_CROSS_PLATFORM_DETERMINISTIC
-	#define JOLTC_VERSION_FEATURE_BIT_2 1
+    #define JOLTC_VERSION_FEATURE_BIT_2 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_2 0
+    #define JOLTC_VERSION_FEATURE_BIT_2 0
 #endif
 #ifdef JOLTC_FLOATING_POINT_EXCEPTIONS_ENABLED
-	#define JOLTC_VERSION_FEATURE_BIT_3 1
+    #define JOLTC_VERSION_FEATURE_BIT_3 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_3 0
+    #define JOLTC_VERSION_FEATURE_BIT_3 0
 #endif
 #ifdef JOLTC_PROFILE_ENABLED
-	#define JOLTC_VERSION_FEATURE_BIT_4 1
+    #define JOLTC_VERSION_FEATURE_BIT_4 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_4 0
+    #define JOLTC_VERSION_FEATURE_BIT_4 0
 #endif
 #ifdef JOLTC_EXTERNAL_PROFILE
-	#define JOLTC_VERSION_FEATURE_BIT_5 1
+    #define JOLTC_VERSION_FEATURE_BIT_5 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_5 0
+    #define JOLTC_VERSION_FEATURE_BIT_5 0
 #endif
 #ifdef JOLTC_DEBUG_RENDERER
-	#define JOLTC_VERSION_FEATURE_BIT_6 1
+    #define JOLTC_VERSION_FEATURE_BIT_6 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_6 0
+    #define JOLTC_VERSION_FEATURE_BIT_6 0
 #endif
 #ifdef JOLTC_DISABLE_TEMP_ALLOCATOR
-	#define JOLTC_VERSION_FEATURE_BIT_7 1
+    #define JOLTC_VERSION_FEATURE_BIT_7 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_7 0
+    #define JOLTC_VERSION_FEATURE_BIT_7 0
 #endif
 #ifdef JOLTC_DISABLE_CUSTOM_ALLOCATOR
-	#define JOLTC_VERSION_FEATURE_BIT_8 1
+    #define JOLTC_VERSION_FEATURE_BIT_8 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_8 0
+    #define JOLTC_VERSION_FEATURE_BIT_8 0
 #endif
 #if defined(JOLTC_OBJECT_LAYER_BITS) && JOLTC_OBJECT_LAYER_BITS == 32
-	#define JOLTC_VERSION_FEATURE_BIT_9 1
+    #define JOLTC_VERSION_FEATURE_BIT_9 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_9 0
+    #define JOLTC_VERSION_FEATURE_BIT_9 0
 #endif
 #ifdef JOLTC_ENABLE_ASSERTS
-	#define JOLTC_VERSION_FEATURE_BIT_10 1
+    #define JOLTC_VERSION_FEATURE_BIT_10 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_10 0
+    #define JOLTC_VERSION_FEATURE_BIT_10 0
 #endif
 #ifdef JOLTC_OBJECT_STREAM
-	#define JOLTC_VERSION_FEATURE_BIT_11 1
+    #define JOLTC_VERSION_FEATURE_BIT_11 1
 #else
-	#define JOLTC_VERSION_FEATURE_BIT_11 0
+    #define JOLTC_VERSION_FEATURE_BIT_11 0
 #endif
 #define JOLTC_VERSION_FEATURES (uint64_t(JOLTC_VERSION_FEATURE_BIT_1) | (JOLTC_VERSION_FEATURE_BIT_2 << 1) | (JOLTC_VERSION_FEATURE_BIT_3 << 2) | (JOLTC_VERSION_FEATURE_BIT_4 << 3) | (JOLTC_VERSION_FEATURE_BIT_5 << 4) | (JOLTC_VERSION_FEATURE_BIT_6 << 5) | (JOLTC_VERSION_FEATURE_BIT_7 << 6) | (JOLTC_VERSION_FEATURE_BIT_8 << 7) | (JOLTC_VERSION_FEATURE_BIT_9 << 8) | (JOLTC_VERSION_FEATURE_BIT_10 << 9) | (JOLTC_VERSION_FEATURE_BIT_11 << 10))
 
 // Determine if we want extra debugging code to be active
 #if !defined(NDEBUG) && !defined(JPH_NO_DEBUG)
-	#define JOLTC_DEBUG
+    #define JOLTC_DEBUG
 #endif
 
 // Always turn on asserts in Debug mode
@@ -145,9 +145,35 @@
 #define JOLTC_VECTOR_ALIGNMENT 16 // @Todo: match this with Jolt/Core/Core.h
 #define JOLTC_DVECTOR_ALIGNMENT 32
 
-typedef struct JPH_TempAllocator JPH_TempAllocator;
-typedef struct JPH_JobSystem     JPH_JobSystem;
-typedef struct JPH_SharedMutex   JPH_SharedMutex;
+typedef struct JPH_TempAllocator {
+    char opaque;
+} JPH_TempAllocator;
+
+typedef struct JPH_TempAllocatorImpl {
+    JPH_TempAllocator base;
+} JPH_TempAllocatorImpl;
+
+typedef struct JPH_TempAllocatorImplWithMallocFallback {
+    JPH_TempAllocator base;
+} JPH_TempAllocatorImplWithMallocFallback;
+
+typedef struct JPH_TempAllocatorMalloc {
+    JPH_TempAllocator base;
+} JPH_TempAllocatorMalloc;
+
+typedef struct JPH_JobSystem {
+    char opaque;
+} JPH_JobSystem;
+
+typedef struct JPH_JobSystemSingleThreaded {
+    JPH_JobSystem base;
+} JPH_JobSystemSingleThreaded;
+
+typedef struct JPH_JobSystemThreadPool {
+    JPH_JobSystem base;
+} JPH_JobSystemThreadPool;
+
+typedef struct JPH_SharedMutex JPH_SharedMutex;
 
 // Math
 
@@ -338,14 +364,14 @@ JOLTC_API void JPH_AlignedFree(void *block);
 
 // The default empty allocator calls JPH::Allocate and JPH::Free
 
-typedef struct JPH_Allocator {
+typedef struct JPH_JoltCAllocator {
     void *data;
-    void *(JOLTC_CALL *Allocate)(void *data, uint64_t size);
-    void (JOLTC_CALL *Free)(void *data, void *ptr);
-} JPH_Allocator;
+    void *(JOLTC_CALL *AllocateFunc)(void *data, uint64_t size);
+    void (JOLTC_CALL *FreeFunc)(void *data, void *ptr);
+} JPH_JoltCAllocator;
 
-JOLTC_API void *JPH_Allocator_Allocate(JPH_Allocator allocator, uint64_t size);
-JOLTC_API void JPH_Allocator_Free(JPH_Allocator allocator, void *ptr);
+JOLTC_API void *JPH_JoltCAllocator_Allocate(JPH_JoltCAllocator allocator, uint64_t size);
+JOLTC_API void JPH_JoltCAllocator_Free(JPH_JoltCAllocator allocator, void *ptr);
 
 JOLTC_API uint64_t JPH_GetJoltVersionID();
 

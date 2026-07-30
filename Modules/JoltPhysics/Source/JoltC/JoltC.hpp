@@ -133,15 +133,15 @@
     private: \
         void *data; \
         JPH_##name##_Funcs funcs; \
-        JPH_Allocator allocator; \
+        JPH_JoltCAllocator allocator; \
     \
     public: \
-        void operator delete (void *ptr) noexcept                { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
-        void operator delete (void *ptr, size_t size) noexcept   { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
-        void operator delete[] (void *ptr) noexcept              { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
-        void operator delete[] (void *ptr, size_t size) noexcept { JPH_Allocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_Allocator_Free(allocator, ptr); } \
+        void operator delete (void *ptr) noexcept                { JPH_JoltCAllocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_JoltCAllocator_Free(allocator, ptr); } \
+        void operator delete (void *ptr, size_t size) noexcept   { JPH_JoltCAllocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_JoltCAllocator_Free(allocator, ptr); } \
+        void operator delete[] (void *ptr) noexcept              { JPH_JoltCAllocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_JoltCAllocator_Free(allocator, ptr); } \
+        void operator delete[] (void *ptr, size_t size) noexcept { JPH_JoltCAllocator allocator = reinterpret_cast<name##Wrapper *>(ptr)->allocator; JPH_JoltCAllocator_Free(allocator, ptr); } \
     \
-        name##Wrapper(void *data, JPH_##name##_Funcs funcs, JPH_Allocator allocator) \
+        name##Wrapper(void *data, JPH_##name##_Funcs funcs, JPH_JoltCAllocator allocator) \
             : data(data), funcs(funcs), allocator(allocator) { \
         } \
     \
@@ -158,8 +158,8 @@
 #define END_INTERFACE_WRAPPER_CLASS() };
 
 #define DEFINE_INTERFACE_WRAPPER_FUNCTIONS(name) \
-    JPH_##name *JPH_##name##_Create(void *data, JPH_##name##_Funcs funcs, JPH_Allocator allocator) { \
-        void *ptr = JPH_Allocator_Allocate(allocator, sizeof(name##Wrapper)); \
+    JPH_##name *JPH_##name##_Create(void *data, JPH_##name##_Funcs funcs, JPH_JoltCAllocator allocator) { \
+        void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(name##Wrapper)); \
         return ToC(new(ptr) name##Wrapper(data, funcs, allocator)); \
     } \
     \

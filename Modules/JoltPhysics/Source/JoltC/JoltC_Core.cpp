@@ -171,26 +171,26 @@ void JPH_AlignedFree(void *block) {
 
 // Allocator
 
-void *JPH_Allocator_Allocate(JPH_Allocator allocator, uint64_t size) {
+void *JPH_JoltCAllocator_Allocate(JPH_JoltCAllocator allocator, uint64_t size) {
     if (size == 0) {
         return 0;
     }
 
-    if (allocator.Allocate) {
-        return allocator.Allocate(allocator.data, size);
+    if (allocator.AllocateFunc) {
+        return allocator.AllocateFunc(allocator.data, size);
     }
 
     return JPH::Allocate(size);
 }
 
-void JPH_Allocator_Free(JPH_Allocator allocator, void *ptr) {
+void JPH_JoltCAllocator_Free(JPH_JoltCAllocator allocator, void *ptr) {
     if (!ptr) {
         return;
     }
 
-    if (allocator.Free) {
-        allocator.Free(allocator.data, ptr);
-    } else if (!allocator.Allocate) {
+    if (allocator.FreeFunc) {
+        allocator.FreeFunc(allocator.data, ptr);
+    } else if (!allocator.AllocateFunc) {
         // Only call JPH::Free when the allocator has no Allocate function
         // so we can set Free to null to have an allocator that never frees
         JPH::Free(ptr);

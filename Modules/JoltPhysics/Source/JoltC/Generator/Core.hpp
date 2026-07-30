@@ -14,7 +14,7 @@
 #define DebugBreak() __asm volatile("int $0x3")
 #endif
 
-#define Assert(x) do { if (!(x)) { printf("Assertion failed at file %s:%d: %s", __FILE__, uint32_t(__LINE__), #x); DebugBreak();  } } while(0)
+#define Assert(x) do { if (!(x)) { printf("Assertion failed at file %s:%d: %s\n", __FILE__, uint32_t(__LINE__), #x); DebugBreak();  } } while(0)
 
 void Error(const char *fmt, ...);
 void ErrorExit(const char *fmt, ...);
@@ -36,7 +36,8 @@ struct String {
     String Join(const String &other);
     bool StartsWith(const String &other) const;
     bool EndsWith(const String &other) const;
-    void TrimLeft(int64_t count);
+    String TrimLeft(int64_t count) const;
+    String TrimRight(int64_t count) const;
 };
 
 #define FStr(str) static_cast<int>((str).count), (str).data
@@ -171,6 +172,7 @@ struct StringBuilder {
     int64_t capacity = 0;
 
     void Reserve(int64_t capacity);
+    void Erase(int64_t count = 1);
     void AppendByte(char byte);
     void AppendString(const String &str);
     void Append(const char *fmt, ...);

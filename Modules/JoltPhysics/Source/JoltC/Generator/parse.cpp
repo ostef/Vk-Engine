@@ -285,9 +285,9 @@ void ParseFiles(const ParseOptions &options, Database &db) {
             for (int64_t i = 0; i < options.include_dirs.count; i += 1) {
                 auto include_dir = options.include_dirs[i];
                 if (file.StartsWith(include_dir)) {
-                    file.TrimLeft(include_dir.count);
+                    file = file.TrimLeft(include_dir.count);
                     if (file[0] == '/' || file[0] == '\\') {
-                        file.TrimLeft(1);
+                        file = file.TrimLeft(1);
                     }
 
                     break;

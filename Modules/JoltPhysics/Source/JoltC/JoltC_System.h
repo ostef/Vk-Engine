@@ -30,8 +30,8 @@ JOLTC_API uint32_t JPH_PhysicsSystem_GetNumBodies(const JPH_PhysicsSystem *syste
 JOLTC_API uint32_t JPH_PhysicsSystem_GetNumActiveBodies(const JPH_PhysicsSystem *system, JPH_EBodyType type);
 JOLTC_API uint32_t JPH_PhysicsSystem_GetMaxBodies(const JPH_PhysicsSystem *system);
 JOLTC_API JPH_BodyManager_BodyStats JPH_PhysicsSystem_GetBodyStats(const JPH_PhysicsSystem *system);
-JOLTC_API uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID **outIDs, JPH_Allocator allocator);
-JOLTC_API uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_EBodyType type, JPH_BodyID **outIDs, JPH_Allocator allocator);
+JOLTC_API uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID **outIDs, JPH_JoltCAllocator allocator);
+JOLTC_API uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_EBodyType type, JPH_BodyID **outIDs, JPH_JoltCAllocator allocator);
 JOLTC_API const JPH_BodyID *JPH_PhysicsSystem_GetActiveBodiesUnsafe(const JPH_PhysicsSystem *system, JPH_EBodyType type);
 JOLTC_API bool JPH_PhysicsSystem_WereBodiesInContact(const JPH_PhysicsSystem *system, JPH_BodyID body1ID, JPH_BodyID body2ID);
 JOLTC_API JPH_AABox JPH_PhysicsSystem_GetBounds(const JPH_PhysicsSystem *system);

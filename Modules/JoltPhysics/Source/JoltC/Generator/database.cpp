@@ -41,7 +41,7 @@ Function *Database::GetFunction(const String &name) const {
     return nullptr;
 }
 
-Type *Database::GetType(CXType type) const {
+Type *Database::GetType(CXType type) {
     CXType original_type = type;
 
     int64_t size = clang_Type_getSizeOf(type);
@@ -177,16 +177,210 @@ Type *Database::GetType(CXType type) const {
         } break;
     }
 
+    if (result) {
+        all_types.Push(result);
+    }
+
     return result;
+}
+
+String GetParentName(const String &str) {
+    for (int64_t i = str.count - 1; i >= 0; i -= 1) {
+        if (str[i] == '_') {
+            return String(str.data, i);
+        }
+    }
+
+    return "";
+}
+
+static
+String GetBaseName(const String &str, const String &parent_name) {
+    if (str.StartsWith(parent_name)) {
+        String result = str.TrimLeft(parent_name.count);
+        if (result.StartsWith("_")) {
+            result = result.TrimLeft(1);
+        }
+
+        return result;
+    }
+
+    return str;
+}
+
+static
+String StripPrefix(const String &str, const Array<String> &prefixes) {
+    for (int64_t i = 0; i < prefixes.count; i += 1) {
+        auto prefix = prefixes[i];
+
+        if (str.StartsWith(prefix)) {
+            auto result = str.TrimLeft(prefix.count);
+
+            if (result.StartsWith("_")) {
+                result = result.TrimLeft(1);
+
+                return result;
+            }
+        }
+    }
+
+    return str;
+}
+
+void Database::PostProcess(const PostProcessOptions &options) {
+    for (int64_t i = 0; i < all_types.count; i += 1) {
+        auto type = all_types[i];
+        if (type->kind != Type_Named) {
+            continue;
+        }
+
+        auto named = reinterpret_cast<TypeNamed *>(type);
+
+        auto s = GetStruct(named->name);
+        if (s) {
+            named->resolved_struct = s;
+            continue;
+        }
+
+        auto e = GetEnum(named->name);
+        if (e) {
+            named->resolved_enum = e;
+            continue;
+        }
+
+        auto t = GetTypedef(named->name);
+        if (t) {
+            named->resolved_typedef = t;
+            continue;
+        }
+    }
+
+    for (int64_t i = 0; i < all_structs.count; i += 1) {
+        auto s = all_structs[i];
+
+        auto parent_name = GetParentName(s->name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                s->basename = GetBaseName(s->name, parent_name);
+                s->parent_struct = parent_struct;
+                parent_struct->sub_structs.Push(s);
+            }
+        }
+
+        s->basename = StripPrefix(s->basename, options.strip_prefixes);
+
+        auto first_field = s->fields.count > 0 ? s->fields[0] : nullptr;
+        if (first_field && first_field->name == "base" && first_field->type->kind == Type_Named) {
+            auto type_named = reinterpret_cast<TypeNamed *>(first_field->type);
+            s->base_struct = GetStruct(type_named->name);
+        }
+    }
+
+    for (int64_t i = 0; i < all_enums.count; i += 1) {
+        auto e = all_enums[i];
+
+        auto parent_name = GetParentName(e->name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                e->basename = GetBaseName(e->name, parent_name);
+                e->parent_struct = parent_struct;
+                parent_struct->sub_enums.Push(e);
+            }
+        }
+
+        e->basename = StripPrefix(e->basename, options.strip_prefixes);
+
+        if (e->name.EndsWith("_")) {
+            auto real_name = e->name.TrimRight(1);
+
+            e->associated_typedef = GetTypedef(real_name);
+            if (e->associated_typedef) {
+                e->associated_typedef->associated_enum = e;
+            }
+        }
+
+
+        for (int64_t i = 0; i < e->values.count; i += 1) {
+            auto &value = e->values[i];
+
+            value.basename = GetBaseName(value.name, e->name);
+        }
+    }
+
+    for (int64_t i = 0; i < all_typedefs.count; i += 1) {
+        auto t = all_typedefs[i];
+
+        auto parent_name = GetParentName(t->name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                t->basename = GetBaseName(t->name, parent_name);
+                t->parent_struct = parent_struct;
+                parent_struct->sub_typedefs.Push(t);
+            }
+        }
+
+        t->basename = StripPrefix(t->basename, options.strip_prefixes);
+        t->associated_struct = GetStruct(t->name);
+    }
+
+    for (int64_t i = 0; i < all_functions.count; i += 1) {
+        auto func = all_functions[i];
+
+        auto parent_name = GetParentName(func->name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                func->basename = GetBaseName(func->name, parent_name);
+                func->parent_struct = parent_struct;
+            }
+        }
+
+        func->basename = StripPrefix(func->basename, options.strip_prefixes);
+
+        if (func->parent_struct) {
+            bool is_method = false;
+            bool is_const = false;
+
+            auto first_param = func->parameters.count > 0 ? func->parameters[0] : nullptr;
+            if (first_param && first_param->type->kind == Type_Pointer) {
+                auto pointer = reinterpret_cast<TypePointer *>(first_param->type);
+                if (pointer->pointer_to->kind == Type_Named) {
+                    auto named = reinterpret_cast<TypeNamed *>(pointer->pointer_to);
+                    auto s = GetStruct(named->name);
+
+                    if (s == func->parent_struct) {
+                        is_method = true;
+                        is_const = (pointer->flags & TypeFlag_Const) != 0;
+                    }
+                }
+            }
+
+            if (is_method) {
+                func->flags |= FunctionFlag_Method;
+                if (is_const) {
+                    func->flags |= FunctionFlag_Const;
+                }
+
+                func->parent_struct->methods.Push(func);
+            } else {
+                func->parent_struct->functions.Push(func);
+            }
+        }
+    }
 }
 
 Struct::Struct(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 EnumValue::EnumValue(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)),
       signed_value(clang_getEnumConstantDeclValue(cursor)),
@@ -194,21 +388,25 @@ EnumValue::EnumValue(CXCursor cursor)
 
 Enum::Enum(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Typedef::Typedef(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Variable::Variable(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
 Function::Function(CXCursor cursor)
     : name(GetDeclName(cursor)),
+      basename(name),
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 

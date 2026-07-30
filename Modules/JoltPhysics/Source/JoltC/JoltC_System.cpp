@@ -65,7 +65,7 @@ JPH_BodyManager_BodyStats JPH_PhysicsSystem_GetBodyStats(const JPH_PhysicsSystem
     return result;
 }
 
-uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID **outIDs, JPH_Allocator allocator) {
+uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID **outIDs, JPH_JoltCAllocator allocator) {
     if (!outIDs) {
         return 0;
     }
@@ -74,7 +74,7 @@ uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID
     ToCpp(system)->GetBodies(resultVector);
 
     uint32_t numBodies = static_cast<uint32_t>(resultVector.size());
-    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
+    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
     memcpy(ids, resultVector.data(), sizeof(JPH_BodyID) * numBodies);
 
     *outIDs = ids;
@@ -82,7 +82,7 @@ uint32_t JPH_PhysicsSystem_GetBodies(const JPH_PhysicsSystem *system, JPH_BodyID
     return numBodies;
 }
 
-uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_EBodyType type, JPH_BodyID **outIDs, JPH_Allocator allocator) {
+uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_EBodyType type, JPH_BodyID **outIDs, JPH_JoltCAllocator allocator) {
     if (!outIDs) {
         return 0;
     }
@@ -91,7 +91,7 @@ uint32_t JPH_PhysicsSystem_GetActiveBodies(const JPH_PhysicsSystem *system, JPH_
     ToCpp(system)->GetActiveBodies(static_cast<JPH::EBodyType>(type), resultVector);
 
     uint32_t numBodies = static_cast<uint32_t>(resultVector.size());
-    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_Allocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
+    JPH_BodyID *ids = reinterpret_cast<JPH_BodyID *>(JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH_BodyID) * numBodies));
     memcpy(ids, resultVector.data(), sizeof(JPH_BodyID) * numBodies);
 
     *outIDs = ids;

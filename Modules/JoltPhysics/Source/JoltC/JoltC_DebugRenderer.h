@@ -80,7 +80,7 @@ typedef struct JPH_DebugRendererSimple_Funcs {
     void (JOLTC_CALL *DrawText3D)(void *data, JPH_RVec3 position, const char *str, uint64_t strLength, JPH_Color color, float height);
 } JPH_DebugRendererSimple_Funcs;
 
-JOLTC_API JPH_DebugRenderer *JPH_DebugRendererSimple_Create(void *data, JPH_DebugRendererSimple_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_DebugRenderer *JPH_DebugRendererSimple_Create(void *data, JPH_DebugRendererSimple_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_DebugRenderer_Destroy(JPH_DebugRenderer *self);
 JOLTC_API void JPH_DebugRenderer_NextFrame(JPH_DebugRenderer *self);
 // @Todo: other DebugRenderer functions
@@ -90,5 +90,5 @@ typedef struct JPH_BodyDrawFilter_Funcs {
     bool (JOLTC_CALL *ShouldDraw)(const void *data, const JPH_Body *body);
 } JPH_BodyDrawFilter_Funcs;
 
-JOLTC_API JPH_BodyDrawFilter *JPH_BodyDrawFilter_Create(void *data, JPH_BodyDrawFilter_Funcs funcs, JPH_Allocator allocator);
+JOLTC_API JPH_BodyDrawFilter *JPH_BodyDrawFilter_Create(void *data, JPH_BodyDrawFilter_Funcs funcs, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_BodyDrawFilter_Destroy(JPH_BodyDrawFilter *self);
