@@ -15,6 +15,8 @@ Vec3 :: struct {
 
     #overlay(x)
     values: [4]float;
+
+    Make :: (x : float, y : float, z : float) -> Vec3 #foreign JoltC "JPH_Vec3_Make";
 }
 
 Vec4 :: struct {
@@ -38,6 +40,8 @@ DVec3 :: union {
 
     #overlay(x)
     values: [4] float64;
+
+    Make :: (x : float64, y : float64, z : float64) -> DVec3 #foreign JoltC "JPH_DVec3_Make";
 }
 
 DMat44 :: struct {
@@ -49,22 +53,15 @@ Quat :: struct {
     x: float #align VECTOR_ALIGNMENT;
     y: float;
     z: float;
-    w: float;
+    w: float = 1;
 
     #overlay(x)
     values: [4]float;
 }
 
-AABox :: struct {
-    min: Vec3;
-    max: Vec3;
-}
-
-Plane :: struct {
-    normalAndConstant: Vec4;
-}
-
 #if OS == .LINUX {
+    JoltC :: #library "./Libs/Linux/libJoltC";
+
     #load "jolt_linux.jai";
 } else #if OS == .WINDOWS {
     #load "jolt_windows.jai";

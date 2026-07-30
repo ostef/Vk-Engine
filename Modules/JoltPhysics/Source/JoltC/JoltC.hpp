@@ -201,7 +201,11 @@ DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseLayerFilter, JPH::BroadPhaseLayerFilte
 DEFINE_CONVERSION_FUNCTIONS(JPH_ObjectLayerFilter, JPH::ObjectLayerFilter);
 DEFINE_CONVERSION_FUNCTIONS(JPH_GroupFilter, JPH::GroupFilter);
 DEFINE_CONVERSION_FUNCTIONS(JPH_BodyFilter, JPH::BodyFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_IgnoreMultipleBodiesFilter, JPH::IgnoreMultipleBodiesFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_IgnoreSingleBodyFilter, JPH::IgnoreSingleBodyFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_IgnoreSingleBodyFilterChained, JPH::IgnoreSingleBodyFilterChained);
 DEFINE_CONVERSION_FUNCTIONS(JPH_ShapeFilter, JPH::ShapeFilter);
+DEFINE_CONVERSION_FUNCTIONS(JPH_ReversedShapeFilter, JPH::ReversedShapeFilter);
 DEFINE_CONVERSION_FUNCTIONS(JPH_BroadPhaseQuery, JPH::BroadPhaseQuery);
 DEFINE_CONVERSION_FUNCTIONS(JPH_NarrowPhaseQuery, JPH::NarrowPhaseQuery);
 DEFINE_CONVERSION_FUNCTIONS(JPH_RayCast, JPH::RayCast);

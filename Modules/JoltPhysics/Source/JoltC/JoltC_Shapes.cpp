@@ -2,24 +2,21 @@
 
 JOLTC_SUPPRESS_WARNINGS()
 
-#define CREATE_SHAPE_IMPL(name) \
-    JPH_##name *JPH_##name##Settings_CreateShape(JPH_##name##Settings *settings) { \
-        auto result = ToCpp(settings)->Create(); \
-        if (!result.IsValid()) { \
-            return nullptr; \
-        } \
-    \
-        auto shape = result.Get().GetPtr(); \
-        shape->AddRef(); \
-    \
-        return reinterpret_cast<JPH_##name *>(ToC(shape)); \
-    }
-
 void JPH_ShapeSettings_Destroy(JPH_ShapeSettings *settings) {
     delete ToCpp(settings);
 }
 
-CREATE_SHAPE_IMPL(Shape);
+JPH_Shape *JPH_ShapeSettings_CreateShape(JPH_ShapeSettings *settings) {
+    auto result = ToCpp(settings)->Create();
+    if (!result.IsValid()) {
+        return nullptr;
+    }
+
+    auto shape = result.Get().GetPtr();
+    shape->AddRef();
+
+    return reinterpret_cast<JPH_Shape *>(ToC(shape));
+}
 
 void JPH_ShapeSettings_ClearCachedResult(JPH_ShapeSettings *settings) {
     ToCpp(settings)->ClearCachedResult();
@@ -37,12 +34,6 @@ JPH_EmptyShapeSettings *JPH_EmptyShapeSettings_Create() {
     return ToC(new JPH::EmptyShapeSettings);
 }
 
-void JPH_EmptyShapeSettings_Destroy(JPH_EmptyShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(EmptyShape);
-
 void JPH_EmptyShapeSettings_SetCenterOfMass(JPH_EmptyShapeSettings *settings, JPH_Vec3 centerOfMass) {
     ToCpp(settings)->mCenterOfMass = ToCpp(centerOfMass);
 }
@@ -54,12 +45,6 @@ JPH_Vec3 JPH_EmptyShapeSettings_GetCenterOfMass(const JPH_EmptyShapeSettings *se
 JPH_PlaneShapeSettings *JPH_PlaneShapeSettings_Create() {
     return ToC(new JPH::PlaneShapeSettings);
 }
-
-void JPH_PlaneShapeSettings_Destroy(JPH_PlaneShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(PlaneShape);
 
 void JPH_PlaneShapeSettings_SetPlane(JPH_PlaneShapeSettings *settings, JPH_Plane plane) {
     ToCpp(settings)->mPlane = ToCpp(plane);
@@ -89,12 +74,6 @@ JPH_OffsetCenterOfMassShapeSettings *JPH_OffsetCenterOfMassShapeSettings_Create(
     return ToC(new JPH::OffsetCenterOfMassShapeSettings);
 }
 
-void JPH_OffsetCenterOfMassShapeSettings_Destroy(JPH_OffsetCenterOfMassShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(OffsetCenterOfMassShape);
-
 void JPH_OffsetCenterOfMassShapeSettings_SetInnerShape(JPH_OffsetCenterOfMassShapeSettings *settings, const JPH_Shape *innerShape) {
     ToCpp(settings)->mInnerShapePtr = ToCpp(innerShape);
 }
@@ -122,12 +101,6 @@ JPH_Vec3 JPH_OffsetCenterOfMassShapeSettings_GetOffset(const JPH_OffsetCenterOfM
 JPH_RotatedTranslatedShapeSettings *JPH_RotatedTranslatedShapeSettings_Create() {
     return ToC(new JPH::RotatedTranslatedShapeSettings);
 }
-
-void JPH_RotatedTranslatedShapeSettings_Destroy(JPH_RotatedTranslatedShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(RotatedTranslatedShape);
 
 void JPH_RotatedTranslatedShapeSettings_SetInnerShape(JPH_RotatedTranslatedShapeSettings *settings, const JPH_Shape *innerShape) {
     ToCpp(settings)->mInnerShapePtr = ToCpp(innerShape);
@@ -165,12 +138,6 @@ JPH_ScaledShapeSettings *JPH_ScaledShapeSettings_Create() {
     return ToC(new JPH::ScaledShapeSettings);
 }
 
-void JPH_ScaledShapeSettings_Destroy(JPH_ScaledShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(ScaledShape);
-
 void JPH_ScaledShapeSettings_SetInnerShape(JPH_ScaledShapeSettings *settings, const JPH_Shape *innerShape) {
     ToCpp(settings)->mInnerShapePtr = ToCpp(innerShape);
 }
@@ -195,12 +162,6 @@ JPH_Vec3 JPH_ScaledShapeSettings_GetScale(const JPH_ScaledShapeSettings *setting
     return ToC(ToCpp(settings)->mScale);
 }
 
-void JPH_CompoundShapeSettings_Destroy(JPH_CompoundShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(CompoundShape);
-
 void JPH_CompoundShapeSettings_AddShape(JPH_CompoundShapeSettings *settings, JPH_Vec3 position, JPH_Quat rotation, const JPH_Shape *subShape, uint32_t userData) {
     ToCpp(settings)->AddShape(ToCpp(position), ToCpp(rotation), ToCpp(subShape), userData);
 }
@@ -213,27 +174,9 @@ JPH_StaticCompoundShapeSettings *JPH_StaticCompoundShapeSettings_Create() {
     return ToC(new JPH::StaticCompoundShapeSettings);
 }
 
-void JPH_StaticCompoundShapeSettings_Destroy(JPH_StaticCompoundShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(StaticCompoundShape);
-
 JPH_MutableCompoundShapeSettings *JPH_MutableCompoundShapeSettings_Create() {
     return ToC(new JPH::MutableCompoundShapeSettings);
 }
-
-void JPH_MutableCompoundShapeSettings_Destroy(JPH_MutableCompoundShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(MutableCompoundShape);
-
-void JPH_ConvexShapeSettings_Destroy(JPH_ConvexShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(ConvexShape);
 
 void JPH_ConvexShapeSettings_SetPhysicsMaterial(JPH_ConvexShapeSettings *settings, const JPH_PhysicsMaterial *material) {
     ToCpp(settings)->mMaterial = ToCpp(material);
@@ -255,12 +198,6 @@ JPH_BoxShapeSettings *JPH_BoxShapeSettings_Create() {
     return ToC(new JPH::BoxShapeSettings);
 }
 
-void JPH_BoxShapeSettings_Destroy(JPH_BoxShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(BoxShape);
-
 void JPH_BoxShapeSettings_SetHalfExtent(JPH_BoxShapeSettings *settings, JPH_Vec3 halfExtent) {
     ToCpp(settings)->mHalfExtent = ToCpp(halfExtent);
 }
@@ -281,12 +218,6 @@ JPH_SphereShapeSettings *JPH_SphereShapeSettings_Create() {
     return ToC(new JPH::SphereShapeSettings);
 }
 
-void JPH_SphereShapeSettings_Destroy(JPH_SphereShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(SphereShape);
-
 void JPH_SphereShapeSettings_SetRadius(JPH_SphereShapeSettings *settings, float radius) {
     ToCpp(settings)->mRadius = radius;
 }
@@ -298,12 +229,6 @@ float JPH_SphereShapeSettings_GetRadius(const JPH_SphereShapeSettings *settings)
 JPH_CapsuleShapeSettings *JPH_CapsuleShapeSettings_Create() {
     return ToC(new JPH::CapsuleShapeSettings);
 }
-
-void JPH_CapsuleShapeSettings_Destroy(JPH_CapsuleShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(CapsuleShape);
 
 void JPH_CapsuleShapeSettings_SetRadius(JPH_CapsuleShapeSettings *settings, float radius) {
     ToCpp(settings)->mRadius = radius;
@@ -332,12 +257,6 @@ bool JPH_CapsuleShapeSettings_IsSphere(const JPH_CapsuleShapeSettings *settings)
 JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create() {
     return ToC(new JPH::TaperedCapsuleShapeSettings);
 }
-
-void JPH_TaperedCapsuleShapeSettings_Destroy(JPH_TaperedCapsuleShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(TaperedCapsuleShape);
 
 void JPH_TaperedCapsuleShapeSettings_SetHalfHeightOfTaperedCylinder(JPH_TaperedCapsuleShapeSettings *settings, float halfHeightOfTaperedCylinder) {
     ToCpp(settings)->mHalfHeightOfTaperedCylinder = halfHeightOfTaperedCylinder;
@@ -375,12 +294,6 @@ JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create() {
     return ToC(new JPH::CylinderShapeSettings);
 }
 
-void JPH_CylinderShapeSettings_Destroy(JPH_CylinderShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(CylinderShape);
-
 void JPH_CylinderShapeSettings_SetHalfHeight(JPH_CylinderShapeSettings *settings, float halfHeight) {
     ToCpp(settings)->mHalfHeight = halfHeight;
 }
@@ -408,12 +321,6 @@ float JPH_CylinderShapeSettings_GetConvexRadius(const JPH_CylinderShapeSettings 
 JPH_TaperedCylinderShapeSettings *JPH_TaperedCylinderShapeSettings_Create() {
     return ToC(new JPH::TaperedCylinderShapeSettings);
 }
-
-void JPH_TaperedCylinderShapeSettings_Destroy(JPH_TaperedCylinderShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(TaperedCylinderShape);
 
 void JPH_TaperedCylinderShapeSettings_SetHalfHeight(JPH_TaperedCylinderShapeSettings *settings, float halfHeight) {
     ToCpp(settings)->mHalfHeight = halfHeight;
@@ -450,12 +357,6 @@ float JPH_TaperedCylinderShapeSettings_GetConvexRadius(const JPH_TaperedCylinder
 JPH_TriangleShapeSettings *JPH_TriangleShapeSettings_Create() {
     return ToC(new JPH::TriangleShapeSettings);
 }
-
-void JPH_TriangleShapeSettings_Destroy(JPH_TriangleShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(TriangleShape);
 
 void JPH_TriangleShapeSettings_SetV1(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1) {
     ToCpp(settings)->mV1 = ToCpp(v1);
@@ -505,12 +406,6 @@ JPH_ConvexHullShapeSettings *JPH_ConvexHullShapeSettings_Create() {
     return ToC(new JPH::ConvexHullShapeSettings);
 }
 
-void JPH_ConvexHullShapeSettings_Destroy(JPH_ConvexHullShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(ConvexHullShape);
-
 void JPH_ConvexHullShapeSettings_AddPoints(JPH_ConvexHullShapeSettings *settings, const JPH_Vec3 *points, uint32_t count) {
     auto &arr = ToCpp(settings)->mPoints;
     auto *cppPoints = reinterpret_cast<const JPH::Vec3 *>(points);
@@ -552,12 +447,6 @@ float JPH_ConvexHullShapeSettings_GetHullTolerance(const JPH_ConvexHullShapeSett
 JPH_MeshShapeSettings *JPH_MeshShapeSettings_Create() {
     return ToC(new JPH::MeshShapeSettings);
 }
-
-void JPH_MeshShapeSettings_Destroy(JPH_MeshShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(MeshShape);
 
 void JPH_MeshShapeSettings_Sanitize(JPH_MeshShapeSettings *settings) {
     ToCpp(settings)->Sanitize();
@@ -653,12 +542,6 @@ JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const 
 JPH_HeightFieldShapeSettings *JPH_HeightFieldShapeSettings_Create() {
     return ToC(new JPH::HeightFieldShapeSettings);
 }
-
-void JPH_HeightFieldShapeSettings_Destroy(JPH_HeightFieldShapeSettings *settings) {
-    delete ToCpp(settings);
-}
-
-CREATE_SHAPE_IMPL(HeightFieldShape);
 
 void JPH_HeightFieldShapeSettings_DetermineMinAndMaxSample(const JPH_HeightFieldShapeSettings *settings, float *outMinValue, float *outMaxValue, float *outQuantizationScale) {
     ToCpp(settings)->DetermineMinAndMaxSample(*outMinValue, *outMaxValue, *outQuantizationScale);

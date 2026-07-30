@@ -53,7 +53,7 @@ enum JPH_EMotionType_ {
 };
 
 typedef uint8_t JPH_EAllowedDOFs;
-enum JPH_EAllowedDOFs_ {
+enum JPH_EAllowedDOFsFlags_ {
     JPH_EAllowedDOFs_None = 0,
     JPH_EAllowedDOFs_All = 0xff,
     JPH_EAllowedDOFs_TranslationX = 1 << 0,

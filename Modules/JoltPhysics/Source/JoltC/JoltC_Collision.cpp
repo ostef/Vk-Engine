@@ -200,7 +200,7 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(BodyFilter);
 
-JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator) {
+JPH_IgnoreMultipleBodiesFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator) {
     void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreMultipleBodiesFilter));
     auto filter = new(ptr) JPH::IgnoreMultipleBodiesFilter;
     for (int i = 0; i < numBodies; i += 1) {
@@ -210,12 +210,12 @@ JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs,
     return ToC(filter);
 }
 
-JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator) {
+JPH_IgnoreSingleBodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator) {
     void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilter));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilter(JPH::BodyID(bodyID)));
 }
 
-JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator) {
+JPH_IgnoreSingleBodyFilterChained *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator) {
     void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::IgnoreSingleBodyFilterChained));
     return ToC(new(ptr) JPH::IgnoreSingleBodyFilterChained(JPH::BodyID(bodyID), *ToCpp(otherFilter)));
 }
@@ -240,7 +240,7 @@ END_INTERFACE_WRAPPER_CLASS();
 
 DEFINE_INTERFACE_WRAPPER_FUNCTIONS(ShapeFilter);
 
-JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator) {
+JPH_ReversedShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator) {
     void *ptr = JPH_JoltCAllocator_Allocate(allocator, sizeof(JPH::ReversedShapeFilter));
     return ToC(new(ptr) JPH::ReversedShapeFilter(*ToCpp(other)));
 }

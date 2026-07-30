@@ -26,59 +26,32 @@ main :: () {
     Jolt.RegisterTypes();
     defer Jolt.UnregisterTypes();
 
-    temp_allocator := Jolt.TempAllocatorImpl_Create(1 * 1024 * 1024);
-    defer Jolt.TempAllocator_Destroy(temp_allocator);
+    temp_allocator := Jolt.TempAllocatorImpl.Create(1 * 1024 * 1024);
+    defer temp_allocator.Destroy(temp_allocator);
 
-    job_system := Jolt.JobSystemThreadPool_Create(Jolt.cMaxPhysicsJobs, Jolt.cMaxPhysicsBarriers, -1);
-    defer Jolt.JobSystem_Destroy(job_system);
+    job_system := Jolt.JobSystemThreadPool.Create(Jolt.cMaxPhysicsJobs, Jolt.cMaxPhysicsBarriers, -1);
+    defer job_system.Destroy(job_system);
 
-    bpl_interface_funcs := Jolt.BroadPhaseLayerInterface_Funcs.{
-        GetNumBroadPhaseLayers=(data : *void) -> u32 #c_call {
-            return xx type_info(BroadPhaseLayer).names.count;
-        },
+    bpl_interface := Jolt.BroadPhaseLayerInterfaceTable.Create(2, 2);
+    defer bpl_interface.Destroy(bpl_interface);
 
-        GetBroadPhaseLayer=(data : *void, layer : Jolt.ObjectLayer) -> Jolt.BroadPhaseLayer #c_call {
-            if #complete cast(ObjectLayer, layer) == {
-            case .NonMoving; return xx BroadPhaseLayer.NonMoving;
-            case .Moving; return xx BroadPhaseLayer.Moving;
-            }
-        },
-    };
+    bpl_interface.MapObjectToBroadPhaseLayer(bpl_interface, xx ObjectLayer.NonMoving, xx BroadPhaseLayer.NonMoving);
+    bpl_interface.MapObjectToBroadPhaseLayer(bpl_interface, xx ObjectLayer.Moving, xx BroadPhaseLayer.Moving);
+#if Jolt.EXTERNAL_PROFILE || Jolt.PROFILE_ENABLED {
+    bpl_interface.SetBroadPhaseLayerName(bpl_interface, xx BroadPhaseLayer.NonMoving, "NonMoving");
+    bpl_interface.SetBroadPhaseLayerName(bpl_interface, xx BroadPhaseLayer.Moving, "Moving");
+}
 
-    #if Jolt.PROFILE_ENABLED {
-        bpl_interface_funcs.GetBroadPhaseLayerName = (data : *void, layer : Jolt.BroadPhaseLayer) -> *u8 #c_call {
-            return type_info(BroadPhaseLayer).names[layer].data;
-        }
-    }
+    object_layer_pair_filter := Jolt.ObjectLayerPairFilterTable.Create(2);
+    defer object_layer_pair_filter.Destroy(object_layer_pair_filter);
 
-    bpl_interface := Jolt.BroadPhaseLayerInterface_Create(null, bpl_interface_funcs, .{});
-    defer Jolt.BroadPhaseLayerInterface_Destroy(bpl_interface);
+    object_layer_pair_filter.EnableCollision(object_layer_pair_filter, xx ObjectLayer.NonMoving, xx ObjectLayer.Moving);
+    object_layer_pair_filter.EnableCollision(object_layer_pair_filter, xx ObjectLayer.Moving, xx ObjectLayer.Moving);
 
-    object_layer_pair_filter := Jolt.ObjectLayerPairFilter_Create(null, .{
-        ShouldCollide=(data : *void, layer1 : Jolt.ObjectLayer, layer2 : Jolt.ObjectLayer) -> bool #c_call {
-            if #complete cast(ObjectLayer, layer1) == {
-            case .NonMoving;
-                return layer2 == xx ObjectLayer.Moving;
-            case .Moving;
-                return true;
-            }
-        },
-    }, .{});
-    defer Jolt.ObjectLayerPairFilter_Destroy(object_layer_pair_filter);
+    object_vs_broad_phase_layer_filter := Jolt.ObjectVsBroadPhaseLayerFilterTable.Create(bpl_interface, 2, object_layer_pair_filter, 2);
+    defer object_vs_broad_phase_layer_filter.Destroy(object_vs_broad_phase_layer_filter);
 
-    object_vs_broad_phase_layer_filter := Jolt.ObjectVsBroadPhaseLayerFilter_Create(null, .{
-        ShouldCollide=(data : *void, object_layer : Jolt.ObjectLayer, broad_phase_layer : Jolt.BroadPhaseLayer) -> bool #c_call {
-            if #complete cast(ObjectLayer, object_layer) == {
-            case .NonMoving;
-                return broad_phase_layer == xx BroadPhaseLayer.Moving;
-            case .Moving;
-                return true;
-            }
-        },
-    }, .{});
-    defer Jolt.ObjectVsBroadPhaseLayerFilter_Destroy(object_vs_broad_phase_layer_filter);
-
-    system := Jolt.PhysicsSystem_Create(.{
+    system := Jolt.PhysicsSystem.Create(.{
         maxBodies=1024,
         numBodyMutexes=0,
         maxBodyPairs=1024,
@@ -87,80 +60,80 @@ main :: () {
         objectVsBroadPhaseLayerFilter=object_vs_broad_phase_layer_filter,
         objectLayerPairFilter=object_layer_pair_filter,
     });
-    defer Jolt.PhysicsSystem_Destroy(system);
+    defer system.Destroy(system);
 
-    body_interface := Jolt.PhysicsSystem_GetBodyInterface(system);
+    body_interface := system.GetBodyInterface(system);
 
-    floor_shape_settings := Jolt.BoxShapeSettings_Create();
-    defer Jolt.BoxShapeSettings_Destroy(floor_shape_settings);
+    floor_shape_settings := Jolt.BoxShapeSettings.Create();
+    defer floor_shape_settings.Destroy(floor_shape_settings);
 
-    Jolt.BoxShapeSettings_SetHalfExtent(floor_shape_settings, Jolt.Vec3_Make(100, 1, 100));
+    floor_shape_settings.SetHalfExtent(floor_shape_settings, Jolt.Vec3.Make(100, 1, 100));
 
-    floor_shape := Jolt.ShapeSettings_CreateShape(xx floor_shape_settings);
+    floor_shape := floor_shape_settings.CreateShape(floor_shape_settings);
 
-    floor_settings := Jolt.BodyCreationSettings_Default();
-    floor_settings.position = Jolt.Vec3_Make(0,-1,0);
+    floor_settings := Jolt.BodyCreationSettings.Default();
+    floor_settings.position = Jolt.Vec3.Make(0,-1,0);
     floor_settings.objectLayer = xx ObjectLayer.NonMoving;
     floor_settings.motionType = .Static;
     floor_settings.shapePtr = floor_shape;
 
-    floor := Jolt.BodyInterface_CreateBody(body_interface, *floor_settings);
-    Jolt.BodyInterface_AddBody(body_interface, Jolt.Body_GetID(floor), .Activate);
-    print("Created floor: %\n", Jolt.Body_GetID(floor));
+    floor := body_interface.CreateBody(body_interface, *floor_settings);
+    body_interface.AddBody(body_interface, floor.GetID(floor), .Activate);
+    print("Created floor: %\n", floor.GetID(floor));
 
-    sphere_shape_settings := Jolt.SphereShapeSettings_Create();
-    defer Jolt.SphereShapeSettings_Destroy(sphere_shape_settings);
+    sphere_shape_settings := Jolt.SphereShapeSettings.Create();
+    defer sphere_shape_settings.Destroy(sphere_shape_settings);
 
-    Jolt.SphereShapeSettings_SetRadius(sphere_shape_settings, 0.5);
+    sphere_shape_settings.SetRadius(sphere_shape_settings, 0.5);
 
-    sphere_shape := Jolt.ShapeSettings_CreateShape(xx sphere_shape_settings);
+    sphere_shape := sphere_shape_settings.CreateShape(sphere_shape_settings);
 
-    sphere_settings := Jolt.BodyCreationSettings_Default();
-    sphere_settings.position = Jolt.Vec3_Make(0,2,0);
+    sphere_settings := Jolt.BodyCreationSettings.Default();
+    sphere_settings.position = Jolt.Vec3.Make(0,2,0);
     sphere_settings.objectLayer = xx ObjectLayer.Moving;
     sphere_settings.motionType = .Dynamic;
     sphere_settings.shapePtr = sphere_shape;
 
-    sphere_id := Jolt.BodyInterface_CreateAndAddBody(body_interface, *sphere_settings, .Activate);
+    sphere_id := Jolt.BodyInterface.CreateAndAddBody(body_interface, *sphere_settings, .Activate);
     print("Created sphere: %\n", sphere_id);
 
-    Jolt.BodyInterface_SetLinearVelocity(body_interface, sphere_id, Jolt.Vec3_Make(0,-5,0));
+    body_interface.SetLinearVelocity(body_interface, sphere_id, Jolt.Vec3.Make(0,-5,0));
 
-    Jolt.PhysicsSystem_OptimizeBroadPhase(system);
+    system.OptimizeBroadPhase(system);
 
     Delta_Time :: 1 / 60.0;
     step := 0;
-    while Jolt.BodyInterface_IsActive(body_interface, sphere_id) {
+    while body_interface.IsActive(body_interface, sphere_id) {
         step += 1;
 
-        position := Jolt.BodyInterface_GetCenterOfMassPosition(body_interface, sphere_id);
-        velocity := Jolt.BodyInterface_GetLinearVelocity(body_interface, sphere_id);
+        position := body_interface.GetCenterOfMassPosition(body_interface, sphere_id);
+        velocity := body_interface.GetLinearVelocity(body_interface, sphere_id);
         print("Step %: Position = (%, %, %), Velocity = (%, %, %)\n", step, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
 
         Collision_Steps :: 1;
-        Jolt.PhysicsSystem_Update(system, Delta_Time, Collision_Steps, temp_allocator, job_system);
+        system.Update(system, Delta_Time, Collision_Steps, temp_allocator, job_system);
 
-        query := Jolt.PhysicsSystem_GetNarrowPhaseQuery(system);
+        query := system.GetNarrowPhaseQuery(system);
 
         ray := Jolt.RRayCast.{
-            origin=Jolt.Vec3_Make(0, 1, -5),
-            direction=Jolt.Vec3_Make(0, 0, 50),
+            origin=Jolt.Vec3.Make(0, 1, -5),
+            direction=Jolt.Vec3.Make(0, 0, 50),
         };
 
-        ray_cast_result := Jolt.RayCastResult_Default();
-        hit := Jolt.NarrowPhaseQuery_CastRay(query, ray, *ray_cast_result, null, null, null);
+        ray_cast_result := Jolt.RayCastResult.Default();
+        hit := Jolt.NarrowPhaseQuery.CastRay(query, ray, *ray_cast_result, null, null, null);
 
         if (hit) {
-            hit_point := Jolt.RRayCast_GetPointOnRay(*ray, ray_cast_result.fraction);
+            hit_point := ray.GetPointOnRay(*ray, ray_cast_result.fraction);
             print("Hit, Fraction = %, Point = (%, %, %), BodyID = %\n", ray_cast_result.fraction, hit_point.x, hit_point.y, hit_point.z, ray_cast_result.bodyID);
         }
     }
 
-    Jolt.BodyInterface_RemoveBody(body_interface, sphere_id);
-    Jolt.BodyInterface_DestroyBody(body_interface, sphere_id);
+    body_interface.RemoveBody(body_interface, sphere_id);
+    body_interface.DestroyBody(body_interface, sphere_id);
 
-    Jolt.BodyInterface_RemoveBody(body_interface, Jolt.Body_GetID(floor));
-    Jolt.BodyInterface_DestroyBody(body_interface, Jolt.Body_GetID(floor));
+    body_interface.RemoveBody(body_interface, floor.GetID(floor));
+    body_interface.DestroyBody(body_interface, floor.GetID(floor));
 }
 
 #run {

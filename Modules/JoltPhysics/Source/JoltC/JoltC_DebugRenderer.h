@@ -7,7 +7,14 @@
 #error "This file must only be included when JPH_DEBUG_RENDERER is defined"
 #endif
 
-typedef struct JPH_DebugRenderer  JPH_DebugRenderer;
+typedef struct JPH_DebugRenderer {
+    char opaque;
+} JPH_DebugRenderer;
+
+typedef struct JPH_DebugRendererSimple {
+    JPH_DebugRenderer base;
+} JPH_DebugRendererSimple;
+
 typedef struct JPH_BodyDrawFilter JPH_BodyDrawFilter;
 
 typedef uint32_t JPH_DebugRenderer_ECastShadow;

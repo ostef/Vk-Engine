@@ -5,6 +5,7 @@ struct Enum;
 struct Typedef;
 struct Variable;
 struct Function;
+struct Define;
 struct Type;
 struct TypePointer;
 struct TypeArray;
@@ -37,12 +38,14 @@ struct Database {
     Array<Typedef *> all_typedefs;
     Array<Variable *> all_variables;
     Array<Function *> all_functions;
+    Array<Define *> all_defines;
     Array<Type *> all_types;
 
     Struct *GetStruct(const String &name) const;
     Enum *GetEnum(const String &name) const;
     Typedef *GetTypedef(const String &name) const;
     Function *GetFunction(const String &name) const;
+    Define *GetDefine(const String &name) const;
     Type *GetType(CXType type);
 
     struct PostProcessOptions {
@@ -69,6 +72,7 @@ struct Struct {
     Array<Typedef *> sub_typedefs;
     Array<Function *> methods;
     Array<Function *> functions;
+    Array<Define *> sub_defines;
 
     Struct(CXCursor cursor);
 };
@@ -93,6 +97,7 @@ struct Enum {
     Type *base_type = nullptr;
 
     // Filled in after everything has been parsed
+    bool is_flags = false;
     Typedef *associated_typedef = nullptr;
     Struct *parent_struct = nullptr;
 
@@ -146,6 +151,38 @@ struct Function {
     FunctionFlags flags = 0;
 
     Function(CXCursor cursor);
+};
+
+typedef uint8_t TokenKind;
+enum {
+    Token_Punctuation,
+    Token_Literal,
+    Token_Keyword,
+    Token_Identifier,
+    Token_Comment,
+};
+
+struct Token {
+    SourceCodeRange source_code_range;
+    TokenKind kind = 0;
+    String text;
+
+    // Filled in after everything has been parsed
+    Define *resolved_define = nullptr; // We only handle identifiers that reference defines for now
+};
+
+struct Define {
+    SourceCodeRange source_code_range;
+    String name;
+    String basename;
+    CXCursor cursor;
+
+    Array<Token> tokens;
+
+    // Filled in after everything has been parsed
+    Struct *parent_struct = nullptr;
+
+    Define(CXCursor cursor);
 };
 
 typedef uint8_t TypeKind;
@@ -267,6 +304,9 @@ struct TypeNamed : Type {
 };
 
 String GetDeclName(CXCursor cursor);
+SourceCodeRange GetSourceCodeRange(CXSourceRange range);
 SourceCodeRange GetSourceCodeRange(CXCursor cursor);
 
 String GetParentName(const String &str);
+
+String StripPrefix(const String &str, const Array<String> &prefixes);

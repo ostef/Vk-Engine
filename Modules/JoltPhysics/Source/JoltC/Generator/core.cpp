@@ -36,7 +36,7 @@ String::String()
     : data(nullptr), count(0) {}
 
 String::String(const char *str)
-    : data(const_cast<char *>(str)), count(strlen(data)) {}
+    : data(const_cast<char *>(str)), count(data ? strlen(data) : 0) {}
 
 String::String(const char *str, int64_t count)
     : data(const_cast<char *>(str)), count(count) {}

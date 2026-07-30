@@ -164,6 +164,16 @@ struct Array {
 
         return elem;
     }
+
+    bool Contains(T value) const {
+        for (int64_t i = 0; i < count; i += 1) {
+            if (data[i] == value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 };
 
 struct StringBuilder {

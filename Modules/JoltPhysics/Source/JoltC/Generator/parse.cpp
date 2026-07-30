@@ -158,11 +158,64 @@ Typedef *ParseTypedef(ParseContext &ctx, CXCursor cursor) {
     return ty;
 }
 
+Define *ParseDefine(ParseContext &ctx, CXCursor cursor) {
+    bool function_like = clang_Cursor_isMacroFunctionLike(cursor);
+    if (clang_Cursor_isMacroFunctionLike(cursor)) {
+        return nullptr;
+    }
+
+    auto range = clang_getCursorExtent(cursor);
+    CXToken *tokens = nullptr;
+    uint32_t num_tokens = 0;
+    clang_tokenize(ctx.tu, range, &tokens, &num_tokens);
+    if (!tokens) {
+        Error("Could not tokenize #define");
+        return nullptr;
+    }
+
+    Define *def = new Define(cursor);
+    ctx.db.all_defines.Push(def);
+
+    tokens += 1;
+    num_tokens -= 1;
+
+    for (uint32_t i = 0; i < num_tokens; i += 1) {
+        auto clang_tok = tokens[i];
+
+        auto tok = def->tokens.Push();
+        tok->source_code_range = GetSourceCodeRange(clang_getTokenExtent(ctx.tu, clang_tok));
+        tok->text = strdup(clang_getCString(clang_getTokenSpelling(ctx.tu, clang_tok)));
+
+        switch (clang_getTokenKind(clang_tok)) {
+        case CXToken_Punctuation: {
+            tok->kind = Token_Punctuation;
+        } break;
+        case CXToken_Keyword: {
+            tok->kind = Token_Keyword;
+        } break;
+        case CXToken_Identifier: {
+            tok->kind = Token_Identifier;
+        } break;
+        case CXToken_Literal: {
+            tok->kind = Token_Literal;
+        } break;
+        case CXToken_Comment: {
+            tok->kind = Token_Comment;
+        } break;
+        }
+    }
+
+    return def;
+}
+
 static
 enum CXChildVisitResult TopLevelVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data) {
     VISITOR_PREAMBLE();
 
     switch (kind) {
+        case CXCursor_MacroDefinition: {
+            ParseDefine(ctx, cursor);
+        } break;
         // case CXCursor_MacroExpansion: {
         //     SourceCodeRange range = GetSourceCodeRange(cursor);
         //     const char *name = clang_getCString(clang_getCursorSpelling(cursor));

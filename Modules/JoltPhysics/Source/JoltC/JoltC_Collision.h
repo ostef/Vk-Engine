@@ -42,22 +42,53 @@ typedef struct JPH_ObjectVsBroadPhaseLayerFilterMask {
     JPH_ObjectVsBroadPhaseLayerFilter base;
 } JPH_ObjectVsBroadPhaseLayerFilterMask;
 
-typedef struct JPH_BroadPhaseLayerFilter              JPH_BroadPhaseLayerFilter;
-typedef struct JPH_ObjectLayerFilter                  JPH_ObjectLayerFilter;
-typedef struct JPH_GroupFilter                        JPH_GroupFilter;
-typedef struct JPH_BodyFilter                         JPH_BodyFilter;
-typedef struct JPH_ShapeFilter                        JPH_ShapeFilter;
-typedef struct JPH_BroadPhaseQuery                    JPH_BroadPhaseQuery;
-typedef struct JPH_NarrowPhaseQuery                   JPH_NarrowPhaseQuery;
+typedef struct JPH_BroadPhaseLayerFilter {
+    char opaque;
+} JPH_BroadPhaseLayerFilter;
+
+typedef struct JPH_ObjectLayerFilter {
+    char opaque;
+} JPH_ObjectLayerFilter;
+
+typedef struct JPH_GroupFilter {
+    char opaque;
+} JPH_GroupFilter;
+
+typedef struct JPH_BodyFilter {
+    char opaque;
+} JPH_BodyFilter;
+
+typedef struct JPH_IgnoreMultipleBodiesFilter {
+    JPH_BodyFilter base;
+} JPH_IgnoreMultipleBodiesFilter;
+
+typedef struct JPH_IgnoreSingleBodyFilter {
+    JPH_BodyFilter base;
+} JPH_IgnoreSingleBodyFilter;
+
+typedef struct JPH_IgnoreSingleBodyFilterChained {
+    JPH_BodyFilter base;
+} JPH_IgnoreSingleBodyFilterChained;
+
+typedef struct JPH_ShapeFilter {
+    char opaque;
+} JPH_ShapeFilter;
+
+typedef struct JPH_ReversedShapeFilter {
+    JPH_ShapeFilter base;
+} JPH_ReversedShapeFilter;
+
+typedef struct JPH_BroadPhaseQuery  JPH_BroadPhaseQuery;
+typedef struct JPH_NarrowPhaseQuery JPH_NarrowPhaseQuery;
 
 typedef uint8_t JPH_BroadPhaseLayer;
 
-#if !defined(JOLTC_OBJECT_LAYER_BITS) || JPH_OBJECT_LAYER_BITS == 16
+#if !defined(JOLTC_OBJECT_LAYER_BITS) || JOLTC_OBJECT_LAYER_BITS == 16
     typedef uint16_t JPH_ObjectLayer;
-#elif JPH_OBJECT_LAYER_BITS == 32
+#elif JOLTC_OBJECT_LAYER_BITS == 32
     typedef uint32_t JPH_ObjectLayer;
 #else
-    #error "JPH_OBJECT_LAYER_BITS must be 16 or 32"
+    #error "JOLTC_OBJECT_LAYER_BITS must be 16 or 32"
 #endif
 
 typedef uint32_t JPH_CollisionGroup_GroupID;
@@ -158,10 +189,11 @@ typedef struct JPH_BodyFilter_Funcs {
 } JPH_BodyFilter_Funcs;
 
 JOLTC_API JPH_BodyFilter *JPH_BodyFilter_Create(void *data, JPH_BodyFilter_Funcs funcs, JPH_JoltCAllocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator);
-JOLTC_API JPH_BodyFilter *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_BodyFilter_Destroy(JPH_BodyFilter *self);
+
+JOLTC_API JPH_IgnoreMultipleBodiesFilter *JPH_IgnoreMultipleBodiesFilter_Create(const JPH_BodyID *bodyIDs, int numBodies, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_IgnoreSingleBodyFilter *JPH_IgnoreSingleBodyFilter_Create(JPH_BodyID bodyID, JPH_JoltCAllocator allocator);
+JOLTC_API JPH_IgnoreSingleBodyFilterChained *JPH_IgnoreSingleBodyFilterChained_Create(JPH_BodyID bodyID, const JPH_BodyFilter *otherFilter, JPH_JoltCAllocator allocator);
 
 typedef struct JPH_ShapeFilter_Funcs {
     void (JOLTC_CALL *Destruct)(void *data);
@@ -170,8 +202,8 @@ typedef struct JPH_ShapeFilter_Funcs {
 } JPH_ShapeFilter_Funcs;
 
 JOLTC_API JPH_ShapeFilter *JPH_ShapeFilter_Create(void *data, JPH_ShapeFilter_Funcs funcs, JPH_JoltCAllocator allocator);
-JOLTC_API JPH_ShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator);
 JOLTC_API void JPH_ShapeFilter_Destroy(JPH_ShapeFilter *self);
+JOLTC_API JPH_ReversedShapeFilter *JPH_ReversedShapeFilter_Create(const JPH_ShapeFilter *other, JPH_JoltCAllocator allocator);
 
 // Default filters
 

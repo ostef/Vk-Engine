@@ -41,6 +41,16 @@ Function *Database::GetFunction(const String &name) const {
     return nullptr;
 }
 
+Define *Database::GetDefine(const String &name) const {
+    for (int64_t i = 0; i < all_defines.count; i += 1) {
+        if (all_defines[i]->name == name) {
+            return all_defines[i];
+        }
+    }
+
+    return nullptr;
+}
+
 Type *Database::GetType(CXType type) {
     CXType original_type = type;
 
@@ -202,13 +212,12 @@ String GetBaseName(const String &str, const String &parent_name) {
             result = result.TrimLeft(1);
         }
 
-        return result;
+        return result.count > 0 ? result : str;
     }
 
     return str;
 }
 
-static
 String StripPrefix(const String &str, const Array<String> &prefixes) {
     for (int64_t i = 0; i < prefixes.count; i += 1) {
         auto prefix = prefixes[i];
@@ -218,9 +227,9 @@ String StripPrefix(const String &str, const Array<String> &prefixes) {
 
             if (result.StartsWith("_")) {
                 result = result.TrimLeft(1);
-
-                return result;
             }
+
+            return result.count > 0 ? result : str;
         }
     }
 
@@ -280,20 +289,18 @@ void Database::PostProcess(const PostProcessOptions &options) {
     for (int64_t i = 0; i < all_enums.count; i += 1) {
         auto e = all_enums[i];
 
-        auto parent_name = GetParentName(e->name);
-        if (parent_name.count > 0) {
-            auto parent_struct = GetStruct(parent_name);
-            if (parent_struct) {
-                e->basename = GetBaseName(e->name, parent_name);
-                e->parent_struct = parent_struct;
-                parent_struct->sub_enums.Push(e);
+        String real_name = e->name;
+        if (e->name.EndsWith("Flags_")) {
+            e->is_flags = true;
+
+            real_name = e->name.TrimRight(strlen("Flags_"));
+
+            e->associated_typedef = GetTypedef(real_name);
+            if (e->associated_typedef) {
+                e->associated_typedef->associated_enum = e;
             }
-        }
-
-        e->basename = StripPrefix(e->basename, options.strip_prefixes);
-
-        if (e->name.EndsWith("_")) {
-            auto real_name = e->name.TrimRight(1);
+        } else if (e->name.EndsWith("_")) {
+            real_name = e->name.TrimRight(1);
 
             e->associated_typedef = GetTypedef(real_name);
             if (e->associated_typedef) {
@@ -301,11 +308,22 @@ void Database::PostProcess(const PostProcessOptions &options) {
             }
         }
 
+        auto parent_name = GetParentName(real_name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                e->basename = GetBaseName(real_name, parent_name);
+                e->parent_struct = parent_struct;
+                parent_struct->sub_enums.Push(e);
+            }
+        }
+
+        e->basename = StripPrefix(e->basename, options.strip_prefixes);
 
         for (int64_t i = 0; i < e->values.count; i += 1) {
             auto &value = e->values[i];
 
-            value.basename = GetBaseName(value.name, e->name);
+            value.basename = GetBaseName(value.name, real_name);
         }
     }
 
@@ -370,6 +388,29 @@ void Database::PostProcess(const PostProcessOptions &options) {
             }
         }
     }
+
+    for (int64_t i = 0; i < all_defines.count; i += 1) {
+        auto def = all_defines[i];
+
+        auto parent_name = GetParentName(def->name);
+        if (parent_name.count > 0) {
+            auto parent_struct = GetStruct(parent_name);
+            if (parent_struct) {
+                def->basename = GetBaseName(def->name, parent_name);
+                def->parent_struct = parent_struct;
+                parent_struct->sub_defines.Push(def);
+            }
+        }
+
+        def->basename = StripPrefix(def->basename, options.strip_prefixes);
+
+        for (int64_t i = 0; i < def->tokens.count; i += 1) {
+            auto &tok = def->tokens[i];
+            if (tok.kind == Token_Identifier) {
+                tok.resolved_define = GetDefine(tok.text);
+            }
+        }
+    }
 }
 
 Struct::Struct(CXCursor cursor)
@@ -410,18 +451,24 @@ Function::Function(CXCursor cursor)
       source_code_range(GetSourceCodeRange(cursor)),
       cursor(clang_getCanonicalCursor(cursor)) {}
 
+Define::Define(CXCursor cursor)
+    : name(GetDeclName(cursor)),
+      basename(name),
+      source_code_range(GetSourceCodeRange(cursor)),
+      cursor(clang_getCanonicalCursor(cursor)) {}
+
 String GetDeclName(CXCursor cursor) {
     if (clang_Cursor_isAnonymous(cursor)) {
         return "";
     }
 
     CXString spelling = clang_getCursorSpelling(cursor);
+    const char *str = clang_getCString(spelling);
 
-    return String((char *)clang_getCString(spelling));
+    return String(strdup(str));
 }
 
-SourceCodeRange GetSourceCodeRange(CXCursor cursor) {
-    CXSourceRange range = clang_getCursorExtent(cursor);
+SourceCodeRange GetSourceCodeRange(CXSourceRange range) {
     CXSourceLocation range_start = clang_getRangeStart(range);
     CXSourceLocation range_end = clang_getRangeEnd(range);
 
@@ -439,4 +486,10 @@ SourceCodeRange GetSourceCodeRange(CXCursor cursor) {
         .start_line=start_line, .start_character=start_character, .start_offset=start_offset,
         .end_line=end_line, .end_character=end_character, .end_offset=end_offset,
     };
+}
+
+SourceCodeRange GetSourceCodeRange(CXCursor cursor) {
+    CXSourceRange range = clang_getCursorExtent(cursor);
+
+    return GetSourceCodeRange(range);
 }

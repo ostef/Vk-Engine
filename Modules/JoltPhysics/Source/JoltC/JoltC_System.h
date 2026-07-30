@@ -54,7 +54,7 @@ JOLTC_API JPH_DefaultObjectLayerFilter JPH_PhysicsSystem_GetDefaultLayerFilter(c
 JOLTC_API void JPH_PhysicsSystem_OptimizeBroadPhase(JPH_PhysicsSystem *system);
 
 typedef uint32_t JPH_EPhysicsUpdateError;
-enum JPH_EPhysicsUpdateError_ {
+enum JPH_EPhysicsUpdateErrorFlags_ {
     JPH_EPhysicsUpdateError_None = 0,
     JPH_EPhysicsUpdateError_ManifoldCacheFull = 1 << 0,
     JPH_EPhysicsUpdateError_BodyPairCacheFull = 1 << 1,

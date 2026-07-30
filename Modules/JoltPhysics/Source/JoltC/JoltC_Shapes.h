@@ -179,14 +179,10 @@ JOLTC_API void JPH_ShapeSettings_SetUserData(JPH_ShapeSettings *settings, uint64
 JOLTC_API uint64_t JPH_ShapeSettings_GetUserData(const JPH_ShapeSettings *settings);
 
 JOLTC_API JPH_EmptyShapeSettings *JPH_EmptyShapeSettings_Create();
-JOLTC_API void JPH_EmptyShapeSettings_Destroy(JPH_EmptyShapeSettings *settings);
-JOLTC_API JPH_EmptyShape *JPH_EmptyShapeSettings_CreateShape(JPH_EmptyShapeSettings *settings);
 JOLTC_API void JPH_EmptyShapeSettings_SetCenterOfMass(JPH_EmptyShapeSettings *settings, JPH_Vec3 centerOfMass);
 JOLTC_API JPH_Vec3 JPH_EmptyShapeSettings_GetCenterOfMass(const JPH_EmptyShapeSettings *settings);
 
 JOLTC_API JPH_PlaneShapeSettings *JPH_PlaneShapeSettings_Create();
-JOLTC_API void JPH_PlaneShapeSettings_Destroy(JPH_PlaneShapeSettings *settings);
-JOLTC_API JPH_PlaneShape *JPH_PlaneShapeSettings_CreateShape(JPH_PlaneShapeSettings *settings);
 JOLTC_API void JPH_PlaneShapeSettings_SetPlane(JPH_PlaneShapeSettings *settings, JPH_Plane plane);
 JOLTC_API JPH_Plane JPH_PlaneShapeSettings_GetPlane(const JPH_PlaneShapeSettings *settings);
 JOLTC_API void JPH_PlaneShapeSettings_SetPhysicsMaterial(JPH_PlaneShapeSettings *settings, const JPH_PhysicsMaterial *material);
@@ -195,8 +191,6 @@ JOLTC_API void JPH_PlaneShapeSettings_SetHalfExtent(JPH_PlaneShapeSettings *sett
 JOLTC_API float JPH_PlaneShapeSettings_GetHalfExtent(const JPH_PlaneShapeSettings *settings);
 
 JOLTC_API JPH_OffsetCenterOfMassShapeSettings *JPH_OffsetCenterOfMassShapeSettings_Create();
-JOLTC_API void JPH_OffsetCenterOfMassShapeSettings_Destroy(JPH_OffsetCenterOfMassShapeSettings *settings);
-JOLTC_API JPH_OffsetCenterOfMassShape *JPH_OffsetCenterOfMassShapeSettings_CreateShape(JPH_OffsetCenterOfMassShapeSettings *settings);
 JOLTC_API void JPH_OffsetCenterOfMassShapeSettings_SetInnerShape(JPH_OffsetCenterOfMassShapeSettings *settings, const JPH_Shape *innerShape);
 JOLTC_API const JPH_Shape *JPH_OffsetCenterOfMassShapeSettings_GetInnerShape(const JPH_OffsetCenterOfMassShapeSettings *settings);
 JOLTC_API void JPH_OffsetCenterOfMassShapeSettings_SetInnerShapeSettings(JPH_OffsetCenterOfMassShapeSettings *settings, const JPH_ShapeSettings *innerShapeSettings);
@@ -205,8 +199,6 @@ JOLTC_API void JPH_OffsetCenterOfMassShapeSettings_SetOffset(JPH_OffsetCenterOfM
 JOLTC_API JPH_Vec3 JPH_OffsetCenterOfMassShapeSettings_GetOffset(const JPH_OffsetCenterOfMassShapeSettings *settings);
 
 JOLTC_API JPH_RotatedTranslatedShapeSettings *JPH_RotatedTranslatedShapeSettings_Create();
-JOLTC_API void JPH_RotatedTranslatedShapeSettings_Destroy(JPH_RotatedTranslatedShapeSettings *settings);
-JOLTC_API JPH_RotatedTranslatedShape *JPH_RotatedTranslatedShapeSettings_CreateShape(JPH_RotatedTranslatedShapeSettings *settings);
 JOLTC_API void JPH_RotatedTranslatedShapeSettings_SetInnerShape(JPH_RotatedTranslatedShapeSettings *settings, const JPH_Shape *innerShape);
 JOLTC_API const JPH_Shape *JPH_RotatedTranslatedShapeSettings_GetInnerShape(const JPH_RotatedTranslatedShapeSettings *settings);
 JOLTC_API void JPH_RotatedTranslatedShapeSettings_SetInnerShapeSettings(JPH_RotatedTranslatedShapeSettings *settings, const JPH_ShapeSettings *innerShapeSettings);
@@ -217,8 +209,6 @@ JOLTC_API void JPH_RotatedTranslatedShapeSettings_SetRotation(JPH_RotatedTransla
 JOLTC_API JPH_Quat JPH_RotatedTranslatedShapeSettings_GetRotation(const JPH_RotatedTranslatedShapeSettings *settings);
 
 JOLTC_API JPH_ScaledShapeSettings *JPH_ScaledShapeSettings_Create();
-JOLTC_API void JPH_ScaledShapeSettings_Destroy(JPH_ScaledShapeSettings *settings);
-JOLTC_API JPH_ScaledShape *JPH_ScaledShapeSettings_CreateShape(JPH_ScaledShapeSettings *settings);
 JOLTC_API void JPH_ScaledShapeSettings_SetInnerShape(JPH_ScaledShapeSettings *settings, const JPH_Shape *innerShape);
 JOLTC_API const JPH_Shape *JPH_ScaledShapeSettings_GetInnerShape(const JPH_ScaledShapeSettings *settings);
 JOLTC_API void JPH_ScaledShapeSettings_SetInnerShapeSettings(JPH_ScaledShapeSettings *settings, const JPH_ShapeSettings *innerShapeSettings);
@@ -226,43 +216,29 @@ JOLTC_API const JPH_ShapeSettings *JPH_ScaledShapeSettings_GetInnerShapeSettings
 JOLTC_API void JPH_ScaledShapeSettings_SetScale(JPH_ScaledShapeSettings *settings, JPH_Vec3 scale);
 JOLTC_API JPH_Vec3 JPH_ScaledShapeSettings_GetScale(const JPH_ScaledShapeSettings *settings);
 
-JOLTC_API void JPH_CompoundShapeSettings_Destroy(JPH_CompoundShapeSettings *settings);
-JOLTC_API JPH_CompoundShape *JPH_CompoundShapeSettings_CreateShape(JPH_CompoundShapeSettings *settings);
 JOLTC_API void JPH_CompoundShapeSettings_AddShape(JPH_CompoundShapeSettings *settings, JPH_Vec3 position, JPH_Quat rotation, const JPH_Shape *subShape, uint32_t userData);
 JOLTC_API void JPH_CompoundShapeSettings_AddShapeSettings(JPH_CompoundShapeSettings *settings, JPH_Vec3 position, JPH_Quat rotation, const JPH_ShapeSettings *subShapeSettings, uint32_t userData);
 
 JOLTC_API JPH_StaticCompoundShapeSettings *JPH_StaticCompoundShapeSettings_Create();
-JOLTC_API void JPH_StaticCompoundShapeSettings_Destroy(JPH_StaticCompoundShapeSettings *settings);
-JOLTC_API JPH_StaticCompoundShape *JPH_StaticCompoundShapeSettings_CreateShape(JPH_StaticCompoundShapeSettings *settings);
 
 JOLTC_API JPH_MutableCompoundShapeSettings *JPH_MutableCompoundShapeSettings_Create();
-JOLTC_API void JPH_MutableCompoundShapeSettings_Destroy(JPH_MutableCompoundShapeSettings *settings);
-JOLTC_API JPH_MutableCompoundShape *JPH_MutableCompoundShapeSettings_CreateShape(JPH_MutableCompoundShapeSettings *settings);
 
-JOLTC_API void JPH_ConvexShapeSettings_Destroy(JPH_ConvexShapeSettings *settings);
-JOLTC_API JPH_ConvexShape *JPH_ConvexShapeSettings_CreateShape(JPH_ConvexShapeSettings *settings);
 JOLTC_API void JPH_ConvexShapeSettings_SetPhysicsMaterial(JPH_ConvexShapeSettings *settings, const JPH_PhysicsMaterial *material);
 JOLTC_API const JPH_PhysicsMaterial *JPH_ConvexShapeSettings_GetPhysicsMaterial(const JPH_ConvexShapeSettings *settings);
 JOLTC_API void JPH_ConvexShapeSettings_SetDensity(JPH_ConvexShapeSettings *settings, float density);
 JOLTC_API float JPH_ConvexShapeSettings_GetDensity(const JPH_ConvexShapeSettings *settings);
 
 JOLTC_API JPH_BoxShapeSettings *JPH_BoxShapeSettings_Create();
-JOLTC_API void JPH_BoxShapeSettings_Destroy(JPH_BoxShapeSettings *settings);
-JOLTC_API JPH_BoxShape *JPH_BoxShapeSettings_CreateShape(JPH_BoxShapeSettings *settings);
 JOLTC_API void JPH_BoxShapeSettings_SetHalfExtent(JPH_BoxShapeSettings *settings, JPH_Vec3 halfExtent);
 JOLTC_API JPH_Vec3 JPH_BoxShapeSettings_GetHalfExtent(const JPH_BoxShapeSettings *settings);
 JOLTC_API void JPH_BoxShapeSettings_SetConvexRadius(JPH_BoxShapeSettings *settings, float convexRadius);
 JOLTC_API float JPH_BoxShapeSettings_GetConvexRadius(const JPH_BoxShapeSettings *settings);
 
 JOLTC_API JPH_SphereShapeSettings *JPH_SphereShapeSettings_Create();
-JOLTC_API void JPH_SphereShapeSettings_Destroy(JPH_SphereShapeSettings *settings);
-JOLTC_API JPH_SphereShape *JPH_SphereShapeSettings_CreateShape(JPH_SphereShapeSettings *settings);
 JOLTC_API void JPH_SphereShapeSettings_SetRadius(JPH_SphereShapeSettings *settings, float radius);
 JOLTC_API float JPH_SphereShapeSettings_GetRadius(const JPH_SphereShapeSettings *settings);
 
 JOLTC_API JPH_CapsuleShapeSettings *JPH_CapsuleShapeSettings_Create();
-JOLTC_API void JPH_CapsuleShapeSettings_Destroy(JPH_CapsuleShapeSettings *settings);
-JOLTC_API JPH_CapsuleShape *JPH_CapsuleShapeSettings_CreateShape(JPH_CapsuleShapeSettings *settings);
 JOLTC_API void JPH_CapsuleShapeSettings_SetRadius(JPH_CapsuleShapeSettings *settings, float radius);
 JOLTC_API float JPH_CapsuleShapeSettings_GetRadius(const JPH_CapsuleShapeSettings *settings);
 JOLTC_API void JPH_CapsuleShapeSettings_SetHalfHeightOfCylinder(JPH_CapsuleShapeSettings *settings, float halfHeightOfCylinder);
@@ -271,8 +247,6 @@ JOLTC_API bool JPH_CapsuleShapeSettings_IsValid(const JPH_CapsuleShapeSettings *
 JOLTC_API bool JPH_CapsuleShapeSettings_IsSphere(const JPH_CapsuleShapeSettings *settings);
 
 JOLTC_API JPH_TaperedCapsuleShapeSettings *JPH_TaperedCapsuleShapeSettings_Create();
-JOLTC_API void JPH_TaperedCapsuleShapeSettings_Destroy(JPH_TaperedCapsuleShapeSettings *settings);
-JOLTC_API JPH_TaperedCapsuleShape *JPH_TaperedCapsuleShapeSettings_CreateShape(JPH_TaperedCapsuleShapeSettings *settings);
 JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetHalfHeightOfTaperedCylinder(JPH_TaperedCapsuleShapeSettings *settings, float halfHeightOfTaperedCylinder);
 JOLTC_API float JPH_TaperedCapsuleShapeSettings_GetHalfHeightOfTaperedCylinder(const JPH_TaperedCapsuleShapeSettings *settings);
 JOLTC_API void JPH_TaperedCapsuleShapeSettings_SetTopRadius(JPH_TaperedCapsuleShapeSettings *settings, float topRadius);
@@ -283,8 +257,6 @@ JOLTC_API bool JPH_TaperedCapsuleShapeSettings_IsValid(const JPH_TaperedCapsuleS
 JOLTC_API bool JPH_TaperedCapsuleShapeSettings_IsSphere(const JPH_TaperedCapsuleShapeSettings *settings);
 
 JOLTC_API JPH_CylinderShapeSettings *JPH_CylinderShapeSettings_Create();
-JOLTC_API void JPH_CylinderShapeSettings_Destroy(JPH_CylinderShapeSettings *settings);
-JOLTC_API JPH_CylinderShape *JPH_CylinderShapeSettings_CreateShape(JPH_CylinderShapeSettings *settings);
 JOLTC_API void JPH_CylinderShapeSettings_SetHalfHeight(JPH_CylinderShapeSettings *settings, float halfHeight);
 JOLTC_API float JPH_CylinderShapeSettings_GetHalfHeight(const JPH_CylinderShapeSettings *settings);
 JOLTC_API void JPH_CylinderShapeSettings_SetRadius(JPH_CylinderShapeSettings *settings, float radius);
@@ -293,8 +265,6 @@ JOLTC_API void JPH_CylinderShapeSettings_SetConvexRadius(JPH_CylinderShapeSettin
 JOLTC_API float JPH_CylinderShapeSettings_GetConvexRadius(const JPH_CylinderShapeSettings *settings);
 
 JOLTC_API JPH_TaperedCylinderShapeSettings *JPH_TaperedCylinderShapeSettings_Create();
-JOLTC_API void JPH_TaperedCylinderShapeSettings_Destroy(JPH_TaperedCylinderShapeSettings *settings);
-JOLTC_API JPH_TaperedCylinderShape *JPH_TaperedCylinderShapeSettings_CreateShape(JPH_TaperedCylinderShapeSettings *settings);
 JOLTC_API void JPH_TaperedCylinderShapeSettings_SetHalfHeight(JPH_TaperedCylinderShapeSettings *settings, float halfHeight);
 JOLTC_API float JPH_TaperedCylinderShapeSettings_GetHalfHeight(const JPH_TaperedCylinderShapeSettings *settings);
 JOLTC_API void JPH_TaperedCylinderShapeSettings_SetTopRadius(JPH_TaperedCylinderShapeSettings *settings, float topRadius);
@@ -305,8 +275,6 @@ JOLTC_API void JPH_TaperedCylinderShapeSettings_SetConvexRadius(JPH_TaperedCylin
 JOLTC_API float JPH_TaperedCylinderShapeSettings_GetConvexRadius(const JPH_TaperedCylinderShapeSettings *settings);
 
 JOLTC_API JPH_TriangleShapeSettings *JPH_TriangleShapeSettings_Create();
-JOLTC_API void JPH_TriangleShapeSettings_Destroy(JPH_TriangleShapeSettings *settings);
-JOLTC_API JPH_TriangleShape *JPH_TriangleShapeSettings_CreateShape(JPH_TriangleShapeSettings *settings);
 JOLTC_API void JPH_TriangleShapeSettings_SetV1(JPH_TriangleShapeSettings *settings, JPH_Vec3 v1);
 JOLTC_API JPH_Vec3 JPH_TriangleShapeSettings_GetV1(const JPH_TriangleShapeSettings *settings);
 JOLTC_API void JPH_TriangleShapeSettings_SetV2(JPH_TriangleShapeSettings *settings, JPH_Vec3 v2);
@@ -319,8 +287,6 @@ JOLTC_API void JPH_TriangleShapeSettings_SetConvexRadius(JPH_TriangleShapeSettin
 JOLTC_API float JPH_TriangleShapeSettings_GetConvexRadius(const JPH_TriangleShapeSettings *settings);
 
 JOLTC_API JPH_ConvexHullShapeSettings *JPH_ConvexHullShapeSettings_Create();
-JOLTC_API void JPH_ConvexHullShapeSettings_Destroy(JPH_ConvexHullShapeSettings *settings);
-JOLTC_API JPH_ConvexHullShape *JPH_ConvexHullShapeSettings_CreateShape(JPH_ConvexHullShapeSettings *settings);
 JOLTC_API void JPH_ConvexHullShapeSettings_AddPoints(JPH_ConvexHullShapeSettings *settings, const JPH_Vec3 *points, uint32_t count);
 JOLTC_API uint32_t JPH_ConvexHullShapeSettings_GetNumPoints(const JPH_ConvexHullShapeSettings *settings);
 JOLTC_API const JPH_Vec3 *JPH_ConvexHullShapeSettings_GetPoints(const JPH_ConvexHullShapeSettings *settings);
@@ -344,8 +310,6 @@ enum JPH_MeshShapeSettings_EBuildQuality_ {
 };
 
 JOLTC_API JPH_MeshShapeSettings *JPH_MeshShapeSettings_Create();
-JOLTC_API void JPH_MeshShapeSettings_Destroy(JPH_MeshShapeSettings *settings);
-JOLTC_API JPH_MeshShape *JPH_MeshShapeSettings_CreateShape(JPH_MeshShapeSettings *settings);
 JOLTC_API void JPH_MeshShapeSettings_Sanitize(JPH_MeshShapeSettings *settings);
 JOLTC_API void JPH_MeshShapeSettings_AddVertex(JPH_MeshShapeSettings *settings, JPH_Float3 vertex);
 JOLTC_API void JPH_MeshShapeSettings_AddVertices(JPH_MeshShapeSettings *settings, const JPH_Float3 *vertices, uint32_t count);
@@ -369,8 +333,6 @@ JOLTC_API void JPH_MeshShapeSettings_SetBuildQuality(JPH_MeshShapeSettings *sett
 JOLTC_API JPH_MeshShapeSettings_EBuildQuality JPH_MeshShapeSettings_GetBuildQuality(const JPH_MeshShapeSettings *settings);
 
 JOLTC_API JPH_HeightFieldShapeSettings *JPH_HeightFieldShapeSettings_Create();
-JOLTC_API void JPH_HeightFieldShapeSettings_Destroy(JPH_HeightFieldShapeSettings *settings);
-JOLTC_API JPH_HeightFieldShape *JPH_HeightFieldShapeSettings_CreateShape(JPH_HeightFieldShapeSettings *settings);
 JOLTC_API void JPH_HeightFieldShapeSettings_DetermineMinAndMaxSample(const JPH_HeightFieldShapeSettings *settings, float *outMinValue, float *outMaxValue, float *outQuantizationScale);
 JOLTC_API uint32_t JPH_HeightFieldShapeSettings_CalculateBitsPerSampleForError(const JPH_HeightFieldShapeSettings *settings, float maxError);
 JOLTC_API void JPH_HeightFieldShapeSettings_AddHeightSample(JPH_HeightFieldShapeSettings *settings, float sample);
