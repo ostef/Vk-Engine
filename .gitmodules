@@ -4,3 +4,6 @@
 [submodule "Modules/Linalg"]
 	path = Modules/Linalg
 	url = git@github.com:ostef/Linalg.git
+[submodule "Modules/JoltPhysics"]
+	path = Modules/JoltPhysics
+	url = ssh://git@github.com/ostef/Jolt-Jai
