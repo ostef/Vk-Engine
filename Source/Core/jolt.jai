@@ -7,6 +7,7 @@ InitJolt :: () {
 
     LogMessage("Jolt version ID: %\n", FormatInt.{value=Jolt.GetJoltVersionID(), base=16});
 
+    Jolt.CheckVersionID();
     Jolt.RegisterDefaultAllocator();
     Jolt.RegisterDefaultTraceHandler();
     #if Jolt.ENABLE_ASSERTS {

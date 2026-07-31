@@ -261,7 +261,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
         }
     }
 
-    Jolt.PhysicsSystem_OptimizeBroadPhase(world.physics.system);
+    Jolt.PhysicsSystem.OptimizeBroadPhase(world.physics.system);
 
     // Attach all entities to their parent now that all entities have been loaded
     for :AllEntities entity : world {

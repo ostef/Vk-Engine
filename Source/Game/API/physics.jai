@@ -60,7 +60,7 @@ PhysicsDebugDrawSettings :: struct {
     enabled_in_editor := false; @Serialize(10)
     draw_colliders := true; @Serialize(1)
     draw_colliders_wireframe := true; @Serialize(2)
-    collider_color := Jolt.BodyManager_EShapeColor.SleepColor; @Serialize(3)
+    collider_color := Jolt.BodyManager.EShapeColor.SleepColor; @Serialize(3)
     draw_bounding_box := false; @Serialize(4)
     draw_center_of_mass_transform := false; @Serialize(5)
     draw_world_transform := false; @Serialize(6)
@@ -138,25 +138,25 @@ RigidBodyComponent :: struct {
 
         final_shape : *Jolt.Shape;
         if shapes.count > 1 {
-            compound_shape_settings := Jolt.StaticCompoundShapeSettings_Create();
+            compound_shape_settings := Jolt.StaticCompoundShapeSettings.Create();
             for shapes {
                 transform := shape_transforms[it_index];
-                Jolt.CompoundShapeSettings_AddShape(xx compound_shape_settings, transform.position, transform.rotation, it, 0);
+                compound_shape_settings.AddShape(compound_shape_settings, transform.position, transform.rotation, it, 0);
             }
 
-            final_shape = xx Jolt.ShapeSettings_CreateShape(xx compound_shape_settings);
+            final_shape = compound_shape_settings.CreateShape(compound_shape_settings);
         } else if shapes.count > 0 {
             transform := shape_transforms[0];
-            rotated_translated := Jolt.RotatedTranslatedShapeSettings_Create();
-            Jolt.RotatedTranslatedShapeSettings_SetInnerShape(rotated_translated, shapes[0]);
-            Jolt.RotatedTranslatedShapeSettings_SetPosition(rotated_translated, transform.position);
-            Jolt.RotatedTranslatedShapeSettings_SetRotation(rotated_translated, transform.rotation);
+            rotated_translated := Jolt.RotatedTranslatedShapeSettings.Create();
+            rotated_translated.SetInnerShape(rotated_translated, shapes[0]);
+            rotated_translated.SetPosition(rotated_translated, transform.position);
+            rotated_translated.SetRotation(rotated_translated, transform.rotation);
 
-            final_shape = Jolt.ShapeSettings_CreateShape(xx rotated_translated);
+            final_shape = rotated_translated.CreateShape(rotated_translated);
         } else {
-            empty_settings := Jolt.EmptyShapeSettings_Create();
+            empty_settings := Jolt.EmptyShapeSettings.Create();
 
-            final_shape = Jolt.ShapeSettings_CreateShape(xx empty_settings);
+            final_shape = empty_settings.CreateShape(empty_settings);
         }
 
         world_position := TranslationVector(entity.world_transform);
@@ -175,7 +175,7 @@ RigidBodyComponent :: struct {
         case .Continuous; jolt_motion_quality = .LinearCast;
         }
 
-        body_settings := Jolt.BodyCreationSettings_Default();
+        body_settings := Jolt.BodyCreationSettings.Default();
         body_settings.position = ToJolt(world_position);
         body_settings.rotation = xx,force world_rotation;
         body_settings.motionType = jolt_motion_type;
@@ -183,11 +183,11 @@ RigidBodyComponent :: struct {
         body_settings.objectLayer = xx layer;
         body_settings.shapePtr = final_shape;
 
-        body := Jolt.BodyInterface_CreateBody(world.physics.body_interface, *body_settings);
-        Jolt.Body_SetUserData(body, xx rigid_body);
+        body := Jolt.BodyInterface.CreateBody(world.physics.body_interface, *body_settings);
+        body.SetUserData(body, xx rigid_body);
 
-        jolt_body_id = Jolt.Body_GetID(body);
-        Jolt.BodyInterface_AddBody(world.physics.body_interface, jolt_body_id, ifx activate_on_create then .Activate else .DontActivate);
+        jolt_body_id = body.GetID(body);
+        Jolt.BodyInterface.AddBody(world.physics.body_interface, jolt_body_id, ifx activate_on_create then .Activate else .DontActivate);
 
         LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, shapes.count);
     }
@@ -196,8 +196,8 @@ RigidBodyComponent :: struct {
         LogSectionScope(*Log_Physics);
 
         if jolt_body_id {
-            Jolt.BodyInterface_RemoveBody(world.physics.body_interface, jolt_body_id);
-            Jolt.BodyInterface_DestroyBody(world.physics.body_interface, jolt_body_id);
+            Jolt.BodyInterface.RemoveBody(world.physics.body_interface, jolt_body_id);
+            Jolt.BodyInterface.DestroyBody(world.physics.body_interface, jolt_body_id);
             LogMessage("Destroyed rigid body %", jolt_body_id);
         }
 
@@ -225,21 +225,21 @@ SphereColliderComponent :: struct {
 AllSphereColliderComponents :: #bake_arguments AllEntityComponents(T=SphereColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.SphereShapeSettings_Create();
-    Jolt.SphereShapeSettings_SetRadius(settings, sphere.radius);
-    Jolt.ConvexShapeSettings_SetDensity(xx settings, sphere.density);
+    settings := Jolt.SphereShapeSettings.Create();
+    settings.SetRadius(settings, sphere.radius);
+    settings.SetDensity(settings, sphere.density);
 
-    shape : *Jolt.Shape = xx Jolt.SphereShapeSettings_CreateShape(settings);
-    Jolt.Shape_SetUserData(shape, xx sphere);
+    shape := settings.CreateShape(settings);
+    shape.SetUserData(shape, xx sphere);
 
     world_scale := GetWorldScale(world, entity, sphere);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
+        if !shape.IsValidScale(shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for sphere collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
-        Jolt.Shape_SetUserData(shape, xx sphere);
+        shape = shape.ScaleShape(shape, ToJolt(world_scale));
+        shape.SetUserData(shape, xx sphere);
     }
 
     return shape;
@@ -262,22 +262,22 @@ CapsuleColliderComponent :: struct {
 AllCapsuleColliderComponents :: #bake_arguments AllEntityComponents(T=CapsuleColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.CapsuleShapeSettings_Create();
-    Jolt.CapsuleShapeSettings_SetHalfHeightOfCylinder(settings, capsule.height * 0.5 - capsule.radius);
-    Jolt.CapsuleShapeSettings_SetRadius(settings, capsule.radius);
-    Jolt.ConvexShapeSettings_SetDensity(xx settings, capsule.density);
+    settings := Jolt.CapsuleShapeSettings.Create();
+    settings.SetHalfHeightOfCylinder(settings, capsule.height * 0.5 - capsule.radius);
+    settings.SetRadius(settings, capsule.radius);
+    settings.SetDensity(settings, capsule.density);
 
-    shape : *Jolt.Shape = xx Jolt.CapsuleShapeSettings_CreateShape(settings);
-    Jolt.Shape_SetUserData(shape, xx capsule);
+    shape := settings.CreateShape(settings);
+    shape.SetUserData(shape, xx capsule);
 
     world_scale := GetWorldScale(world, entity, capsule);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
+        if !shape.IsValidScale(shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for capsule collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
-        Jolt.Shape_SetUserData(shape, xx capsule);
+        shape = shape.ScaleShape(shape, ToJolt(world_scale));
+        shape.SetUserData(shape, xx capsule);
     }
 
     return shape;
@@ -298,22 +298,22 @@ BoxColliderComponent :: struct {
 AllBoxColliderComponents :: #bake_arguments AllEntityComponents(T=BoxColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.BoxShapeSettings_Create();
-    Jolt.BoxShapeSettings_SetHalfExtent(settings, ToJolt(box.half_extents));
-    Jolt.BoxShapeSettings_SetConvexRadius(settings, box.margin);
-    Jolt.ConvexShapeSettings_SetDensity(xx settings, box.density);
+    settings := Jolt.BoxShapeSettings.Create();
+    settings.SetHalfExtent(settings, ToJolt(box.half_extents));
+    settings.SetConvexRadius(settings, box.margin);
+    settings.SetDensity(settings, box.density);
 
-    shape : *Jolt.Shape = xx Jolt.BoxShapeSettings_CreateShape(settings);
-    Jolt.Shape_SetUserData(shape, xx box);
+    shape := settings.CreateShape(settings);
+    shape.SetUserData(shape, xx box);
 
     world_scale := GetWorldScale(world, entity, box);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
+        if !shape.IsValidScale(shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for box collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
-        Jolt.Shape_SetUserData(shape, xx box);
+        shape = shape.ScaleShape(shape, ToJolt(world_scale));
+        shape.SetUserData(shape, xx box);
     }
 
     return shape;
@@ -332,23 +332,23 @@ PlaneColliderComponent :: struct {
 AllPlaneColliderComponents :: #bake_arguments AllEntityComponents(T=PlaneColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComponent) -> *Jolt.Shape {
-    p := Jolt.Plane_FromPointAndNormal(ToJolt(plane.local_position), ToJolt(UpVector(plane.local_rotation)));
+    p := Jolt.Plane.FromPointAndNormal(ToJolt(plane.local_position), ToJolt(UpVector(plane.local_rotation)));
 
-    settings := Jolt.PlaneShapeSettings_Create();
-    Jolt.PlaneShapeSettings_SetPlane(settings, p);
-    Jolt.PlaneShapeSettings_SetHalfExtent(settings, plane.half_extent);
+    settings := Jolt.PlaneShapeSettings.Create();
+    settings.SetPlane(settings, p);
+    settings.SetHalfExtent(settings, plane.half_extent);
 
-    shape : *Jolt.Shape = xx Jolt.PlaneShapeSettings_CreateShape(settings);
-    Jolt.Shape_SetUserData(shape, xx plane);
+    shape := settings.CreateShape(settings);
+    shape.SetUserData(shape, xx plane);
 
     world_scale := GetWorldScale(world, entity, plane);
     if world_scale != .{1,1,1} {
-        if !Jolt.Shape_IsValidScale(xx shape, ToJolt(world_scale)) {
+        if !shape.IsValidScale(shape, ToJolt(world_scale)) {
             LogWarning("Invalid scale % for plane collider", world_scale);
         }
 
-        shape = Jolt.Shape_ScaleShape(xx shape, ToJolt(world_scale));
-        Jolt.Shape_SetUserData(shape, xx plane);
+        shape = shape.ScaleShape(shape, ToJolt(world_scale));
+        shape.SetUserData(shape, xx plane);
     }
 
     return shape;
