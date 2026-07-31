@@ -110,53 +110,54 @@ RigidBodyComponent :: struct {
     OnSpawn :: (world : *World, entity : *Entity, using rigid_body : *RigidBodyComponent) {
         LogSectionScope(*Log_Physics);
 
+        compound_subshapes : [..]Jolt.CompoundShapeSettings.SubShapeSettings;
+
         shape_transforms : [..]struct{position : Jolt.Vec3; rotation : Jolt.Quat;};
         shape_transforms.allocator = Temp;
         shapes : [..]*Jolt.Shape;
         shapes.allocator = Temp;
 
+        defer for shapes {
+            it.Release(it);
+        }
+
         for :AllSphereColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
         for :AllCapsuleColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
         for :AllBoxColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
         for :AllPlaneColliderComponents entity {
             shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*shapes, shape);
-            ArrayPush(*shape_transforms, .{ToJolt(it.local_position), xx,force it.local_rotation});
+            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
 
         final_shape : *Jolt.Shape;
-        if shapes.count > 1 {
-            compound_shape_settings := Jolt.StaticCompoundShapeSettings.Create();
-            for shapes {
-                transform := shape_transforms[it_index];
-                compound_shape_settings.AddShape(compound_shape_settings, transform.position, transform.rotation, it, 0);
-            }
+        if compound_subshapes.count > 1 {
+            compound_shape_settings := Jolt.StaticCompoundShapeSettings.{
+                numSubShapes=xx compound_subshapes.count,
+                subShapes=compound_subshapes.data,
+            };
 
-            final_shape = compound_shape_settings.CreateShape(compound_shape_settings);
-        } else if shapes.count > 0 {
-            transform := shape_transforms[0];
-            rotated_translated := Jolt.RotatedTranslatedShapeSettings.Create();
-            rotated_translated.SetInnerShape(rotated_translated, shapes[0]);
-            rotated_translated.SetPosition(rotated_translated, transform.position);
-            rotated_translated.SetRotation(rotated_translated, transform.rotation);
+            final_shape = compound_shape_settings.CreateShape(*compound_shape_settings);
+        } else if compound_subshapes.count > 0 {
+            rotated_translated := Jolt.RotatedTranslatedShapeSettings.{
+                innerShape=compound_subshapes[0].shape,
+                position=compound_subshapes[0].position,
+                rotation=compound_subshapes[0].rotation,
+            };
 
-            final_shape = rotated_translated.CreateShape(rotated_translated);
+            final_shape = rotated_translated.CreateShape(*rotated_translated);
         } else {
-            empty_settings := Jolt.EmptyShapeSettings.Create();
+            empty_settings : Jolt.EmptyShapeSettings;
 
-            final_shape = empty_settings.CreateShape(empty_settings);
+            final_shape = empty_settings.CreateShape(*empty_settings);
         }
 
         world_position := TranslationVector(entity.world_transform);
@@ -211,7 +212,7 @@ SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
     radius : float = 0.5; @Serialize(2)
-    density : float = 1; @Serialize(3)
+    density : float = 1000; @Serialize(3)
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
@@ -225,11 +226,12 @@ SphereColliderComponent :: struct {
 AllSphereColliderComponents :: #bake_arguments AllEntityComponents(T=SphereColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.SphereShapeSettings.Create();
-    settings.SetRadius(settings, sphere.radius);
-    settings.SetDensity(settings, sphere.density);
+    settings := Jolt.SphereShapeSettings.{
+        density=sphere.density,
+        radius=sphere.radius,
+    };
 
-    shape := settings.CreateShape(settings);
+    shape := settings.CreateShape(*settings);
     shape.SetUserData(shape, xx sphere);
 
     world_scale := GetWorldScale(world, entity, sphere);
@@ -250,7 +252,7 @@ CapsuleColliderComponent :: struct {
 
     height : float = 2; @Serialize(2)
     radius : float = 0.5; @Serialize(3)
-    density : float = 1; @Serialize(4)
+    density : float = 1000; @Serialize(4)
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
         center := TranslationVector(world_transform);
@@ -262,12 +264,13 @@ CapsuleColliderComponent :: struct {
 AllCapsuleColliderComponents :: #bake_arguments AllEntityComponents(T=CapsuleColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.CapsuleShapeSettings.Create();
-    settings.SetHalfHeightOfCylinder(settings, capsule.height * 0.5 - capsule.radius);
-    settings.SetRadius(settings, capsule.radius);
-    settings.SetDensity(settings, capsule.density);
+    settings := Jolt.CapsuleShapeSettings.{
+        density=capsule.density,
+        halfHeightOfCylinder=capsule.height * 0.5 - capsule.radius,
+        radius=capsule.radius,
+    };
 
-    shape := settings.CreateShape(settings);
+    shape := settings.CreateShape(*settings);
     shape.SetUserData(shape, xx capsule);
 
     world_scale := GetWorldScale(world, entity, capsule);
@@ -287,7 +290,7 @@ BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
     half_extents : Vec3f = .{0.5,0.5,0.5}; @Serialize(2)
-    density : float = 1; @Serialize(3)
+    density : float = 1000; @Serialize(3)
     margin : float = 0.01; @Serialize(4)
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
@@ -298,12 +301,13 @@ BoxColliderComponent :: struct {
 AllBoxColliderComponents :: #bake_arguments AllEntityComponents(T=BoxColliderComponent);
 
 CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponent) -> *Jolt.Shape {
-    settings := Jolt.BoxShapeSettings.Create();
-    settings.SetHalfExtent(settings, ToJolt(box.half_extents));
-    settings.SetConvexRadius(settings, box.margin);
-    settings.SetDensity(settings, box.density);
+    settings := Jolt.BoxShapeSettings.{
+        density=box.density,
+        halfExtent=ToJolt(box.half_extents),
+        convexRadius=box.margin,
+    };
 
-    shape := settings.CreateShape(settings);
+    shape := settings.CreateShape(*settings);
     shape.SetUserData(shape, xx box);
 
     world_scale := GetWorldScale(world, entity, box);
@@ -334,11 +338,12 @@ AllPlaneColliderComponents :: #bake_arguments AllEntityComponents(T=PlaneCollide
 CreateJoltShape :: (world : *World, entity : *Entity, plane : *PlaneColliderComponent) -> *Jolt.Shape {
     p := Jolt.Plane.FromPointAndNormal(ToJolt(plane.local_position), ToJolt(UpVector(plane.local_rotation)));
 
-    settings := Jolt.PlaneShapeSettings.Create();
-    settings.SetPlane(settings, p);
-    settings.SetHalfExtent(settings, plane.half_extent);
+    settings := Jolt.PlaneShapeSettings.{
+        plane=p,
+        halfExtent=plane.half_extent,
+    };
 
-    shape := settings.CreateShape(settings);
+    shape := settings.CreateShape(*settings);
     shape.SetUserData(shape, xx plane);
 
     world_scale := GetWorldScale(world, entity, plane);
