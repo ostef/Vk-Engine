@@ -185,7 +185,7 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
     result := Jolt.RayCastResult.Default();
 
     narrow_phase := Jolt.PhysicsSystem.GetNarrowPhaseQuery(world.physics.system);
-    hit := Jolt.NarrowPhaseQuery.CastRay(narrow_phase, ray, *result, null, null, null);
+    hit := Jolt.NarrowPhaseQuery.CastRayClosest(narrow_phase, ray, *result, null, null, null);
 
     if !hit {
         return .{};
