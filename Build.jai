@@ -31,6 +31,25 @@ Bindings_To_Generate :: string.[
     return StringBuilderBuild(*builder);
 }
 
+CopyFileIfOutOfDate :: (src_filename : string, dst_filename : string) -> ok : bool, copied : bool {
+    src_modtime, _, src_exists := file_modtime_and_size(src_filename);
+    if !src_exists {
+        LogError("Could not copy file '%' because it does not exist", src_filename);
+        return false, false;
+    }
+
+    dst_modtime, _, dst_exists := file_modtime_and_size(dst_filename);
+    if !dst_exists || dst_modtime < src_modtime {
+        ok := copy_file(src_filename, dst_filename);
+        if ok {
+            LogMessage("Copied file '%' to '%'", src_filename, dst_filename);
+        }
+        return ok, ok;
+    }
+
+    return true, false;
+}
+
 BuildModule :: ($module : ModuleID) -> bool {
     log_section := Log_Section.{#run SPrint("Build/%", module)};
     LogSectionScope(*log_section);
@@ -320,22 +339,12 @@ Build :: () {
     }
 
     #if OS == .WINDOWS {
-        if !file_exists("Bin/SDL2.dll") {
-            copy_file("Modules/SDL/windows/SDL2.dll", "Bin/SDL2.dll");
-        }
-        if !file_exists("Bin/JoltC.dll") {
-            copy_file("Modules/JoltPhysics/Libs/Windows/JoltC.dll", "Bin/JoltC.dll");
-        }
-        if !file_exists("Bin/ImGui.dll") {
-            copy_file("Modules/ImGui/win/ImGui.dll", "Bin/ImGui.dll");
-        }
+        CopyFileIfOutOfDate("Modules/SDL/windows/SDL2.dll", "Bin/SDL2.dll");
+        CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Windows/JoltC.dll", "Bin/JoltC.dll");
+        CopyFileIfOutOfDate("Modules/ImGui/win/ImGui.dll", "Bin/ImGui.dll");
     } else #if OS == .LINUX {
-        if !file_exists("Bin/libJoltC.so") {
-            copy_file("Modules/JoltPhysics/Libs/Linux/libJoltC.so", "Bin/libJoltC.so");
-        }
-        if !file_exists("Bin/ImGui.so") {
-            copy_file("Modules/ImGui/linux/ImGui.so", "Bin/ImGui.so");
-        }
+        CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Linux/libJoltC.so", "Bin/libJoltC.so");
+        CopyFileIfOutOfDate("Modules/ImGui/linux/ImGui.so", "Bin/ImGui.so");
     }
 }
 
