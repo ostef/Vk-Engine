@@ -242,6 +242,7 @@ OnEvent :: (event : SDL_Event) {
 
 RendererLoop :: () {
     ProcessShaderDirectoryChanges();
+    ReloadPendingShaders();
 
     if !(SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS) {
         elapsed := GetDeltaTime();

@@ -44,6 +44,7 @@ g_shaders := LoadedShader.[
     .{name="alpha_cutoff_entity_guid"},
     .{name="alpha_cutoff_depth_only"},
 ];
+g_shaders_to_reload : [..]*LoadedShader;
 
 g_graphics_pipelines : [..]*GfxGraphicsPipeline;
 g_compute_pipelines : [..]*GfxComputePipeline;
@@ -117,7 +118,7 @@ CleanupSPIRVFiles :: () {
     }
 }
 
-LoadAllShaders :: () -> bool {
+LoadAllShaders :: (reload := false) -> bool {
     LogSectionScope(*Log_Shaders);
 
     WaitForGPUIdle();
@@ -141,11 +142,17 @@ LoadAllShaders :: () -> bool {
     start(*thread_group);
     defer shutdown(*thread_group);
 
-    for * g_shaders {
-        add_work(*thread_group, it);
+    if reload {
+        for g_shaders_to_reload {
+            add_work(*thread_group, it);
+        }
+    } else {
+        for * g_shaders {
+            add_work(*thread_group, it);
+        }
     }
 
-    remaining_work := g_shaders.count;
+    remaining_work := ifx reload then g_shaders_to_reload.count else g_shaders.count;
     while remaining_work {
         finished := get_completed_work(*thread_group);
         remaining_work -= finished.count;
@@ -206,19 +213,22 @@ ShaderFileChangeCallback :: (watcher : *File_Watcher(void), change : *File_Chang
     filename := get_absolute_path(change.full_path,, Temp);
     path_overwrite_separators(filename, #char "/");
 
-    device_idle := false;
     for * g_shaders {
         if ArrayFindFirst(it.dependencies, filename) != -1 {
-            if !device_idle {
-                WaitForGPUIdle();
-                device_idle = true;
-            }
-
-            ReloadShader(it);
+            ArrayPushUnique(*g_shaders_to_reload, it);
         }
     }
 
     CleanupSPIRVFiles();
+}
+
+ReloadPendingShaders :: () {
+    if g_shaders_to_reload.count <= 0 {
+        return;
+    }
+
+    LoadAllShaders(reload=true);
+    ArrayClear(*g_shaders_to_reload);
 }
 
 ReloadShader :: (shader : *LoadedShader) -> bool {
