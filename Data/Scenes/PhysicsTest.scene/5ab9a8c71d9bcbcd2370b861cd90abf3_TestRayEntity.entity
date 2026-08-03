@@ -1,9 +1,0 @@
-@_ 1:
-  @guid 1: 5ab9a8c71d9bcbcd2370b861cd90abf3
-  @flags 7: 0
-  @name 2: "Ray 4 8"
-  @local_position 3: [9.045085, -3.090171, -2.938927]
-  @local_rotation 4: [-0.126558, -0.580549, -0.09195, 0.799056]
-  @local_scale 5: [1, 1, 1]
-  @parent 6: a477f5310fe3d14529c422b634709595
-@ray_length 2: 10
