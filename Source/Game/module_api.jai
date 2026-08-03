@@ -5,8 +5,8 @@ GameModule :: struct {
     AttachEntity : (world : *World, entity : *Entity, to : *Entity, keep_same_world_transform : bool = true) -> bool;
     CastRay : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
     CopyWorld : (dest : *World, src : *World);
-    CreateAndDeserializeEntity : (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity;
-    CreateEntity : (world : *World, type : EntityTypeId, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity;
+    CreateAndDeserializeEntity : (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
+    CreateEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     DebugDrawPhysicsBodies : (world : *World, settings : PhysicsDebugDrawSettings);
     DeserializeEntity : (text : string, world : *World, entity : *Entity) -> DeserializeResult;
     DestroyKilledEntities : (world : *World);
@@ -15,26 +15,26 @@ GameModule :: struct {
     DisablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
     EnablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
     EntityIsInHierarchy : (world : *World, entity : *Entity, of : *Entity) -> bool;
-    GenerateEntityGUID : () -> EntityGUID;
     GetDefaultMaterial : () -> *Asset(DataType=Material);
     GetEntity_1 : (world : *World, index : EntityIndex) -> *Entity, GetEntityError;
-    GetEntity_2 : (world : *World, guid : EntityGUID) -> *Entity, GetEntityError;
+    GetEntity_2 : (world : *World, id : EntityID) -> *Entity, GetEntityError;
     GetPhysicsDebugDrawSettings : () -> *PhysicsDebugDrawSettings;
     GetPhysicsGlobalSettings : () -> *PhysicsGlobalSettings;
     GetPhysicsGlobals : () -> *PhysicsGlobals;
     GetWorldScale : (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vector(N=3, T=float32);
     InitWorld : (world : *World);
     KillEntity_1 : (world : *World, index : EntityIndex);
-    KillEntity_2 : (world : *World, guid : EntityGUID);
+    KillEntity_2 : (world : *World, id : EntityID);
     LoadWorldFromDirectory : (world : *World, directory : string);
     PhysicsDebugRendererNextFrame : ();
+    RandomEntityID : () -> EntityID;
     SaveWorldToDirectory : (world : *World, output_directory : string);
     SerializeEntity : (serializer : *Serializer, entity : *Entity);
     SetEntityName : (world : *World, entity : *Entity, new_name : string) -> set_same_name : bool;
     SetPhysicsDebugRendererTarget : (world : *World);
     SetWorldTransformNoScale : (world : *World, entity : *Entity, transform : Matrix(M=4, N=4, T=float32));
     ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
-    SpawnEntity : (world : *World, type : EntityTypeId, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity;
+    SpawnEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
     UpdatePhysicsCollisionLayerMatrix : ();
     UpdatePhysicsWorld : (world : *World);
@@ -60,14 +60,14 @@ CopyWorld :: inline (dest : *World, src : *World) {
     g_Game.CopyWorld(dest, src);
 } @NoProfile
 
-CreateAndDeserializeEntity :: inline (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity {
+CreateAndDeserializeEntity :: inline (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity {
     Assert(g_Game != null, "Game module is null");
-    return g_Game.CreateAndDeserializeEntity(world, text, type_id, attach_to_parent, name, guid);
+    return g_Game.CreateAndDeserializeEntity(world, text, type_id, attach_to_parent, name, id);
 } @NoProfile
 
-CreateEntity :: inline (world : *World, type : EntityTypeId, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity {
+CreateEntity :: inline (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity {
     Assert(g_Game != null, "Game module is null");
-    return g_Game.CreateEntity(world, type, name, guid);
+    return g_Game.CreateEntity(world, type, name, id);
 } @NoProfile
 
 DebugDrawPhysicsBodies :: inline (world : *World, settings : PhysicsDebugDrawSettings) {
@@ -110,11 +110,6 @@ EntityIsInHierarchy :: inline (world : *World, entity : *Entity, of : *Entity) -
     return g_Game.EntityIsInHierarchy(world, entity, of);
 } @NoProfile
 
-GenerateEntityGUID :: inline () -> EntityGUID {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.GenerateEntityGUID();
-} @NoProfile
-
 GetDefaultMaterial :: inline () -> *Asset(DataType=Material) {
     Assert(g_Game != null, "Game module is null");
     return g_Game.GetDefaultMaterial();
@@ -126,9 +121,9 @@ GetEntity :: inline (world : *World, index : EntityIndex) -> *Entity, GetEntityE
     return _ret0, _ret1;
 } @NoProfile
 
-GetEntity :: inline (world : *World, guid : EntityGUID) -> *Entity, GetEntityError {
+GetEntity :: inline (world : *World, id : EntityID) -> *Entity, GetEntityError {
     Assert(g_Game != null, "Game module is null");
-    _ret0, _ret1 := g_Game.GetEntity_2(world, guid);
+    _ret0, _ret1 := g_Game.GetEntity_2(world, id);
     return _ret0, _ret1;
 } @NoProfile
 
@@ -162,9 +157,9 @@ KillEntity :: inline (world : *World, index : EntityIndex) {
     g_Game.KillEntity_1(world, index);
 } @NoProfile
 
-KillEntity :: inline (world : *World, guid : EntityGUID) {
+KillEntity :: inline (world : *World, id : EntityID) {
     Assert(g_Game != null, "Game module is null");
-    g_Game.KillEntity_2(world, guid);
+    g_Game.KillEntity_2(world, id);
 } @NoProfile
 
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {
@@ -175,6 +170,11 @@ LoadWorldFromDirectory :: inline (world : *World, directory : string) {
 PhysicsDebugRendererNextFrame :: inline () {
     Assert(g_Game != null, "Game module is null");
     g_Game.PhysicsDebugRendererNextFrame();
+} @NoProfile
+
+RandomEntityID :: inline () -> EntityID {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.RandomEntityID();
 } @NoProfile
 
 SaveWorldToDirectory :: inline (world : *World, output_directory : string) {
@@ -207,9 +207,9 @@ ShouldPhysicsCollisionLayersCollide :: inline (a : PhysicsCollisionLayer, b : Ph
     return g_Game.ShouldPhysicsCollisionLayersCollide(a, b);
 } @NoProfile
 
-SpawnEntity :: inline (world : *World, type : EntityTypeId, name : string = "", guid : EntityGUID = Null_Entity_GUID) -> *Entity {
+SpawnEntity :: inline (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity {
     Assert(g_Game != null, "Game module is null");
-    return g_Game.SpawnEntity(world, type, name, guid);
+    return g_Game.SpawnEntity(world, type, name, id);
 } @NoProfile
 
 SubmitWorldToRenderer :: inline (world_to_render : *WorldToRender, world : *World) {

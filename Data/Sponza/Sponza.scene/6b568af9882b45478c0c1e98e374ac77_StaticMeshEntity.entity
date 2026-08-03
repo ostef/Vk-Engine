@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x6b568af9882b45478c0c1e98e374ac77
-  @flags 7: 0x0
+  @guid 1: 6b568af9882b45478c0c1e98e374ac77
+  @flags 7: 0
   @name 2: "roof_floor_03_05.005"
   @local_position 3: [10.204414, 16.703466, -0.144669]
   @local_rotation 4: [0, -0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x1a86743d33f44437b0bd354680aba6af
+  @parent 6: 1a86743d33f44437b0bd354680aba6af
 @mesh 2:
   @mesh 2: "Sponza/Meshes/roof_floor_03_05.005.mesh"
   @material 3: "Sponza/Materials/brickwall_01.001.mat"

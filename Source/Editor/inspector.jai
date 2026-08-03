@@ -118,8 +118,8 @@ UnregisterCustomInspector :: (type : *Type_Info) -> bool {
     return HashMapRemove(*g_custom_inspectors, type);
 }
 
-InspectGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
-    guid := cast(*GUID) any.value_pointer;
+InspectUUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
+    uuid := cast(*UUID) any.value_pointer;
 
     g := ImGui.GetCurrentContext();
 
@@ -127,26 +127,26 @@ InspectGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : [
 
     BeginInspectorLine(label);
 
-    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", guid.*);
+    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", uuid.*);
 
     state := LastItemInteractionState();
 
     if !not_editable {
-        ImGui.SetItemTooltip("Drag and drop GUID");
+        ImGui.SetItemTooltip("Drag and drop UUID");
     }
 
     if ImGui.BeginDragDropSource() {
-        ImGui.Text("%", guid.*);
+        ImGui.Text("%", uuid.*);
 
-        ImGui.SetDragDropPayload("GUID", guid, size_of(GUID));
+        ImGui.SetDragDropPayload("UUID", uuid, size_of(UUID));
         ImGui.EndDragDropSource();
     }
 
     if !not_editable && !(g.LastItemData_.InFlags & .Disabled) && ImGui.BeginDragDropTarget() {
-        payload := ImGui.AcceptDragDropPayload("GUID");
+        payload := ImGui.AcceptDragDropPayload("UUID");
         if payload {
-            Assert(payload.DataSize == size_of(GUID));
-            guid.* = (cast(*GUID) payload.Data).*;
+            Assert(payload.DataSize == size_of(UUID));
+            uuid.* = (cast(*UUID) payload.Data).*;
 
             state |= .Started;
             state |= .Submitted;
@@ -164,8 +164,8 @@ InspectGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : [
     return state;
 }
 
-InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
-    guid := cast(*EntityGUID) any.value_pointer;
+InspectEntityID :: (label : *u8, using ctx : *InspectorContext, any : Any, notes : []string, data : *void) -> InteractionState {
+    id := cast(*EntityID) any.value_pointer;
 
     g := ImGui.GetCurrentContext();
 
@@ -173,26 +173,26 @@ InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, not
 
     BeginInspectorLine(label);
 
-    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", guid.*);
+    LabelTextButton(CTPrint("###inspector.%", MakeString(label)), "%", id.*);
 
     state := LastItemInteractionState();
 
     if !not_editable {
-        ImGui.SetItemTooltip("Drag and drop EntityGUID");
+        ImGui.SetItemTooltip("Drag and drop EntityID");
     }
 
     if ImGui.BeginDragDropSource() {
-        ImGui.Text("Entity %", guid.*);
+        ImGui.Text("Entity %", id.*);
 
-        ImGui.SetDragDropPayload("EntityGUID", guid, size_of(EntityGUID));
+        ImGui.SetDragDropPayload("EntityID", id, size_of(EntityID));
         ImGui.EndDragDropSource();
     }
 
     if !not_editable && !(g.LastItemData_.InFlags & .Disabled) && ImGui.BeginDragDropTarget() {
-        payload := ImGui.AcceptDragDropPayload("EntityGUID");
+        payload := ImGui.AcceptDragDropPayload("EntityID");
         if payload {
-            Assert(payload.DataSize == size_of(EntityGUID));
-            guid.* = (cast(*EntityGUID) payload.Data).*;
+            Assert(payload.DataSize == size_of(EntityID));
+            id.* = (cast(*EntityID) payload.Data).*;
 
             state |= .Started;
             state |= .Submitted;
@@ -201,30 +201,30 @@ InspectEntityGUID :: (label : *u8, using ctx : *InspectorContext, any : Any, not
         ImGui.EndDragDropTarget();
     }
 
-    if ImGui.BeginPopupContextItem(CTPrint("Entity %###context_menu", guid.*)) {
+    if ImGui.BeginPopupContextItem(CTPrint("Entity %###context_menu", id.*)) {
         defer ImGui.EndPopup();
 
-        ImGui.BeginDisabled(guid.* == Null_Entity_GUID);
+        ImGui.BeginDisabled(id.* == Null_Entity_ID);
         if ImGui.MenuItem("Open In Inspector") {
-            SelectEntity(guid);
+            SelectEntity(id);
         }
         ImGui.EndDisabled();
 
-        if ImGui.MenuItem("Copy entity GUID") {
-            EditorCopyEntityGUID(guid.*);
+        if ImGui.MenuItem("Copy entity ID") {
+            EditorCopyEntityID(id.*);
         }
 
         if !not_editable {
-            ImGui.BeginDisabled(!g_editor_has_copied_entity_guid);
-            if ImGui.MenuItem("Paste entity GUID") {
-                guid.* = g_editor_last_copied_entity_guid;
+            ImGui.BeginDisabled(!g_editor_has_copied_entity_id);
+            if ImGui.MenuItem("Paste entity ID") {
+                id.* = g_editor_last_copied_entity_id;
                 state |= .Started;
                 state |= .Submitted;
             }
             ImGui.EndDisabled();
 
             if ImGui.MenuItem("Clear") {
-                guid.* = .{};
+                id.* = .{};
                 state |= .Started;
                 state |= .Submitted;
             }
@@ -466,8 +466,8 @@ InitCustomInspectors :: () {
         return;
     }
 
-    RegisterCustomInspector(GUID, InspectGUID, null);
-    RegisterCustomInspector(EntityGUID, InspectEntityGUID, null);
+    RegisterCustomInspector(UUID, InspectUUID, null);
+    RegisterCustomInspector(EntityID, InspectEntityID, null);
     RegisterCustomInspector(SpatialComponent, InspectSpatialComponent, null);
     RegisterCustomInspector(TypeGetSourcePolymorph(type_info(Asset(struct{}))), InspectAsset, null);
     RegisterCustomInspector(Quatf, InspectQuatfAsEulerAngles, null);

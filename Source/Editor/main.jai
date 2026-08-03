@@ -118,36 +118,36 @@ g_game_state : GameState;
 
 g_show_imgui_demo := false;
 
-g_editor_selected_entities : [..]EntityGUID;
+g_editor_selected_entities : [..]EntityID;
 
-g_editor_last_copied_entity_guid : EntityGUID;
-g_editor_has_copied_entity_guid : bool;
+g_editor_last_copied_entity_id : EntityID;
+g_editor_has_copied_entity_id : bool;
 
-DeselectEntity :: (entity : EntityGUID) {
-    index := ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs);
+DeselectEntity :: (entity : EntityID) {
+    index := ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityIDs);
     if index >= 0 {
         ArrayRemove(*g_editor_selected_entities, index);
     }
 }
 
-SelectEntity :: (entity : EntityGUID, add_to_selection := false) {
+SelectEntity :: (entity : EntityID, add_to_selection := false) {
     if !add_to_selection {
         ArrayClear(*g_editor_selected_entities);
     }
 
-    if entity != Null_Entity_GUID {
-        ArrayPushUnique(*g_editor_selected_entities, entity, CompareEntityGUIDs);
+    if entity != Null_Entity_ID {
+        ArrayPushUnique(*g_editor_selected_entities, entity, CompareEntityIDs);
     }
 }
 
-EntityIsSelected :: inline (entity : EntityGUID) -> bool {
-    return ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityGUIDs) != -1;
+EntityIsSelected :: inline (entity : EntityID) -> bool {
+    return ArrayFindFirst(g_editor_selected_entities, entity, CompareEntityIDs) != -1;
 }
 
-EntityOrParentIsSelected :: (world : *World, entity : EntityGUID) -> bool {
+EntityOrParentIsSelected :: (world : *World, entity : EntityID) -> bool {
     e := GetEntity(world, entity);
     while e {
-        if EntityIsSelected(e.guid) {
+        if EntityIsSelected(e.id) {
             return true;
         }
 
@@ -267,11 +267,11 @@ ShutdownEditor :: (global_shutdown : bool) {
 }
 
 AllEditorState :: struct {
-    selected_entities : []EntityGUID; @Serialize(1)
+    selected_entities : []EntityID; @Serialize(1)
     material_editor : MaterialEditorState; @Serialize(2)
     entity_outliner : EntityOutlinerState; @Serialize(3)
-    last_copied_entity_guid : EntityGUID; @Serialize(4)
-    has_copied_entity_guid : bool; @Serialize(5)
+    last_copied_entity_id : EntityID; @Serialize(4)
+    has_copied_entity_id : bool; @Serialize(5)
     show_imgui_demo : bool; @Serialize(6)
     show_entity_inspector : bool; @Serialize(7)
     show_world_inspector : bool; @Serialize(8)
@@ -293,8 +293,8 @@ SaveState :: () -> []u8 {
         selected_entities=g_editor_selected_entities,
         material_editor=g_material_editor,
         entity_outliner=g_entity_outliner,
-        last_copied_entity_guid=g_editor_last_copied_entity_guid,
-        has_copied_entity_guid=g_editor_has_copied_entity_guid,
+        last_copied_entity_id=g_editor_last_copied_entity_id,
+        has_copied_entity_id=g_editor_has_copied_entity_id,
         show_imgui_demo=g_show_imgui_demo,
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
@@ -344,8 +344,8 @@ LoadState :: (state : []u8) {
     g_material_editor = material_editor;
     g_entity_outliner = entity_outliner;
 
-    g_editor_last_copied_entity_guid = last_copied_entity_guid;
-    g_editor_has_copied_entity_guid = has_copied_entity_guid;
+    g_editor_last_copied_entity_id = last_copied_entity_id;
+    g_editor_has_copied_entity_id = has_copied_entity_id;
 
     g_show_imgui_demo = show_imgui_demo;
     g_show_entity_inspector = show_entity_inspector;
@@ -655,24 +655,24 @@ OpenAssetBrowserPopupFor :: (asset_type : Type, pointer_to_pointer : **void, all
     }
 }
 
-GetEntityGUIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> EntityGUID {
+GetEntityIDAtPoint :: (viewport : *EditorViewport, x : int, y : int) -> EntityID {
     if !viewport.render_targets {
-        return Null_Entity_GUID;
+        return Null_Entity_ID;
     }
 
     if x < 0 || x >= xx viewport.size.x || y < 0 || y >= xx viewport.size.y {
-        return Null_Entity_GUID;
+        return Null_Entity_ID;
     }
 
     frame_index := GetFrameInFlight();
     frame_index += Gfx_Num_Frames_In_Flight - 1;
     frame_index %= Gfx_Num_Frames_In_Flight;
 
-    buffer := *viewport.render_targets.entity_guids_readback_buffers[frame_index];
-    ptr := cast(*EntityGUID, GetMappedPtr(buffer));
+    buffer := *viewport.render_targets.entity_ids_readback_buffers[frame_index];
+    ptr := cast(*EntityID, GetMappedPtr(buffer));
     index := y * cast(u32, viewport.size.x) + x;
-    if !ptr || index * size_of(EntityGUID) > xx buffer.desc.size {
-        return Null_Entity_GUID;
+    if !ptr || index * size_of(EntityID) > xx buffer.desc.size {
+        return Null_Entity_ID;
     }
 
     return ptr[index];

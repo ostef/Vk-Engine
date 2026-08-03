@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xee677cc5573c5fa4fc336edc224c14a1
-  @flags 7: 0x0
+  @guid 1: ee677cc5573c5fa4fc336edc224c14a1
+  @flags 7: 0
   @name 2: ""
   @local_position 3: [0, -0.000001, 5]
   @local_rotation 4: [0.707107, 0, 0, 0.707107]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @mesh 2:
   @mesh 2: "Meshes/Shapes.mesh"
   @material 3: "Materials/Spheres/Sphere_4-0.mat"

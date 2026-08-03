@@ -29,7 +29,7 @@ IsTypeSerializable :: (type : *Type_Info, dependency_stack : *[..]*Type_Info = n
         return true;
     }
 
-    if type == type_info(GUID) {
+    if type == type_info(UUID) {
         return true;
     }
 
@@ -124,7 +124,7 @@ IsTypeSerializeSingleLine :: (type : *Type_Info) -> bool {
         return true;
     }
 
-    if type == type_info(GUID) {
+    if type == type_info(UUID) {
         return true;
     }
 
@@ -220,9 +220,9 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
     }
 
 
-    if type == type_info(GUID) {
-        guid := cast(*GUID, ptr);
-        Append(serializer, "0x%0%", FormatIntHex (guid.high), FormatIntHex (guid.low));
+    if type == type_info(UUID) {
+        uuid := cast(*UUID, ptr);
+        AppendUUID(serializer, uuid);
 
         return;
     }
@@ -566,22 +566,6 @@ ParseInteger :: (str : string, $T : Type) -> T, ok : bool, remainder : string, b
     return int_value, ok, remainder, base;
 }
 
-ParseFixedWidthHexInteger :: (str : string, width : int, $T : Type) -> T, ok : bool, remainder : string {
-    if str.count < width {
-        return 0, false, str;
-    }
-
-    _str := str;
-    _str.count = width;
-
-    int_value, ok, remainder := Basic.string_to_int(_str, 16, T);
-    if !ok || remainder.count != 0 {
-        return 0, false, str;
-    }
-
-    return int_value, true, StringAdvance(str, width);
-}
-
 ParseFloat :: (str : string) -> float, ok : bool, remainder : string {
     _str := str;
 
@@ -631,36 +615,21 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
         }
     }
 
-    if type == type_info(GUID) {
+    if type == type_info(UUID) {
         if line_index >= lines.count {
-            return DeserializeError(parser, "Expected a GUID but got EOF");
+            return DeserializeError(parser, "Expected a UUID but got EOF");
         }
 
         TrimSpaces(parser);
 
         line := StringAdvance(lines[line_index], byte_index);
-        if !StringStartsWith(line, "0x") {
-            return DeserializeError(parser, "Expected a GUID");
-        }
-
-        byte_index += 2;
-        line = StringAdvance(line, 2);
-
-        guid := cast(*GUID) ptr;
-
-        guid.high, ok:, line = ParseFixedWidthHexInteger(line, 16, u64);
+        uuid, ok, remaining := ParseUUID(line);
         if !ok {
-            return DeserializeError(parser, "Expected a GUID");
+            return DeserializeError(parser, "Expected a UUID");
         }
 
-        byte_index += 16;
-
-        guid.low, ok, line = ParseFixedWidthHexInteger(line, 16, u64);
-        if !ok {
-            return DeserializeError(parser, "Expected a GUID");
-        }
-
-        byte_index += 16;
+        byte_index += cast(int, remaining.data - line.data);
+        line = remaining;
 
         return DeserializeOk(parser);
     }

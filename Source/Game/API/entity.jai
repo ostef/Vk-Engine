@@ -4,7 +4,7 @@
 Log_Entities :: Log_Section.{name="Entities"};
 
 Entity :: struct {
-    #as guid : EntityGUID; @Serialize(1) @HideInInspector
+    #as id : EntityID; @Serialize(1) @HideInInspector
     index : EntityIndex;
     flags : EntityFlags; @Serialize(7)
 
@@ -16,7 +16,7 @@ Entity :: struct {
 
     world_transform : Mat4f;
     inv_world_transform : Mat4f;
-    parent : EntityGUID; @Serialize(6)
+    parent : EntityID; @Serialize(6)
     children : [..]EntityIndex;
 
     components : [..]*Component;
@@ -101,25 +101,20 @@ Entity_Index_Slot_Index_Mask   :: 0xff << Entity_Index_Slot_Index_Offset;
 
 EntityIndex :: #type, distinct u64;
 
-Null_Entity_GUID :: EntityGUID.{};
+Null_Entity_ID :: EntityID.{};
 
-EntityGUID :: #type,distinct GUID;
+EntityID :: #type,distinct UUID;
 
-CompareEntityGUIDs :: inline (a : EntityGUID, b : EntityGUID) -> bool {
-    return a.low == b.low && a.high == b.high;
+CompareEntityIDs :: inline (a : EntityID, b : EntityID) -> bool {
+    return CompareUUIDs(xx a, xx b);
 }
 
-operator == :: inline (a : EntityGUID, b : EntityGUID) -> bool {
-    return CompareEntityGUIDs(a, b);
+operator == :: inline (a : EntityID, b : EntityID) -> bool {
+    return CompareEntityIDs(a, b);
 }
 
-HashEntityGUID :: inline (guid : EntityGUID) -> u64 {
-    #import "Hash";
-
-    h := fnv1a_hash(guid.low);
-    h = fnv1a_hash(guid.high, h);
-
-    return h;
+HashEntityID :: inline (id : EntityID) -> u64 {
+    return HashUUID(xx id);
 }
 
 CompareEntityIndex :: inline (a : EntityIndex, b : EntityIndex) -> int {
@@ -254,9 +249,9 @@ GetEntityByName :: inline (using world : *World, name : string, $T : Type) -> *T
     return typed_entity, .Ok;
 }
 
-GetEntity :: (using world : *World, guid : EntityGUID, $T : Type) -> *T, GetEntityError
+GetEntity :: (using world : *World, id : EntityID, $T : Type) -> *T, GetEntityError
 #modify { return IsInEntityTypesArray(T); } {
-    entity, err := GetEntity(world, guid);
+    entity, err := GetEntity(world, id);
     if !entity {
         return null, err;
     }
@@ -323,9 +318,9 @@ ExecuteEntityCallback :: inline (world : *World, entity : *$T, $Callback : strin
     }
 }
 
-SpawnEntity :: (using world : *World, $T : Type, name := "", guid := Null_Entity_GUID) -> *T
+SpawnEntity :: (using world : *World, $T : Type, name := "", id := Null_Entity_ID) -> *T
 #modify { return IsInEntityTypesArray(T); } {
-    entity := SpawnEntity(world, #run GetEntityTypeId(T), name, guid);
+    entity := SpawnEntity(world, #run GetEntityTypeId(T), name, id);
 
     return cast(*T, entity);
 }

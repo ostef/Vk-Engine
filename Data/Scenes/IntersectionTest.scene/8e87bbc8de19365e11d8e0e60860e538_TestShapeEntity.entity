@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x8e87bbc8de19365e11d8e0e60860e538
-  @flags 7: 0x0
+  @guid 1: 8e87bbc8de19365e11d8e0e60860e538
+  @flags 7: 0
   @name 2: "Sphere"
   @local_position 3: [0, 0, 11.768216]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @shape 2: Sphere
 @sphere_radius 4: 1.8
 @capsule_height 5: 2

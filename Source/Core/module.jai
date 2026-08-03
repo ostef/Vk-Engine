@@ -65,14 +65,6 @@ Module :: struct {
 
 ModuleHandshakeProc :: #type (core : *CoreModule) -> *Module #c_call;
 
-GUID :: struct {
-    low, high : u64;
-}
-
-operator== :: inline (a : GUID, b : GUID) -> bool {
-    return a.low == b.low && a.high == b.high;
-}
-
 #if Import_Mode == .Foreign {
 
 AssertContextMatchesCore :: () {

@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x86c44527b10140ea82f56dcec3ab1410
-  @flags 7: 0x0
+  @guid 1: 86c44527b10140ea82f56dcec3ab1410
+  @flags 7: 0
   @name 2: "walls_floor_03.001"
   @local_position 3: [1.446254, 13.452463, -0.049447]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x1a86743d33f44437b0bd354680aba6af
+  @parent 6: 1a86743d33f44437b0bd354680aba6af
 @mesh 2:
   @mesh 2: "Sponza/Meshes/walls_floor_03.001.mesh"
   @material 3: "Sponza/Materials/arch_stone_wall_01.001.mat"

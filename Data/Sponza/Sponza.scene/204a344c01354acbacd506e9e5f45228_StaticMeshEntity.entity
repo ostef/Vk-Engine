@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x204a344c01354acbacd506e9e5f45228
-  @flags 7: 0x0
+  @guid 1: 204a344c01354acbacd506e9e5f45228
+  @flags 7: 0
   @name 2: "lionhead"
   @local_position 3: [-15.945751, 0.228044, -0.099381]
   @local_rotation 4: [-0, -0.707107, -0, 0.707107]
   @local_scale 5: [0.469963, 0.469963, 0.469963]
-  @parent 6: 0x06b3884d8f2d4d4b8fc952b7e54a0326
+  @parent 6: 06b3884d8f2d4d4b8fc952b7e54a0326
 @mesh 2:
   @mesh 2: "Sponza/Meshes/lionhead.mesh"
   @material 3: "Sponza/Materials/ornament_lion.mat"

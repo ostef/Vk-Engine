@@ -532,12 +532,12 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
 
             for y : y1..y2 {
                 for x : x1..x2 {
-                    guid := GetEntityGUIDAtPoint(viewport, xx x, xx y);
-                    if guid != Null_Entity_GUID {
+                    id := GetEntityIDAtPoint(viewport, xx x, xx y);
+                    if id != Null_Entity_ID {
                         if GetModState() == (.Ctrl | .Shift) {
-                            DeselectEntity(guid);
+                            DeselectEntity(id);
                         } else {
-                            SelectEntity(guid, add_to_selection=true);
+                            SelectEntity(id, add_to_selection=true);
                         }
                     }
                 }

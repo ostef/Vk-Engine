@@ -7,15 +7,15 @@ EntityOutlinerState :: struct {
 
 g_entity_outliner : EntityOutlinerState;
 
-EditorCopyEntityGUID :: inline (guid : EntityGUID) {
-    g_editor_last_copied_entity_guid = guid;
-    g_editor_has_copied_entity_guid = true;
+EditorCopyEntityID :: inline (id : EntityID) {
+    g_editor_last_copied_entity_id = id;
+    g_editor_has_copied_entity_id = true;
 
-    SDL_SetClipboardText(CTPrint("%", guid));
+    SDL_SetClipboardText(CTPrint("%", id));
 }
 
-EditorDeleteEntity :: (world : *World, guid : EntityGUID) {
-    entity := GetEntity(world, guid);
+EditorDeleteEntity :: (world : *World, id : EntityID) {
+    entity := GetEntity(world, id);
     if entity {
         for entity.children {
             child := GetEntity(world, it);
@@ -25,7 +25,7 @@ EditorDeleteEntity :: (world : *World, guid : EntityGUID) {
         }
     }
 
-    KillEntity(world, guid);
+    KillEntity(world, id);
 }
 
 EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_location) -> *Entity {
@@ -37,7 +37,7 @@ EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_
     str := StringBuilderBuild(*serializer ,, Temp);
 
     new_entity := SpawnEntity(world, GetEntityTypeId(entity.index));
-    cached_guid := new_entity.guid;
+    cached_guid := new_entity.id;
 
     result := DeserializeEntity(str, world, new_entity);
     if !result.ok {
@@ -45,7 +45,7 @@ EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_
             result.line_index, result.byte_index, result.error_msg);
     }
 
-    new_entity.guid = cached_guid;
+    new_entity.id = cached_guid;
     UpdateWorldTransform(world, new_entity);
 
     if new_entity.name {
@@ -55,7 +55,7 @@ EditorDuplicateEntity :: (world : *World, entity : *Entity, location := #caller_
         Free(name.data);
     }
 
-    if new_entity.parent != Null_Entity_GUID {
+    if new_entity.parent != Null_Entity_ID {
         parent_id := entity.parent;
         new_entity.parent = .{};
 
@@ -212,7 +212,7 @@ ShowEntityOutliner :: (world : *World) {
 
     //         if ImGui.MenuItem(CStringClone(name ,, Temp)) {
     //             entity := SpawnEntity(world, type_id);
-    //             SelectEntity(entity.guid);
+    //             SelectEntity(entity.id);
     //         }
     //     }
     // }
@@ -220,17 +220,17 @@ ShowEntityOutliner :: (world : *World) {
     PopButtonColor();
     ImGui.PopFont();
 
-    EntityGUIDSet :: HashSet(
-        EntityGUID,
-        hash_func = HashEntityGUID,
-        comp_func = CompareEntityGUIDs
+    EntityIDSet :: HashSet(
+        EntityID,
+        hash_func = HashEntityID,
+        comp_func = CompareEntityIDs
     );
 
-    already_shown_entities : EntityGUIDSet;
+    already_shown_entities : EntityIDSet;
     already_shown_entities.allocator = Temp;
 
-    VisitEntity :: (world : *World, entity : *Entity, already_shown_entities : *EntityGUIDSet) {
-        HashSetInsert(already_shown_entities, entity.guid);
+    VisitEntity :: (world : *World, entity : *Entity, already_shown_entities : *EntityIDSet) {
+        HashSetInsert(already_shown_entities, entity.id);
 
         for entity.children {
             child := GetEntity(world, it);
@@ -238,28 +238,28 @@ ShowEntityOutliner :: (world : *World) {
         }
     } @NoProfile
 
-    ShowEntity :: (world : *World, entity : *Entity, already_shown_entities : *EntityGUIDSet) {
-        if HashSetGetPtr(already_shown_entities, entity.guid) {
+    ShowEntity :: (world : *World, entity : *Entity, already_shown_entities : *EntityIDSet) {
+        if HashSetGetPtr(already_shown_entities, entity.id) {
             return;
         }
 
-        HashSetInsert(already_shown_entities, entity.guid);
+        HashSetInsert(already_shown_entities, entity.id);
 
-        label := CTPrint("%##%", ifx entity.name then entity.name else "Unnamed", entity.guid);
+        label := CTPrint("%##%", ifx entity.name then entity.name else "Unnamed", entity.id);
 
         flags := ImGui.TreeNodeFlags.OpenOnArrow | .SpanFullWidth | .SpanAllColumns;
         if entity.children.count == 0 {
             flags |= .Leaf;
         }
 
-        if EntityIsSelected(entity.guid) {
+        if EntityIsSelected(entity.id) {
             flags |= .Selected;
         }
 
         filter := MakeString(g_entity_outliner.filter_text.data);
         pass_filter := FilterTest(g_entity_outliner.filter_case_sensitive, entity.name, filter);
         pass_filter ||= FilterTest(g_entity_outliner.filter_case_sensitive, TPrint("%", GetNiceEntityTypeName(entity)), filter);
-        pass_filter ||= FilterTest(g_entity_outliner.filter_case_sensitive, TPrint("%", entity.guid), filter);
+        pass_filter ||= FilterTest(g_entity_outliner.filter_case_sensitive, TPrint("%", entity.id), filter);
 
         opened : bool;
         if pass_filter {
@@ -278,55 +278,55 @@ ShowEntityOutliner :: (world : *World) {
             }
 
             if entity.name {
-                ImGui.SetItemTooltip("<%> % %", GetNiceEntityTypeName(entity), entity.name, entity.guid);
+                ImGui.SetItemTooltip("<%> % %", GetNiceEntityTypeName(entity), entity.name, entity.id);
             } else {
-                ImGui.SetItemTooltip("<%> %", GetNiceEntityTypeName(entity), entity.guid);
+                ImGui.SetItemTooltip("<%> %", GetNiceEntityTypeName(entity), entity.id);
             }
 
             if ImGui.BeginPopupContextItem(CTPrint("%##context_menu", MakeString(label))) {
-                if ImGui.MenuItem("Detach", enabled=entity.parent != Null_Entity_GUID) {
+                if ImGui.MenuItem("Detach", enabled=entity.parent != Null_Entity_ID) {
                     DetachEntity(world, entity);
                 }
 
                 if ImGui.MenuItem("Duplicate") {
                     entity = EditorDuplicateEntity(world, entity);
-                    SelectEntity(entity.guid);
+                    SelectEntity(entity.id);
                 }
 
                 if ImGui.MenuItem("Delete") {
-                    EditorDeleteEntity(world, entity.guid);
+                    EditorDeleteEntity(world, entity.id);
                 }
 
-                if ImGui.MenuItem("Copy entity GUID") {
-                    EditorCopyEntityGUID(entity.guid);
+                if ImGui.MenuItem("Copy entity ID") {
+                    EditorCopyEntityID(entity.id);
                 }
 
                 ImGui.EndPopup();
             }
 
             if !ImGui.IsItemToggledOpen() && IsItemDoubleClicked() {
-                SelectEntity(entity.guid);
+                SelectEntity(entity.id);
                 //FocusEntity(world, entity);
             }
 
             if ImGui.BeginDragDropSource() {
                 if entity.name {
-                    ImGui.Text("<%> % %", GetNiceEntityTypeName(entity), entity.name, entity.guid);
+                    ImGui.Text("<%> % %", GetNiceEntityTypeName(entity), entity.name, entity.id);
                 } else {
-                    ImGui.Text("<%> %", GetNiceEntityTypeName(entity), entity.guid);
+                    ImGui.Text("<%> %", GetNiceEntityTypeName(entity), entity.id);
                 }
 
-                ImGui.SetDragDropPayload("EntityGUID", *entity.guid, size_of(EntityGUID));
+                ImGui.SetDragDropPayload("EntityID", *entity.id, size_of(EntityID));
                 ImGui.EndDragDropSource();
             }
 
             if ImGui.BeginDragDropTarget() {
-                payload := ImGui.AcceptDragDropPayload("EntityGUID");
+                payload := ImGui.AcceptDragDropPayload("EntityID");
                 if payload {
-                    Assert(payload.DataSize == size_of(EntityGUID));
-                    to_attach_guid := cast(*EntityGUID, payload.Data).*;
+                    Assert(payload.DataSize == size_of(EntityID));
+                    to_attach_guid := cast(*EntityID, payload.Data).*;
 
-                    if to_attach_guid != entity.guid && to_attach_guid != Null_Entity_GUID {
+                    if to_attach_guid != entity.id && to_attach_guid != Null_Entity_ID {
                         to_attach := GetEntity(world, to_attach_guid);
                         AttachEntity(world, to_attach, entity);
                     }
@@ -366,7 +366,7 @@ ShowEntityOutliner :: (world : *World) {
         ImGui.TableHeadersRow();
 
         for :AllEntities entity : world {
-            if entity.parent != Null_Entity_GUID {
+            if entity.parent != Null_Entity_ID {
                 continue;
             }
 

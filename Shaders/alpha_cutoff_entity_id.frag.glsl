@@ -14,5 +14,13 @@ layout(location=6) in float2 in_tex_coords;
 layout(location=0) out uint4 out_color;
 
 void main() {
-    out_color = u_mesh_instances[in_instance_index].entity_guid;
+    MeshInstance mesh = u_mesh_instances[in_instance_index];
+
+    float4 base_color = texture(u_base_color_texture, in_tex_coords);
+    // Offset the alpha cutoff so we can better select icons that appear transparent
+    if (base_color.a < mesh.material.alpha_cutoff - 0.1) {
+        discard;
+    }
+
+    out_color = u_mesh_instances[in_instance_index].entity_id;
 }

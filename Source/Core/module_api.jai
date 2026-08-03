@@ -7,6 +7,7 @@ CoreContext :: struct {
     print_style : Print_Style;
     profiling : ProfilingThreadContext;
     random_state : Random_State;
+    uuid_random_state : Random_State;
 }
 
 CoreModule :: struct {

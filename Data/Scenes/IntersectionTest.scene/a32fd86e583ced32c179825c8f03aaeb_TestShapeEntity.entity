@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xa32fd86e583ced32c179825c8f03aaeb
-  @flags 7: 0x0
+  @guid 1: a32fd86e583ced32c179825c8f03aaeb
+  @flags 7: 0
   @name 2: "Mesh"
   @local_position 3: [0, -1.27, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [58.292622, 58.292622, 58.292622]
-  @parent 6: 0x28df7274761a02328418d589fe652d64
+  @parent 6: 28df7274761a02328418d589fe652d64
 @shape 2: Mesh
 @sphere_radius 4: 1
 @capsule_height 5: 2

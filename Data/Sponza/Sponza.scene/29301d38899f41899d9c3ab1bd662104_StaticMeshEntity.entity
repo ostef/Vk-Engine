@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x29301d38899f41899d9c3ab1bd662104
-  @flags 7: 0x0
+  @guid 1: 29301d38899f41899d9c3ab1bd662104
+  @flags 7: 0
   @name 2: "floor_1stfloor_01.003"
   @local_position 3: [4.055418, -0.425194, 0.045471]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x06b3884d8f2d4d4b8fc952b7e54a0326
+  @parent 6: 06b3884d8f2d4d4b8fc952b7e54a0326
 @mesh 2:
   @mesh 2: "Sponza/Meshes/floor_1stfloor_01.003.mesh"
   @material 3: "Sponza/Materials/floor_01.mat"

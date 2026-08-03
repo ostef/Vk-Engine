@@ -1,10 +1,10 @@
 @_ 1:
-  @guid 1: 0xa5d77d2868b1525be1c1777e15044dde
+  @guid 1: a5d77d2868b1525be1c1777e15044dde
   @name 2: "Sphere_3-5"
   @local_position 3: [7.5, 4.5, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @mesh 2:
   @mesh 2: "Meshes/Sphere.mesh"
   @material 3: "Materials/Spheres/Sphere_3-5.mat"

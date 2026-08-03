@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x944bcb67d30840d1bee5dec310c84a07
-  @flags 7: 0x0
+  @guid 1: 944bcb67d30840d1bee5dec310c84a07
+  @flags 7: 0
   @name 2: "ornament_stones_01"
   @local_position 3: [-1.205501, 2.879366, 0.133932]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x06b3884d8f2d4d4b8fc952b7e54a0326
+  @parent 6: 06b3884d8f2d4d4b8fc952b7e54a0326
 @mesh 2:
   @mesh 2: "Sponza/Meshes/ornament_stones_01.mesh"
   @material 3: "Sponza/Materials/stone_trims_01.mat"

@@ -1,3 +1,214 @@
+UUID :: struct {
+    high : u64;
+    low : u64;
+
+    #overlay(high)
+    bytes : [16]u8;
+}
+
+Null_UUID :: UUID.{};
+
+operator== :: inline (a : UUID, b : UUID) -> bool {
+    return memcmp(*a, *b, size_of(UUID)) == 0;
+}
+
+operator!= :: inline (a : UUID, b : UUID) -> bool {
+    return memcmp(*a, *b, size_of(UUID)) != 0;
+}
+
+CompareUUIDs :: inline (a : UUID, b : UUID) -> bool {
+    return memcmp(*a, *b, size_of(UUID)) == 0;
+}
+
+HashUUID :: inline (uuid : UUID) -> u64 {
+    #import "Hash";
+    return fnv1a_hash(*uuid, size_of(UUID));
+}
+
+#add_context uuid_random_state : Random_State;
+
+RandomUUID :: () -> UUID {
+    if context.uuid_random_state.low == 0 && context.uuid_random_state.high == 0 {
+        time := Basic.current_time_monotonic();
+
+        random_seed(*context.uuid_random_state, Random_State.{high=xx,no_check time.high, low=time.low});
+    }
+
+    r1 := random_get(*context.uuid_random_state);
+    r2 := random_get(*context.uuid_random_state);
+
+    uuid : UUID = ---;
+    memcpy(*uuid.bytes[0], *r1, 8);
+    memcpy(*uuid.bytes[8], *r2, 8);
+
+    // Set version to 4 (0100) in the high nibble of byte 6
+    uuid.bytes[6] = (uuid.bytes[6] & 0x0f) | 0x40;
+    // Set variant to RFC 4122 (10xx) in the high bits of byte 8
+    uuid.bytes[8] = (uuid.bytes[8] & 0x3f) | 0x80;
+
+    return uuid;
+}
+
+ParseUUID :: (str : string) -> UUID, ok : bool, remaining : string {
+    ParseByte :: (str : string) -> u8, bool, string #no_abc {
+        IsHexDigit :: inline (c : u8) -> bool {
+            return (c >= #char "a" && c <= #char "f")
+                || (c >= #char "A" && c <= #char "F")
+                || (c >= #char "0" && c <= #char "9");
+        }
+
+        if str.count < 2 {
+            return 0, false, str;
+        }
+
+        if !IsHexDigit(str[0]) || !IsHexDigit(str[1]) {
+            return 0, false, str;
+        }
+
+        byte : u8;
+        if str[0] >= "0" && str[0] <= "9" {
+            byte = str[0] - #char "0";
+        } else if str[0] >= "a" && str[0] <= "f" {
+            byte = str[0] - #char "a" + 10;
+        } else if str[0] >= "A" && str[0] <= "F" {
+            byte = str[0] - #char "A" + 10;
+        }
+
+        byte *= 16;
+
+        if str[1] >= "0" && str[1] <= "9" {
+            byte += str[1] - #char "0";
+        } else if str[1] >= "a" && str[1] <= "f" {
+            byte += str[1] - #char "a" + 10;
+        } else if str[1] >= "A" && str[1] <= "F" {
+            byte += str[1] - #char "A" + 10;
+        }
+
+        return byte, true, StringAdvance(str, 2);
+    }
+
+    uuid : UUID = ---;
+    ok : bool;
+    s := str;
+
+    uuid.bytes[0], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[1], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[2], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[3], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+
+    if s.count > 0 && s[0] == "-" {
+        s = StringAdvance(s, 1);
+    }
+
+    uuid.bytes[4], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[5], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+
+    if s.count > 0 && s[0] == "-" {
+        s = StringAdvance(s, 1);
+    }
+
+    uuid.bytes[6], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[7], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+
+    if s.count > 0 && s[0] == "-" {
+        s = StringAdvance(s, 1);
+    }
+
+    uuid.bytes[8], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[9], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+
+    if s.count > 0 && s[0] == "-" {
+        s = StringAdvance(s, 1);
+    }
+
+    uuid.bytes[10], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[11], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[12], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[13], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[14], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+    uuid.bytes[15], ok, s = ParseByte(s);
+    if !ok {
+        return uuid, false, s;
+    }
+
+    return uuid, true, s;
+}
+
+AppendUUID :: (builder : *StringBuilder, uuid : UUID) {
+    prev_format_int := context.print_style.default_format_int;
+    context.print_style.default_format_int = FormatIntHex(0, 2);
+    defer context.print_style.default_format_int = prev_format_int;
+
+    Append(builder, "%%%%-%%-%%-%%-%%%%%%",
+        uuid.bytes[0], uuid.bytes[1], uuid.bytes[2], uuid.bytes[3],
+        uuid.bytes[4], uuid.bytes[5],
+        uuid.bytes[6], uuid.bytes[7],
+        uuid.bytes[8], uuid.bytes[9],
+        uuid.bytes[10], uuid.bytes[11], uuid.bytes[12],
+        uuid.bytes[13], uuid.bytes[14], uuid.bytes[15]
+    );
+}
+
+#run {
+    builder : StringBuilder;
+
+    for i : 0..100 {
+        uuid := RandomUUID();
+        AppendUUID(*builder, uuid);
+
+        str := StringBuilderBuild(*builder);
+
+        uuid2, ok, str2 := ParseUUID(str);
+        Assert(ok && str2.count == 0, "'%' => '%'", str, str2);
+        Assert(uuid == uuid2);
+    }
+}
+
 Cos :: Math.cos;
 Sin :: Math.sin;
 Tan :: Math.tan;
@@ -86,14 +297,9 @@ AlignForward :: (x : s64, alignment : s64) -> s64 {
 } @NoProfile
 
 CoreStructPrinter :: (builder : *StringBuilder, any : Any, data : *void) -> bool {
-    if any.type == type_info(GUID)
-    || (TypeIsStruct(any.type) && cast(*Type_Info_Struct, any.type).name == "GUID") {
-        guid := cast(*GUID, any.value_pointer);
-        if guid.* == .{} {
-            Append(builder, "(null entity)");
-        } else {
-            Append(builder, "%1%2", FormatIntHex(guid.high), FormatIntHex(guid.low));
-        }
+    if any.type == type_info(UUID)
+    || (TypeIsStruct(any.type) && cast(*Type_Info_Struct, any.type).name == "UUID") {
+        AppendUUID(builder, cast(*UUID, any.value_pointer).*);
 
         return true;
     }

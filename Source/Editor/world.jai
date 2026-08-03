@@ -179,18 +179,18 @@ WorldEditMenu :: (world : *World) {
         if ImGui.MenuItem("Select All Entities") {
             ArrayClear(*g_editor_selected_entities);
 
-            for _, guid : world.entities_by_guid {
-                ArrayPush(*g_editor_selected_entities, guid);
+            for _, id : world.entities_by_id {
+                ArrayPush(*g_editor_selected_entities, id);
             }
         }
 
         if ImGui.MenuItem("Invert Selection") {
-            new_selected_entities : [..]EntityGUID;
+            new_selected_entities : [..]EntityID;
             new_selected_entities.allocator = g_editor_selected_entities.allocator;
 
-            for _, guid : world.entities_by_guid {
-                if ArrayFindFirst(g_editor_selected_entities, guid, CompareEntityGUIDs) < 0 {
-                    ArrayPush(*new_selected_entities, guid);
+            for _, id : world.entities_by_id {
+                if ArrayFindFirst(g_editor_selected_entities, id, CompareEntityIDs) < 0 {
+                    ArrayPush(*new_selected_entities, id);
                 }
             }
 

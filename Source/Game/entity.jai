@@ -1,19 +1,5 @@
-g_entity_guid_random_state_low : Random_State;
-g_entity_guid_random_state_high : Random_State;
-
-GenerateEntityGUID :: () -> EntityGUID {
-    #import "Random";
-
-    if g_entity_guid_random_state_low.low == 0 && g_entity_guid_random_state_low.high == 0 {
-        seed := Basic.current_time_monotonic();
-        random_seed(*g_entity_guid_random_state_low, Random_State.{xx seed.low, xx seed.high});
-        random_seed(*g_entity_guid_random_state_high, Random_State.{xx seed.high, xx seed.low});
-    }
-
-    return .{
-        random_get(*g_entity_guid_random_state_low),
-        random_get(*g_entity_guid_random_state_high),
-    };
+RandomEntityID :: inline () -> EntityID {
+    return xx RandomUUID();
 } @ModuleAPI
 
 EntityIsInHierarchy :: (world : *World, entity : *Entity, of : *Entity) -> bool {
@@ -112,12 +98,12 @@ SetEntityName :: inline (using world : *World, entity : *Entity, new_name : stri
     return number_postfix == -1;
 } @ModuleAPI
 
-GetEntity :: (using world : *World, guid : EntityGUID) -> *Entity, GetEntityError {
-    if guid == Null_Entity_GUID {
+GetEntity :: (using world : *World, id : EntityID) -> *Entity, GetEntityError {
+    if id == Null_Entity_ID {
         return null, .NullEntity;
     }
 
-    entity, err := HashMapGet(*entities_by_guid, guid);
+    entity, err := HashMapGet(*entities_by_id, id);
     if !entity {
         return null, .EntityKilledOrNeverSpawned;
     }
@@ -182,13 +168,13 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
         }
     }
 
-    if entity.parent != Null_Entity_GUID {
+    if entity.parent != Null_Entity_ID {
         DetachEntity(world, entity);
     }
 
     ArrayPush(*to.children, entity.index);
 
-    entity.parent = to.guid;
+    entity.parent = to.id;
 
     if keep_same_world_transform {
         local_transform := Inverse(to.world_transform) * entity.world_transform;
@@ -209,7 +195,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     UpdateWorldTransform(world, entity);
     ExecuteEntityCallback(world, entity, "OnAttached");
 
-    LogMessage("Attached entity % to %", entity.guid, to.guid, flags=.VERBOSE_ONLY);
+    LogMessage("Attached entity % to %", entity.id, to.id, flags=.VERBOSE_ONLY);
 
     return true;
 } @ModuleAPI
@@ -217,7 +203,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
 DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := true) -> bool {
     LogSectionScope(*Log_Entities);
 
-    if entity.parent == Null_Entity_GUID {
+    if entity.parent == Null_Entity_ID {
         return false;
     }
 
@@ -231,7 +217,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
 
     ArrayRemove(*parent.children, child_index);
 
-    entity.parent = Null_Entity_GUID;
+    entity.parent = Null_Entity_ID;
 
     if keep_same_world_transform {
         entity.local_position = TranslationVector(entity.world_transform);
@@ -247,7 +233,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
 
     UpdateWorldTransform(world, entity);
 
-    LogMessage("Detached entity % from %", entity.guid, parent.guid, flags=.VERBOSE_ONLY);
+    LogMessage("Detached entity % from %", entity.id, parent.id, flags=.VERBOSE_ONLY);
 
     return true;
 } @ModuleAPI
@@ -256,7 +242,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
 GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vec3f {
     AllocatorScope(Temp);
 
-    if !component && entity.parent == Null_Entity_GUID {
+    if !component && entity.parent == Null_Entity_ID {
         return entity.local_scale;
     }
 
@@ -267,7 +253,7 @@ GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponen
 
     ArrayPush(*hierarchy, entity);
 
-    parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, entity.parent);
+    parent := ifx entity.parent != Null_Entity_ID then GetEntity(world, entity.parent);
     while parent {
         ArrayPush(*hierarchy, parent);
         parent = GetEntity(world, parent.parent);
@@ -311,7 +297,7 @@ GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponen
 
 SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f) {
     local_transform : Mat4f = ---;
-    if entity.parent != Null_Entity_GUID {
+    if entity.parent != Null_Entity_ID {
         parent := GetEntity(world, entity.parent);
         if parent {
             local_transform = parent.inv_world_transform * transform;
@@ -329,7 +315,7 @@ SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f
 } @ModuleAPI
 
 UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := true, update_components := true) {
-    parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, entity.parent);
+    parent := ifx entity.parent != Null_Entity_ID then GetEntity(world, entity.parent);
 
     local_transform := Mat4fTransformSRT(entity.local_position, entity.local_rotation, entity.local_scale);
 
@@ -370,8 +356,8 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
     }
 } @ModuleAPI
 
-SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
-    entity := CreateEntity(world, type, name, guid);
+SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", id := Null_Entity_ID) -> *Entity {
+    entity := CreateEntity(world, type, name, id);
 
     ExecuteEntityCallback(world, entity, "OnSpawn");
 
@@ -381,12 +367,12 @@ SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := N
 
     if name {
         LogMessage("Spawned entity % (%, %)",
-            name, type, entity.guid,
+            name, type, entity.id,
             flags=.VERBOSE_ONLY
         );
     } else {
         LogMessage("Spawned entity (%, %)",
-            type, entity.guid,
+            type, entity.id,
             flags=.VERBOSE_ONLY
         );
     }
@@ -394,7 +380,7 @@ SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", guid := N
     return entity;
 } @ModuleAPI
 
-CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := Null_Entity_GUID) -> *Entity {
+CreateEntity :: (using world : *World, type : EntityTypeId, name := "", id := Null_Entity_ID) -> *Entity {
     LogSectionScope(*Log_Entities);
 
     if type == .Invalid {
@@ -420,15 +406,15 @@ CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := 
 
     entity.index = MakeEntityIndex(type, slot_info);
 
-    if guid.low || guid.high {
-        entity.guid = guid;
+    if id.low || id.high {
+        entity.id = id;
     } else {
-        entity.guid = GenerateEntityGUID();
+        entity.id = RandomEntityID();
     }
 
-    entity_ptr, already_exists := HashMapInsert(*entities_by_guid, entity.guid);
+    entity_ptr, already_exists := HashMapInsert(*entities_by_id, entity.id);
     if already_exists {
-        LogError("Entity with GUID % already exists", entity.guid);
+        LogError("Entity with ID % already exists", entity.id);
     } else {
         entity_ptr.* = entity;
     }
@@ -442,14 +428,14 @@ CreateEntity :: (using world : *World, type : EntityTypeId, name := "", guid := 
     return entity;
 } @ModuleAPI
 
-CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name := "", guid := Null_Entity_GUID) -> *Entity {
-    entity := CreateEntity(world, type_id, guid=guid, name=name);
+CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name := "", id := Null_Entity_ID) -> *Entity {
+    entity := CreateEntity(world, type_id, id=id, name=name);
     cached_name := entity.name;
 
     result := DeserializeEntity(text, world, entity);
     if !result.ok {
         LogContentError("There were errors when deserializing entity:\n%_%:%:%: %",
-            type_id, guid, result.line_index + 1, result.byte_index + 1, result.error_msg);
+            type_id, id, result.line_index + 1, result.byte_index + 1, result.error_msg);
     }
 
     UpdateWorldTransform(world, entity);
@@ -465,7 +451,7 @@ CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : En
         Free(name.data);
     }
 
-    if entity.parent != Null_Entity_GUID && attach_to_parent {
+    if entity.parent != Null_Entity_ID && attach_to_parent {
         parent, err := GetEntity(world, entity.parent);
         if parent {
             // AttachEntity detaches from previous parent, so clear entity.parent beforehand
@@ -500,7 +486,7 @@ SerializeEntity :: inline (serializer : *Serializer, entity : *Entity) {
 } @ModuleAPI
 
 DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) -> DeserializeResult {
-    cached_guid := entity.guid;
+    cached_id := entity.id;
     cached_index := entity.index;
 
     parser : DeserializeParser;
@@ -557,7 +543,7 @@ DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) ->
         result := DeserializeAny(*parser, any);
 
         if parsing_entity_properties {
-            entity.guid = cached_guid;
+            entity.id = cached_id;
             entity.index = cached_index;
 
             ExecuteEntityCallback(world, entity, "OnValidate");
@@ -573,12 +559,12 @@ DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) ->
     return DeserializeOk(*parser);
 } @ModuleAPI
 
-KillEntity :: (using world : *World, guid : EntityGUID) {
+KillEntity :: (using world : *World, id : EntityID) {
     LogSectionScope(*Log_Entities);
 
-    entity := GetEntity(world, guid);
+    entity := GetEntity(world, id);
     if !entity {
-        LogError("Killing entity with GUID % but it does not exist", guid);
+        LogError("Killing entity with ID % but it does not exist", id);
         return;
     }
 

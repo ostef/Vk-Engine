@@ -25,7 +25,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
     PushButtonColor(.SubmitBadButton);
     if ImGui.Button("Delete", size=.{button_width,0}) {
-        EditorDeleteEntity(world, entity.guid);
+        EditorDeleteEntity(world, entity.id);
     }
     PopButtonColor();
 
@@ -33,7 +33,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
     if ImGui.Button("Duplicate", size=.{button_width,0}) {
         entity = EditorDuplicateEntity(world, entity);
-        SelectEntity(entity.guid);
+        SelectEntity(entity.id);
     }
 
     ImGui.PushFont(g_editor_medium_font);
@@ -67,9 +67,9 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
 
             ctx : InspectorContext;
             ctx.world = world;
-            InitInspectorContext(*ctx, type_info(EntityGUID));
+            InitInspectorContext(*ctx, type_info(EntityID));
 
-            ShowInspector("GUID", *ctx, entity.guid, notes=.["NotEditable"]);
+            ShowInspector("ID", *ctx, entity.id, notes=.["NotEditable"]);
 
             prev_parent := entity.parent;
 
@@ -85,7 +85,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
                 new_parent_id := entity.parent;
                 entity.parent = prev_parent;
 
-                if new_parent_id == Null_Entity_GUID {
+                if new_parent_id == Null_Entity_ID {
                     DetachEntity(world, entity);
                 } else {
                     new_parent := GetEntity(world, new_parent_id);
@@ -365,7 +365,7 @@ ShowAddEntityPopup :: () {
 
     if ImGui.Button(add_name, size=.{-1,0}) {
         entity := CreateEntity(world, selected_entity_type);
-        SelectEntity(entity.guid);
+        SelectEntity(entity.id);
 
         ImGui.CloseCurrentPopup();
     }

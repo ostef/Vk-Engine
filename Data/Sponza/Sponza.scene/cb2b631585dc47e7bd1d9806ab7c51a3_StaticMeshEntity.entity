@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xcb2b631585dc47e7bd1d9806ab7c51a3
-  @flags 7: 0x0
+  @guid 1: cb2b631585dc47e7bd1d9806ab7c51a3
+  @flags 7: 0
   @name 2: "ceiling_1stfloor_01"
   @local_position 3: [0.402122, 4.09616, 0.150804]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x06b3884d8f2d4d4b8fc952b7e54a0326
+  @parent 6: 06b3884d8f2d4d4b8fc952b7e54a0326
 @mesh 2:
   @mesh 2: "Sponza/Meshes/ceiling_1stfloor_01.mesh"
   @material 3: "Sponza/Materials/ceiling_plaster_02.mat"

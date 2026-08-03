@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x8c72ba5bd2cc4bc0ab7f79cd4779a505
-  @flags 7: 0x0
+  @guid 1: 8c72ba5bd2cc4bc0ab7f79cd4779a505
+  @flags 7: 0
   @name 2: "stonewalls_2ndfloor_02"
   @local_position 3: [0.139063, 7.855089, -0.11463]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xdee47e6f003c43be95fd667b7e53845f
+  @parent 6: dee47e6f003c43be95fd667b7e53845f
 @mesh 2:
   @mesh 2: "Sponza/Meshes/stonewalls_2ndfloor_02.mesh"
   @material 3: "Sponza/Materials/brickwall_01.001.mat"

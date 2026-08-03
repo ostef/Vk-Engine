@@ -1,5 +1,5 @@
 MeshInstance :: struct {
-    entity_guid : Vec4u;
+    entity_id : Vec4u;
     transform : Mat4f;
     normal_transform : Mat3f;
     material : MaterialPerInstance;
@@ -9,7 +9,7 @@ MeshInstance :: struct {
 MeshBuffer :: struct {
     Entry :: struct {
         key : u64;
-        entity_guid : GUID;
+        entity_id : UUID;
         vertex_buffer : *GfxBuffer;
         index_buffer : *GfxBuffer;
         vertex_count : u32;
@@ -126,7 +126,7 @@ PushMesh :: (
     PushMesh(
         buffer,
         key,
-        mesh.entity_guid,
+        mesh.entity_id,
         mesh.vertex_buffer, mesh.index_buffer,
         mesh.vertex_count, mesh.index_count,
         mesh.transform,
@@ -196,7 +196,7 @@ InitBillboardVertexBuffer :: () {
 PushBillboard :: (
     buffer : *MeshBuffer,
     key : u64,
-    entity_guid : GUID,
+    entity_id : UUID,
     material : *Material,
     position : Vec3f,
     camera_transform : Mat4f,
@@ -218,7 +218,7 @@ PushBillboard :: (
     PushMesh(
         buffer,
         key,
-        entity_guid=entity_guid,
+        entity_id=entity_id,
         vertex_buffer=*g_billboard_vertex_buffer, index_buffer=null,
         vertex_count=6, index_count=0,
         transform=model_matrix,
@@ -230,7 +230,7 @@ PushBillboard :: (
 PushMesh :: (
     buffer : *MeshBuffer,
     key : u64,
-    entity_guid : GUID,
+    entity_id : UUID,
     vertex_buffer : *GfxBuffer,
     index_buffer : *GfxBuffer,
     vertex_count : u32,
@@ -245,7 +245,7 @@ PushMesh :: (
 
     entry := ArrayPush(*buffer.meshes);
     entry.key = key;
-    entry.entity_guid = entity_guid;
+    entry.entity_id = entity_id;
     entry.vertex_buffer = vertex_buffer;
     entry.index_buffer = index_buffer;
     entry.vertex_count = vertex_count;
@@ -308,7 +308,7 @@ AllocDrawData :: (buffer : *MeshBuffer) {
             mesh := buffer.meshes[i + j];
 
             instance : MeshInstance = ---;
-            instance.entity_guid = cast(*Vec4u, *mesh.entity_guid).*;
+            instance.entity_id = cast(*Vec4u, *mesh.entity_id).*;
             instance.transform = mesh.transform;
             instance.normal_transform = ToMat3f(Transposed(Inverse(mesh.transform)));
             instance.material = MakeMaterialPerInstance(mesh.material);

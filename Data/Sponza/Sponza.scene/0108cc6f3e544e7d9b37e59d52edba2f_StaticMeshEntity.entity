@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x0108cc6f3e544e7d9b37e59d52edba2f
-  @flags 7: 0x0
+  @guid 1: 0108cc6f3e544e7d9b37e59d52edba2f
+  @flags 7: 0
   @name 2: "orn_windows_04.002"
   @local_position 3: [1.022026, 12.184655, -0.006694]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x1a86743d33f44437b0bd354680aba6af
+  @parent 6: 1a86743d33f44437b0bd354680aba6af
 @mesh 2:
   @mesh 2: "Sponza/Meshes/orn_windows_04.002.mesh"
   @material 3: "Sponza/Materials/door_stoneframe_01.001.mat"

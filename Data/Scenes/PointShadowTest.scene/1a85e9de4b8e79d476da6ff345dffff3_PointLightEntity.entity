@@ -1,10 +1,10 @@
 @_ 1:
-  @guid 1: 0x1a85e9de4b8e79d476da6ff345dffff3
+  @guid 1: 1a85e9de4b8e79d476da6ff345dffff3
   @name 2: ""
   @local_position 3: [0, 0, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @light 2:
   @color 2: [1, 1, 1]
   @intensity 3: 4

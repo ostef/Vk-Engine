@@ -1641,10 +1641,10 @@ GizmoTransform :: (
 EntityGizmo :: (world : *World, ctx : *GizmoContext) {
     GetWorldRotationWithoutScale :: (world : *World, entity : *Entity) -> Quatf {
         rotation := entity.local_rotation;
-        if entity.parent != Null_Entity_GUID {
+        if entity.parent != Null_Entity_ID {
             parent := GetEntity(world, entity.parent);
             if !parent {
-                LogError("Could not find entity % parent %", entity.guid, entity.parent);
+                LogError("Could not find entity % parent %", entity.id, entity.parent);
             } else {
                 rotation = QuatfFromMatrix(parent.world_transform) * rotation;
             }
@@ -1675,7 +1675,7 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
         num_entities += 1;
 
         is_affected := true;
-        if entity.parent != Null_Entity_GUID {
+        if entity.parent != Null_Entity_ID {
             for other_guid, j : g_editor_selected_entities {
                 if i == j {
                     continue;
@@ -1819,7 +1819,7 @@ EntityGizmo :: (world : *World, ctx : *GizmoContext) {
 
                 world_position = original_position + pivot_relative_position;
 
-                parent := ifx entity.parent != Null_Entity_GUID then GetEntity(world, entity.parent);
+                parent := ifx entity.parent != Null_Entity_ID then GetEntity(world, entity.parent);
                 if parent {
                     world_transform := Mat4fTranslate(world_position) * Mat4fFromQuat(world_rotation);
                     local_transform := Inverse(parent.world_transform) * world_transform;

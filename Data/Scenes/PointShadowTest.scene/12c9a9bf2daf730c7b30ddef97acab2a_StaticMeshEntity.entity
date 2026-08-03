@@ -1,10 +1,10 @@
 @_ 1:
-  @guid 1: 0x12c9a9bf2daf730c7b30ddef97acab2a
+  @guid 1: 12c9a9bf2daf730c7b30ddef97acab2a
   @name 2: "X-"
   @local_position 3: [-1, 0, 0]
   @local_rotation 4: [-0.5, -0.5, -0.5, 0.5]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xcac5b6e8b58a4c3293da63d5c4e9c4a4
+  @parent 6: cac5b6e8b58a4c3293da63d5c4e9c4a4
 @mesh 2:
   @mesh 2: "Meshes/X-.mesh"
   @cast_shadows 4: true

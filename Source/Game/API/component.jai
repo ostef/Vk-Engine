@@ -189,7 +189,7 @@ AddComponent :: (world : *World, type_id : ComponentTypeId, entity : *Entity) ->
 RemoveComponent :: (world : *World, component : *$T, entity : *Entity)
 #modify { return T == Component || IsInComponentTypesArray(T); } {
     if component.entity_index != entity.index {
-        LogError("Component does not belong to entity %", entity.guid);
+        LogError("Component does not belong to entity %", entity.id);
         return;
     }
 

@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xf46f2cf3300d48428ff76ddd53b13e43
-  @flags 7: 0x0
+  @guid 1: f46f2cf3300d48428ff76ddd53b13e43
+  @flags 7: 0
   @name 2: "lamp_light_1st_floor_14"
   @local_position 3: [0.000497, -0.696078, -0.00883]
   @local_rotation 4: [-0.206672, 0.67623, 0.67623, 0.206672]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x99f0d6e5ee2447ab90d17595660bbfdb
+  @parent 6: 99f0d6e5ee2447ab90d17595660bbfdb
 @light 2:
   @color 2: [1, 0.456014, 0.114014]
   @intensity 3: 1

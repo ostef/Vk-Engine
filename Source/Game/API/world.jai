@@ -17,9 +17,9 @@ World :: struct {
     }
 
     entities_by_name : HashMap(string, *Entity);
-    entities_by_guid : HashMap(
-        EntityGUID, *Entity,
-        hash_func = HashEntityGUID,
+    entities_by_id : HashMap(
+        EntityID, *Entity,
+        hash_func = HashEntityID,
         comp_func = (a, b) => a == b
     );
 

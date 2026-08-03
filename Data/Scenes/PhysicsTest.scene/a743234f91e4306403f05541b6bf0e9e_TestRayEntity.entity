@@ -1,9 +1,9 @@
 @_ 1:
-  @guid 1: 0xa743234f91e4306403f05541b6bf0e9e
-  @flags 7: 0x0
+  @guid 1: a743234f91e4306403f05541b6bf0e9e
+  @flags 7: 0
   @name 2: "Ray 4 7"
   @local_position 3: [9.045085, -3.090171, 2.938928]
   @local_rotation 4: [-0.09195, -0.799057, -0.126558, 0.580548]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xa477f5310fe3d14529c422b634709595
+  @parent 6: a477f5310fe3d14529c422b634709595
 @ray_length 2: 10

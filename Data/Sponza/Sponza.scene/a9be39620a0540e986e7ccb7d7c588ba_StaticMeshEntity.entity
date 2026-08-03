@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xa9be39620a0540e986e7ccb7d7c588ba
-  @flags 7: 0x0
+  @guid 1: a9be39620a0540e986e7ccb7d7c588ba
+  @flags 7: 0
   @name 2: "column_2ndfloor_15.001"
   @local_position 3: [8.4205, 6.100161, 0.030616]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xdee47e6f003c43be95fd667b7e53845f
+  @parent 6: dee47e6f003c43be95fd667b7e53845f
 @mesh 2:
   @mesh 2: "Sponza/Meshes/column_2ndfloor_15.001.mesh"
   @material 3: "Sponza/Materials/stones_01_tile.mat"

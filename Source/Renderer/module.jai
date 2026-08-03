@@ -71,9 +71,9 @@ ViewpointRenderTargets :: struct {
     final_color_texture : GfxTexture;
     hdr_color_texture : GfxTexture;
     depth_texture : GfxTexture;
-    entity_guids_texture : GfxTexture;
-    selected_entity_guids_texture : GfxTexture;
-    entity_guids_readback_buffers : [Gfx_Num_Frames_In_Flight]GfxBuffer;
+    entity_ids_texture : GfxTexture;
+    selected_entity_ids_texture : GfxTexture;
+    entity_ids_readback_buffers : [Gfx_Num_Frames_In_Flight]GfxBuffer;
     bloom_textures : BloomTextures;
     gizmo_color_texture : GfxTexture;
     gizmo_color_resolve : GfxTexture;
@@ -149,7 +149,7 @@ AddPointShadowMapToRender :: inline (using world : *WorldToRender, shadow_map : 
 } @NoProfile
 
 MeshToRender :: struct {
-    entity_guid : GUID;
+    entity_id : UUID;
     transform : Mat4f;
     vertex_buffer, index_buffer : *GfxBuffer;
     vertex_count, index_count : u32;

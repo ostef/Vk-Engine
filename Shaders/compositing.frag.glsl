@@ -9,8 +9,8 @@ layout(set=1, binding=0) uniform ViewpointData {
 
 layout(set=1, binding=1) uniform sampler2D u_hdr_color_texture;
 layout(set=1, binding=2) uniform sampler2D u_bloom_texture;
-layout(set=1, binding=3) uniform usampler2D u_entity_guid_texture;
-layout(set=1, binding=4) uniform usampler2D u_selected_entity_guid_texture;
+layout(set=1, binding=3) uniform usampler2D u_entity_id_texture;
+layout(set=1, binding=4) uniform usampler2D u_selected_entity_id_texture;
 layout(set=1, binding=5) uniform sampler2D u_gizmo_texture;
 
 layout(location=0) in float2 in_position;
@@ -26,14 +26,14 @@ float4 GetEntityOutline(float2 tex_coords, float2 texel_size) {
         || ApproxEquals(tex_coords.y, 0, inv_thickness.y)
         || ApproxEquals(tex_coords.y, 1, inv_thickness.y);
 
-    uint4 sampled_at_point = texture(u_selected_entity_guid_texture, tex_coords);
+    uint4 sampled_at_point = texture(u_selected_entity_id_texture, tex_coords);
     if (at_edge || sampled_at_point == uint4(0)) {
         for (float i = 0; i < Tau; i += Tau / steps) {
             float2 offset = float2(sin(i), cos(i)) * texel_size * u_frame_info.entity_outline_params.thickness;
-            uint4 sampled = texture(u_selected_entity_guid_texture, tex_coords + offset);
+            uint4 sampled = texture(u_selected_entity_id_texture, tex_coords + offset);
             if (sampled != uint4(0)) {
                 // Render outline with a different alpha if it is covered by another mesh
-                uint4 frontmost_entity = texture(u_entity_guid_texture, tex_coords + offset);
+                uint4 frontmost_entity = texture(u_entity_id_texture, tex_coords + offset);
                 if (frontmost_entity != uint4(0) && frontmost_entity != sampled) {
                     outline_color.a = u_frame_info.entity_outline_params.covered_alpha;
                 } else {

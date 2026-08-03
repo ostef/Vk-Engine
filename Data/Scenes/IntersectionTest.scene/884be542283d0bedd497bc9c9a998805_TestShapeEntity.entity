@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x884be542283d0bedd497bc9c9a998805
-  @flags 7: 0x0
+  @guid 1: 884be542283d0bedd497bc9c9a998805
+  @flags 7: 0
   @name 2: "Box"
   @local_position 3: [0, 0, 4.909936]
   @local_rotation 4: [0.24891, -0.244634, 0.114669, 0.93008]
   @local_scale 5: [0.737646, 1, 1.58362]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @shape 2: Box
 @sphere_radius 4: 1
 @capsule_height 5: 2

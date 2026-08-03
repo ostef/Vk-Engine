@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x3cf6604350dd5e45fa7ea98a34880175
-  @flags 7: 0x0
+  @guid 1: 3cf6604350dd5e45fa7ea98a34880175
+  @flags 7: 0
   @name 2: "Plane"
   @local_position 3: [0, -1.5, 5]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [5, 5, 5]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @mesh 2:
   @mesh 2: "Meshes/Plane.mesh"
   @material 3: "Materials/Pebbles.mat"

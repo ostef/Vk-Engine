@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x2d60da9efd5a406adce1b377e14c2f52
-  @flags 7: 0x0
+  @guid 1: 2d60da9efd5a406adce1b377e14c2f52
+  @flags 7: 0
   @name 2: ""
   @local_position 3: [0, -2.23, 0]
   @local_rotation 4: [-0.039515, 0.000286, 0.007223, 0.999193]
   @local_scale 5: [5, 1, 5]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000
 @mesh 2:
   @_ 1:
     @local_position 2: [0, 0, 0]

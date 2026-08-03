@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x3c018f4eaa264f648bcda72fd174dd4b
-  @flags 7: 0x0
+  @guid 1: 3c018f4eaa264f648bcda72fd174dd4b
+  @flags 7: 0
   @name 2: "ornament_door_2ndfloor_02.003"
   @local_position 3: [-1.841206, 5.450931, 7.468502]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xdee47e6f003c43be95fd667b7e53845f
+  @parent 6: dee47e6f003c43be95fd667b7e53845f
 @mesh 2:
   @mesh 2: "Sponza/Meshes/ornament_door_2ndfloor_02.003.mesh"
   @material 3: "Sponza/Materials/door_stoneframe_02.mat"

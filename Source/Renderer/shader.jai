@@ -40,8 +40,8 @@ g_shaders := LoadedShader.[
     .{name="skinned_mesh_geometry"},
     .{name="opaque_surface"},
     .{name="unlit"},
-    .{name="entity_guid"},
-    .{name="alpha_cutoff_entity_guid"},
+    .{name="entity_id"},
+    .{name="alpha_cutoff_entity_id"},
     .{name="alpha_cutoff_depth_only"},
 ];
 g_shaders_to_reload : [..]*LoadedShader;

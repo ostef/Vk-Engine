@@ -30,7 +30,7 @@ class Entity:
         import uuid
 
         self.blender_obj : bpy.types.Object = None
-        self.guid : str = uuid.uuid4().hex
+        self.id : str = uuid.uuid4().hex
         self.type : str = ''
         self.name : str = ""
         self.parent : Entity = None
@@ -45,13 +45,13 @@ class Entity:
 
         fw = file.write
         fw(f"1:\n")
-        fw(f"  @guid 1: 0x{self.guid}\n")
+        fw(f"  @id 1: 0x{self.id}\n")
         fw(f"  @name 2: \"{self.name}\"\n")
         fw(f"  @local_position 3: [{local_position.x}, {local_position.y}, {local_position.z}]\n")
         fw(f"  @local_rotation 4: [{local_rotation.x}, {local_rotation.y}, {local_rotation.z}, {local_rotation.w}]\n")
         fw(f"  @local_scale 5: [{local_scale.x}, {local_scale.y}, {local_scale.z}]\n")
         if self.parent is not None:
-            fw(f"  @parent 6: 0x{self.parent.guid}\n")
+            fw(f"  @parent 6: 0x{self.parent.id}\n")
         else:
             fw(f"  @parent 6: 0x00000000000000000000000000000000\n")
 
@@ -274,7 +274,7 @@ class EXPORTER_OT_VkEngineEntities(bpy.types.Operator):
         os.makedirs(output_dir, exist_ok=True)
 
         for e in all_entities:
-            filename = f"{e.guid}_{e.type}.entity"
+            filename = f"{e.id}_{e.type}.entity"
             filename = os.path.join(output_dir, filename)
             with open(filename, "w", newline='\n') as file:
                 # Hack: we need the transform of the root entity to be identity

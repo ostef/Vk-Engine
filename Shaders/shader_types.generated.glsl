@@ -103,7 +103,7 @@ struct MaterialPerInstance {
 };
 
 struct MeshInstance {
-    uint4 entity_guid;
+    uint4 entity_id;
     float4x4 transform;
     float3x3 normal_transform;
     MaterialPerInstance material;

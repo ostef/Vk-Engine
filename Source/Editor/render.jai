@@ -75,7 +75,7 @@ SubmitEditorWorldToRenderer :: (world : *World) {
             position := TranslationVector(it.world_transform);
 
             mesh := MeshToRender.{
-                entity_guid = xx it.guid,
+                entity_id = xx it.id,
                 transform=Mat4fTranslate(position) * Mat4fScale(.{1, aspect_ratio, 1}),
                 vertex_buffer=*g_billboard_vertex_buffer,
                 vertex_count=6,
@@ -112,7 +112,7 @@ SubmitEditorWorldToRenderer :: (world : *World) {
             transform = Mat4fTranslate(position) * Mat4fScale(.{1, aspect_ratio, 1});
 
             mesh := MeshToRender.{
-                entity_guid = xx entity.guid,
+                entity_id = xx entity.id,
                 transform=Mat4fTranslate(position) * Mat4fScale(.{1, aspect_ratio, 1}),
                 vertex_buffer=*g_billboard_vertex_buffer,
                 vertex_count=6,

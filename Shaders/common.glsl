@@ -206,8 +206,8 @@ float3 RandomColor(float seed) {
     return result;
 }
 
-float3 RandomEntityColor(uint4 entity_guid) {
-    return RandomColor((entity_guid.x + entity_guid.y + entity_guid.z + entity_guid.w) * 0.0000000001);
+float3 RandomEntityColor(uint4 entity_id) {
+    return RandomColor((entity_id.x + entity_id.y + entity_id.z + entity_id.w) * 0.0000000001);
 }
 
 bool ApproxZero(float x, float epsilon) {

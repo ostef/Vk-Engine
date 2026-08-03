@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xb702563d53636215401448f438ad36a6
-  @flags 7: 0x0
+  @guid 1: b702563d53636215401448f438ad36a6
+  @flags 7: 0
   @name 2: "Ray 8 4"
   @local_position 3: [-3.454916, 8.09017, 4.755282]
   @local_rotation 4: [0.140291, 0.847398, -0.431771, 0.275336]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x28df7274761a02328418d589fe652d64
+  @parent 6: 28df7274761a02328418d589fe652d64
 @shape 2: Ray
 @sphere_radius 4: 1
 @capsule_height 5: 2

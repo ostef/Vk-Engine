@@ -1,8 +1,8 @@
 @_ 1:
-  @guid 1: 0xdee47e6f003c43be95fd667b7e53845f
-  @flags 7: 0x0
+  @guid 1: dee47e6f003c43be95fd667b7e53845f
+  @flags 7: 0
   @name 2: "2nd_floor"
   @local_position 3: [0, 0, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xbcba7c88404544bfab4cf2c7e029b2d4
+  @parent 6: bcba7c88404544bfab4cf2c7e029b2d4

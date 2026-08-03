@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0xc8fcd5b1a01f487d85be5ad56bdd4b9f
-  @flags 7: 0x0
+  @guid 1: c8fcd5b1a01f487d85be5ad56bdd4b9f
+  @flags 7: 0
   @name 2: "master_material.018"
   @local_position 3: [1.986437, 0, -13.863933]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0xbcba7c88404544bfab4cf2c7e029b2d4
+  @parent 6: bcba7c88404544bfab4cf2c7e029b2d4
 @mesh 2:
   @mesh 2: "Sponza/Meshes/master_material.018.mesh"
   @material 3: "Sponza/Materials/column_head_2ndfloor_03.mat"

@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x833613eaee7248bca3e7fe4433ede480
-  @flags 7: 0x0
+  @guid 1: 833613eaee7248bca3e7fe4433ede480
+  @flags 7: 0
   @name 2: "orn_windows_08.001"
   @local_position 3: [8.24848, 14.930735, -0.034017]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x1a86743d33f44437b0bd354680aba6af
+  @parent 6: 1a86743d33f44437b0bd354680aba6af
 @mesh 2:
   @mesh 2: "Sponza/Meshes/orn_windows_08.001.mesh"
   @material 3: "Sponza/Materials/arch_stone_wall_01.001.mat"

@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x9c72b12463f142b6bc031b29f3e5533d
-  @flags 7: 0x0
+  @guid 1: 9c72b12463f142b6bc031b29f3e5533d
+  @flags 7: 0
   @name 2: "ornament_doors_08"
   @local_position 3: [-9.720213, 1.794384, -6.139299]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x06b3884d8f2d4d4b8fc952b7e54a0326
+  @parent 6: 06b3884d8f2d4d4b8fc952b7e54a0326
 @mesh 2:
   @mesh 2: "Sponza/Meshes/ornament_doors_08.mesh"
   @material 3: "Sponza/Materials/glass.mat"

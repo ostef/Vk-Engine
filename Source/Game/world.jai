@@ -35,7 +35,7 @@ DestroyWorld :: (using world : *World) {
             type := Entity_Types[i];
 
             Appendln(*builder, "for * %_storage {", type);
-            Appendln(*builder, "    it.parent = Null_Entity_GUID;");
+            Appendln(*builder, "    it.parent = Null_Entity_ID;");
             Appendln(*builder, "    ArrayFree(*it.children);");
 
             Appendln(*builder, "    while it.components.count > 0 {");
@@ -50,7 +50,7 @@ DestroyWorld :: (using world : *World) {
 
             Appendln(*builder, "    UnreferenceAllAssets(it);");
 
-            Appendln(*builder, "    HashMapRemove(*world.entities_by_guid, it.guid);");
+            Appendln(*builder, "    HashMapRemove(*world.entities_by_id, it.id);");
             Appendln(*builder, "    if it.name {");
             Appendln(*builder, "        HashMapRemove(*world.entities_by_name, it.name);");
             Appendln(*builder, "    }");
@@ -82,7 +82,7 @@ DestroyWorld :: (using world : *World) {
         return StringBuilderBuild(*builder);
     }
 
-    HashMapFree(*entities_by_guid);
+    HashMapFree(*entities_by_id);
     HashMapFree(*entities_by_name);
     ArrayFree(*entities_killed_this_frame);
 
@@ -102,7 +102,7 @@ CopyWorld :: (dest : *World, src : *World) {
 
         str := StringBuilderBuild(*serializer.builder ,, Temp);
 
-        new_entity := CreateAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), attach_to_parent=false, name=entity.name, guid=entity.guid);
+        new_entity := CreateAndDeserializeEntity(dest_world, str, GetEntityTypeId(entity.index), attach_to_parent=false, name=entity.name, id=entity.id);
 
         return new_entity;
     }
@@ -122,9 +122,9 @@ CopyWorld :: (dest : *World, src : *World) {
 
     // Attach all entities to their parent correctly
     for :AllEntities entity : dest {
-        if entity.parent != Null_Entity_GUID {
+        if entity.parent != Null_Entity_ID {
             parent_id := entity.parent;
-            entity.parent = Null_Entity_GUID;
+            entity.parent = Null_Entity_ID;
 
             parent, err := GetEntity(dest, parent_id);
             if !parent {
@@ -207,27 +207,20 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
             }
         } else if path_extension(it) == "entity" {
             basename := path_basename(it);
-            guid_str := string.{0, basename.data};
+            id_str := string.{0, basename.data};
             for i : 0..basename.count - 1 {
                 if basename[i] == #char "_" {
                     break;
                 }
 
-                guid_str.count += 1;
+                id_str.count += 1;
             }
 
-            type_str := StringAdvance(basename, guid_str.count + 1);
+            type_str := StringAdvance(basename, id_str.count + 1);
 
-            guid : EntityGUID;
-            guid.high, ok:, guid_str = ParseFixedWidthHexInteger(guid_str, 16, u64);
-            if !ok {
-                LogContentError("Invalid entity filename '%' (invalid GUID)", it);
-                continue;
-            }
-
-            guid.low, ok, guid_str = ParseFixedWidthHexInteger(guid_str, 16, u64);
-            if !ok || guid_str.count != 0 {
-                LogContentError("Invalid entity filename '%' (invalid GUID)", it);
+            id:, ok:, id_str = ParseUUID(id_str);
+            if !ok || id_str.count != 0 {
+                LogContentError("Invalid entity filename '%' (invalid ID)", it);
                 continue;
             }
 
@@ -255,7 +248,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
 
             defer Free(file_contents.data);
 
-            entity := CreateAndDeserializeEntity(world, file_contents, type_id, attach_to_parent=false, guid=guid);
+            entity := CreateAndDeserializeEntity(world, file_contents, type_id, attach_to_parent=false, id=xx id);
 
             loaded_entities += 1;
         }
@@ -265,9 +258,9 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
 
     // Attach all entities to their parent now that all entities have been loaded
     for :AllEntities entity : world {
-        if entity.parent != Null_Entity_GUID {
+        if entity.parent != Null_Entity_ID {
             parent_id := entity.parent;
-            entity.parent = Null_Entity_GUID;
+            entity.parent = Null_Entity_ID;
 
             parent, err := GetEntity(world, parent_id);
             if !parent {
@@ -315,7 +308,7 @@ SaveWorldToDirectory :: (world : *World, output_directory : string) {
 
         SerializeEntity(*serializer, it);
 
-        filename := TPrint("%/%_%.entity", output_directory, it.guid, GetEntityType(it.index));
+        filename := TPrint("%/%_%.entity", output_directory, it.id, GetEntityType(it.index));
         ok := write_entire_file(filename, *serializer.builder);
         if !ok {
             LogContentError("Could not save entity to file '%'", filename);
@@ -351,7 +344,7 @@ DestroyKilledEntities :: (using world : *World) {
     DestroyEntity :: (using world : *World, entity : *Entity) {
         type_id := GetEntityTypeId(entity.index);
 
-        if entity.parent != Null_Entity_GUID {
+        if entity.parent != Null_Entity_ID {
             DetachEntity(world, entity, keep_same_world_transform=true);
         }
 
@@ -382,7 +375,7 @@ DestroyKilledEntities :: (using world : *World) {
             HashMapRemove(*entities_by_name, entity.name);
         }
 
-        HashMapRemove(*entities_by_guid, entity.guid);
+        HashMapRemove(*entities_by_id, entity.id);
 
         slot_info := GetSlotInfo(entity.index);
 

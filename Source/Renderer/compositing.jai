@@ -2,13 +2,13 @@ CompositingBindingSet :: struct {
     viewpoint : GfxBindingUniformBuffer; @Binding(0) @FragmentStage
     hdr_color_texture : GfxBindingCombinedTextureSampler; @Binding(1) @FragmentStage
     bloom_texture : GfxBindingCombinedTextureSampler; @Binding(2) @FragmentStage
-    entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
-    selected_entity_guid_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
+    entity_id_texture : GfxBindingCombinedTextureSampler; @Binding(3) @FragmentStage
+    selected_entity_id_texture : GfxBindingCombinedTextureSampler; @Binding(4) @FragmentStage
     gizmo_texture : GfxBindingCombinedTextureSampler; @Binding(5) @FragmentStage
 } @BindingSet
 
 g_compositing_pipeline : GfxGraphicsPipeline;
-g_entity_guid_sampler : GfxSampler;
+g_entity_id_sampler : GfxSampler;
 
 CreateCompositingPipeline :: () {
     desc : GfxGraphicsPipelineDesc;
@@ -25,11 +25,11 @@ CreateCompositingPipeline :: () {
 }
 
 CompositingPass :: (using ctx : *RenderContext) {
-    if IsNull(*g_entity_guid_sampler) {
+    if IsNull(*g_entity_id_sampler) {
         desc : GfxSamplerDesc;
         desc.min_filter = .Nearest;
         desc.mag_filter = .Nearest;
-        g_entity_guid_sampler = CreateGfxSampler("Entity GUID", desc);
+        g_entity_id_sampler = CreateGfxSampler("Entity ID", desc);
     }
 
     if IsNull(*g_compositing_pipeline) {
@@ -42,8 +42,8 @@ CompositingPass :: (using ctx : *RenderContext) {
         viewpoint=.{buffer=FrameDataBuffer(), offset=xx viewpoint_offset, size=xx viewpoint_size},
         hdr_color_texture=.{texture=*render_targets.hdr_color_texture, sampler=*g_linear_clamp_sampler},
         bloom_texture=.{texture=GetFinalBloomTexture(*render_targets.bloom_textures), sampler=*g_linear_clamp_sampler},
-        entity_guid_texture=.{texture=*render_targets.entity_guids_texture, sampler=*g_entity_guid_sampler},
-        selected_entity_guid_texture=.{texture=*render_targets.selected_entity_guids_texture, sampler=*g_entity_guid_sampler},
+        entity_id_texture=.{texture=*render_targets.entity_ids_texture, sampler=*g_entity_id_sampler},
+        selected_entity_id_texture=.{texture=*render_targets.selected_entity_ids_texture, sampler=*g_entity_id_sampler},
         gizmo_texture=.{texture=*render_targets.gizmo_color_resolve, sampler=*g_linear_clamp_sampler},
     };
 

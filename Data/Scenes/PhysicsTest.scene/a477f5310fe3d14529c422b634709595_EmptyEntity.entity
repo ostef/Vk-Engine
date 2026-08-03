@@ -1,8 +1,8 @@
 @_ 1:
-  @guid 1: 0xa477f5310fe3d14529c422b634709595
-  @flags 7: 0x0
+  @guid 1: a477f5310fe3d14529c422b634709595
+  @flags 7: 0
   @name 2: "Rays"
   @local_position 3: [0, 0, 0]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x00000000000000000000000000000000
+  @parent 6: 00000000000000000000000000000000

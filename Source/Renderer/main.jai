@@ -153,7 +153,7 @@ ShutdownRenderer :: (global_shutdown : bool) {
     DestroyGfxSampler(*g_linear_clamp_sampler);
     DestroyGfxSampler(*g_nearest_clamp_sampler);
     DestroyGfxSampler(*g_material_texture_sampler);
-    DestroyGfxSampler(*g_entity_guid_sampler);
+    DestroyGfxSampler(*g_entity_id_sampler);
     DestroyGfxSampler(*g_skybox_sampler);
 
     DestroyGfxTexture(*g_brdf_lut);
@@ -172,7 +172,7 @@ ShutdownRenderer :: (global_shutdown : bool) {
     DestroyMaterialRenderPass(*g_depth_only_material_pass);
     DestroyMaterialRenderPass(*g_shadow_map_material_pass);
     DestroyMaterialRenderPass(*g_point_shadow_map_material_pass);
-    DestroyMaterialRenderPass(*g_entity_guid_material_pass);
+    DestroyMaterialRenderPass(*g_entity_id_material_pass);
 
     for * g_frame_data_allocators {
         DestroyFrameDataAllocator(it);
@@ -619,13 +619,13 @@ DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
     DestroyGfxTexture(*render_targets.final_color_texture);
     DestroyGfxTexture(*render_targets.hdr_color_texture);
     DestroyGfxTexture(*render_targets.depth_texture);
-    DestroyGfxTexture(*render_targets.entity_guids_texture);
-    DestroyGfxTexture(*render_targets.selected_entity_guids_texture);
+    DestroyGfxTexture(*render_targets.entity_ids_texture);
+    DestroyGfxTexture(*render_targets.selected_entity_ids_texture);
     DestroyGfxTexture(*render_targets.gizmo_color_texture);
     DestroyGfxTexture(*render_targets.gizmo_color_resolve);
     DestroyGfxTexture(*render_targets.gizmo_depth_texture);
 
-    for * render_targets.entity_guids_readback_buffers {
+    for * render_targets.entity_ids_readback_buffers {
         DestroyGfxBuffer(it);
     }
 }
@@ -703,10 +703,10 @@ CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_par
         Assert(!IsNull(*depth_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
-    if ShouldRecreate(*entity_guids_texture, desired_resolution) {
-        if !IsNull(*entity_guids_texture) {
+    if ShouldRecreate(*entity_ids_texture, desired_resolution) {
+        if !IsNull(*entity_ids_texture) {
             WaitForGPUIdle();
-            DestroyGfxTexture(*entity_guids_texture);
+            DestroyGfxTexture(*entity_ids_texture);
         }
 
         desc : GfxTextureDesc;
@@ -716,14 +716,14 @@ CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_par
         desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled | .TransferSrc;
 
-        entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Entity GUIDs", id), desc);
-        Assert(!IsNull(*entity_guids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+        entity_ids_texture = CreateGfxTexture(TPrint("Viewpoint %, Entity GUIDs", id), desc);
+        Assert(!IsNull(*entity_ids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
-    if ShouldRecreate(*selected_entity_guids_texture, desired_resolution) {
-        if !IsNull(*selected_entity_guids_texture) {
+    if ShouldRecreate(*selected_entity_ids_texture, desired_resolution) {
+        if !IsNull(*selected_entity_ids_texture) {
             WaitForGPUIdle();
-            DestroyGfxTexture(*selected_entity_guids_texture);
+            DestroyGfxTexture(*selected_entity_ids_texture);
         }
 
         desc : GfxTextureDesc;
@@ -733,8 +733,8 @@ CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_par
         desc.height = desired_resolution.y;
         desc.usage = .ColorAttachment | .Sampled;
 
-        selected_entity_guids_texture = CreateGfxTexture(TPrint("Viewpoint %, Selected Entity GUIDs", id), desc);
-        Assert(!IsNull(*selected_entity_guids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
+        selected_entity_ids_texture = CreateGfxTexture(TPrint("Viewpoint %, Selected Entity GUIDs", id), desc);
+        Assert(!IsNull(*selected_entity_ids_texture), "Could not create viewpoint render target with resolution=%", desired_resolution);
     }
 
     if ShouldRecreate(*gizmo_color_texture, desired_resolution) {
@@ -867,8 +867,8 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     AddTextureBarriers(ctx.cmd_buffer, .Undefined, .ColorAttachment, .[
         *ctx.render_targets.final_color_texture,
         *ctx.render_targets.hdr_color_texture,
-        *ctx.render_targets.entity_guids_texture,
-        *ctx.render_targets.selected_entity_guids_texture
+        *ctx.render_targets.entity_ids_texture,
+        *ctx.render_targets.selected_entity_ids_texture
     ]);
     AddTextureBarrier(ctx.cmd_buffer, .Undefined, .DepthStencilAttachment, *ctx.render_targets.depth_texture);
 
@@ -894,7 +894,7 @@ RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     }
 
     AddTextureBarriers(ctx.cmd_buffer, .ColorAttachment, .ShaderReadOnly, .[
-        *ctx.render_targets.selected_entity_guids_texture,
+        *ctx.render_targets.selected_entity_ids_texture,
         *ctx.render_targets.hdr_color_texture
     ]);
 

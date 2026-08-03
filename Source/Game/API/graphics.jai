@@ -15,7 +15,7 @@ MakeMeshToRender :: (entity : *Entity, component : *StaticMeshComponent) -> bool
     }
 
     return true, .{
-        entity_guid=xx entity.guid,
+        entity_id=xx entity.id,
         transform=component.world_transform,
         vertex_buffer=*component.mesh.vertex_buffer,
         index_buffer=*component.mesh.index_buffer,
@@ -75,7 +75,7 @@ MakeMeshToRender :: (entity : *Entity, component : *SkinnedMeshComponent) -> boo
     }
 
     return true, .{
-        entity_guid=xx entity.guid,
+        entity_id=xx entity.id,
         transform=component.world_transform,
         vertex_buffer=*component.mesh.vertex_buffer,
         index_buffer=*component.mesh.index_buffer,

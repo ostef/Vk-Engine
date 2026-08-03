@@ -1,11 +1,11 @@
 @_ 1:
-  @guid 1: 0x8ffea821ee464227b4bae4aeeddc0fe5
-  @flags 7: 0x0
+  @guid 1: 8ffea821ee464227b4bae4aeeddc0fe5
+  @flags 7: 0
   @name 2: "ornament_roof"
   @local_position 3: [0.899391, 15.942468, 0.003014]
   @local_rotation 4: [0, 0, 0, 1]
   @local_scale 5: [1, 1, 1]
-  @parent 6: 0x1a86743d33f44437b0bd354680aba6af
+  @parent 6: 1a86743d33f44437b0bd354680aba6af
 @mesh 2:
   @mesh 2: "Sponza/Meshes/ornament_roof.mesh"
   @material 3: "Sponza/Materials/metal_door.001.mat"
