@@ -64,9 +64,9 @@ SDL_ClearError :: () #foreign SDL2;
 #scope_export // Export SDL2 library definition so that users can manually declare additional bindings we have omitted.
 
 #if OS == .WINDOWS {
-    SDL2 :: #library "windows/SDL2";
+    SDL2 :: #library "Libs/Windows/SDL2";
 } else #if OS == .MACOS {
-    SDL2 :: #library "macos/libSDL2";
+    SDL2 :: #library "Libs/MacOS/libSDL2";
     #library,system,link_always "libdl";
     #library,system,link_always "libm";
 } else #if OS == .LINUX {
