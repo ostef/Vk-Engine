@@ -21,24 +21,67 @@ g_modules : [Num_Modules]*Module;
 g_modules_watcher : File_Watcher;
 g_console_logger : ConsoleLogger;
 
-ReloadModule :: (id : ModuleID) -> bool {
+g_last_module_change_time : Basic.Apollo_Time;
+g_one_module_was_modified : bool;
+g_modified_modules : [Num_Modules]bool;
+
+Module_Reload_Threshold_Seconds :: 1.5;
+
+ReloadModifiedModules :: () -> bool {
     LogSectionScope(*Log_Loader);
 
-    state : []u8;
-    if g_modules[id].SaveState {
-        state = g_modules[id].SaveState();
-        LogMessage("Saved state for module %", id);
+    defer {
+        for * g_modified_modules {
+            it.* = false;
+        }
+
+        g_one_module_was_modified = false;
     }
 
-    UnloadModule(id, false);
+    module_states : [Num_Modules][]u8;
 
-    if !LoadModule(id, false) {
-        return false;
+    // Save states
+    for g_modified_modules {
+        if !it {
+            continue;
+        }
+
+        if g_modules[it_index].SaveState {
+            module_states[it_index] = g_modules[it_index].SaveState();
+            LogMessage("Saved state for module %", cast(ModuleID, it_index));
+        }
     }
 
-    if g_modules[id].LoadState {
-        g_modules[id].LoadState(state);
-        LogMessage("Restored state for module %", id);
+    // Unload modules
+    for g_modified_modules {
+        if !it {
+            continue;
+        }
+
+        UnloadModule(xx it_index, false);
+    }
+
+    // Load modules
+    for g_modified_modules {
+        if !it {
+            continue;
+        }
+
+        if !LoadModule(xx it_index, false) {
+            return false;
+        }
+    }
+
+    // Restore states
+    for g_modified_modules {
+        if !it {
+            continue;
+        }
+
+        if g_modules[it_index].LoadState {
+            g_modules[it_index].LoadState(module_states[it_index]);
+            LogMessage("Restored state for module %", cast(ModuleID, it_index));
+        }
     }
 
     return true;
@@ -147,9 +190,9 @@ ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, 
     for i : 0..Num_Modules - 1 {
         id := cast(ModuleID, i);
         if filename == TPrint("%.%", id, Lib_Ext) {
-            if !ReloadModule(id) {
-                Basic.exit(1);
-            }
+            g_modified_modules[i] = true;
+            g_one_module_was_modified = true;
+            g_last_module_change_time = Basic.current_time_monotonic();
         }
     }
 } @NoProfile
@@ -183,6 +226,13 @@ LoaderMain :: () {
         ResetTemporaryStorage();
 
         process_changes(*g_modules_watcher);
+
+        current_time := Basic.current_time_monotonic();
+        if Basic.to_float64_seconds(current_time - g_last_module_change_time) >= Module_Reload_Threshold_Seconds {
+            if !ReloadModifiedModules() {
+                return;
+            }
+        }
 
         frame_event := ProfilerBeginFrame(*g_cpu_profiler);
         defer ProfilerEndFrame(*g_cpu_profiler, frame_event);
