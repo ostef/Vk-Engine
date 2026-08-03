@@ -500,21 +500,22 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
 
     QuickSort(api_procedures, CompareAPIProcedures);
 
+    // Assign overload_index for each function overload
     i := 0;
-    while i < api_procedures.count - 1 {
+    while i < api_procedures.count {
+        defer i += 1;
+
         j := 1;
-        while i + j < api_procedures.count - 1 {
+        while i + j < api_procedures.count {
+            defer j += 1;
+
             if api_procedures[i].decl.name == api_procedures[i + j].decl.name {
                 api_procedures[i].overload_index = 1;
                 api_procedures[i + j].overload_index = j + 1;
             } else {
                 break;
             }
-
-            j += 1;
         }
-
-        i += j;
     }
 
     builder : StringBuilder;
