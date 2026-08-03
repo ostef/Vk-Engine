@@ -503,18 +503,18 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
     // Assign overload_index for each function overload
     i := 0;
     while i < api_procedures.count {
-        defer i += 1;
+        proc := *api_procedures[i];
 
-        j := 1;
-        while i + j < api_procedures.count {
-            defer j += 1;
-
-            if api_procedures[i].decl.name == api_procedures[i + j].decl.name {
-                api_procedures[i].overload_index = 1;
-                api_procedures[i + j].overload_index = j + 1;
+        i += 1;
+        while i < api_procedures.count {
+            if proc.decl.name == api_procedures[i].decl.name {
+                proc.overload_index = 1;
+                api_procedures[i].overload_index = api_procedures[i - 1].overload_index + 1;
             } else {
                 break;
             }
+
+            i += 1;
         }
     }
 
