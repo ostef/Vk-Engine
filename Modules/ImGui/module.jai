@@ -17,12 +17,12 @@ FILE :: void;
 case .WINDOWS;
     #load "imgui_windows.jai";
 
-    ImGui :: #library "./Libs/Windows/ImGui";
+    ImGui :: #library,no_static_library "./Libs/Windows/ImGui";
 
 case .LINUX;
     #load "imgui_linux.jai";
 
-    ImGui :: #library "./Libs/Linux/libImGui";
+    ImGui :: #library,no_static_library "./Libs/Linux/libImGui";
     libm :: #system_library,link_always "libm";
 
 case;
@@ -114,3 +114,15 @@ operator *[] :: inline (vec : *ImVector, index : s64) -> *vec.T {
 
 ImDrawCallback :: #type (parent_list : *ImDrawList, cmd : *ImDrawCmd) #c_call;
 ImDrawCallback_ResetRenderState :: -1;
+
+// Inlined functions are not generated so we need to write them ourselves
+
+GetCurrentWindowRead :: inline () -> *Window #no_context {
+    return GImGui.CurrentWindow;
+}
+
+GetCurrentWindow :: inline () -> *Window #no_context {
+    GImGui.CurrentWindow.WriteAccessed = true;
+
+    return GImGui.CurrentWindow;
+}
