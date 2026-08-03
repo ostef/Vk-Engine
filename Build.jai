@@ -339,12 +339,12 @@ Build :: () {
     }
 
     #if OS == .WINDOWS {
-        CopyFileIfOutOfDate("Modules/SDL/windows/SDL2.dll", "Bin/SDL2.dll");
+        CopyFileIfOutOfDate("Modules/SDL/Libs/Windows/SDL2.dll", "Bin/SDL2.dll");
         CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Windows/JoltC.dll", "Bin/JoltC.dll");
-        CopyFileIfOutOfDate("Modules/ImGui/win/ImGui.dll", "Bin/ImGui.dll");
+        CopyFileIfOutOfDate("Modules/ImGui/Libs/Windows/ImGui.dll", "Bin/ImGui.dll");
     } else #if OS == .LINUX {
         CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Linux/libJoltC.so", "Bin/libJoltC.so");
-        CopyFileIfOutOfDate("Modules/ImGui/linux/ImGui.so", "Bin/ImGui.so");
+        CopyFileIfOutOfDate("Modules/ImGui/Libs/Windows/ImGui.so", "Bin/ImGui.so");
     }
 }
 
