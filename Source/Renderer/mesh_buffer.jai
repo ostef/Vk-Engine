@@ -1,7 +1,6 @@
 MeshInstance :: struct {
     entity_id : Vec4u;
     transform : Mat4f;
-    normal_transform : Mat3f;
     material : MaterialPerInstance;
     skinning_matrices_offset : u32;
 } @ShaderType
@@ -310,7 +309,6 @@ AllocDrawData :: (buffer : *MeshBuffer) {
             instance : MeshInstance = ---;
             instance.entity_id = cast(*Vec4u, *mesh.entity_id).*;
             instance.transform = mesh.transform;
-            instance.normal_transform = ToMat3f(Transposed(Inverse(mesh.transform)));
             instance.material = MakeMaterialPerInstance(mesh.material);
             instance.skinning_matrices_offset = current_skinning_matrices_offset;
 

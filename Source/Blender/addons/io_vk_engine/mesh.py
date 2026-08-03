@@ -189,7 +189,7 @@ class Mesh:
 
         result = Mesh(has_tangents=export_tangents)
 
-        normal_transform = transform.inverted().transposed()
+        normal_transform = transform.to_3x3().adjugated()
 
         if blender_armature is not None:
             # Fill armature data

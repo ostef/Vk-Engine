@@ -523,4 +523,12 @@ float Log10(float x) {
     return log(x) / 2.30258509299;
 }
 
+float3x3 Adjugate(float4x4 m) {
+    return float3x3(
+        cross(m[1].xyz, m[2].xyz),
+        cross(m[2].xyz, m[0].xyz),
+        cross(m[0].xyz, m[1].xyz)
+    );
+}
+
 #endif

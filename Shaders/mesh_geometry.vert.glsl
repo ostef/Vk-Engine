@@ -47,9 +47,10 @@ void main() {
     );
 #endif
 
+    float3x3 normal_transform = Adjugate(mesh.transform);
     float3 world_space_position = (mesh.transform * float4(model_space_position, 1)).xyz;
-    float3 world_space_normal = normalize(mesh.normal_transform * model_space_normal);
-    float3 world_space_tangent = normalize(mesh.normal_transform * model_space_tangent);
+    float3 world_space_normal = normalize(normal_transform * model_space_normal);
+    float3 world_space_tangent = normalize(normal_transform * model_space_tangent);
     world_space_tangent = normalize(world_space_tangent - dot(world_space_tangent, world_space_normal) * world_space_normal);
 
     out_viewpoint_position = viewpoint.position;
