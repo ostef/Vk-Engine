@@ -15,10 +15,42 @@ ModuleID :: enum {
 
 Num_Modules :: #run type_info(ModuleID).values.count;
 
-Bindings_To_Generate :: string.[
-    "Modules/ImGui",
-    "Modules/Vulkan",
-    "Modules/JoltPhysics",
+BindingsToGenerate :: struct {
+    module_name : string;
+    can_generate := true;
+    extra_options : []string;
+    windows_libs : []string;
+    linux_libs : []string;
+    macos_libs : []string;
+}
+
+Bindings_To_Generate :: BindingsToGenerate.[
+    .{
+        module_name="Modules/ImGui",
+        windows_libs=.["Libs/Windows/ImGui.dll"],
+        linux_libs=.["Libs/Linux/libImGui.so"],
+        macos_libs=.["Libs/MacOS/libImGui.dylib"],
+    },
+    .{
+        module_name="Modules/SDL",
+        windows_libs=.["Libs/Windows/SDL2.dll"],
+        linux_libs=.[], // Use system lib
+        macos_libs=.[], // Use system lib
+        can_generate=false,
+    },
+    .{
+        module_name="Modules/Vulkan",
+        windows_libs=.["Libs/Windows/VkMemAlloc.lib"],
+        linux_libs=.["Libs/Linux/libVkMemAlloc.a"],
+        macos_libs=.["Libs/MacOS/libVkMemAlloc.a"],
+    },
+    .{
+        module_name="Modules/JoltPhysics",
+        extra_options=.["combined_shared_libs"],
+        windows_libs=.["Libs/Windows/JoltC.dll"],
+        linux_libs=.["Libs/Linux/libJoltC.so"],
+        macos_libs=.["Libs/MacOS/libJoltC.dylib"],
+    },
 ];
 
 #insert -> string {
@@ -200,13 +232,17 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
     return false;
 }
 
-GenerateBindings :: (module_name : string, build : bool) {
+GenerateBindings :: (using bindings : BindingsToGenerate, build : bool) {
     ws := compiler_create_workspace(module_name);
 
     options := get_build_options(ws);
+    cmd_line_options : [..]string;
     if build {
-        options.compile_time_command_line = .["build"];
+        ArrayPush(*cmd_line_options, "build");
     }
+    ArrayPushMultiple(*cmd_line_options, extra_options);
+    options.compile_time_command_line = cmd_line_options;
+
     set_build_options(options, ws);
 
     compiler_begin_intercept(ws);
@@ -315,7 +351,33 @@ Build :: () {
 
     if generate_bindings {
         for Bindings_To_Generate {
+            if !it.can_generate {
+                continue;
+            }
+
             GenerateBindings(it, build=build_bindings);
+        }
+    } else {
+        for Bindings_To_Generate {
+            if !it.can_generate {
+                continue;
+            }
+
+            #if OS == {
+            case .WINDOWS;
+                libs := it.windows_libs;
+            case .LINUX;
+                libs := it.linux_libs;
+            case .MACOS;
+                libs := it.macos_libs;
+            }
+
+            for lib : libs {
+                filename := SPrint("%/%", it.module_name, lib);
+                if !file_exists(filename) {
+                    GenerateBindings(it, build=true);
+                }
+            }
         }
     }
 
@@ -338,13 +400,28 @@ Build :: () {
         return StringBuilderBuild(*builder);
     }
 
-    #if OS == .WINDOWS {
-        CopyFileIfOutOfDate("Modules/SDL/Libs/Windows/SDL2.dll", "Bin/SDL2.dll");
-        CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Windows/JoltC.dll", "Bin/JoltC.dll");
-        CopyFileIfOutOfDate("Modules/ImGui/Libs/Windows/ImGui.dll", "Bin/ImGui.dll");
-    } else #if OS == .LINUX {
-        CopyFileIfOutOfDate("Modules/JoltPhysics/Libs/Linux/libJoltC.so", "Bin/libJoltC.so");
-        CopyFileIfOutOfDate("Modules/ImGui/Libs/Windows/ImGui.so", "Bin/ImGui.so");
+    for Bindings_To_Generate {
+        #if OS == {
+        case .WINDOWS;
+            libs := it.windows_libs;
+        case .LINUX;
+            libs := it.linux_libs;
+        case .MACOS;
+            libs := it.macos_libs;
+        }
+
+        for lib : libs {
+            filename := SPrint("%/%", it.module_name, lib);
+            if path_extension(filename) == {
+            case "dll";
+            case "so";
+            case "dylib";
+            case;
+                continue;
+            }
+
+            CopyFileIfOutOfDate(filename, SPrint("Bin/%", path_filename(filename)));
+        }
     }
 }
 
