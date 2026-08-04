@@ -219,7 +219,6 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
         return;
     }
 
-
     if type == type_info(UUID) {
         uuid := cast(*UUID, ptr);
         AppendUUID(serializer, uuid);

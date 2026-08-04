@@ -299,7 +299,12 @@ AlignForward :: (x : s64, alignment : s64) -> s64 {
 CoreStructPrinter :: (builder : *StringBuilder, any : Any, data : *void) -> bool {
     if any.type == type_info(UUID)
     || (TypeIsStruct(any.type) && cast(*Type_Info_Struct, any.type).name == "UUID") {
-        AppendUUID(builder, cast(*UUID, any.value_pointer).*);
+        uuid := cast(*UUID, any.value_pointer).*;
+        if uuid == Null_UUID {
+            Append(builder, "(null UUID)");
+        } else {
+            AppendUUID(builder, uuid);
+        }
 
         return true;
     }
