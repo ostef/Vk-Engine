@@ -380,11 +380,10 @@ LoadState :: (state : []u8) {
 
     if file_exists(".EditorState/World") {
         LoadWorldFromDirectory(*g_editor_world, ".EditorState/World");
+        g_editor_world.loaded_from_directory = loaded_world;
     } else if loaded_world {
         LoadWorldFromDirectory(*g_editor_world, loaded_world);
     }
-
-    g_editor_world.loaded_from_directory = loaded_world;
 
     g_cpu_profiler_window = cpu_profiler_window;
     g_show_gpu_profiler = show_gpu_profiler;
