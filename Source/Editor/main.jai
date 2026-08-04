@@ -220,6 +220,14 @@ InitializeEditor :: (global_init : bool) {
     InitEditorViewportMenus();
 
     if global_init {
+        if file_exists(".EditorState/World") {
+            files := file_list(".EditorState/World", recursive=true ,, Temp);
+            for files {
+                file_delete(it);
+            }
+            delete_directory(".EditorState/World");
+        }
+
         if file_exists(".EditorState/editor.txt") {
             state := read_entire_file(".EditorState/editor.txt");
             LoadState(xx state);
@@ -240,6 +248,14 @@ ShutdownEditor :: (global_shutdown : bool) {
         state := SaveState();
         write_entire_file(".EditorState/editor.txt", cast(string, state));
         Free(state.data);
+
+        if file_exists(".EditorState/World") {
+            files := file_list(".EditorState/World");
+            for files {
+                file_delete(it);
+            }
+            delete_directory(".EditorState/World");
+        }
     }
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -298,7 +314,7 @@ SaveState :: () -> []u8 {
         show_imgui_demo=g_show_imgui_demo,
         show_entity_inspector=g_show_entity_inspector,
         show_world_inspector=g_show_world_inspector,
-        loaded_world=StringClone(g_editor_world.loaded_from_directory),
+        loaded_world=StringClone(g_editor_world.loaded_from_directory ,, Temp),
         main_editor_viewport_id=ifx g_main_editor_viewport then g_main_editor_viewport.unique_id,
         cpu_profiler_window=g_cpu_profiler_window,
         show_gpu_profiler=g_show_gpu_profiler,
@@ -306,7 +322,6 @@ SaveState :: () -> []u8 {
         show_physics_debug_draw_settings=g_show_physics_debug_draw_settings,
         show_physics_global_settings=g_show_physics_global_settings,
     };
-    defer Free(all_state.loaded_world.data);
 
     memcpy(*all_state.entity_hide_editor_icon, *g_entity_hide_editor_icon, size_of(type_of(g_entity_hide_editor_icon)));
     memcpy(*all_state.component_hide_editor_icon, *g_component_hide_editor_icon, size_of(type_of(g_component_hide_editor_icon)));
@@ -363,7 +378,11 @@ LoadState :: (state : []u8) {
     }
     Free(viewports.data);
 
-    LoadWorldFromDirectory(*g_editor_world, ".EditorState/World");
+    if file_exists(".EditorState/World") {
+        LoadWorldFromDirectory(*g_editor_world, ".EditorState/World");
+    } else if loaded_world {
+        LoadWorldFromDirectory(*g_editor_world, loaded_world);
+    }
 
     g_editor_world.loaded_from_directory = loaded_world;
 
