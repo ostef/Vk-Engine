@@ -112,7 +112,9 @@ CopyWorld :: (dest : *World, src : *World) {
     DestroyWorld(dest);
     InitWorld(dest);
 
-    dest.skybox = AddRef(src.skybox);
+    if src.skybox {
+        dest.skybox = AddRef(src.skybox);
+    }
     dest.skybox_light_intensity = src.skybox_light_intensity;
     dest.bloom_params = src.bloom_params;
 
