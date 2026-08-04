@@ -19,6 +19,9 @@ PhysicsCollisionLayer :: enum Jolt.ObjectLayer {
 
 Physics_Num_Collision_Layers :: #run type_info(PhysicsCollisionLayer).names.count;
 
+// We can't have more layers than there are bits in the collision layer (see PhysicsCollisionLayerMask)
+#assert Physics_Num_Collision_Layers <= size_of(PhysicsCollisionLayer) * 8;
+
 PhysicsBroadPhaseLayer :: enum Jolt.BroadPhaseLayer {
     NonMoving;
     Moving;
@@ -26,19 +29,20 @@ PhysicsBroadPhaseLayer :: enum Jolt.BroadPhaseLayer {
 
 Physics_Num_Broad_Phase_Layers ::  #run type_info(PhysicsBroadPhaseLayer).names.count;
 
-#insert -> string {
-    builder : StringBuilder;
+PhysicsCollisionLayerMask :: enum_flags Jolt.ObjectLayer {
+    #insert -> string {
+        builder : StringBuilder;
 
-    Appendln(*builder, "PhysicsCollisionLayerFlags :: enum_flags u32 {");
 
-    info := type_info(PhysicsCollisionLayer);
-    for info.names {
-        Appendln(*builder, "    %1 :: 1 << PhysicsCollisionLayer.%1;", it);
-    }
+        info := type_info(PhysicsCollisionLayer);
+        for info.names {
+            Appendln(*builder, "    %1 :: 1 << PhysicsCollisionLayer.%1;", it);
+        }
 
-    Appendln(*builder, "}");
+        return StringBuilderBuild(*builder);
+    };
 
-    return StringBuilderBuild(*builder);
+    All :: ~cast(Jolt.ObjectLayer, 0);
 }
 
 // Triangular number with N = Physics_Num_Collision_Layers
@@ -78,12 +82,21 @@ PhysicsWorld :: struct {
     object_vs_object_layer_filter : *Jolt.ObjectLayerPairFilterTable;
 }
 
+RayCastSettings :: struct {
+    layer_mask := PhysicsCollisionLayerMask.All;
+    flags : enum_flags {
+        RetrieveColliders;
+        ComputeNormals;
+    };
+}
+
 RayCastResult :: struct {
     hit : bool;
     point : Vec3f;
     normal : Vec3f;
     dist := F32_Inf;
     entity : *Entity;
+    rigid_body : *RigidBodyComponent;
     collider : *Component;
 }
 

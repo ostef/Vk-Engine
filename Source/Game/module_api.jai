@@ -3,7 +3,8 @@
 GameModule :: struct {
     #as base : Module;
     AttachEntity : (world : *World, entity : *Entity, to : *Entity, keep_same_world_transform : bool = true) -> bool;
-    CastRay : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult;
+    CastRay_1 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult;
+    CastRay_2 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool;
     CopyWorld : (dest : *World, src : *World);
     CreateAndDeserializeEntity : (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     CreateEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
@@ -34,12 +35,13 @@ GameModule :: struct {
     SetPhysicsDebugRendererTarget : (world : *World);
     SetWorldTransformNoScale : (world : *World, entity : *Entity, transform : Matrix(M=4, N=4, T=float32));
     ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
+    SortByDistance : (results : []RayCastResult);
     SpawnEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
     UpdatePhysicsCollisionLayerMatrix : ();
     UpdatePhysicsWorld : (world : *World);
     UpdateWorld : (world : *World);
-    UpdateWorldTransform_1 : (world : *World, entity : *Entity, rigidbody : *RigidBodyComponent);
+    UpdateWorldTransform_1 : (world : *World, entity : *Entity, rigid_body : *RigidBodyComponent);
     UpdateWorldTransform_2 : (world : *World, entity : *Entity, update_children : bool = true, update_components : bool = true);
 }
 
@@ -51,9 +53,14 @@ AttachEntity :: inline (world : *World, entity : *Entity, to : *Entity, keep_sam
     return g_Game.AttachEntity(world, entity, to, keep_same_world_transform);
 } @NoProfile
 
-CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float) -> RayCastResult {
+CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
     Assert(g_Game != null, "Game module is null");
-    return g_Game.CastRay(world, ray_origin, ray_direction, ray_length);
+    return g_Game.CastRay_1(world, ray_origin, ray_direction, ray_length, settings);
+} @NoProfile
+
+CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.CastRay_2(world, ray_origin, ray_direction, ray_length, results, settings);
 } @NoProfile
 
 CopyWorld :: inline (dest : *World, src : *World) {
@@ -208,6 +215,11 @@ ShouldPhysicsCollisionLayersCollide :: inline (a : PhysicsCollisionLayer, b : Ph
     return g_Game.ShouldPhysicsCollisionLayersCollide(a, b);
 } @NoProfile
 
+SortByDistance :: inline (results : []RayCastResult) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.SortByDistance(results);
+} @NoProfile
+
 SpawnEntity :: inline (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity {
     Assert(g_Game != null, "Game module is null");
     return g_Game.SpawnEntity(world, type, name, id);
@@ -233,9 +245,9 @@ UpdateWorld :: inline (world : *World) {
     g_Game.UpdateWorld(world);
 } @NoProfile
 
-UpdateWorldTransform :: inline (world : *World, entity : *Entity, rigidbody : *RigidBodyComponent) {
+UpdateWorldTransform :: inline (world : *World, entity : *Entity, rigid_body : *RigidBodyComponent) {
     Assert(g_Game != null, "Game module is null");
-    g_Game.UpdateWorldTransform_1(world, entity, rigidbody);
+    g_Game.UpdateWorldTransform_1(world, entity, rigid_body);
 } @NoProfile
 
 UpdateWorldTransform :: inline (world : *World, entity : *Entity, update_children : bool = true, update_components : bool = true) {

@@ -171,14 +171,14 @@ UpdatePhysicsWorld :: (world : *World) {
     }
 } @ModuleAPI
 
-UpdateWorldTransform :: (world : *World, entity : *Entity, using rigidbody : *RigidBodyComponent) {
+UpdateWorldTransform :: (world : *World, entity : *Entity, using rigid_body : *RigidBodyComponent) {
     world_rotation := QuatfFromMatrix(entity.world_transform);
     world_position := TranslationVector(entity.world_transform);
 
     Jolt.BodyInterface.SetPositionAndRotation(world.physics.body_interface, jolt_body_id, ToJolt(world_position), ToJolt(world_rotation), .DontActivate);
 } @ModuleAPI
 
-CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float) -> RayCastResult {
+CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
     if !world.physics.system {
         return .{};
     }
@@ -207,7 +207,6 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 
     body_lock_read : Jolt.BodyLockRead;
     {
-        // Happens in between physics update, so we use the NoLock interface
         body_lock_interface := Jolt.PhysicsSystem.GetBodyLockInterfaceNoLock(world.physics.system);
         Jolt.BodyLockInterface.LockRead(body_lock_interface, result.bodyID, *body_lock_read);
         defer Jolt.BodyLockInterface.UnlockRead(body_lock_interface, *body_lock_read);
@@ -215,17 +214,21 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         if body_lock_read.body {
             rigid_body = cast(*RigidBodyComponent, Jolt.Body.GetUserData(body_lock_read.body));
 
-            normal = FromJolt(Jolt.Body.GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
-
-            shape := Jolt.Body.GetShape(body_lock_read.body);
-
-            remainder_shape_id : Jolt.SubShapeID;
-            subshape := Jolt.Shape.GetLeafShape(shape, result.subShapeID2, *remainder_shape_id);
-            if subshape {
-                shape = subshape;
+            if settings.flags & .ComputeNormals {
+                normal = FromJolt(Jolt.Body.GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
             }
 
-            collider = cast(*Component, Jolt.Shape.GetUserData(shape));
+            if settings.flags & .RetrieveColliders {
+                shape := Jolt.Body.GetShape(body_lock_read.body);
+
+                remainder_shape_id : Jolt.SubShapeID;
+                subshape := Jolt.Shape.GetLeafShape(shape, result.subShapeID2, *remainder_shape_id);
+                if subshape {
+                    shape = subshape;
+                }
+
+                collider = cast(*Component, Jolt.Shape.GetUserData(shape));
+            }
         }
     }
 
@@ -234,7 +237,171 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         point=FromJolt(point),
         normal=normal,
         dist=Length(FromJolt(point) - ray_origin),
+        rigid_body=rigid_body,
         entity=ifx collider then GetEntity(world, collider.entity_index) else ifx rigid_body then GetEntity(world, rigid_body.entity_index),
         collider=collider,
     };
 } @ModuleAPI
+
+SortByDistance :: (results : []RayCastResult) {
+    QuickSort(results, (a, b) => ifx a.dist < b.dist then -1 else ifx a.dist > b.dist then 1 else 0);
+} @ModuleAPI
+
+CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
+    if !world.physics.system {
+        return false;
+    }
+
+    initial_num_results := results.count; // Allow calling this with a prefilled results
+
+    ray_vector := ray_direction * ray_length;
+
+    ray : Jolt.RRayCast;
+    ray.origin = ToJolt(ray_origin);
+    ray.direction = ToJolt(ray_vector);
+
+    collector_data : struct {
+        jai_context : *#Context;
+        hit : bool;
+        world : *World;
+        ray : Jolt.RRayCast;
+        results : *[..]RayCastResult;
+        body_ids : [..]Jolt.BodyID;
+        sub_shape_ids : [..]Jolt.SubShapeID;
+        current_entity : *Entity;
+        current_rigid_body : *RigidBodyComponent;
+    } = .{world=world, ray=ray, results=results};
+    collector_data.body_ids.allocator = Temp;
+    collector_data.sub_shape_ids.allocator = Temp;
+
+    Collector :: Jolt.CastRayCollector.Funcs.{
+        OnBody = (collector : *Jolt.CastRayCollector, data : *void, body : *Jolt.Body) -> void #c_call {
+            using _ := cast(*type_of(collector_data), data);
+            push_context,defer_pop jai_context.*;
+
+            current_rigid_body = cast(*RigidBodyComponent, body.GetUserData(body));
+            if current_rigid_body {
+                current_entity = GetEntity(world, current_rigid_body.entity_index);
+            } else {
+                current_entity = null;
+            }
+        },
+
+        OnBodyEnd = (collector : *Jolt.CastRayCollector, data : *void) -> void #c_call {
+            using _ := cast(*type_of(collector_data), data);
+
+            current_rigid_body = null;
+            current_entity = null;
+        },
+
+        AddHit = (collector : *Jolt.CastRayCollector, data : *void, result : Jolt.RayCastResult) -> void #c_call {
+            using _ := cast(*type_of(collector_data), data);
+            push_context,defer_pop jai_context.*;
+
+            hit = true;
+
+            res := ArrayPush(results);
+            res.hit = true;
+            res.point = FromJolt(ray.GetPointOnRay(*ray, result.fraction));
+            res.dist = Length(res.point - FromJolt(ray.origin));
+            res.entity = current_entity;
+            res.rigid_body = current_rigid_body;
+
+            ArrayPush(*body_ids, result.bodyID);
+            ArrayPush(*sub_shape_ids, result.subShapeID2);
+        },
+    };
+
+    collector := Jolt.CastRayCollector.Create(*collector_data, Collector, Jolt.Temp());
+    defer collector.Destroy(collector);
+
+    // @Todo: layer filter
+    narrow_phase := Jolt.PhysicsSystem.GetNarrowPhaseQueryNoLock(world.physics.system);
+    Jolt.NarrowPhaseQuery.CastRay(narrow_phase, ray, .{}, collector, null, null, null, null);
+
+    if !collector_data.hit {
+        return false;
+    }
+
+    if (settings.flags & .ComputeNormals) || (settings.flags & .RetrieveColliders) {
+        body_lock : Jolt.BodyLockMultiRead;
+
+        body_lock_interface := Jolt.PhysicsSystem.GetBodyLockInterfaceNoLock(world.physics.system);
+        body_lock_interface.LockReadMulti(body_lock_interface, collector_data.body_ids.data, xx collector_data.body_ids.count, *body_lock);
+        defer body_lock_interface.UnlockReadMulti(body_lock_interface, *body_lock);
+
+        for collector_data.body_ids {
+            res := results.*[initial_num_results + it_index];
+            body := body_lock.GetBody(*body_lock, body_lock_interface, xx it_index);
+            if !body {
+                continue;
+            }
+
+            sub_shape_id := collector_data.sub_shape_ids[it_index];
+
+            if settings.flags & .ComputeNormals {
+                res.normal = FromJolt(body.GetWorldSpaceSurfaceNormal(body, sub_shape_id, ToJolt(res.point)));
+            }
+
+            if settings.flags & .RetrieveColliders {
+                shape := body.GetShape(body);
+                subshape := shape.GetLeafShape(shape, sub_shape_id, null);
+                if subshape {
+                    shape = subshape;
+                }
+
+                res.collider = cast(*Component, shape.GetUserData(shape));
+            }
+        }
+    }
+
+    return true;
+} @ModuleAPI
+
+// CollidePoint :: (world : *World, point : Vec3f) {
+// }
+
+// CollidePoint :: (world : *World, point : Vec3f) {
+//     if !world.physics.system {
+//         return .{};
+//     }
+
+//     collector_data : struct {
+//     };
+
+//     Collector :: Jolt.CollidePointCollector.Funcs {
+//         Destruct = (data : *void) -> void #c_call {
+//             using _ := cast(*type_of(collector_data), data);
+//         },
+
+//         Reset = (data : *void) -> void #c_call {
+//             using _ := cast(*type_of(collector_data), data);
+//         },
+
+//         OnBody = (data : *void, body : *Jolt.Body) -> void #c_call {
+//             using _ := cast(*type_of(collector_data), data);
+//         },
+
+//         OnBodyEnd = (data : *void) -> void #c_call {
+//             using _ := cast(*type_of(collector_data), data);
+//         },
+
+//         AddHit = (data : *void, result : Jolt.CollidePointResult) -> void #c_call {
+//             using _ := cast(*type_of(collector_data), data);
+//         },
+//     }
+
+//     collector := Jolt.CollidePointCollector.Create(xx *collector_data, Collector, Jolt.Temp());
+//     defer collector.Destroy(collector);
+
+//     narrow_phase := Jolt.PhysicsSystem.GetNarrowPhaseQuery(world.physics.system);
+//     Jolt.NarrowPhaseQuery.CollidePoint(narrow_phase, ToJolt(point), collector, null, null, null);
+
+//     point := Jolt.RRayCast.GetPointOnRay(*ray, result.fraction);
+
+//     collider : *Component;
+//     rigid_body : *RigidBodyComponent;
+
+//     normal : Vec3f;
+
+// }
