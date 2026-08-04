@@ -26,5 +26,5 @@
   @local_position 2: [0, 0, 0]
   @local_rotation 3: [0, 0, 0, 1]
   @local_scale 4: [1, 1, 1]
-@radius 2: 0.5
 @density 3: 1000
+@radius 2: 0.5

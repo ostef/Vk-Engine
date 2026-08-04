@@ -1,8 +1,0 @@
-@_ 1:
-  @id 1: a477f531-0fe3-d145-29c4-22b634709595
-  @flags 7: 0x0
-  @name 2: "Rays"
-  @local_position 3: [0, 0, 0]
-  @local_rotation 4: [0, 0, 0, 1]
-  @local_scale 5: [1, 1, 1]
-  @parent 6: 00000000-0000-0000-0000-000000000000
