@@ -25,7 +25,7 @@ g_last_module_change_time : Basic.Apollo_Time;
 g_one_module_was_modified : bool;
 g_modified_modules : [Num_Modules]bool;
 
-Module_Reload_Threshold_Seconds :: 1.5;
+Module_Reload_Threshold_Seconds :: 0.6;
 
 ReloadModifiedModules :: () -> bool {
     LogSectionScope(*Log_Loader);
