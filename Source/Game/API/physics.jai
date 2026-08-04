@@ -106,46 +106,41 @@ RigidBodyComponent :: struct {
     motion_quality := PhysicsMotionQuality.Discrete; @Serialize(5)
     activate_on_create := true; @Serialize(4)
     jolt_body_id : Jolt.BodyID;
+    jolt_shape : *Jolt.Shape;
 
     OnSpawn :: (world : *World, entity : *Entity, using rigid_body : *RigidBodyComponent) {
         LogSectionScope(*Log_Physics);
 
         compound_subshapes : [..]Jolt.CompoundShapeSettings.SubShapeSettings;
 
-        shape_transforms : [..]struct{position : Jolt.Vec3; rotation : Jolt.Quat;};
-        shape_transforms.allocator = Temp;
-        shapes : [..]*Jolt.Shape;
-        shapes.allocator = Temp;
-
-        defer for shapes {
-            it.Release(it);
-        }
-
         for :AllSphereColliderComponents entity {
-            shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            if it.jolt_shape {
+                ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            }
         }
         for :AllCapsuleColliderComponents entity {
-            shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            if it.jolt_shape {
+                ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            }
         }
         for :AllBoxColliderComponents entity {
-            shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            if it.jolt_shape {
+                ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            }
         }
         for :AllPlaneColliderComponents entity {
-            shape := CreateJoltShape(world, entity, it);
-            ArrayPush(*compound_subshapes, .{shape=shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            if it.jolt_shape {
+                ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+            }
         }
 
-        final_shape : *Jolt.Shape;
         if compound_subshapes.count > 1 {
             compound_shape_settings := Jolt.StaticCompoundShapeSettings.{
                 numSubShapes=xx compound_subshapes.count,
                 subShapes=compound_subshapes.data,
             };
 
-            final_shape = compound_shape_settings.CreateShape(*compound_shape_settings);
+            jolt_shape = compound_shape_settings.CreateShape(*compound_shape_settings);
         } else if compound_subshapes.count > 0 {
             rotated_translated := Jolt.RotatedTranslatedShapeSettings.{
                 innerShape=compound_subshapes[0].shape,
@@ -153,11 +148,11 @@ RigidBodyComponent :: struct {
                 rotation=compound_subshapes[0].rotation,
             };
 
-            final_shape = rotated_translated.CreateShape(*rotated_translated);
+            jolt_shape = rotated_translated.CreateShape(*rotated_translated);
         } else {
             empty_settings : Jolt.EmptyShapeSettings;
 
-            final_shape = empty_settings.CreateShape(*empty_settings);
+            jolt_shape = empty_settings.CreateShape(*empty_settings);
         }
 
         world_position := TranslationVector(entity.world_transform);
@@ -182,7 +177,7 @@ RigidBodyComponent :: struct {
         body_settings.motionType = jolt_motion_type;
         body_settings.motionQuality = jolt_motion_quality;
         body_settings.objectLayer = xx layer;
-        body_settings.shapePtr = final_shape;
+        body_settings.shapePtr = jolt_shape;
 
         body := Jolt.BodyInterface.CreateBody(world.physics.body_interface, *body_settings);
         body.SetUserData(body, xx rigid_body);
@@ -190,19 +185,24 @@ RigidBodyComponent :: struct {
         jolt_body_id = body.GetID(body);
         Jolt.BodyInterface.AddBody(world.physics.body_interface, jolt_body_id, ifx activate_on_create then .Activate else .DontActivate);
 
-        LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, shapes.count);
+        LogMessage("Created rigid body %: layer=%, motion_type=%, activate=%, num shapes=%", jolt_body_id, layer, motion_type, activate_on_create, compound_subshapes.count);
     }
 
-    OnDestroy :: (world : *World, using body : *RigidBodyComponent) {
+    OnDespawn :: (world : *World, using body : *RigidBodyComponent) {
         LogSectionScope(*Log_Physics);
 
         if jolt_body_id {
             Jolt.BodyInterface.RemoveBody(world.physics.body_interface, jolt_body_id);
             Jolt.BodyInterface.DestroyBody(world.physics.body_interface, jolt_body_id);
             LogMessage("Destroyed rigid body %", jolt_body_id);
+
+            jolt_body_id = 0;
         }
 
-        jolt_body_id = 0;
+        if jolt_shape {
+            jolt_shape.Release(jolt_shape);
+            jolt_shape = null;
+        }
     }
 } @Component @Category(Physics)
 
@@ -211,8 +211,20 @@ Collider_Color :: Vec4f.{0,1,0,1};
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    radius : float = 0.5; @Serialize(2)
+    jolt_shape : *Jolt.Shape;
     density : float = 1000; @Serialize(3)
+    radius : float = 0.5; @Serialize(2)
+
+    OnCreate :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
+        jolt_shape = CreateJoltShape(world, entity, sphere);
+    }
+
+    OnDestroy :: (world : *World, using sphere : *SphereColliderComponent) {
+        if jolt_shape {
+            jolt_shape.Release(jolt_shape);
+            jolt_shape = null;
+        }
+    }
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
         center := TranslationVector(world_transform);
@@ -250,9 +262,21 @@ CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderCo
 CapsuleColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
+    jolt_shape : *Jolt.Shape;
+    density : float = 1000; @Serialize(4)
     height : float = 2; @Serialize(2)
     radius : float = 0.5; @Serialize(3)
-    density : float = 1000; @Serialize(4)
+
+    OnCreate :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
+        jolt_shape = CreateJoltShape(world, entity, capsule);
+    }
+
+    OnDestroy :: (world : *World, using capsule : *CapsuleColliderComponent) {
+        if jolt_shape {
+            jolt_shape.Release(jolt_shape);
+            jolt_shape = null;
+        }
+    }
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
         center := TranslationVector(world_transform);
@@ -289,9 +313,21 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
 BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    half_extents : Vec3f = .{0.5,0.5,0.5}; @Serialize(2)
+    jolt_shape : *Jolt.Shape;
     density : float = 1000; @Serialize(3)
+    half_extents : Vec3f = .{0.5,0.5,0.5}; @Serialize(2)
     margin : float = 0.01; @Serialize(4)
+
+    OnCreate :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
+        jolt_shape = CreateJoltShape(world, entity, box);
+    }
+
+    OnDestroy :: (world : *World, using box : *BoxColliderComponent) {
+        if jolt_shape {
+            jolt_shape.Release(jolt_shape);
+            jolt_shape = null;
+        }
+    }
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
         DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
@@ -326,7 +362,19 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
 PlaneColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
+    jolt_shape : *Jolt.Shape;
     half_extent : float = 1; @Serialize(2)
+
+    OnCreate :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
+        jolt_shape = CreateJoltShape(world, entity, plane);
+    }
+
+    OnDestroy :: (world : *World, using plane : *PlaneColliderComponent) {
+        if jolt_shape {
+            jolt_shape.Release(jolt_shape);
+            jolt_shape = null;
+        }
+    }
 
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
         DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, .{half_extent,0,half_extent}, world_transform);
