@@ -623,10 +623,13 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
         TrimSpaces(parser);
 
         line := StringAdvance(lines[line_index], byte_index);
+
         uuid, ok, remaining := ParseUUID(line);
         if !ok {
             return DeserializeError(parser, "Expected a UUID");
         }
+
+        cast(*UUID, ptr).* = uuid;
 
         byte_index += cast(int, remaining.data - line.data);
         line = remaining;
