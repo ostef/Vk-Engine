@@ -1,29 +1,30 @@
 @_ 1:
-  @guid 1: 2d60da9efd5a406adce1b377e14c2f52
-  @flags 7: 0
+  @id 1: 12a034df-de21-994f-30ca-ec09e55ee0de
+  @flags 7: 0x0
   @name 2: ""
-  @local_position 3: [0, -2.23, 0]
-  @local_rotation 4: [-0.039515, 0.000286, 0.007223, 0.999193]
-  @local_scale 5: [5, 1, 5]
-  @parent 6: 00000000000000000000000000000000
+  @local_position 3: [0, 1, 0]
+  @local_rotation 4: [0, 0, 0, 1]
+  @local_scale 5: [1, 1, 1]
+  @parent 6: 00000000-0000-0000-0000-000000000000
 @mesh 2:
   @_ 1:
     @local_position 2: [0, 0, 0]
     @local_rotation 3: [0, 0, 0, 1]
     @local_scale 4: [1, 1, 1]
-  @mesh 2: "Meshes/Plane.mesh"
+  @mesh 2: "Meshes/Sphere.mesh"
   @cast_shadows 4: true
   @cast_point_shadows 5: false
 
 [RigidBodyComponent]
-@layer 2: NonMoving
-@motion_type 3: Static
+@layer 2: Moving
+@motion_type 3: Dynamic
 @motion_quality 5: Discrete
 @activate_on_create 4: true
 
-[PlaneColliderComponent]
+[SphereColliderComponent]
 @_ 1:
   @local_position 2: [0, 0, 0]
   @local_rotation 3: [0, 0, 0, 1]
   @local_scale 4: [1, 1, 1]
-@half_extent 2: 1
+@radius 2: 0.5
+@density 3: 1000
