@@ -39,7 +39,8 @@ GameModule :: struct {
     UpdatePhysicsCollisionLayerMatrix : ();
     UpdatePhysicsWorld : (world : *World);
     UpdateWorld : (world : *World);
-    UpdateWorldTransform : (world : *World, entity : *Entity, update_children : bool = true, update_components : bool = true);
+    UpdateWorldTransform_1 : (world : *World, entity : *Entity, rigidbody : *RigidBodyComponent);
+    UpdateWorldTransform_2 : (world : *World, entity : *Entity, update_children : bool = true, update_components : bool = true);
 }
 
 #if Import_Mode == .Foreign {
@@ -232,9 +233,14 @@ UpdateWorld :: inline (world : *World) {
     g_Game.UpdateWorld(world);
 } @NoProfile
 
+UpdateWorldTransform :: inline (world : *World, entity : *Entity, rigidbody : *RigidBodyComponent) {
+    Assert(g_Game != null, "Game module is null");
+    g_Game.UpdateWorldTransform_1(world, entity, rigidbody);
+} @NoProfile
+
 UpdateWorldTransform :: inline (world : *World, entity : *Entity, update_children : bool = true, update_components : bool = true) {
     Assert(g_Game != null, "Game module is null");
-    g_Game.UpdateWorldTransform(world, entity, update_children, update_components);
+    g_Game.UpdateWorldTransform_2(world, entity, update_children, update_components);
 } @NoProfile
 
 }

@@ -337,12 +337,13 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
 
     if update_components {
         for :AllEntityComponents entity {
-            if !ComponentIsSpatial(it) {
-                continue;
+            if ComponentIsSpatial(it) {
+                spatial := cast(*SpatialComponent, it);
+                UpdateWorldTransform(entity, spatial);
+            } else if GetComponentTypeId(it) == .RigidBodyComponent {
+                rigidbody := cast(*RigidBodyComponent, it);
+                UpdateWorldTransform(world, entity, rigidbody);
             }
-
-            spatial := cast(*SpatialComponent, it);
-            UpdateWorldTransform(entity, spatial);
         }
     }
 
@@ -351,7 +352,7 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
             child := GetEntity(world, it);
             Assert(child != null);
 
-            UpdateWorldTransform(world, child);
+            UpdateWorldTransform(world, child, update_components=update_components);
         }
     }
 } @ModuleAPI

@@ -231,3 +231,10 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         collider=collider,
     };
 } @ModuleAPI
+
+UpdateWorldTransform :: (world : *World, entity : *Entity, using rigidbody : *RigidBodyComponent) {
+    world_rotation := QuatfFromMatrix(entity.world_transform);
+    world_position := TranslationVector(entity.world_transform);
+
+    Jolt.BodyInterface.SetPositionAndRotation(world.physics.body_interface, jolt_body_id, ToJolt(world_position), ToJolt(world_rotation), .DontActivate);
+} @ModuleAPI
