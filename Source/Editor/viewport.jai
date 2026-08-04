@@ -24,7 +24,10 @@ EditorViewport :: struct {
     show_wireframe := false;
 
     is_box_selecting : bool;
-    box_selection_start : Vec2i;
+    is_lasso_selecting : bool;
+    selection_start : Vec2i;
+    lasso_points : [..]Vec2i;
+    lasso_min, lasso_max : Vec2i;
 }
 
 g_editor_viewport_id_counter : u64 = 1;
@@ -293,12 +296,23 @@ ShowEditorViewportWindow :: (world : *World, using viewport : *EditorViewport) -
         mouse_x := cast(s32, mouse_position.x + position.x);
         mouse_y := cast(s32, mouse_position.y + position.y);
 
-        x1 := Min(box_selection_start.x + cast(s32, position.x), mouse_x);
-        y1 := Min(box_selection_start.y + cast(s32, position.y), mouse_y);
-        x2 := Max(box_selection_start.x + cast(s32, position.x), mouse_x);
-        y2 := Max(box_selection_start.y + cast(s32, position.y), mouse_y);
+        x1 := Min(selection_start.x + cast(s32, position.x), mouse_x);
+        y1 := Min(selection_start.y + cast(s32, position.y), mouse_y);
+        x2 := Max(selection_start.x + cast(s32, position.x), mouse_x);
+        y2 := Max(selection_start.y + cast(s32, position.y), mouse_y);
 
         AddSelectionBox(draw_list, .{xx x1, xx y1}, .{xx x2, xx y2});
+    }
+
+    if is_lasso_selecting {
+        points := AllocArray(Vec2f, lasso_points.count ,, Temp);
+        for lasso_points {
+            points[it_index] = .{xx it.x, xx it.y};
+            points[it_index] += position;
+        }
+
+        // @Todo: triangulate the polygon (concave and self intersecting, so a bit hard)
+        draw_list.AddPolyline(draw_list, points.data, xx points.count, U32Color(.{1,1,1,1}), .Closed, 1);
     }
 
     return opened;
@@ -458,7 +472,7 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
         }
 
     case .MouseButtonPress;
-        if event.mouse_button == .Right {
+        if event.mouse_button == .Right && !(GetModState() & .Ctrl) {
             camera.is_moving = true;
         }
 
@@ -483,13 +497,51 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
 IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
     return viewport.is_box_selecting
-        && (Abs(mouse_position.x - viewport.box_selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 20)
-        || Abs(mouse_position.y - viewport.box_selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 20));
+        && (Abs(mouse_position.x - viewport.selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 20)
+        || Abs(mouse_position.y - viewport.selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 20));
+}
+
+PushLassoPoint :: (using viewport : *EditorViewport, point : Vec2i) {
+    if lasso_points.count > 0 && Length(lasso_points[lasso_points.count - 1] - point) < 2 {
+        return;
+    }
+
+    ArrayPush(*lasso_points, point);
+    lasso_min = .{Min(lasso_min.x, point.x), Min(lasso_min.y, point.y)};
+    lasso_max = .{Max(lasso_max.x, point.x), Max(lasso_max.y, point.y)};
+}
+
+PointIsInsideLasso :: (using viewport : *EditorViewport, point : Vec2i) -> bool {
+    if !is_lasso_selecting {
+        return false;
+    }
+
+    intersections := 0;
+    for i : 0..lasso_points.count - 1 {
+        p0 := lasso_points[i];
+        p1 := lasso_points[(i + 1) % lasso_points.count];
+
+        crosses := (p0.y > point.y) != (p1.y > point.y);
+        if crosses {
+            t := (point.y - p0.y) / cast(float, p1.y - p0.y);
+            x_at_y := p0.x + t * (p1.x - p0.x);
+            if x_at_y < cast(float, point.x) {
+                intersections += 1;
+            }
+        }
+    }
+
+    return (intersections % 2) != 0;
 }
 
 HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewport, event : EditorViewportEvent) -> capture_event : bool {
     if event.kind == {
     case .MousePosition;
+        if is_lasso_selecting {
+            PushLassoPoint(viewport, .{xx event.mouse_position.x, xx event.mouse_position.y});
+            return true;
+        }
+
         if is_box_selecting {
             return true;
         }
@@ -497,22 +549,32 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
     case .MouseButtonPress;
         if event.mouse_button == .Left {
             is_box_selecting = true;
-            box_selection_start = .{xx event.mouse_position.x, xx event.mouse_position.y};
+            is_lasso_selecting = false;
+            selection_start = .{xx event.mouse_position.x, xx event.mouse_position.y};
+        }
+
+        if event.mouse_button == .Right && GetModState() & .Ctrl {
+            is_lasso_selecting = true;
+            is_box_selecting = false;
+            ArrayClear(*lasso_points);
+            selection_start = .{xx event.mouse_position.x, xx event.mouse_position.y};
+            lasso_min = selection_start;
+            lasso_max = selection_start;
         }
 
         // Also capture mouse right and middle buttons when selecting
-        return is_box_selecting;
+        return is_box_selecting || is_lasso_selecting;
 
     case .MouseButtonRelease;
-        was_box_selecting := is_box_selecting;
+        was_selecting := is_box_selecting || is_lasso_selecting;
         if is_box_selecting && event.mouse_button == .Left {
             x1, y1, x2, y2 : s32;
 
             if IsBoxSelecting(viewport, event.mouse_position) {
-                x1 = Min(box_selection_start.x, xx event.mouse_position.x);
-                y1 = Min(box_selection_start.y, xx event.mouse_position.y);
-                x2 = Max(box_selection_start.x, xx event.mouse_position.x);
-                y2 = Max(box_selection_start.y, xx event.mouse_position.y);
+                x1 = Min(selection_start.x, xx event.mouse_position.x);
+                y1 = Min(selection_start.y, xx event.mouse_position.y);
+                x2 = Max(selection_start.x, xx event.mouse_position.x);
+                y2 = Max(selection_start.y, xx event.mouse_position.y);
             } else {
                 x1 = xx event.mouse_position.x;
                 x2 = xx event.mouse_position.x;
@@ -546,7 +608,40 @@ HandleEventForEntitySelection :: (world : *World, using viewport : *EditorViewpo
             is_box_selecting = false;
         }
 
-        return was_box_selecting;
+        if is_lasso_selecting && event.mouse_button == .Right {
+            x1 := Min(lasso_min.x, lasso_max.x);
+            y1 := Min(lasso_min.y, lasso_max.y);
+            x2 := Max(lasso_min.x, lasso_max.x);
+            y2 := Max(lasso_min.y, lasso_max.y);
+
+            scale_factor := GetWindowScaleFactor(GetWindow());
+            x1 = xx (x1 * scale_factor);
+            x2 = xx (x2 * scale_factor);
+            y1 = xx (y1 * scale_factor);
+            y2 = xx (y2 * scale_factor);
+
+            if !(GetModState() & .Shift) {
+                ArrayClear(*g_editor_selected_entities);
+            }
+
+            for y : y1..y2 {
+                for x : x1..x2 {
+                    if !PointIsInsideLasso(viewport, .{x, y}) {
+                        continue;
+                    }
+
+                    id := GetEntityIDAtPoint(viewport, xx x, xx y);
+                    if id != Null_Entity_ID {
+                        SelectEntity(id, add_to_selection=true);
+                    }
+                }
+            }
+
+            ArrayClear(*lasso_points);
+            is_lasso_selecting = false;
+        }
+
+        return was_selecting;
     }
 
     return false;
