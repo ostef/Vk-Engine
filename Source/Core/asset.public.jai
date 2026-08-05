@@ -76,15 +76,13 @@ Asset :: struct(DataType : Type) {
     }
 }
 
-DummyAsset :: Asset(struct {});
-
 // @Todo: make sure this function works across module boundaries
 GetAssetType :: (info : *Type_Info_Struct) -> *Type_Info {
     if info.type != .STRUCT {
         return null;
     }
 
-    if TypeGetSourcePolymorph(info) != TypeGetSourcePolymorph(type_info(DummyAsset)) {
+    if !IsStruct(TypeGetSourcePolymorph(info), "Asset") {
         return null;
     }
 
@@ -188,12 +186,13 @@ LoadAsset :: inline ($T : Type, name : string, location := #caller_location) -> 
 } @NoProfile
 
 LoadAssetDynamic :: (data_type : Type, name : string, location := #caller_location) -> *void {
+    data_type_name := ifx cast(*Type_Info_Struct, data_type).type == .STRUCT then cast(*Type_Info_Struct, data_type).name;
     #insert -> string {
         builder : StringBuilder;
 
-        Appendln(*builder, "if data_type == {");
+        Appendln(*builder, "if data_type_name == {");
         for Asset_Types {
-            Appendln(*builder, "case %1; return LoadAsset(*GetAssets().%1_cache, name, location);", it);
+            Appendln(*builder, "case \"%1\"; return LoadAsset(*GetAssets().%1_cache, name, location);", it);
         }
         Appendln(*builder, "}");
 
@@ -206,12 +205,13 @@ LoadAssetDynamic :: (data_type : Type, name : string, location := #caller_locati
 }
 
 AddRefDynamic :: (data_type : Type, asset : *void, location := #caller_location) {
+    data_type_name := ifx cast(*Type_Info_Struct, data_type).type == .STRUCT then cast(*Type_Info_Struct, data_type).name;
     #insert -> string {
         builder : StringBuilder;
 
-        Appendln(*builder, "if data_type == {");
+        Appendln(*builder, "if data_type_name == {");
         for Asset_Types {
-            Appendln(*builder, "case %1; AddRef(cast(*Asset(%1), asset), location);", it);
+            Appendln(*builder, "case \"%1\"; AddRef(cast(*Asset(%1), asset), location);", it);
         }
         Appendln(*builder, "case; LogError(\"AddRefDynamic does not handle asset type \%\", data_type);");
         Appendln(*builder, "}");
@@ -221,12 +221,13 @@ AddRefDynamic :: (data_type : Type, asset : *void, location := #caller_location)
 }
 
 RemoveRefDynamic :: (data_type : Type, asset : *void) {
+    data_type_name := ifx cast(*Type_Info_Struct, data_type).type == .STRUCT then cast(*Type_Info_Struct, data_type).name;
     #insert -> string {
         builder : StringBuilder;
 
-        Appendln(*builder, "if data_type == {");
+        Appendln(*builder, "if data_type_name == {");
         for Asset_Types {
-            Appendln(*builder, "case %1; RemoveRef(cast(*Asset(%1), asset));", it);
+            Appendln(*builder, "case \"%1\"; RemoveRef(cast(*Asset(%1), asset));", it);
         }
         Appendln(*builder, "case; LogError(\"RemoveRefDynamic does not handle asset type \%\", data_type);");
         Appendln(*builder, "}");
@@ -568,7 +569,7 @@ UnreferenceAllAssets :: (value : *$T)
                 continue;
             }
 
-            if TypeGetSourcePolymorph(xx pointed_type) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
+            if IsStruct(pointed_type, "Asset") {
                 Appendln(*builder, "DerefAsset(*value.%);", it.name);
             } else {
                 Appendln(*builder, "if value.% {", it.name);

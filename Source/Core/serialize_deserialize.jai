@@ -3,24 +3,44 @@ Panic_On_Infinite_Type_Recursion :: false; // @PossibleOptimization
 
 Serialize_Indent_String :: "  ";
 
+IsVec2f :: inline (type : *Type_Info) -> bool {
+    is_vector, data_type, dim := GetVectorTypeInfoByName(type);
+    return is_vector && dim == 2 && data_type != null && data_type.type == .FLOAT && data_type.runtime_size == size_of(float);
+}
+
+IsVec3f :: inline (type : *Type_Info) -> bool {
+    is_vector, data_type, dim := GetVectorTypeInfoByName(type);
+    return is_vector && dim == 3 && data_type != null && data_type.type == .FLOAT && data_type.runtime_size == size_of(float);
+}
+
+IsVec4f :: inline (type : *Type_Info) -> bool {
+    is_vector, data_type, dim := GetVectorTypeInfoByName(type);
+    return is_vector && dim == 4 && data_type != null && data_type.type == .FLOAT && data_type.runtime_size == size_of(float);
+}
+
+IsQuatf :: inline (type : *Type_Info) -> bool {
+    is_vector, data_type := GetQuaternionTypeInfoByName(type);
+    return is_vector && data_type != null && data_type.type == .FLOAT && data_type.runtime_size == size_of(float);
+}
+
 IsTypeSerializable :: (type : *Type_Info, dependency_stack : *[..]*Type_Info = null) -> bool {
     type = Devariantize(type);
 
-    if type == type_info(Vec2f)
-    || type == type_info(Vec3f)
-    || type == type_info(Vec4f)
-    || type == type_info(Quatf) {
+    if IsVec2f(type)
+    || IsVec3f(type)
+    || IsVec4f(type)
+    || IsQuatf(type) {
         return true;
     }
 
-    if type == type_info(Math.Vector2)
-    || type == type_info(Math.Vector3)
-    || type == type_info(Math.Vector4)
-    || type == type_info(Math.Quaternion) {
+    if IsStruct(type, "Vector2")
+    || IsStruct(type, "Vector3")
+    || IsStruct(type, "Vector4")
+    || IsStruct(type, "Quaternion") {
         return true;
     }
 
-    if type == type_info(UUID) {
+    if IsStruct(type, "UUID") {
         return true;
     }
 
@@ -101,21 +121,21 @@ IsTypeSerializable :: (type : *Type_Info, dependency_stack : *[..]*Type_Info = n
 IsTypeSerializeSingleLine :: (type : *Type_Info) -> bool {
     type = Devariantize(type);
 
-    if type == type_info(Vec2f)
-    || type == type_info(Vec3f)
-    || type == type_info(Vec4f)
-    || type == type_info(Quatf) {
+    if IsVec2f(type)
+    || IsVec3f(type)
+    || IsVec4f(type)
+    || IsQuatf(type) {
         return true;
     }
 
-    if type == type_info(Math.Vector2)
-    || type == type_info(Math.Vector3)
-    || type == type_info(Math.Vector4)
-    || type == type_info(Math.Quaternion) {
+    if IsStruct(type, "Vector2")
+    || IsStruct(type, "Vector3")
+    || IsStruct(type, "Vector4")
+    || IsStruct(type, "Quaternion") {
         return true;
     }
 
-    if type == type_info(UUID) {
+    if IsStruct(type, "UUID") {
         return true;
     }
 
@@ -130,7 +150,7 @@ IsTypeSerializeSingleLine :: (type : *Type_Info) -> bool {
 
     case .POINTER;
         pointer_to := cast(*Type_Info_Pointer, type).pointer_to;
-        if pointer_to.type == .STRUCT && TypeGetSourcePolymorph(xx pointer_to) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
+        if pointer_to.type == .STRUCT && IsStruct(TypeGetSourcePolymorph(xx pointer_to), "Asset") {
             return true;
         }
 
@@ -202,21 +222,21 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
         return;
     }
 
-    if type == type_info(UUID) {
+    if IsStruct(type, "UUID") {
         uuid := cast(*UUID, ptr);
         AppendUUID(serializer, uuid);
 
         return;
     }
 
-    if type == type_info(Vec2f)
-    || type == type_info(Vec3f)
-    || type == type_info(Vec4f)
-    || type == type_info(Quatf)
-    || type == type_info(Math.Vector2)
-    || type == type_info(Math.Vector3)
-    || type == type_info(Math.Vector4)
-    || type == type_info(Math.Quaternion) {
+    if IsVec2f(type)
+    || IsVec3f(type)
+    || IsVec4f(type)
+    || IsQuatf(type)
+    || IsStruct(type, "Vector2")
+    || IsStruct(type, "Vector3")
+    || IsStruct(type, "Vector4")
+    || IsStruct(type, "Quaternion") {
         component_count := type.runtime_size / size_of(float);
 
         Append(serializer, "[");
@@ -251,7 +271,7 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
         int_value := Basic.get_s64_from_void_pointer(ptr, enum_info.runtime_size);
 
         if enum_info.enum_type_flags & .FLAGS {
-            StringBuilderAppend(serializer, "0x%", FormatIntHex(cast, no_check(u64, int_value), 1));
+            StringBuilderAppend(serializer, "0x%", FormatIntHex(cast,no_check(u64, int_value), 1));
         } else {
             for enum_info.values {
                 if it == int_value {
@@ -377,7 +397,7 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
 
     case .POINTER;
         pointer_to := cast(*Type_Info_Pointer, type).pointer_to;
-        if pointer_to.type == .STRUCT && TypeGetSourcePolymorph(xx pointer_to) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
+        if pointer_to.type == .STRUCT && IsStruct(TypeGetSourcePolymorph(xx pointer_to), "Asset") {
             asset := cast(*AssetCommonData, WalkPointer(ptr, xx type));
             StringBuilderAppendStringLiteral(serializer, ifx asset then asset.asset_name else "");
 
@@ -527,14 +547,18 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
     // Special case for *Asset types, we want to get the asset name and load the asset
     if type.type == .POINTER {
         pointer_to := (cast(*Type_Info_Pointer) type).pointer_to;
-        if pointer_to.type == .STRUCT && TypeGetSourcePolymorph(xx pointer_to) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
+        if pointer_to.type == .STRUCT && IsStruct(TypeGetSourcePolymorph(xx pointer_to), "Asset") {
             asset_name : string;
             result := DeserializeAny(parser, asset_name ,, Temp);
             if !result.ok {
                 return result;
             }
 
-            asset_type := (cast(*Type) *GetAssetType(xx pointer_to)).*;
+            asset_type_info := GetAssetType(xx pointer_to);
+            if asset_type_info == null {
+                LogError("Could not get asset type (%)", cast(*Type, *pointer_to).*);
+            }
+            asset_type := cast(*Type, *asset_type_info).*;
             asset := LoadAssetDynamic((cast(*Type) *asset_type).*, asset_name);
             RemoveRefDynamic(asset_type, (cast(**void) value.value_pointer).*);
             (cast(**void) value.value_pointer).* = asset;
@@ -543,7 +567,7 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
         }
     }
 
-    if type == type_info(UUID) {
+    if IsStruct(type, "UUID") {
         if line_index >= lines.count {
             return DeserializeError(parser, "Expected a UUID but got EOF");
         }
@@ -565,14 +589,14 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
         return DeserializeOk(parser);
     }
 
-    if type == type_info(Vec2f)
-    || type == type_info(Vec3f)
-    || type == type_info(Vec4f)
-    || type == type_info(Quatf)
-    || type == type_info(Math.Vector2)
-    || type == type_info(Math.Vector3)
-    || type == type_info(Math.Vector4)
-    || type == type_info(Math.Quaternion) {
+    if IsVec2f(type)
+    || IsVec3f(type)
+    || IsVec4f(type)
+    || IsQuatf(type)
+    || IsStruct(type, "Vector2")
+    || IsStruct(type, "Vector3")
+    || IsStruct(type, "Vector4")
+    || IsStruct(type, "Quaternion") {
         component_count := type.runtime_size / size_of(float);
 
         if line_index >= lines.count {

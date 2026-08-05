@@ -8,67 +8,6 @@ RemoveShaderSuffix :: (str : string) -> string {
         else str;
 }
 
-GetVectorTypeInfoByName :: (info : *Type_Info) -> is_vector_type : bool, T : *Type_Info, N : int {
-    if info.type != .STRUCT {
-        return false, null, 0;
-    }
-
-    struct_info := cast(*Type_Info_Struct, info);
-    if struct_info.name != "Vector" {
-        return false, null, 0;
-    }
-
-    T : *Type_Info;
-    N : int;
-    for struct_info.specified_parameters {
-        if !(it.flags & .CONSTANT) {
-            continue;
-        }
-
-        ptr := struct_info.constant_storage.data + it.offset_into_constant_storage;
-        if it.name == {
-        case "N";
-            N = cast(*int, ptr).*;
-        case "T";
-            T = cast(**Type_Info, ptr).*;
-        }
-    }
-
-    return true, T, N;
-}
-
-GetMatrixTypeInfoByName :: (info : *Type_Info) -> is_matrix_type : bool, T : *Type_Info, M : int, N : int {
-    if info.type != .STRUCT {
-        return false, null, 0, 0;
-    }
-
-    struct_info := cast(*Type_Info_Struct, info);
-    if struct_info.name != "Matrix" {
-        return false, null, 0, 0;
-    }
-
-    T : *Type_Info;
-    M : int;
-    N : int;
-    for struct_info.specified_parameters {
-        if !(it.flags & .CONSTANT) {
-            continue;
-        }
-
-        ptr := struct_info.constant_storage.data + it.offset_into_constant_storage;
-        if it.name == {
-        case "M";
-            M = cast(*int, ptr).*;
-        case "N";
-            N = cast(*int, ptr).*;
-        case "T";
-            T = cast(**Type_Info, ptr).*;
-        }
-    }
-
-    return true, T, M, N;
-}
-
 AddShaderType :: (decl : *Code_Declaration) {
     if !decl.expression {
         return;

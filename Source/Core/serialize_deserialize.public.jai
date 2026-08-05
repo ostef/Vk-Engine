@@ -58,11 +58,3 @@ DeserializeCondition :: inline (parser : *DeserializeParser, ok : bool, error_ms
         error_msg=SPrint(error_msg, ..args ,, Temp),
     };
 } @PrintLike
-
-Devariantize :: (type : *Type_Info) -> *Type_Info {
-    while type.type == .VARIANT {
-        type = (cast(*Type_Info_Variant) type).variant_of;
-    }
-
-    return type;
-}

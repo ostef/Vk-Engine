@@ -342,3 +342,21 @@ SphericalToCartesian :: (azimuth : float, polar : float) -> Vec3f {
 
     return Normalized(Vec3f.{sina * cosp, sinp, cosa * cosp});
 }
+
+IsStruct :: (info : *Type_Info, struct_name : string) -> bool {
+    if !info {
+        return false;
+    }
+    if info.type != .STRUCT {
+        return false;
+    }
+    return cast(*Type_Info_Struct, info).name == struct_name;
+}
+
+Devariantize :: (type : *Type_Info) -> *Type_Info {
+    while type.type == .VARIANT {
+        type = (cast(*Type_Info_Variant) type).variant_of;
+    }
+
+    return type;
+}

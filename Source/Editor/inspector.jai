@@ -842,8 +842,7 @@ ShowInspector :: (label : *u8, using ctx : *InspectorContext, any : Any, notes :
         ResetInspectorContext(ctx); // Reset context, ResetValue assumes data to be continuous so we cannot go through pointers
 
         // Special case for *Asset types
-        if info_pointer.pointer_to.type == .STRUCT
-        && TypeGetSourcePolymorph(xx info_pointer.pointer_to) == TypeGetSourcePolymorph(type_info(DummyAsset)) {
+        if IsStruct(info_pointer.pointer_to, "Asset") {
             return InspectAssetPointer(label, ctx, any, notes, null);
         } else if !value {
             BeginInspectorLine(label);
