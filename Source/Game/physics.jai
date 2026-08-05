@@ -178,7 +178,7 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, using rigid_body : *R
     Jolt.BodyInterface.SetPositionAndRotation(world.physics.body_interface, jolt_body_id, ToJolt(world_position), ToJolt(world_rotation), .DontActivate);
 } @ModuleAPI
 
-CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
+PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
     if !world.physics.system {
         return .{};
     }
@@ -202,33 +202,32 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
 
     collider : *Component;
     rigid_body : *RigidBodyComponent;
-
     normal : Vec3f;
 
-    body_lock_read : Jolt.BodyLockRead;
-    {
-        body_lock_interface := Jolt.PhysicsSystem.GetBodyLockInterfaceNoLock(world.physics.system);
-        Jolt.BodyLockInterface.LockRead(body_lock_interface, result.bodyID, *body_lock_read);
-        defer Jolt.BodyLockInterface.UnlockRead(body_lock_interface, *body_lock_read);
 
-        if body_lock_read.body {
-            rigid_body = cast(*RigidBodyComponent, Jolt.Body.GetUserData(body_lock_read.body));
+    body_lock_interface := Jolt.PhysicsSystem.GetBodyLockInterfaceNoLock(world.physics.system);
+    {
+        body_lock : Jolt.BodyLockRead;
+        Jolt.BodyLockInterface.LockRead(body_lock_interface, result.bodyID, *body_lock);
+        defer Jolt.BodyLockInterface.UnlockRead(body_lock_interface, *body_lock);
+
+        if body_lock.body {
+            rigid_body = cast(*RigidBodyComponent, Jolt.Body.GetUserData(body_lock.body));
 
             if settings.flags & .ComputeNormals {
-                normal = FromJolt(Jolt.Body.GetWorldSpaceSurfaceNormal(body_lock_read.body, result.subShapeID2, point));
+                normal = FromJolt(Jolt.Body.GetWorldSpaceSurfaceNormal(body_lock.body, result.subShapeID2, point));
             }
 
-            if settings.flags & .RetrieveColliders {
-                shape := Jolt.Body.GetShape(body_lock_read.body);
+            // Always retrieve the collider, it's not an expensive operation and we always retrieve the rigidbody anyway
+            shape := Jolt.Body.GetShape(body_lock.body);
 
-                remainder_shape_id : Jolt.SubShapeID;
-                subshape := Jolt.Shape.GetLeafShape(shape, result.subShapeID2, *remainder_shape_id);
-                if subshape {
-                    shape = subshape;
-                }
-
-                collider = cast(*Component, Jolt.Shape.GetUserData(shape));
+            remainder_shape_id : Jolt.SubShapeID;
+            subshape := Jolt.Shape.GetLeafShape(shape, result.subShapeID2, *remainder_shape_id);
+            if subshape {
+                shape = subshape;
             }
+
+            collider = cast(*Component, Jolt.Shape.GetUserData(shape));
         }
     }
 
@@ -238,7 +237,7 @@ CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_lengt
         normal=normal,
         dist=Length(FromJolt(point) - ray_origin),
         rigid_body=rigid_body,
-        entity=ifx collider then GetEntity(world, collider.entity_index) else ifx rigid_body then GetEntity(world, rigid_body.entity_index),
+        entity=ifx rigid_body then GetEntity(world, rigid_body.entity_index) else ifx collider then GetEntity(world, collider.entity_index),
         collider=collider,
     };
 } @ModuleAPI
@@ -247,7 +246,7 @@ SortByDistance :: (results : []RayCastResult) {
     QuickSort(results, (a, b) => ifx a.dist < b.dist then -1 else ifx a.dist > b.dist then 1 else 0);
 } @ModuleAPI
 
-CastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
+PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
     if !world.physics.system {
         return false;
     }

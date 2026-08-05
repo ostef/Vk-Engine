@@ -3,8 +3,6 @@
 GameModule :: struct {
     #as base : Module;
     AttachEntity : (world : *World, entity : *Entity, to : *Entity, keep_same_world_transform : bool = true) -> bool;
-    CastRay_1 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult;
-    CastRay_2 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool;
     CopyWorld : (dest : *World, src : *World);
     CreateAndDeserializeEntity : (world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     CreateEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
@@ -27,6 +25,8 @@ GameModule :: struct {
     KillEntity_1 : (world : *World, index : EntityIndex);
     KillEntity_2 : (world : *World, id : EntityID);
     LoadWorldFromDirectory : (world : *World, directory : string);
+    PhysicsCastRay_1 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult;
+    PhysicsCastRay_2 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool;
     PhysicsDebugRendererNextFrame : ();
     RandomEntityID : () -> EntityID;
     SaveWorldToDirectory : (world : *World, output_directory : string);
@@ -51,16 +51,6 @@ g_Game : *GameModule;
 AttachEntity :: inline (world : *World, entity : *Entity, to : *Entity, keep_same_world_transform : bool = true) -> bool {
     Assert(g_Game != null, "Game module is null");
     return g_Game.AttachEntity(world, entity, to, keep_same_world_transform);
-} @NoProfile
-
-CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.CastRay_1(world, ray_origin, ray_direction, ray_length, settings);
-} @NoProfile
-
-CastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
-    Assert(g_Game != null, "Game module is null");
-    return g_Game.CastRay_2(world, ray_origin, ray_direction, ray_length, results, settings);
 } @NoProfile
 
 CopyWorld :: inline (dest : *World, src : *World) {
@@ -173,6 +163,16 @@ KillEntity :: inline (world : *World, id : EntityID) {
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {
     Assert(g_Game != null, "Game module is null");
     g_Game.LoadWorldFromDirectory(world, directory);
+} @NoProfile
+
+PhysicsCastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.PhysicsCastRay_1(world, ray_origin, ray_direction, ray_length, settings);
+} @NoProfile
+
+PhysicsCastRay :: inline (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
+    Assert(g_Game != null, "Game module is null");
+    return g_Game.PhysicsCastRay_2(world, ray_origin, ray_direction, ray_length, results, settings);
 } @NoProfile
 
 PhysicsDebugRendererNextFrame :: inline () {

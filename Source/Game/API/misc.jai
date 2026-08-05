@@ -69,7 +69,7 @@ TestRayEntity :: struct {
         DebugDrawCross(world, .{1,1,1,1}, position, 0.1);
         DebugDrawLine(world, .{1,1,1,1}, position, position + direction * ray_length);
 
-        result := CastRay(world, position, direction, ray_length);
+        result := PhysicsCastRay(world, position, direction, ray_length);
         if result.hit {
             DebugDrawCross(world, .{1,0,0,1}, result.point, 0.1);
             DebugDrawLine(world, .{0,0,1,1}, result.point, result.point + result.normal * 0.2);
