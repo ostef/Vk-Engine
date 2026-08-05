@@ -19,6 +19,7 @@ CoreModule :: struct {
     AddTextureBarrier_1 : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarrier_2 : (cmd_buffer : *GfxCommandBuffer, src_sync_points : GfxBarrierSyncPointFlags, src_accesses : GfxBarrierAccessFlags, dst_sync_points : GfxBarrierSyncPointFlags, dst_accesses : GfxBarrierAccessFlags, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, texture : *GfxTexture);
     AddTextureBarriers : (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture);
+    AdvanceToNextLine : (parser : *DeserializeParser);
     AllocGfxBindingSet : (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult;
     BeginGfxComputePass : (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxComputePass;
     BeginGfxCopyPass : (cmd_buffer : *GfxCommandBuffer, name : string, location : Source_Code_Location = #caller_location) -> GfxCopyPass;
@@ -55,6 +56,8 @@ CoreModule :: struct {
     CreateGfxTexture : (name : string, desc : GfxTextureDesc) -> GfxTexture;
     CreateGfxTextureView : (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture;
     DeferNextAssetLoadsForAllCaches : ();
+    DeserializeAny_1 : (str : string, value : Any) -> DeserializeResult;
+    DeserializeAny_2 : (parser : *DeserializeParser, value : Any) -> DeserializeResult;
     DestroyGPUFrameProfiler : (profiler : *GPUFrameProfiler);
     DestroyGfxBindingPool : (pool : *GfxBindingPool);
     DestroyGfxBindingSetLayout : (layout : *GfxBindingSetLayout);
@@ -117,6 +120,7 @@ CoreModule :: struct {
     GetWindowScaleFactor : (window : *void) -> float;
     InitArmaturePose : (pose : *ArmaturePose, mesh : *Asset(DataType=SkinnedMesh));
     InitGPUFrameProfiler : (profiler : *GPUFrameProfiler, max_events : s64);
+    InitParser : (parser : *DeserializeParser, contents : string);
     InterpolateJointSamples : (a : JointSample, b : JointSample, t : float) -> JointSample;
     IsKeyDown : (key : KeyCode) -> bool;
     IsKeyPressed : (key : KeyCode) -> bool;
@@ -159,6 +163,7 @@ CoreModule :: struct {
     ResetGfxCommandPool : (pool : *GfxCommandPool);
     ResetToBindPose : (pose : *ArmaturePose);
     SampleAnimation : (anim : *ArmatureAnimation, pose_index : float, output_pose : *ArmaturePose);
+    SerializeAny : (serializer : *Serializer, value : Any);
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
     SetCVarBool : (name : string, value : bool);
     SetCVarFloat : (name : string, value : float);
@@ -173,7 +178,9 @@ CoreModule :: struct {
     SubtractPoses : (dest : *ArmaturePose, other : *ArmaturePose, weight : float = 1);
     TextureUploadPass : (cmd_buffer : *GfxCommandBuffer);
     TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
+    TrimSpaces : (parser : *DeserializeParser);
     UnregisterDataDirectoryChangeCallback : (index : s64);
+    UpdateIndentation : (parser : *DeserializeParser);
     WaitForGPUIdle : ();
     WasKeyDown : (key : KeyCode) -> bool;
     WasMouseButtonDown : (button : MouseButton) -> bool;
@@ -215,6 +222,11 @@ AddTextureBarrier :: inline (cmd_buffer : *GfxCommandBuffer, src_sync_points : G
 AddTextureBarriers :: inline (cmd_buffer : *GfxCommandBuffer, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout, textures : []*GfxTexture) {
     Assert(g_Core != null, "Core module is null");
     g_Core.AddTextureBarriers(cmd_buffer, old_layout, new_layout, textures);
+} @NoProfile
+
+AdvanceToNextLine :: inline (parser : *DeserializeParser) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.AdvanceToNextLine(parser);
 } @NoProfile
 
 AllocGfxBindingSet :: inline (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult {
@@ -396,6 +408,16 @@ CreateGfxTextureView :: inline (name : string, desc : GfxTextureViewDesc, textur
 DeferNextAssetLoadsForAllCaches :: inline () {
     Assert(g_Core != null, "Core module is null");
     g_Core.DeferNextAssetLoadsForAllCaches();
+} @NoProfile
+
+DeserializeAny :: inline (str : string, value : Any) -> DeserializeResult {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.DeserializeAny_1(str, value);
+} @NoProfile
+
+DeserializeAny :: inline (parser : *DeserializeParser, value : Any) -> DeserializeResult {
+    Assert(g_Core != null, "Core module is null");
+    return g_Core.DeserializeAny_2(parser, value);
 } @NoProfile
 
 DestroyGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler) {
@@ -719,6 +741,11 @@ InitGPUFrameProfiler :: inline (profiler : *GPUFrameProfiler, max_events : s64) 
     g_Core.InitGPUFrameProfiler(profiler, max_events);
 } @NoProfile
 
+InitParser :: inline (parser : *DeserializeParser, contents : string) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.InitParser(parser, contents);
+} @NoProfile
+
 InterpolateJointSamples :: inline (a : JointSample, b : JointSample, t : float) -> JointSample {
     Assert(g_Core != null, "Core module is null");
     return g_Core.InterpolateJointSamples(a, b, t);
@@ -941,6 +968,11 @@ SampleAnimation :: inline (anim : *ArmatureAnimation, pose_index : float, output
     g_Core.SampleAnimation(anim, pose_index, output_pose);
 } @NoProfile
 
+SerializeAny :: inline (serializer : *Serializer, value : Any) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.SerializeAny(serializer, value);
+} @NoProfile
+
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
     Assert(g_Core != null, "Core module is null");
     g_Core.SetBlendConstant(pass, color);
@@ -1011,9 +1043,19 @@ TriangleIntersectsBox :: inline (triangle_A : Vector(N=3, T=float32), triangle_B
     return g_Core.TriangleIntersectsBox(triangle_A, triangle_B, triangle_C, triangle_normal, box_center, box_half_extents);
 } @NoProfile
 
+TrimSpaces :: inline (parser : *DeserializeParser) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.TrimSpaces(parser);
+} @NoProfile
+
 UnregisterDataDirectoryChangeCallback :: inline (index : s64) {
     Assert(g_Core != null, "Core module is null");
     g_Core.UnregisterDataDirectoryChangeCallback(index);
+} @NoProfile
+
+UpdateIndentation :: inline (parser : *DeserializeParser) {
+    Assert(g_Core != null, "Core module is null");
+    g_Core.UpdateIndentation(parser);
 } @NoProfile
 
 WaitForGPUIdle :: inline () {

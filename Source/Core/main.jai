@@ -11,6 +11,7 @@
 #load "asset.jai";
 #load "cvar.jai";
 #load "jolt.jai";
+#load "serialize_deserialize.jai";
 
 #load "Graphics/Vulkan/vulkan.jai";
 #load "Graphics/gpu_frame_profiler.jai";
