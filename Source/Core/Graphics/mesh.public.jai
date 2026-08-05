@@ -35,7 +35,7 @@ SkinnedVertex :: struct {
 
 SkinnedMesh :: struct {
     #as using _ : Mesh(SkinnedVertex);
-    #as using,except(memory_block) armature : Armature;
+    #as using armature : Armature;
 } @Asset
 
 Max_Joints :: 1000;
@@ -54,13 +54,7 @@ ArmatureJoint :: struct {
 
 Armature :: struct {
     joint_count : s64;
-    memory_block : *void;
-    // Layout of the memory:
-    // [joint_count]ArmatureJoint
-    // [joint_count][Max_Armature_Joint_Name_Length]u8
-    // [map_capacity]HashMap(string, s16).Entry
-
-    #overlay(joint_count)
-    joints : []ArmatureJoint = ---;
+    joints : []ArmatureJoint;
+    joint_names : [][Max_Armature_Joint_Name_Length]u8;
     name_to_joint_id : HashMap(string, s16);
 }

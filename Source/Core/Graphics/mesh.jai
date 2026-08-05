@@ -241,47 +241,15 @@ CalculateTangents :: (using mesh : *Mesh) {
     }
 }
 
-CalculateArmatureMemoryBlockSize :: (joint_count : s64) -> s64 {
-    map_capacity := HashMapGetMinCapacityForElementCount(Armature.name_to_joint_id.Load_Factor, joint_count);
-
-    return size_of(ArmatureJoint) * joint_count
-        + Max_Armature_Joint_Name_Length * joint_count
-        + size_of(Armature.name_to_joint_id.Entry) * map_capacity;
-}
-
-AllocArmatureData :: (armature : *Armature, joint_count : s64) {
-    size := CalculateArmatureMemoryBlockSize(joint_count);
-    armature.joint_count = joint_count;
-    armature.memory_block = Alloc(size);
-
-    // This below is redundant since joints.data has the same offset as memory_block
-    // armature.joints.data = armature.memory_block;
-    // armature.joints.count = joint_count;
-
-    map_data := armature.memory_block + size_of(ArmatureJoint) * joint_count;
-    map_data += Max_Armature_Joint_Name_Length * joint_count;
-    capacity := HashMapGetMinCapacityForElementCount(armature.name_to_joint_id, joint_count);
-
-    HashMapInitFromPreallocatedMemory(*armature.name_to_joint_id, map_data, capacity, Trap);
-}
-
-FreeArmatureData :: (using armature : *Armature) {
-    Free(memory_block);
+DestroyArmature :: (using armature : *Armature) {
+    Free(joints.data);
+    Free(joint_names.data);
+    HashMapFree(*name_to_joint_id);
     Initialize(armature);
 }
 
-GetJointNamesArray :: (using armature : *Armature) -> [][Max_Armature_Joint_Name_Length]u8 {
-    result : [][Max_Armature_Joint_Name_Length]u8 = ---;
-    result.count = joint_count;
-    result.data = memory_block + size_of(ArmatureJoint) * joint_count;
-
-    return result;
-}
-
-GetJointName :: (armature : *Armature, joint_id : s16) -> string {
-    names := GetJointNamesArray(armature);
-
-    return MakeString(names[joint_id].data);
+GetJointName :: inline (armature : *Armature, joint_id : s16) -> string {
+    return MakeString(armature.joint_names[joint_id].data);
 }
 
 LoadSkinnedMeshFromMemory :: (mesh : *SkinnedMesh, data : []u8, name : string) -> bool {
@@ -365,8 +333,9 @@ LoadSkinnedMeshFromMemory :: (mesh : *SkinnedMesh, data : []u8, name : string) -
         return false;
     }
 
-    AllocArmatureData(*mesh.armature, joint_count);
-    joint_names := GetJointNamesArray(*mesh.armature);
+    mesh.joint_count = joint_count;
+    mesh.joints = AllocArray(ArmatureJoint, joint_count, initialize=false);
+    mesh.joint_names = AllocArray([Max_Armature_Joint_Name_Length]u8, joint_count, initialize=false);
 
     for i : 0..joint_count - 1 {
         name:, ok = ReadNullTerminatedString(*reader);
@@ -380,9 +349,8 @@ LoadSkinnedMeshFromMemory :: (mesh : *SkinnedMesh, data : []u8, name : string) -
             return false;
         }
 
-        joint_name := joint_names[i].data;
-        memcpy(joint_name, name.data, name.count + 1);
-        name.data = joint_name;
+        memcpy(mesh.joint_names[i].data, name.data, name.count + 1);
+        name.data = mesh.joint_names[i].data;
 
         _, was_present := HashMapInsert(*mesh.name_to_joint_id, name, i);
         if was_present {
@@ -504,5 +472,5 @@ LoadSkinnedMeshFromFile :: (mesh : *SkinnedMesh, filename : string) -> bool {
 
 DestroySkinnedMesh :: (mesh : *SkinnedMesh) {
     DestroyMesh(mesh);
-    FreeArmatureData(mesh);
+    DestroyArmature(mesh);
 }
