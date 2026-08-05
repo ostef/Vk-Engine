@@ -19,25 +19,25 @@ Print_Style :: Basic.Print_Style; // Needed for CoreContext
 
 #import "Random"; // Adds random_state to the context, needed to keep the same context between modules
 
-#load "API/asset.jai";
-#load "API/input.jai";
-#load "API/cpu_frame_profiler.jai";
-#load "API/serialize_deserialize.jai";
-#load "API/utils.jai";
+#load "asset.public.jai";
+#load "input.public.jai";
+#load "cpu_frame_profiler.public.jai";
+#load "serialize_deserialize.public.jai";
+#load "utils.public.jai";
 
-#load "Graphics/API/gfx.jai";
-#load "Graphics/API/gpu_frame_profiler.jai";
-#load "Graphics/API/texture2d.jai";
-#load "Graphics/API/environment_map.jai";
-#load "Graphics/API/material.jai";
-#load "Graphics/API/mesh.jai";
-#load "Graphics/API/animation.jai";
+#load "Graphics/abstraction_layer.public.jai";
+#load "Graphics/gpu_frame_profiler.public.jai";
+#load "Graphics/texture2d.public.jai";
+#load "Graphics/environment_map.public.jai";
+#load "Graphics/material.public.jai";
+#load "Graphics/mesh.public.jai";
+#load "Graphics/animation.public.jai";
 
-#load "Physics/API/types.jai";
-#load "Physics/API/collision_mesh.jai";
+#load "Physics/types.public.jai";
+#load "Physics/collision_mesh.public.jai";
 
 #if Import_Mode == .Foreign {
-    #load "module_api.jai";
+    #load "module_api.public.jai";
 } else {
     #load "main.jai";
 }

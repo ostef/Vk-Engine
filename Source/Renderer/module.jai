@@ -19,7 +19,7 @@
 #import "File_Utilities";
 
 #if Import_Mode == .Foreign {
-    #load "module_api.jai";
+    #load "module_api.public.jai";
 } else {
     #load "main.jai";
 }

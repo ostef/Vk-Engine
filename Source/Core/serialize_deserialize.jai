@@ -414,7 +414,7 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
     case .UNTYPED_LITERAL;
         LogError("Cannot serialize untyped literal");
     }
-} @ModuleAPI
+} @Public
 
 InitParser :: (using parser : *DeserializeParser, contents : string) {
     lines_dynamic := StringSplit(contents, #char "\n");
@@ -432,7 +432,7 @@ InitParser :: (using parser : *DeserializeParser, contents : string) {
     indent_level = 0;
 
     UpdateIndentation(parser);
-} @ModuleAPI
+} @Public
 
 CountIndentation :: (line : string) -> indent_level : int, byte_index : int {
     i := 0;
@@ -453,7 +453,7 @@ UpdateIndentation :: (using parser : *DeserializeParser) {
 
     indent_level=, i := CountIndentation(lines[line_index]);
     byte_index += i;
-} @ModuleAPI
+} @Public
 
 TrimSpaces :: (line : string) -> int {
     i := 0;
@@ -469,14 +469,14 @@ TrimSpaces :: (using parser : *DeserializeParser) {
     while byte_index < line.count && Basic.is_space(line[byte_index]) {
         byte_index += 1;
     }
-} @ModuleAPI
+} @Public
 
 AdvanceToNextLine :: (using parser : *DeserializeParser) {
     line_index += 1;
     byte_index = 0;
 
     UpdateIndentation(parser);
-} @ModuleAPI
+} @Public
 
 ParseInteger :: (str : string, $T : Type) -> T, ok : bool, remainder : string, base : int {
     _str := str;
@@ -518,7 +518,7 @@ DeserializeAny :: inline (str : string, value : Any) -> DeserializeResult {
     InitParser(*parser, str ,, Temp);
 
     return DeserializeAny(*parser, value);
-} @ModuleAPI
+} @Public
 
 DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> DeserializeResult {
     ptr := value.value_pointer;
@@ -1066,4 +1066,4 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
 
     Panic("Unreachable");
     return DeserializeError(parser, "Unreachable");
-} @ModuleAPI
+} @Public

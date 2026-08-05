@@ -5,7 +5,7 @@ BeginGfxCopyPass :: (cmd_buffer : *GfxCommandBuffer, name : string, location := 
     profiling_event := ProfilerBeginEvent(cmd_buffer, *g_gpu_frame_profiler, name, location);
 
     return .{cmd_buffer=cmd_buffer, profiling_event=profiling_event, name=name};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 EndGfxCopyPass :: (pass : *GfxCopyPass) {
     LogSectionScope(*Log_Vulkan);
@@ -14,7 +14,7 @@ EndGfxCopyPass :: (pass : *GfxCopyPass) {
     EndGfxDebugMarker(pass.cmd_buffer);
 
     AddBarrier(pass.cmd_buffer);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 CopyBufferToTexture :: (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_texture : *GfxTexture) {
     copy : VkBufferImageCopy;
@@ -22,7 +22,7 @@ CopyBufferToTexture :: (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_textur
     copy.imageExtent = .{dst_texture.desc.width, dst_texture.desc.height, dst_texture.desc.depth};
 
     vkCmdCopyBufferToImage(pass.cmd_buffer.cmd_buffer, src_buffer.buffer, dst_texture.image, .TRANSFER_DST_OPTIMAL, 1, *copy);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 CopyTextureToBuffer :: (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buffer : *GfxBuffer) {
     copy : VkBufferImageCopy;
@@ -30,7 +30,7 @@ CopyTextureToBuffer :: (pass : *GfxCopyPass, src_texture : *GfxTexture, dst_buff
     copy.imageExtent = .{src_texture.desc.width, src_texture.desc.height, src_texture.desc.depth};
 
     vkCmdCopyImageToBuffer(pass.cmd_buffer.cmd_buffer, src_texture.image, .TRANSFER_SRC_OPTIMAL, dst_buffer.buffer, 1, *copy);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 CopyBufferToBuffer :: (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer : *GfxBuffer, src_offset : u64, dst_offset : u64, size : u64) {
     region : VkBufferCopy;
@@ -39,7 +39,7 @@ CopyBufferToBuffer :: (pass : *GfxCopyPass, src_buffer : *GfxBuffer, dst_buffer 
     region.size = size;
 
     vkCmdCopyBuffer(pass.cmd_buffer.cmd_buffer, src_buffer.buffer, dst_buffer.buffer, 1, *region);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 GenerateMipmaps :: (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : GfxTextureLayout, new_layout : GfxTextureLayout) {
     if texture.desc.num_mipmap_levels < 2 {
@@ -132,4 +132,4 @@ GenerateMipmaps :: (pass : *GfxCopyPass, texture : *GfxTexture, old_layout : Gfx
         bufferMemoryBarrierCount=0, pBufferMemoryBarriers=null,
         imageMemoryBarrierCount=xx barriers.count, pImageMemoryBarriers=barriers.data,
     );
-} @ModuleAPI
+} @Public

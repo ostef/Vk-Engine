@@ -85,7 +85,7 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
     HandleDeclarationForEntity(workspace, decl);
 
     for note : decl.notes {
-        if note.text == "ModuleAPI" {
+        if note.text == "Public" {
             AddModuleAPIProcedure(workspace, decl);
         }
 

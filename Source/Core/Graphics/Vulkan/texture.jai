@@ -116,7 +116,7 @@ CreateGfxTexture :: (name : string, desc : GfxTextureDesc) -> GfxTexture {
     SetDebugName(image_view, TPrint("Image View '%'", name));
 
     return .{image=image, image_view=image_view, allocation=allocation, name=StringClone(name), desc=MakeGfxTextureAndViewDesc(desc)};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 DestroyGfxTexture :: (texture : *GfxTexture) {
     LogSectionScope(*Log_Vulkan);
@@ -125,13 +125,13 @@ DestroyGfxTexture :: (texture : *GfxTexture) {
     vkDestroyImageView(g_gfx_context.device, texture.image_view, g_vk_alloc_callbacks);
     vmaDestroyImage(g_gfx_context.allocator, texture.image, texture.allocation);
     texture.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 QueueDestroyGfxTexture :: (texture : *GfxTexture) {
     collector := *g_gfx_context.texture_collectors[g_gfx_context.frame_in_flight];
     AddGarbage(collector, texture);
     texture.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 CreateGfxTextureView :: (name : string, desc : GfxTextureViewDesc, texture : *GfxTexture) -> GfxTexture {
     if IsNull(texture) {
@@ -179,7 +179,7 @@ CreateGfxTextureView :: (name : string, desc : GfxTextureViewDesc, texture : *Gf
     SetDebugName(image_view, TPrint("Image View '%'", name));
 
     return .{image=texture.image, image_view=image_view, allocation=texture.allocation, name=StringClone(name), desc=MakeGfxTextureAndViewDesc(texture.desc, desc)};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 DestroyGfxTextureView :: (texture : *GfxTexture) {
     LogSectionScope(*Log_Vulkan);
@@ -187,13 +187,13 @@ DestroyGfxTextureView :: (texture : *GfxTexture) {
     Free(texture.name.data);
     vkDestroyImageView(g_gfx_context.device, texture.image_view, g_vk_alloc_callbacks);
     texture.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 QueueDestroyGfxTextureView :: (texture : *GfxTexture) {
     collector := *g_gfx_context.texture_view_collectors[g_gfx_context.frame_in_flight];
     AddGarbage(collector, texture);
     texture.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 CreateGfxSampler :: (name : string, desc : GfxSamplerDesc) -> GfxSampler {
     LogSectionScope(*Log_Vulkan);
@@ -224,7 +224,7 @@ CreateGfxSampler :: (name : string, desc : GfxSamplerDesc) -> GfxSampler {
     SetDebugName(sampler, TPrint("Sampler '%'", name));
 
     return .{sampler=sampler, name=StringClone(name), desc=desc};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 DestroyGfxSampler :: (sampler : *GfxSampler) {
     LogSectionScope(*Log_Vulkan);
@@ -232,10 +232,10 @@ DestroyGfxSampler :: (sampler : *GfxSampler) {
     Free(sampler.name.data);
     vkDestroySampler(g_gfx_context.device, sampler.sampler, g_vk_alloc_callbacks);
     sampler.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 QueueDestroyGfxSampler :: (sampler : *GfxSampler) {
     collector := *g_gfx_context.sampler_collectors[g_gfx_context.frame_in_flight];
     AddGarbage(collector, sampler);
     sampler.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

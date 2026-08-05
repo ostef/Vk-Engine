@@ -29,7 +29,7 @@ InitImGuiRenderer :: () {
     // }
 
     CreateImGuiFontsTexture();
-} @ModuleAPI
+} @Public
 
 DestroyImGuiRenderer :: () {
     renderer := GetImGuiRenderer();
@@ -42,7 +42,7 @@ DestroyImGuiRenderer :: () {
     io := ImGui.GetIO();
     io.BackendRendererUserData = null;
     io.BackendRendererName = "";
-} @ModuleAPI
+} @Public
 
 InitImGui :: () {
     for * g_imgui_binding_set_allocators {

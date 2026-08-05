@@ -10,13 +10,13 @@ UpdateWorld :: (world : *World) {
 
     ExecuteEntityCallback(world, "OnDebugDraw");
     ExecuteComponentCallback(world, "OnDebugDraw");
-} @ModuleAPI
+} @Public
 
 InitWorld :: (world : *World) {
     defer world.initialized = true;
 
     InitPhysicsWorld(world);
-} @ModuleAPI
+} @Public
 
 DestroyWorld :: (using world : *World) {
     FreeEntity :: (world : *World, using entity : *Entity) {
@@ -89,7 +89,7 @@ DestroyWorld :: (using world : *World) {
     DestroyPhysicsWorld(world);
 
     world.* = .{};
-} @ModuleAPI
+} @Public
 
 CopyWorld :: (dest : *World, src : *World) {
     CopyEntityOver :: (dest_world : *World, src_world : *World, entity : *Entity) -> *Entity {
@@ -145,7 +145,7 @@ CopyWorld :: (dest : *World, src : *World) {
             ExecuteComponentCallback(dest, entity, it, "OnSpawn");
         }
     }
-} @ModuleAPI
+} @Public
 
 LoadWorldFromDirectory :: (world : *World, directory : string) {
     LogSectionScope(*Log_Entities);
@@ -281,7 +281,7 @@ LoadWorldFromDirectory :: (world : *World, directory : string) {
             ExecuteComponentCallback(world, entity, it, "OnSpawn");
         }
     }
-} @ModuleAPI
+} @Public
 
 SaveWorldToDirectory :: (world : *World, output_directory : string) {
     LogSectionScope(*Log_Entities);
@@ -340,7 +340,7 @@ SaveWorldToDirectory :: (world : *World, output_directory : string) {
 
     LogContentMessage("Saved world to directory '%' (% entities) in % ms",
         output_directory, saved_entities, total_time_ms);
-} @ModuleAPI
+} @Public
 
 DestroyKilledEntities :: (using world : *World) {
     DestroyEntity :: (using world : *World, entity : *Entity) {
@@ -411,7 +411,7 @@ DestroyKilledEntities :: (using world : *World) {
     }
 
     ArrayClear(*entities_killed_this_frame);
-} @ModuleAPI
+} @Public
 
 g_default_material : *Asset(Material);
 
@@ -421,7 +421,7 @@ GetDefaultMaterial :: inline () -> *Asset(Material) {
     }
 
     return g_default_material;
-} @ModuleAPI
+} @Public
 
 SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
     world_to_render.debug_renderer = world.debug_renderer;
@@ -490,4 +490,4 @@ SubmitWorldToRenderer :: (world_to_render : *WorldToRender, world : *World) {
         };
         AddPointLightToRender(world_to_render, to_render);
     }
-} @ModuleAPI
+} @Public

@@ -6,7 +6,7 @@ g_gpu_frame_profiler : GPUFrameProfiler;
 
 GetGPUFrameProfiler :: () -> *GPUFrameProfiler {
     return *g_gpu_frame_profiler;
-} @ModuleAPI
+} @Public
 
 InitGPUFrameProfiler :: (profiler : *GPUFrameProfiler, max_events : int) {
     profiler.* = .{};
@@ -29,7 +29,7 @@ InitGPUFrameProfiler :: (profiler : *GPUFrameProfiler, max_events : int) {
 
     profiler.latest_frame = AllocArray(GPUProfilingEvent, max_events);
     profiler.latest_frame.count = 0;
-} @ModuleAPI
+} @Public
 
 DestroyGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     Free(profiler.latest_frame.data);
@@ -45,7 +45,7 @@ DestroyGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     }
 
     profiler.* = .{};
-} @ModuleAPI
+} @Public
 
 ClearGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     Assert(profiler.current_event == null, "Cannot clear GPU frame profiler while profiling is active");
@@ -55,7 +55,7 @@ ClearGPUFrameProfiler :: (profiler : *GPUFrameProfiler) {
     }
 
     profiler.latest_frame.count = 0;
-} @ModuleAPI
+} @Public
 
 ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
     profiler.frame_index += 1;
@@ -100,7 +100,7 @@ ProfilerBeginFrame :: (profiler : *GPUFrameProfiler) {
 
     profiler.num_events_for_frame[GetFrameInFlight()] = 0;
     profiler.current_event = null;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, name : string, location := #caller_location) -> *GPUProfilingEvent {
     if profiler.num_events_for_frame[GetFrameInFlight()] >= profiler.events_for_frame[GetFrameInFlight()].count {
@@ -119,7 +119,7 @@ ProfilerBeginEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfi
     profiler.num_events_for_frame[GetFrameInFlight()] += 1;
 
     return event;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 ProfilerEndEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfiler, event : *GPUProfilingEvent) {
     if !event {
@@ -128,4 +128,4 @@ ProfilerEndEvent :: (cmd_buffer : *GfxCommandBuffer, profiler : *GPUFrameProfile
 
     vkCmdWriteTimestamp(cmd_buffer.cmd_buffer, .BOTTOM_OF_PIPE_BIT, profiler.query_pools[GetFrameInFlight()], xx (event.index * 2 + 1));
     profiler.current_event = event.parent;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

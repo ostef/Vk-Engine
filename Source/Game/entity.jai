@@ -1,6 +1,6 @@
 RandomEntityID :: inline () -> EntityID {
     return xx RandomUUID();
-} @ModuleAPI
+} @Public
 
 EntityIsInHierarchy :: (world : *World, entity : *Entity, of : *Entity) -> bool {
     if !entity {
@@ -31,7 +31,7 @@ EntityIsInHierarchy :: (world : *World, entity : *Entity, of : *Entity) -> bool 
     }
 
     return false;
-} @ModuleAPI
+} @Public
 
 SetEntityName :: inline (using world : *World, entity : *Entity, new_name : string) -> set_same_name : bool {
     LogSectionScope(*Log_Entities);
@@ -96,7 +96,7 @@ SetEntityName :: inline (using world : *World, entity : *Entity, new_name : stri
     }
 
     return number_postfix == -1;
-} @ModuleAPI
+} @Public
 
 GetEntity :: (using world : *World, id : EntityID) -> *Entity, GetEntityError {
     if id == Null_Entity_ID {
@@ -109,7 +109,7 @@ GetEntity :: (using world : *World, id : EntityID) -> *Entity, GetEntityError {
     }
 
     return entity, .Ok;
-} @ModuleAPI
+} @Public
 
 GetEntity :: (using world : *World, index : EntityIndex) -> *Entity, GetEntityError {
     LogSectionScope(*Log_Entities);
@@ -147,7 +147,7 @@ GetEntity :: (using world : *World, index : EntityIndex) -> *Entity, GetEntityEr
     }
 
     return null, .InvalidEntityIndex;
-} @ModuleAPI
+} @Public
 
 AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same_world_transform := true) -> bool {
     LogSectionScope(*Log_Entities);
@@ -198,7 +198,7 @@ AttachEntity :: (using world : *World, entity : *Entity, to : *Entity, keep_same
     LogMessage("Attached entity % to %", entity.id, to.id, flags=.VERBOSE_ONLY);
 
     return true;
-} @ModuleAPI
+} @Public
 
 DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transform := true) -> bool {
     LogSectionScope(*Log_Entities);
@@ -236,7 +236,7 @@ DetachEntity :: (using world : *World, entity : *Entity, keep_same_world_transfo
     LogMessage("Detached entity % from %", entity.id, parent.id, flags=.VERBOSE_ONLY);
 
     return true;
-} @ModuleAPI
+} @Public
 
 // Walk up the hierarchy, applying scale to the world space axes of entity
 GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vec3f {
@@ -293,7 +293,7 @@ GetWorldScale :: (world : *World, entity : *Entity, component : *SpatialComponen
     }
 
     return scale;
-} @ModuleAPI
+} @Public
 
 SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f) {
     local_transform : Mat4f = ---;
@@ -312,7 +312,7 @@ SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f
     entity.local_rotation = QuatfFromMatrix(local_transform);
 
     UpdateWorldTransform(world, entity);
-} @ModuleAPI
+} @Public
 
 UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := true, update_components := true) {
     parent := ifx entity.parent != Null_Entity_ID then GetEntity(world, entity.parent);
@@ -355,7 +355,7 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
             UpdateWorldTransform(world, child, update_components=update_components);
         }
     }
-} @ModuleAPI
+} @Public
 
 SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", id := Null_Entity_ID) -> *Entity {
     entity := CreateEntity(world, type, name, id);
@@ -379,7 +379,7 @@ SpawnEntity :: (using world : *World, type : EntityTypeId, name := "", id := Nul
     }
 
     return entity;
-} @ModuleAPI
+} @Public
 
 CreateEntity :: (using world : *World, type : EntityTypeId, name := "", id := Null_Entity_ID) -> *Entity {
     LogSectionScope(*Log_Entities);
@@ -427,7 +427,7 @@ CreateEntity :: (using world : *World, type : EntityTypeId, name := "", id := Nu
     ExecuteEntityCallback(world, entity, "OnCreate");
 
     return entity;
-} @ModuleAPI
+} @Public
 
 CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : EntityTypeId, attach_to_parent : bool, name := "", id := Null_Entity_ID) -> *Entity {
     entity := CreateEntity(world, type_id, id=id, name=name);
@@ -465,7 +465,7 @@ CreateAndDeserializeEntity :: (using world : *World, text : string, type_id : En
     }
 
     return entity;
-} @ModuleAPI
+} @Public
 
 SerializeEntity :: inline (serializer : *Serializer, entity : *Entity) {
     any : Any = ---;
@@ -484,7 +484,7 @@ SerializeEntity :: inline (serializer : *Serializer, entity : *Entity) {
         any.value_pointer = it;
         SerializeAny(serializer, any);
     }
-} @ModuleAPI
+} @Public
 
 DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) -> DeserializeResult {
     cached_id := entity.id;
@@ -558,7 +558,7 @@ DeserializeEntity :: inline (text : string, world : *World, entity : *Entity) ->
     }
 
     return DeserializeOk(*parser);
-} @ModuleAPI
+} @Public
 
 KillEntity :: (using world : *World, id : EntityID) {
     LogSectionScope(*Log_Entities);
@@ -581,7 +581,7 @@ KillEntity :: (using world : *World, id : EntityID) {
     for :AllEntityComponents entity {
         ExecuteComponentCallback(world, entity, it, "OnKilled");
     }
-} @ModuleAPI
+} @Public
 
 KillEntity :: (using world : *World, index : EntityIndex) {
     LogSectionScope(*Log_Entities);
@@ -605,4 +605,4 @@ KillEntity :: (using world : *World, index : EntityIndex) {
         ExecuteComponentCallback(world, entity, it, "OnKilled");
     }
 
-} @ModuleAPI
+} @Public

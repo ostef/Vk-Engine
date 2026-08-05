@@ -255,16 +255,16 @@ RendererLoop :: () {
 
 AddViewpointToRender :: (viewpoint : ViewpointToRender) {
     ArrayPush(*g_viewpoints_to_render, viewpoint);
-} @ModuleAPI
+} @Public
 
 AddWorldToRender :: (world : WorldToRender) -> int {
     ArrayPush(*g_worlds_to_render, world);
 
     return g_worlds_to_render.count - 1;
-} @ModuleAPI
+} @Public
 
 WaitForRenderThread :: () {
-} @ModuleAPI
+} @Public
 
 SubmitFrameToRenderThread :: () {
 
@@ -277,10 +277,10 @@ SubmitFrameToRenderThread :: () {
     }
 
     RenderFrame();
-} @ModuleAPI
+} @Public
 
 StopRenderThread :: () {
-} @ModuleAPI
+} @Public
 
 DestroyRenderTargets :: () {
     DestroyGfxTexture(*g_final_texture);
@@ -632,7 +632,7 @@ DestroyViewpointRenderTargets :: (render_targets : *ViewpointRenderTargets) {
 
 GetViewpointRenderTargets :: (id : u64) -> *ViewpointRenderTargets {
     return HashMapGet(*g_viewpoint_render_targets, id);
-} @ModuleAPI
+} @Public
 
 CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_params : BloomParams) -> *ViewpointRenderTargets {
     ShouldRecreate :: inline (texture : *GfxTexture, desired_resolution : Vec2u) -> bool {
@@ -791,7 +791,7 @@ CreateViewpointRenderTargets :: (id : u64, desired_resolution : Vec2u, bloom_par
     }
 
     return rt;
-} @ModuleAPI
+} @Public
 
 RenderViewpoint :: (ctx : *RenderContext, viewpoint : *ViewpointToRender) {
     BeginGfxDebugMarker(ctx.cmd_buffer, "RenderViewpoint");

@@ -60,7 +60,7 @@ HandleCompilerMessage :: (msg : *Message) {
 
 HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
     for note : decl.notes {
-        if note.text == "ModuleAPI" {
+        if note.text == "Public" {
             AddModuleAPIProcedure(workspace, decl);
         }
         if note.text == "BindingSet" {

@@ -50,48 +50,48 @@ HandleInputEvent :: (using event : SDL_Event) {
 
 GetMouseWheel :: inline () -> Vec2f {
     return g_mouse_wheel;
-} @ModuleAPI
+} @Public
 
 GetRawMouseDelta :: inline () -> Vec2f {
     return g_raw_mouse_delta;
-} @ModuleAPI
+} @Public
 
 GetKeyAxisValue :: inline (negative : KeyCode, positive : KeyCode) -> float {
     return cast(float, IsKeyDown(positive))
         - cast(float, IsKeyDown(negative));
-} @ModuleAPI
+} @Public
 
 WasKeyDown :: inline (key : KeyCode) -> bool {
     return g_prev_keyboard_state[key];
-} @ModuleAPI
+} @Public
 
 IsKeyDown :: inline (key : KeyCode) -> bool {
     return g_keyboard_state[key];
-} @ModuleAPI
+} @Public
 
 IsKeyPressed :: inline (key : KeyCode) -> bool {
     return !WasKeyDown(key) && IsKeyDown(key);
-} @ModuleAPI
+} @Public
 
 IsKeyReleased :: inline (key : KeyCode) -> bool {
     return WasKeyDown(key) && !IsKeyDown(key);
-} @ModuleAPI
+} @Public
 
 WasMouseButtonDown :: inline (button : MouseButton) -> bool {
     return g_prev_mouse_buttons_state[button];
-} @ModuleAPI
+} @Public
 
 IsMouseButtonDown :: inline (button : MouseButton) -> bool {
     return g_mouse_buttons_state[button];
-} @ModuleAPI
+} @Public
 
 IsMouseButtonPressed :: inline (button : MouseButton) -> bool {
     return !WasMouseButtonDown(button) && IsMouseButtonDown(button);
-} @ModuleAPI
+} @Public
 
 IsMouseButtonReleased :: inline (button : MouseButton) -> bool {
     return WasMouseButtonDown(button) && !IsMouseButtonDown(button);
-} @ModuleAPI
+} @Public
 
 GetModState :: inline () -> KeyMods {
     result : KeyMods;
@@ -110,7 +110,7 @@ GetModState :: inline () -> KeyMods {
     }
 
     return result;
-} @ModuleAPI
+} @Public
 
 GetMousePointPosition :: (window : *SDL_Window) -> x : s32, y : s32 {
     x, y : s32;
@@ -120,38 +120,38 @@ GetMousePointPosition :: (window : *SDL_Window) -> x : s32, y : s32 {
     SDL_GetWindowPosition(window, *win_x, *win_y);
 
     return x - win_x, y - win_y;
-} @ModuleAPI
+} @Public
 
 GetMousePixelPosition :: (window : *SDL_Window) -> x : s32, y : s32 {
     x, y := GetMousePointPosition(window);
     scale_factor := GetWindowScaleFactor(window);
 
     return xx (x * scale_factor), xx (y * scale_factor);
-} @ModuleAPI
+} @Public
 
 GetMousePointPositionVector :: (window : *SDL_Window) -> Vec2f {
     x, y := GetMousePointPosition(window);
     return .{xx x, xx y};
-} @ModuleAPI
+} @Public
 
 GetMousePixelPositionVector :: (window : *SDL_Window) -> Vec2f {
     x, y := GetMousePixelPosition(window);
     return .{xx x, xx y};
-} @ModuleAPI
+} @Public
 
 GetWindowPointSize :: (window : *SDL_Window) -> width : s32, height : s32 {
     w, h : s32;
     SDL_GetWindowSize(window, *w, *h);
 
     return w, h;
-} @ModuleAPI
+} @Public
 
 GetWindowPixelSize :: (window : *SDL_Window) -> width : s32, height : s32 {
     w, h : s32;
     SDL_GetWindowSizeInPixels(window, *w, *h);
 
     return w, h;
-} @ModuleAPI
+} @Public
 
 GetWindowScaleFactor :: (window : *SDL_Window) -> float {
     #if #exists(Window_Scale_Factor_Override) {
@@ -162,4 +162,4 @@ GetWindowScaleFactor :: (window : *SDL_Window) -> float {
 
         return w_px / cast(float, w);
     }
-} @ModuleAPI
+} @Public

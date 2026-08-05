@@ -1,5 +1,3 @@
-#import "Vulkan";
-
 #load "initialization.jai";
 #load "buffer.jai";
 #load "texture.jai";
@@ -21,19 +19,19 @@ g_vk_alloc_callbacks : *VkAllocationCallbacks;
 
 GetVkAllocationCallbacks :: inline () -> *VkAllocationCallbacks {
     return g_vk_alloc_callbacks;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 GetFrameInFlight :: inline () -> int {
     return g_gfx_context.frame_in_flight;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 GetGfxLimits :: inline () -> GfxLimits {
     return g_gfx_context.limits;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 GetGfxFrameStatistics :: () -> GfxFrameStatistics {
     return g_gfx_context.last_frame_statistics;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BeginGfxFrame :: () {
     ctx := *g_gfx_context;
@@ -83,7 +81,7 @@ BeginGfxFrame :: () {
     CollectGarbage(*ctx.texture_collectors[ctx.frame_in_flight]);
     CollectGarbage(*ctx.sampler_collectors[ctx.frame_in_flight]);
     CollectGarbage(*ctx.buffer_collectors[ctx.frame_in_flight]);
-} @ModuleAPI
+} @Public
 
 SubmitGfxFrame :: () {
     ctx := *g_gfx_context;
@@ -115,11 +113,11 @@ SubmitGfxFrame :: () {
     } else {
         Assert(present_result == .SUCCESS, "Failed to present swapchain image");
     }
-} @ModuleAPI
+} @Public
 
 WaitForGPUIdle :: () {
     vkDeviceWaitIdle(g_gfx_context.device);
-} @ModuleAPI @Profile
+} @Public @Profile
 
 CreateGfxCommandPool :: (name : string) -> GfxCommandPool {
     ctx := *g_gfx_context;
@@ -144,7 +142,7 @@ DestroyGfxCommandPool :: (pool : *GfxCommandPool) {
     Free(pool.name.data);
     vkDestroyCommandPool(g_gfx_context.device, pool.pool, g_vk_alloc_callbacks);
     pool.* = .{};
-} @ModuleAPI
+} @Public
 
 ResetGfxCommandPool :: (pool : *GfxCommandPool) {
     for pool.used_cmd_buffers {
@@ -154,7 +152,7 @@ ResetGfxCommandPool :: (pool : *GfxCommandPool) {
     ArrayClear(*pool.used_cmd_buffers);
 
     vkResetCommandPool(g_gfx_context.device, pool.pool, 0);
-} @ModuleAPI
+} @Public
 
 CreateGfxCommandBuffer :: (name : string) -> GfxCommandBuffer {
     ctx := *g_gfx_context;
@@ -195,14 +193,14 @@ CreateGfxCommandBuffer :: (name : string) -> GfxCommandBuffer {
     ArrayPush(*pool.used_cmd_buffers, result);
 
     return result;
-} @ModuleAPI
+} @Public
 
 SubmitGfxCommandBuffer :: (cmd_buffer : *GfxCommandBuffer) {
     ctx := *g_gfx_context;
 
     vkEndCommandBuffer(cmd_buffer.cmd_buffer);
     ArrayPush(*ctx.command_buffers_to_submit, cmd_buffer.cmd_buffer);
-} @ModuleAPI
+} @Public
 
 // @Todo: integrate libshaderc instead of launching a child process
 LoadGfxShader :: (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader {
@@ -306,12 +304,12 @@ LoadGfxShader :: (name : string, extra_compiler_args : []string = .[], dependenc
     SetDebugName(module, TPrint("Shader '%'", name));
 
     return .{module=module};
-} @ModuleAPI
+} @Public
 
 DestroyGfxShader :: (shader : *GfxShader) {
     vkDestroyShaderModule(g_gfx_context.device, shader.module, g_vk_alloc_callbacks);
     shader.* = .{};
-} @ModuleAPI
+} @Public
 
 BeginGfxDebugMarker :: (cmd_buffer : *GfxCommandBuffer, name : string) {
     LogSectionScope(*Log_Vulkan);
@@ -323,7 +321,7 @@ BeginGfxDebugMarker :: (cmd_buffer : *GfxCommandBuffer, name : string) {
     label : VkDebugUtilsLabelEXT;
     label.pLabelName = CStringClone(name ,, Temp);
     g_gfx_context.vkCmdBeginDebugUtilsLabelEXT(cmd_buffer.cmd_buffer, *label);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 EndGfxDebugMarker :: (cmd_buffer : *GfxCommandBuffer) {
     LogSectionScope(*Log_Vulkan);
@@ -333,7 +331,7 @@ EndGfxDebugMarker :: (cmd_buffer : *GfxCommandBuffer) {
     }
 
     g_gfx_context.vkCmdEndDebugUtilsLabelEXT(cmd_buffer.cmd_buffer);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BeginGfxDebugMarker :: (name : string) {
     LogSectionScope(*Log_Vulkan);
@@ -345,7 +343,7 @@ BeginGfxDebugMarker :: (name : string) {
     label : VkDebugUtilsLabelEXT;
     label.pLabelName = CStringClone(name ,, Temp);
     g_gfx_context.vkQueueBeginDebugUtilsLabelEXT(g_gfx_context.general_purpose_queue, *label);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 EndGfxDebugMarker :: () {
     LogSectionScope(*Log_Vulkan);
@@ -355,7 +353,7 @@ EndGfxDebugMarker :: () {
     }
 
     g_gfx_context.vkQueueEndDebugUtilsLabelEXT(g_gfx_context.general_purpose_queue);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 SetDebugName :: (obj : $T, name : string) {
     ctx := *g_gfx_context;

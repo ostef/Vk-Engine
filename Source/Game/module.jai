@@ -19,15 +19,15 @@
 #import "File";
 #import "File_Utilities";
 
-#load "API/world.jai";
-#load "API/entity.jai";
-#load "API/component.jai";
-#load "API/graphics.jai";
-#load "API/physics.jai";
-#load "API/misc.jai";
+#load "world.public.jai";
+#load "entity.public.jai";
+#load "component.public.jai";
+#load "graphics.public.jai";
+#load "physics.public.jai";
+#load "misc.public.jai";
 
 #if Import_Mode == .Foreign {
-    #load "module_api.jai";
+    #load "module_api.public.jai";
 } else {
     #load "main.jai";
 }

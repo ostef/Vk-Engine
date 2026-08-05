@@ -1,4 +1,4 @@
-#load "gfx_vulkan.jai";
+#load "Vulkan/vulkan.public.jai";
 
 Gfx_Max_Color_Attachments :: 8;
 Gfx_Num_Frames_In_Flight :: 2;

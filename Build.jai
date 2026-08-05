@@ -214,16 +214,13 @@ ShouldBuildModule :: ($module : ModuleID) -> bool {
 
     dependencies := #insert #run TPrint("%Module.Module_Dependencies;", module);
     for dependencies {
-        dirs := ListDirectories(TPrint("Source/%", it), recursive=true);
-        for dir : dirs {
-            if path_filename(dir) == "API" && CompareFileTimes(lib_file, dir) {
+        files := file_list(TPrint("Source/%", it), recursive=true);
+        for filename : files {
+            if StringEndsWith(path_basename(filename), ".public") && CompareFileTimes(lib_file, filename) {
                 return true;
             }
         }
 
-        if CompareFileTimes(lib_file, TPrint("Source/%/module_api.jai", it)) {
-            return true;
-        }
         if CompareFileTimes(lib_file, TPrint("Source/%/module.jai", it)) {
             return true;
         }

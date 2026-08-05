@@ -1,4 +1,5 @@
 #import "File";
+#import "File_Utilities";
 
 APIProcedure :: struct {
     overload_index : int;
@@ -550,7 +551,7 @@ GenerateModuleAPICode :: (workspace : Workspace, target : *Message, name : strin
 
         header := cast(*Code_Procedure_Header, it.decl.expression);
 
-        Appendln(*builder, "    Assert(g_%1 != null, \"%1 module is null\");", name);
+        // Appendln(*builder, "    Assert(g_%1 != null, \"%1 module is null\");", name);
 
         if header.returns.count == 0 {
             Append (*builder, "    ");
@@ -635,9 +636,12 @@ WriteModuleAPIFile :: (workspace : Workspace, target : *Message, name : string, 
         result = SPrint("// This file was auto-generated. Do not modify it\n\n%\n%", module_api_code, module_foreign_wrappers_code);
     }
 
-    filename := TPrint("Source/%/module_api.jai", name);
-    current_contents := read_entire_file(filename);
-    // @Speed
+    filename := TPrint("Source/%/module_api.public.jai", name);
+    current_contents : string;
+    if file_exists(filename) {
+        current_contents = read_entire_file(filename);
+    }
+
     // Avoid writing the file if the result ends up being the same, so we
     // don't rebuild depending modules unnecessarily
     if result != current_contents {

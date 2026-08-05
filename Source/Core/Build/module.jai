@@ -55,7 +55,7 @@ HandleDeclaration :: (workspace : Workspace, decl : *Code_Declaration) {
         if note.text == "ModuleContext" {
             SetContextType(workspace, decl);
         }
-        if note.text == "ModuleAPI" {
+        if note.text == "Public" {
             AddModuleAPIProcedure(workspace, decl);
         }
 

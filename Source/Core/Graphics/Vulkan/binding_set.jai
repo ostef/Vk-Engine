@@ -32,7 +32,7 @@ CreateGfxBindingSetLayout :: (name : string, desc : GfxBindingSetLayoutDesc) -> 
     copied_desc.bindings = ArrayClone(desc.bindings);
 
     return .{layout=layout, name=StringClone(name), desc=copied_desc};
-} @ModuleAPI
+} @Public
 
 DestroyGfxBindingSetLayout :: (layout : *GfxBindingSetLayout) {
     LogSectionScope(*Log_Vulkan);
@@ -41,7 +41,7 @@ DestroyGfxBindingSetLayout :: (layout : *GfxBindingSetLayout) {
     Free(layout.desc.bindings.data);
     vkDestroyDescriptorSetLayout(g_gfx_context.device, layout.layout, g_vk_alloc_callbacks);
     layout.* = .{};
-} @ModuleAPI
+} @Public
 
 CreateGfxBindingPool :: (name : string, desc : GfxBindingPoolDesc) -> GfxBindingPool {
     pool_sizes : [..]VkDescriptorPoolSize;
@@ -79,16 +79,16 @@ CreateGfxBindingPool :: (name : string, desc : GfxBindingPoolDesc) -> GfxBinding
     SetDebugName(pool, TPrint("Descriptor Pool '%'", name));
 
     return .{pool=pool};
-} @ModuleAPI
+} @Public
 
 DestroyGfxBindingPool :: (pool : *GfxBindingPool) {
     vkDestroyDescriptorPool(g_gfx_context.device, pool.pool, g_vk_alloc_callbacks);
     pool.* = .{};
-} @ModuleAPI
+} @Public
 
 ResetGfxBindingPool :: (pool : *GfxBindingPool) {
     vkResetDescriptorPool(g_gfx_context.device, pool.pool, 0);
-} @ModuleAPI
+} @Public
 
 AllocGfxBindingSet :: (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) -> GfxBindingSet, GfxBindingPoolAllocResult {
     info : VkDescriptorSetAllocateInfo;
@@ -103,4 +103,4 @@ AllocGfxBindingSet :: (pool : *GfxBindingPool, layout : *GfxBindingSetLayout) ->
     }
 
     return .{set=set}, .Success;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

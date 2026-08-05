@@ -5,7 +5,7 @@ g_assets : Assets;
 
 GetAssets :: () -> *Assets {
     return *g_assets;
-} @ModuleAPI
+} @Public
 
 InitAssets :: () {
     InitAssetCache(
@@ -76,11 +76,11 @@ RegisterDataDirectoryChangeCallback :: (proc : type_of(DataDirectoryChangeCallba
     cb.proc = proc;
 
     return g_data_directory_change_callbacks.count - 1;
-} @ModuleAPI
+} @Public
 
 UnregisterDataDirectoryChangeCallback :: (index : int) {
     ArrayOrderedRemove(*g_data_directory_change_callbacks, index);
-} @ModuleAPI
+} @Public
 
 ProcessDataDirectoryChanges :: () {
     process_changes(*g_data_directory_watcher);
@@ -93,7 +93,7 @@ GetDataDirectoryAbsolutePath :: () -> string {
     }
 
     return g_data_directory_absolute_path;
-} @ModuleAPI
+} @Public
 
 InitAssetCache :: (
     cache : *$T/AssetCache,
@@ -254,7 +254,7 @@ DeferNextAssetLoadsForAllCaches :: () {
 
         return StringBuilderBuild(*builder);
     }
-} @ModuleAPI
+} @Public
 
 LoadAssetWorkerData :: struct ($T : Type) {
     elapsed_time : Basic.Apollo_Time;
@@ -305,7 +305,7 @@ LoadPendingAssets :: () {
 
         return StringBuilderBuild(*builder);
     }
-} @ModuleAPI
+} @Public
 
 LoadPendingAssetsSynchronously :: (using cache : *AssetCache) {
     LogSectionScope(*log_section);

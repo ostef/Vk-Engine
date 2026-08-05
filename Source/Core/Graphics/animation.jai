@@ -29,7 +29,7 @@ GetJointNamesArray :: inline (using anim : *ArmatureAnimation) -> [][Max_Armatur
     result.data = memory_block + size_of(JointSample) * joint_count * pose_count;
 
     return result;
-} @ModuleAPI
+} @Public
 
 GetJointName :: inline (anim : *ArmatureAnimation, joint_id : s16) -> string {
     Assert(joint_id >= 0 && joint_id < anim.joint_count, "Invalid joint id %", joint_id);
@@ -37,14 +37,14 @@ GetJointName :: inline (anim : *ArmatureAnimation, joint_id : s16) -> string {
     names_data := cast(*[Max_Armature_Joint_Name_Length]u8) (anim.memory_block + size_of(JointSample) * anim.joint_count * anim.pose_count);
 
     return MakeString(names_data[joint_id].data);
-} @ModuleAPI
+} @Public
 
 GetJointSample :: inline (using anim : *ArmatureAnimation, joint_id : s16, pose_index : int) -> *JointSample {
     Assert(joint_id >= 0 && joint_id < joint_count, "Invalid joint id %", joint_id);
     Assert(pose_index >= 0 && pose_index < pose_count, "Pose index % out of bounds %", pose_index, pose_count);
 
     return *joint_samples[pose_index * joint_count + joint_id];
-} @ModuleAPI
+} @Public
 
 LoadArmatureAnimationFromMemory :: (anim : *ArmatureAnimation, data : []u8, name : string) -> bool {
     reader := MakeBinaryReader(data);
@@ -150,14 +150,14 @@ InitArmaturePose :: (pose : *ArmaturePose, mesh : *Asset(SkinnedMesh)) {
     }
 
     ResetToBindPose(pose);
-} @ModuleAPI
+} @Public
 
 FreeArmaturePose :: inline (using pose : *ArmaturePose) {
     RemoveRef(mesh);
     Free(memory_block);
 
     Initialize(pose);
-} @ModuleAPI
+} @Public
 
 ResetToBindPose :: (using pose : *ArmaturePose) {
     for * joints {
@@ -166,7 +166,7 @@ ResetToBindPose :: (using pose : *ArmaturePose) {
         it.local_orientation = bind_joint.local_bind_orientation;
         it.local_scale = bind_joint.local_bind_scale;
     }
-} @ModuleAPI
+} @Public
 
 InterpolateJointSamples :: inline (
     a : JointSample,
@@ -179,7 +179,7 @@ InterpolateJointSamples :: inline (
     result.local_scale = Lerp(a.local_scale, b.local_scale, t);
 
     return result;
-} @ModuleAPI
+} @Public
 
 SampleAnimation :: (
     anim : *ArmatureAnimation,
@@ -205,7 +205,7 @@ SampleAnimation :: (
             Clamp(pose_index - first_pose_index, 0, 1)
         );
     }
-} @ModuleAPI
+} @Public
 
 CalculatePoseTransforms :: (using pose : *ArmaturePose) {
     for * joints {
@@ -217,7 +217,7 @@ CalculatePoseTransforms :: (using pose : *ArmaturePose) {
             it.model_space_transform = local_transform;
         }
     }
-} @ModuleAPI
+} @Public
 
 CalculateSkinningMatrices :: (pose : *ArmaturePose, matrices : *[]Mat4f) {
     if matrices.count != pose.joints.count {
@@ -228,7 +228,7 @@ CalculateSkinningMatrices :: (pose : *ArmaturePose, matrices : *[]Mat4f) {
     for * matrices.* {
         it.* = pose.joints[it_index].model_space_transform * pose.mesh.joints[it_index].inverse_bind_transform;
     }
-} @ModuleAPI
+} @Public
 
 CopyPose :: (dest : *ArmaturePose, src : *ArmaturePose) {
     Assert(dest.mesh == src.mesh, "Armatures do not match");
@@ -236,7 +236,7 @@ CopyPose :: (dest : *ArmaturePose, src : *ArmaturePose) {
     for * dest.joints {
         it.sample = src.joints[it_index].sample;
     }
-} @ModuleAPI
+} @Public
 
 BlendPoses :: (dest : *ArmaturePose, a : *ArmaturePose, b : *ArmaturePose, t : float) {
     Assert(dest.mesh == a.mesh, "Armatures do not match");
@@ -245,7 +245,7 @@ BlendPoses :: (dest : *ArmaturePose, a : *ArmaturePose, b : *ArmaturePose, t : f
     for i : 0..dest.joints.count - 1 {
         dest.joints[i].sample = InterpolateJointSamples(a.joints[i], b.joints[i], t);
     }
-} @ModuleAPI
+} @Public
 
 AddPoses :: (dest : *ArmaturePose, other : *ArmaturePose, weight := 1.0) {
     Assert(dest.mesh == other.mesh);
@@ -255,7 +255,7 @@ AddPoses :: (dest : *ArmaturePose, other : *ArmaturePose, weight := 1.0) {
         it.local_orientation *= NLerp(Quatf.{}, other.joints[it_index].local_orientation, weight);
         it.local_scale += other.joints[it_index].local_scale * weight;
     }
-} @ModuleAPI
+} @Public
 
 SubtractPoses :: (dest : *ArmaturePose, other : *ArmaturePose, weight := 1.0) {
     Assert(dest.mesh == other.mesh);
@@ -266,4 +266,4 @@ SubtractPoses :: (dest : *ArmaturePose, other : *ArmaturePose, weight := 1.0) {
         it.local_orientation = Inverse(weighted_orientation) * it.local_orientation;
         it.local_scale -= other.joints[it_index].local_scale * weight;
     }
-} @ModuleAPI
+} @Public

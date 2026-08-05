@@ -73,23 +73,23 @@ g_cpu_profiler : CPUFrameProfiler;
 
 GetModule :: (id : ModuleID) -> *Module {
     return g_modules[id];
-} @ModuleAPI
+} @Public
 
 GetWindow :: () -> *SDL_Window {
     return g_window;
-} @ModuleAPI
+} @Public
 
 GetGfxContext :: () -> *GfxContext {
     return *g_gfx_context;
-} @ModuleAPI
+} @Public
 
 GetCPUFrameProfiler :: () -> *CPUFrameProfiler {
     return *g_cpu_profiler;
-} @ModuleAPI
+} @Public
 
 Quit :: () {
     g_quit = true;
-} @ModuleAPI
+} @Public
 
 #scope_file
 
@@ -100,11 +100,11 @@ g_default_num_worker_threads : s32;
 
 GetNumCPUs :: inline () -> s32 {
     return g_num_cpus;
-} @ModuleAPI
+} @Public
 
 GetDefaultNumWorkerThreads :: inline () -> s32 {
     return g_default_num_worker_threads;
-} @ModuleAPI
+} @Public
 
 InitializeCore :: (global_init : bool) {
     context.print_style.struct_printer = CoreStructPrinter;
@@ -154,11 +154,11 @@ g_last_frame_time : float = 1 / 60.0;
 
 GetFrameTimes :: inline () -> min : float, max : float, avg : float {
     return g_min_frame_time, g_max_frame_time, g_avg_frame_time;
-} @ModuleAPI
+} @Public
 
 GetDeltaTime :: inline () -> float {
     return g_last_frame_time;
-} @ModuleAPI
+} @Public
 
 UpdateFrameTimes :: () {
     if g_last_frame_start_time != .{} {

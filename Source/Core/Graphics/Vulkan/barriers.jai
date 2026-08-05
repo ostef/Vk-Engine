@@ -14,11 +14,11 @@ AddBarrier :: (
     );
 
     g_gfx_context.frame_statistics.num_execution_barriers += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 AddBarrier :: inline (cmd_buffer : *GfxCommandBuffer) {
     AddBarrier(cmd_buffer, .AllCommands, .AllCommands);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 AddMemoryBarrier :: (
     cmd_buffer : *GfxCommandBuffer,
@@ -41,7 +41,7 @@ AddMemoryBarrier :: (
     );
 
     g_gfx_context.frame_statistics.num_memory_barriers += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 AddTextureBarrier :: (
     cmd_buffer : *GfxCommandBuffer,
@@ -72,7 +72,7 @@ AddTextureBarrier :: (
     );
 
     g_gfx_context.frame_statistics.num_texture_barriers += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 AddTextureBarrier :: (
     cmd_buffer : *GfxCommandBuffer,
@@ -85,7 +85,7 @@ AddTextureBarrier :: (
         new_layout,
         texture
     );
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 AddTextureBarriers :: (
     cmd_buffer : *GfxCommandBuffer,
@@ -118,4 +118,4 @@ AddTextureBarriers :: (
     );
 
     g_gfx_context.frame_statistics.num_texture_barriers += barriers.count;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

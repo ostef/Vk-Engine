@@ -2,24 +2,24 @@ ProjectPointOnLine :: inline (point : Vec3f, line_origin : Vec3f, line_dir : Vec
     t := Dot(point - line_origin, line_dir) / Dot(line_dir, line_dir);
 
     return line_origin + t * line_dir, t;
-} @ModuleAPI
+} @Public
 
 ProjectPointOnRay :: inline (point : Vec3f, ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float) -> Vec3f, t : float {
     t := Dot(point - ray_origin, ray_dir) / Dot(ray_dir, ray_dir);
     t = Clamp(t, 0, ray_length);
 
     return ray_origin + t * ray_dir, t;
-} @ModuleAPI
+} @Public
 
 ProjectPointOnPlane :: inline (point : Vec3f, plane_origin : Vec3f, plane_normal : Vec3f) -> Vec3f {
     dist := Dot(point - plane_origin, plane_normal);
 
     return point - dist * plane_normal;
-} @ModuleAPI
+} @Public
 
 ProjectPointOnSphere :: inline (point : Vec3f, sphere_center : Vec3f, sphere_radius : float) -> Vec3f {
     return sphere_center + Normalized(point - sphere_center) * sphere_radius;
-} @ModuleAPI
+} @Public
 
 ProjectPointOnCapsule :: (point : Vec3f, capsule_base : Vec3f, capsule_tip : Vec3f, capsule_radius : float) -> Vec3f {
     capsule_up, capsule_height := Normalized(capsule_tip - capsule_base);
@@ -27,7 +27,7 @@ ProjectPointOnCapsule :: (point : Vec3f, capsule_base : Vec3f, capsule_tip : Vec
     closest += Normalized(point - closest) * capsule_radius;
 
     return closest;
-} @ModuleAPI
+} @Public
 
 PointIsInsideBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents : Vec3f) -> bool {
     return
@@ -37,7 +37,7 @@ PointIsInsideBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents 
         point.y <= box_center.y + box_half_extents.y &&
         point.z >= box_center.z - box_half_extents.z &&
         point.z <= box_center.z + box_half_extents.z;
-} @ModuleAPI
+} @Public
 
 GetPointPenetrationInBox :: (point_inside_box : Vec3f, box_center : Vec3f, box_half_extents : Vec3f) -> Vec3f {
     min := -box_half_extents;
@@ -85,7 +85,7 @@ GetPointPenetrationInBox :: (point_inside_box : Vec3f, box_center : Vec3f, box_h
     }
 
     return result;
-} @ModuleAPI
+} @Public
 
 ProjectPointOnBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents : Vec3f) -> Vec3f {
     if PointIsInsideBox(point, box_center, box_half_extents) {
@@ -93,7 +93,7 @@ ProjectPointOnBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents
     }
 
     return Clamp(point, box_center - box_half_extents, box_center + box_half_extents);
-} @ModuleAPI
+} @Public
 
 ProjectPointOnBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents : Vec3f, orientation : Quatf) -> Vec3f {
     p := Rotate(point - box_center, Conjugate(orientation));
@@ -101,7 +101,7 @@ ProjectPointOnBox :: inline (point : Vec3f, box_center : Vec3f, box_half_extents
     p = box_center + Rotate(p, orientation);
 
     return p;
-} @ModuleAPI
+} @Public
 
 PointIsOnTriangle :: (point : Vec3f, triangle_A : Vec3f, triangle_B : Vec3f, triangle_C : Vec3f, epsilon := 0.00001) -> bool
 {
@@ -118,7 +118,7 @@ PointIsOnTriangle :: (point : Vec3f, triangle_A : Vec3f, triangle_B : Vec3f, tri
 
     // The point is on the triangle if the normals vectors lie in the same hemisphere (dot product).
     return Dot(u, v) >= 0 && Dot(u, w) >= 0;
-} @ModuleAPI
+} @Public
 
 RayIntersectsPlane :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, plane_origin : Vec3f, plane_normal : Vec3f) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     denom := Dot(plane_normal, ray_dir);
@@ -135,7 +135,7 @@ RayIntersectsPlane :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, 
     }
 
     return false, .{}, 0, .{};
-} @ModuleAPI
+} @Public
 
 RayIntersectsSphere :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, sphere_center : Vec3f, sphere_radius : float) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     sq_r := sphere_radius * sphere_radius;
@@ -165,7 +165,7 @@ RayIntersectsSphere :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float,
     }
 
     return false, .{}, 0, .{};
-} @ModuleAPI
+} @Public
 
 RayIntersectsCapsule :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, capsule_base : Vec3f, capsule_tip : Vec3f, capsule_radius : float) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     capsule_up := Normalized(capsule_tip - capsule_base);
@@ -236,7 +236,7 @@ RayIntersectsCapsule :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float
     normal := Normalized(point - point_on_capsule);
 
     return true, point, t, normal;
-} @ModuleAPI
+} @Public
 
 RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, box_center : Vec3f, box_half_extents : Vec3f) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     inv_dir := Vec3f.{1 / ray_dir.x, 1 / ray_dir.y, 1 / ray_dir.z};
@@ -269,7 +269,7 @@ RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, bo
     };
 
     return true, point, t, normal;
-} @ModuleAPI
+} @Public
 
 RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, box_center : Vec3f, box_half_extents : Vec3f, orientation : Quatf) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     box_ray_origin := Rotate(ray_origin - box_center, Conjugate(orientation));
@@ -284,7 +284,7 @@ RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, bo
     normal = Rotate(normal, orientation);
 
     return intersects, point, dist, normal;
-} @ModuleAPI
+} @Public
 
 RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, half_extents : Vec3f, transform : Mat4f) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f {
     inv_transform := Inverse(transform);
@@ -301,7 +301,7 @@ RayIntersectsBox :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, ha
     dist = Distance(point, ray_origin);
 
     return dist < ray_length, point, dist, normal;
-} @ModuleAPI
+} @Public
 
 // Möller–Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
@@ -343,13 +343,13 @@ RayIntersectsTriangle :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : floa
     }
 
     return false, .{}, 0, .{};
-} @ModuleAPI
+} @Public
 
 GetBoxSplittingPlanes :: (center : Vec3f) -> x : Plane, y : Plane, z : Plane {
     return .{origin=center, normal=.{1,0,0}},
            .{origin=center, normal=.{0,1,0}},
            .{origin=center, normal=.{0,0,1}};
-} @ModuleAPI
+} @Public
 
 // https://www.researchgate.net/publication/2611491_A_Fast_Voxel_Traversal_Algorithm_for_Ray_Tracing
 // https://daeken.svbtle.com/a-stupidly-simple-fast-octree-traversal-for-ray-intersection
@@ -495,14 +495,14 @@ RayIntersectsOctreeMesh :: (
     }
 
     return false, .{}, .{}, -1, -1;
-} @ModuleAPI
+} @Public
 
 RayIntersectsMesh :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, mesh : *StaticMesh, transform : Mat4f) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f, triangle_index : int {
     inv_transform := Inverse(transform);
     intersects, point, dist, normal, triangle_index := RayIntersectsMesh(ray_origin, ray_dir, ray_length, mesh, transform, inv_transform);
 
     return intersects, point, dist, normal, triangle_index;
-} @ModuleAPI
+} @Public
 
 RayIntersectsMesh :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, mesh : *StaticMesh, transform : Mat4f, inv_transform : Mat4f) -> intersects : bool, point : Vec3f, dist : float, normal : Vec3f, triangle_index : int {
     model_space_ray_origin := TransformPoint(inv_transform, ray_origin);
@@ -527,7 +527,7 @@ RayIntersectsMesh :: (ray_origin : Vec3f, ray_dir : Vec3f, ray_length : float, m
     dist := Distance(point, ray_origin);
 
     return dist < ray_length, point, dist, normal, triangle_index;
-} @ModuleAPI
+} @Public
 
 // Triangle-box intersection using the separating axis theorem
 // https://gdbooks.gitbooks.io/3dcollisions/content/Chapter4/aabb-triangle.html
@@ -617,4 +617,4 @@ TriangleIntersectsBox :: (
     }
 
     return true;
-} @ModuleAPI
+} @Public

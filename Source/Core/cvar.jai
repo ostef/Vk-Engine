@@ -93,44 +93,44 @@ SetCVar :: (name : string, value : $T) {
 GetCVarUInt :: (name : string, default : u32 = 0) -> u32, exists : bool {
     value, exists := GetCVar(name, u32, default);
     return value, exists;
-} @ModuleAPI
+} @Public
 
 GetCVarInt :: (name : string, default : s32 = 0) -> s32, exists : bool {
     value, exists := GetCVar(name, s32, default);
     return value, exists;
-} @ModuleAPI
+} @Public
 
 GetCVarFloat :: (name : string, default := 0.0) -> float, exists : bool {
     value, exists := GetCVar(name, float, default);
     return value, exists;
-} @ModuleAPI
+} @Public
 
 GetCVarBool :: (name : string, default := false) -> bool, exists : bool {
     value, exists := GetCVar(name, bool, default);
     return value, exists;
-} @ModuleAPI
+} @Public
 
 GetCVarString :: (name : string, default := "") -> string, exists : bool {
     value, exists := GetCVar(name, string, default);
     return value, exists;
-} @ModuleAPI
+} @Public
 
 SetCVarUInt :: (name : string, value : u32) {
     SetCVar(name, value);
-} @ModuleAPI
+} @Public
 
 SetCVarInt :: (name : string, value : s32) {
     SetCVar(name, value);
-} @ModuleAPI
+} @Public
 
 SetCVarFloat :: (name : string, value : float) {
     SetCVar(name, value);
-} @ModuleAPI
+} @Public
 
 SetCVarBool :: (name : string, value : bool) {
     SetCVar(name, value);
-} @ModuleAPI
+} @Public
 
 SetCVarString :: (name : string, value : string) {
     SetCVar(name, value);
-} @ModuleAPI
+} @Public

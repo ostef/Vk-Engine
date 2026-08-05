@@ -45,7 +45,7 @@ CreateGfxBuffer :: (name : string, desc : GfxBufferDesc) -> GfxBuffer {
     SetDebugName(buffer, TPrint("Buffer '%'", name));
 
     return .{buffer=buffer, allocation=allocation, name=StringClone(name), desc=desc};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 DestroyGfxBuffer :: (buffer : *GfxBuffer) {
     LogSectionScope(*Log_Vulkan);
@@ -53,13 +53,13 @@ DestroyGfxBuffer :: (buffer : *GfxBuffer) {
     Free(buffer.name.data);
     vmaDestroyBuffer(g_gfx_context.allocator, buffer.buffer, buffer.allocation);
     buffer.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 QueueDestroyGfxBuffer :: (buffer : *GfxBuffer) {
     collector := *g_gfx_context.buffer_collectors[g_gfx_context.frame_in_flight];
     AddGarbage(collector, buffer);
     buffer.* = .{};
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 GetMappedPtr :: (buffer : *GfxBuffer) -> *void {
     if IsNull(buffer) {
@@ -70,4 +70,4 @@ GetMappedPtr :: (buffer : *GfxBuffer) -> *void {
     vmaGetAllocationInfo(GetGfxContext().allocator, buffer.allocation, *alloc_info);
 
     return alloc_info.pMappedData;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

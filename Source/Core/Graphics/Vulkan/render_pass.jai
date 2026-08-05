@@ -82,7 +82,7 @@ BeginGfxRenderPass :: (cmd_buffer : *GfxCommandBuffer, name : string, desc : Gfx
     g_gfx_context.frame_statistics.num_render_passes += 1;
 
     return .{cmd_buffer=cmd_buffer, profiling_event=profiling_event, name=name, desc=desc};
-} @ModuleAPI
+} @Public
 
 EndGfxRenderPass :: (pass : *GfxRenderPass) {
     LogSectionScope(*Log_Vulkan);
@@ -92,7 +92,7 @@ EndGfxRenderPass :: (pass : *GfxRenderPass) {
     EndGfxDebugMarker(pass.cmd_buffer);
 
     AddBarrier(pass.cmd_buffer);
-} @ModuleAPI
+} @Public
 
 BindGraphicsPipeline :: (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline) {
     if pass.current_pipeline == pipeline {
@@ -103,46 +103,46 @@ BindGraphicsPipeline :: (pass : *GfxRenderPass, pipeline : *GfxGraphicsPipeline)
     vkCmdBindPipeline(pass.cmd_buffer.cmd_buffer, .GRAPHICS, pipeline.pipeline);
 
     g_gfx_context.frame_statistics.num_graphics_pipeline_binds += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BindGraphicsBindingSet :: (pass : *GfxRenderPass, index : u32, set : *GfxBindingSet) {
     Assert(pass.current_pipeline != null, "Render pass has no pipeline bound yet. Use BindGraphicsBindingSet on a command buffer and specify pipeline layout or bind a pipeline first");
 
     BindGraphicsBindingSet(pass.cmd_buffer, *pass.current_pipeline.layout, index, set);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 SetViewport :: (pass : *GfxRenderPass, viewport : GfxViewport) {
     vk_viewport := VkViewport.{x=viewport.top_left_x, y=viewport.top_left_y, width=viewport.width, height=viewport.height, minDepth=viewport.min_depth, maxDepth=viewport.max_depth};
     vkCmdSetViewport(pass.cmd_buffer.cmd_buffer, 0, 1, *vk_viewport);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 SetScissor :: (pass : *GfxRenderPass, rect : Recti) {
     vk_scissor := VkRect2D.{offset=.{rect.x, rect.y}, extent=.{xx rect.w, xx rect.h}};
     vkCmdSetScissor(pass.cmd_buffer.cmd_buffer, 0, 1, *vk_scissor);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 SetStencilReference :: (pass : *GfxRenderPass, front_value : u32, back_value : u32) {
     vkCmdSetStencilReference(pass.cmd_buffer.cmd_buffer, .FACE_FRONT_BIT, front_value);
     vkCmdSetStencilReference(pass.cmd_buffer.cmd_buffer, .FACE_BACK_BIT, back_value);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 SetBlendConstant :: (pass : *GfxRenderPass, color : Vec4f) {
     vkCmdSetBlendConstants(pass.cmd_buffer.cmd_buffer, xx *color);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BindVertexBuffer :: (pass : *GfxRenderPass, binding : u32, buffer : *GfxBuffer, offset : u64 = 0) {
     vkCmdBindVertexBuffers(pass.cmd_buffer.cmd_buffer, binding, 1, *buffer.buffer, *offset);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BindGraphicsBindingSet :: (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
     vkCmdBindDescriptorSets(cmd_buffer.cmd_buffer, .GRAPHICS, layout.layout, index, 1, *set.set, 0, null);
     g_gfx_context.frame_statistics.num_graphics_binding_set_binds += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BindComputeBindingSet :: (cmd_buffer : *GfxCommandBuffer, layout : *GfxPipelineLayout, index : u32, set : *GfxBindingSet) {
     vkCmdBindDescriptorSets(cmd_buffer.cmd_buffer, .COMPUTE, layout.layout, index, 1, *set.set, 0, null);
     g_gfx_context.frame_statistics.num_compute_binding_set_binds += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 BindIndexBuffer :: (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuffer, offset : u64 = 0) {
     vk_index_type : VkIndexType;
@@ -152,7 +152,7 @@ BindIndexBuffer :: (pass : *GfxRenderPass, type : GfxIndexType, buffer : *GfxBuf
     }
 
     vkCmdBindIndexBuffer(pass.cmd_buffer.cmd_buffer, buffer.buffer, offset, vk_index_type);
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 Draw :: (
     pass : *GfxRenderPass,
@@ -163,7 +163,7 @@ Draw :: (
 ) {
     vkCmdDraw(pass.cmd_buffer.cmd_buffer, vertex_count, instance_count, base_vertex, base_instance);
     g_gfx_context.frame_statistics.num_draw_calls += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile
 
 DrawIndexed :: (
     pass : *GfxRenderPass,
@@ -175,4 +175,4 @@ DrawIndexed :: (
 ) {
     vkCmdDrawIndexed(pass.cmd_buffer.cmd_buffer, index_count, instance_count, base_index, xx base_vertex, base_instance);
     g_gfx_context.frame_statistics.num_draw_calls += 1;
-} @ModuleAPI @NoProfile
+} @Public @NoProfile

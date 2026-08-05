@@ -80,8 +80,8 @@ g_environment_maps_to_generate : [..]*EnvironmentMap;
 
 GetEnvironmentMapsToGenerate :: () -> []*EnvironmentMap {
     return g_environment_maps_to_generate;
-} @ModuleAPI
+} @Public
 
 ClearEnvironmentMapsToGenerate :: () {
     ArrayClear(*g_environment_maps_to_generate);
-} @ModuleAPI
+} @Public

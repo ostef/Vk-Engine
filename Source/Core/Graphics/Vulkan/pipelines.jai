@@ -16,13 +16,13 @@ CreateGfxPipelineLayout :: (name : string, desc : GfxPipelineLayoutDesc) -> GfxP
     SetDebugName(layout, TPrint("Pipeline Layout '%'", name));
 
     return .{layout=layout, name=StringClone(name)};
-} @ModuleAPI
+} @Public
 
 DestroyGfxPipelineLayout :: (layout : *GfxPipelineLayout) {
     Free(layout.name.data);
     vkDestroyPipelineLayout(g_gfx_context.device, layout.layout, g_vk_alloc_callbacks);
     layout.* = .{};
-} @ModuleAPI
+} @Public
 
 CreateGfxGraphicsPipeline :: (name : string, desc : GfxGraphicsPipelineDesc) -> GfxGraphicsPipeline {
     LogSectionScope(*Log_Vulkan);
@@ -184,7 +184,7 @@ CreateGfxGraphicsPipeline :: (name : string, desc : GfxGraphicsPipelineDesc) -> 
     copied_desc.vertex_input.buffer_bindings = ArrayClone(desc.vertex_input.buffer_bindings);
 
     return .{layout=layout, pipeline=pipeline, name=StringClone(name), desc=copied_desc};
-} @ModuleAPI
+} @Public
 
 DestroyGfxGraphicsPipeline :: (pipeline : *GfxGraphicsPipeline) {
     LogSectionScope(*Log_Vulkan);
@@ -196,7 +196,7 @@ DestroyGfxGraphicsPipeline :: (pipeline : *GfxGraphicsPipeline) {
     DestroyGfxPipelineLayout(*pipeline.layout);
     vkDestroyPipeline(g_gfx_context.device, pipeline.pipeline, g_vk_alloc_callbacks);
     pipeline.* = .{};
-} @ModuleAPI
+} @Public
 
 CreateGfxComputePipeline :: (name : string, desc : GfxComputePipelineDesc) -> GfxComputePipeline {
     LogSectionScope(*Log_Vulkan);
@@ -221,7 +221,7 @@ CreateGfxComputePipeline :: (name : string, desc : GfxComputePipelineDesc) -> Gf
     SetDebugName(pipeline, TPrint("Compute Pipeline '%'", name));
 
     return .{layout=layout, pipeline=pipeline, name=StringClone(name), desc=desc};
-} @ModuleAPI
+} @Public
 
 DestroyGfxComputePipeline :: (pipeline : *GfxComputePipeline) {
     LogSectionScope(*Log_Vulkan);
@@ -230,4 +230,4 @@ DestroyGfxComputePipeline :: (pipeline : *GfxComputePipeline) {
     DestroyGfxPipelineLayout(*pipeline.layout);
     vkDestroyPipeline(g_gfx_context.device, pipeline.pipeline, g_vk_alloc_callbacks);
     pipeline.* = .{};
-} @ModuleAPI
+} @Public

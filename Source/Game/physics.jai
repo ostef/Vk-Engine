@@ -2,19 +2,19 @@ g_physics : PhysicsGlobals;
 
 GetPhysicsGlobals :: () -> *PhysicsGlobals {
     return *g_physics;
-} @ModuleAPI
+} @Public
 
 GetPhysicsGlobalSettings :: () -> *PhysicsGlobalSettings {
     return *g_physics.settings;
-} @ModuleAPI
+} @Public
 
 GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
     return *g_physics.debug_draw_settings;
-} @ModuleAPI
+} @Public
 
 SetPhysicsDebugRendererTarget :: (world : *World) {
     g_physics.debug_renderer_target_world = world;
-} @ModuleAPI
+} @Public
 
 InitPhysics :: () {
     LogSectionScope(*Log_Physics);
@@ -56,22 +56,22 @@ GetPhysicsCollisionLayersMatrixIndex :: (a : PhysicsCollisionLayer, b : PhysicsC
 EnablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
     index := GetPhysicsCollisionLayersMatrixIndex(a, b);
     g_physics.settings.collision_layer_matrix[index] = true;
-} @ModuleAPI
+} @Public
 
 DisablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
     index := GetPhysicsCollisionLayersMatrixIndex(a, b);
     g_physics.settings.collision_layer_matrix[index] = false;
-} @ModuleAPI
+} @Public
 
 ShouldPhysicsCollisionLayersCollide :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {
     index := GetPhysicsCollisionLayersMatrixIndex(a, b);
 
     return g_physics.settings.collision_layer_matrix[index];
-} @ModuleAPI
+} @Public
 
 UpdatePhysicsCollisionLayerMatrix :: () {
     using g_physics;
-} @ModuleAPI
+} @Public
 
 InitPhysicsWorld :: (world : *World) {
     LogSectionScope(*Log_Physics);
@@ -131,7 +131,7 @@ DestroyPhysicsWorld :: (world : *World) {
 
 PhysicsDebugRendererNextFrame :: () {
     Jolt.DebugRenderer.NextFrame(g_physics.debug_renderer);
-} @ModuleAPI
+} @Public
 
 DebugDrawPhysicsBodies :: (world : *World, settings : PhysicsDebugDrawSettings) {
     draw_settings : Jolt.BodyManager.DrawSettings;
@@ -146,7 +146,7 @@ DebugDrawPhysicsBodies :: (world : *World, settings : PhysicsDebugDrawSettings) 
 
     SetPhysicsDebugRendererTarget(world);
     Jolt.PhysicsSystem.DrawBodies(world.physics.system, *draw_settings, g_physics.debug_renderer, null);
-} @ModuleAPI
+} @Public
 
 UpdatePhysicsWorld :: (world : *World) {
     using world.physics;
@@ -169,14 +169,14 @@ UpdatePhysicsWorld :: (world : *World) {
         world_transform = Transposed(world_transform);
         SetWorldTransformNoScale(world, entity, world_transform);
     }
-} @ModuleAPI
+} @Public
 
 UpdateWorldTransform :: (world : *World, entity : *Entity, using rigid_body : *RigidBodyComponent) {
     world_rotation := QuatfFromMatrix(entity.world_transform);
     world_position := TranslationVector(entity.world_transform);
 
     Jolt.BodyInterface.SetPositionAndRotation(world.physics.body_interface, jolt_body_id, ToJolt(world_position), ToJolt(world_rotation), .DontActivate);
-} @ModuleAPI
+} @Public
 
 PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult {
     if !world.physics.system {
@@ -240,11 +240,11 @@ PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ra
         entity=ifx rigid_body then GetEntity(world, rigid_body.entity_index) else ifx collider then GetEntity(world, collider.entity_index),
         collider=collider,
     };
-} @ModuleAPI
+} @Public
 
 SortByDistance :: (results : []RayCastResult) {
     QuickSort(results, (a, b) => ifx a.dist < b.dist then -1 else ifx a.dist > b.dist then 1 else 0);
-} @ModuleAPI
+} @Public
 
 PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool {
     if !world.physics.system {
@@ -355,7 +355,7 @@ PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ra
     }
 
     return true;
-} @ModuleAPI
+} @Public
 
 // CollidePoint :: (world : *World, point : Vec3f) {
 // }

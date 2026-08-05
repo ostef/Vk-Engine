@@ -60,7 +60,7 @@ GetShadersThatFailedToReload :: () -> []string {
     }
 
     return result;
-} @ModuleAPI
+} @Public
 
 GetVertexShader :: (name : string) -> *GfxShader {
     for * g_shaders {
