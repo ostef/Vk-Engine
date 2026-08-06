@@ -15,17 +15,17 @@ ShowPhysicsDebugDrawSettings :: () {
     ShowInspector("", cast(*World, null), GetPhysicsDebugDrawSettings(), .["InspectorNoTree"]);
 }
 
-g_show_physics_global_settings := false;
+g_show_physics_settings := false;
 
-ShowPhysicsGlobalSettings :: () {
-    if !g_show_physics_global_settings {
+ShowPhysicsSettings :: () {
+    if !g_show_physics_settings {
         return;
     }
 
     defer ImGui.End();
 
     ImGui.SetNextWindowSize(.{350, 500}, .FirstUseEver);
-    if !ImGui.Begin("Physics Global Settings", *g_show_physics_global_settings) {
+    if !ImGui.Begin("Physics Settings", *g_show_physics_settings) {
         return;
     }
 
@@ -35,6 +35,7 @@ ShowPhysicsGlobalSettings :: () {
 
     defer ImGui.EndTabBar();
 
+    settings := GetPhysicsSettings();
     if ImGui.BeginTabItem("Collision Layers") {
         defer ImGui.EndTabItem();
 
@@ -61,14 +62,8 @@ ShowPhysicsGlobalSettings :: () {
                 for j : 0..Physics_Num_Collision_Layers - 1 {
                     ImGui.TableSetColumnIndex(xx (j + 1));
 
-                    collide := ShouldPhysicsCollisionLayersCollide(xx i, xx j);
-
-                    if ImGui.Checkbox(CTPrint("##%_%", i, j), *collide) {
-                        if collide {
-                            EnablePhysicsCollisionLayersCollision(xx i, xx j);
-                        } else {
-                            DisablePhysicsCollisionLayersCollision(xx i, xx j);
-                        }
+                    if ImGui.Checkbox(CTPrint("##%_%", i, j), *settings.collision_layer_matrix[i][j]) {
+                        WriteConfigToFile(GetEngineConfig());
                     }
                 }
             }
@@ -80,9 +75,8 @@ PhysicsMenu :: (world : *World) {
     if ImGui.BeginMenu("Physics") {
         defer ImGui.EndMenu();
 
-        settings := GetPhysicsGlobalSettings();
-        if ImGui.MenuItem("Global Settings", selected=g_show_physics_global_settings) {
-            g_show_physics_global_settings = true;
+        if ImGui.MenuItem("Settings", selected=g_show_physics_settings) {
+            g_show_physics_settings = true;
         }
 
         debug_draw_settings := GetPhysicsDebugDrawSettings();

@@ -2,14 +2,18 @@ Jolt :: #import "JoltPhysics";
 
 Log_Physics :: Log_Section.{"Physics"};
 
-Physics_Temp_Allocator_Capacity :: 10 * 1024 * 1024;
-Physics_Max_Bodies :: 1024;
-Physics_Num_Body_Mutexes :: 0;
-Physics_Max_Body_Pairs :: 1024;
-Physics_Max_Contact_Constraints :: 1024;
-Physics_Num_Updates_Per_Second :: 60;
-Physics_Delta_Time :: 1.0 / Physics_Num_Updates_Per_Second;
-Physics_Num_Collision_Steps :: 1;
+JoltSettings :: struct {
+    max_bodies : u32 = 10000;
+    num_body_mutexes : u32;
+    max_body_pairs : u32 = 10000;
+    max_contact_constraints : u32 = 1000;
+    target_updates_per_seconds : u32 = 60;
+    num_collision_steps : u32 = 1;
+}
+
+PhysicsSettings :: struct {
+    collision_layer_matrix : [Physics_Num_Collision_Layers][Physics_Num_Collision_Layers]bool;
+}
 
 PhysicsCollisionLayer :: enum Jolt.ObjectLayer {
     NonMoving;
@@ -33,7 +37,6 @@ PhysicsCollisionLayerMask :: enum_flags Jolt.ObjectLayer {
     #insert -> string {
         builder : StringBuilder;
 
-
         info := type_info(PhysicsCollisionLayer);
         for info.names {
             Appendln(*builder, "    %1 :: 1 << PhysicsCollisionLayer.%1;", it);
@@ -45,15 +48,7 @@ PhysicsCollisionLayerMask :: enum_flags Jolt.ObjectLayer {
     All :: ~cast(Jolt.ObjectLayer, 0);
 }
 
-// Triangular number with N = Physics_Num_Collision_Layers
-Physics_Collision_Layer_Matrix_Size :: #run (Physics_Num_Collision_Layers * (Physics_Num_Collision_Layers + 1)) / 2;
-
-PhysicsGlobalSettings :: struct {
-    collision_layer_matrix : [Physics_Collision_Layer_Matrix_Size]bool;
-}
-
 PhysicsGlobals :: struct {
-    settings : PhysicsGlobalSettings;
     debug_draw_settings : PhysicsDebugDrawSettings;
     debug_renderer : *Jolt.DebugRenderer;
     debug_renderer_target_world : *World;

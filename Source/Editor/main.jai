@@ -177,7 +177,7 @@ InitializeEditor :: (global_init : bool) {
     LogSectionScope(*Log_Editor);
 
     LoadConfigFromFile(*g_editor_config);
-    RegisterConfigEntry(*g_editor_config, "viewport", g_editor_viewport_config);
+    RegisterConfigEntry(*g_editor_config, "Viewport", g_editor_viewport_config);
 
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
@@ -288,7 +288,7 @@ ShutdownEditor :: (global_shutdown : bool) {
     ImGui_SDL.Terminate();
     ImGui.DestroyContext();
 
-    UnregisterConfigEntry(*g_editor_config, "viewport");
+    UnregisterConfigEntry(*g_editor_config, "Viewport");
 }
 
 AllEditorState :: struct {
@@ -310,7 +310,7 @@ AllEditorState :: struct {
     component_hide_editor_icon : [Component_Types.count]bool; @Serialize(16)
     profiler_running : bool; @Serialize(17)
     show_physics_debug_draw_settings : bool; @Serialize(18)
-    show_physics_global_settings : bool; @Serialize(19)
+    show_physics_settings : bool; @Serialize(19)
 }
 
 SaveState :: () -> []u8 {
@@ -329,7 +329,7 @@ SaveState :: () -> []u8 {
         show_gpu_profiler=g_show_gpu_profiler,
         profiler_running=!GetCPUFrameProfiler().paused,
         show_physics_debug_draw_settings=g_show_physics_debug_draw_settings,
-        show_physics_global_settings=g_show_physics_global_settings,
+        show_physics_settings=g_show_physics_settings,
     };
 
     memcpy(*all_state.entity_hide_editor_icon, *g_entity_hide_editor_icon, size_of(type_of(g_entity_hide_editor_icon)));
@@ -562,7 +562,7 @@ UpdateEditor :: () {
     ShowCPUProfiler();
     ShowGPUProfiler();
     ShowPhysicsDebugDrawSettings();
-    ShowPhysicsGlobalSettings();
+    ShowPhysicsSettings();
     ShowWorldInspector(g_world);
     ShowEntityOutliner(g_world);
     ShowMaterialEditor();

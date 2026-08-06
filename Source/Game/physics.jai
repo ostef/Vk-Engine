@@ -1,11 +1,19 @@
+g_jolt_settings : JoltSettings;
+
+GetJoltSettings :: () -> *JoltSettings {
+    return *g_jolt_settings;
+} @Public
+
+g_physics_settings : PhysicsSettings;
+
+GetPhysicsSettings :: () -> *PhysicsSettings {
+    return *g_physics_settings;
+} @Public
+
 g_physics : PhysicsGlobals;
 
 GetPhysicsGlobals :: () -> *PhysicsGlobals {
     return *g_physics;
-} @Public
-
-GetPhysicsGlobalSettings :: () -> *PhysicsGlobalSettings {
-    return *g_physics.settings;
 } @Public
 
 GetPhysicsDebugDrawSettings :: () -> *PhysicsDebugDrawSettings {
@@ -18,6 +26,9 @@ SetPhysicsDebugRendererTarget :: (world : *World) {
 
 InitPhysics :: () {
     LogSectionScope(*Log_Physics);
+
+    RegisterConfigEntry(GetEngineConfig(), "Physics", g_physics_settings);
+    RegisterConfigEntry(GetEngineConfig(), "JoltPhysics", g_jolt_settings);
 
     using g_physics;
 
@@ -40,38 +51,10 @@ InitPhysics :: () {
 
 ShutdownPhysics :: () {
     Jolt.DebugRenderer.Destroy(g_physics.debug_renderer);
+
+    UnregisterConfigEntry(GetEngineConfig(), "Physics");
+    UnregisterConfigEntry(GetEngineConfig(), "JoltPhysics");
 }
-
-GetPhysicsCollisionLayersMatrixIndex :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> int {
-    if a < b {
-        Swap(*a, *b);
-    }
-
-    first_index_of_row := cast(int, a + 1) * cast(int, a + 2) / 2;
-    index := Physics_Collision_Layer_Matrix_Size - first_index_of_row + cast(int, b);
-
-    return index;
-}
-
-EnablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
-    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
-    g_physics.settings.collision_layer_matrix[index] = true;
-} @Public
-
-DisablePhysicsCollisionLayersCollision :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
-    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
-    g_physics.settings.collision_layer_matrix[index] = false;
-} @Public
-
-ShouldPhysicsCollisionLayersCollide :: (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {
-    index := GetPhysicsCollisionLayersMatrixIndex(a, b);
-
-    return g_physics.settings.collision_layer_matrix[index];
-} @Public
-
-UpdatePhysicsCollisionLayerMatrix :: () {
-    using g_physics;
-} @Public
 
 InitPhysicsWorld :: (world : *World) {
     LogSectionScope(*Log_Physics);
@@ -100,10 +83,10 @@ InitPhysicsWorld :: (world : *World) {
     object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable.Create(broad_phase_layer_interface, Physics_Num_Broad_Phase_Layers, object_vs_object_layer_filter, Physics_Num_Collision_Layers);
 
     system_settings := Jolt.PhysicsSystemSettings.{
-        maxBodies=Physics_Max_Bodies,
-        numBodyMutexes=Physics_Num_Body_Mutexes,
-        maxBodyPairs=Physics_Max_Body_Pairs,
-        maxContactConstraints=Physics_Max_Contact_Constraints,
+        maxBodies=g_jolt_settings.max_bodies,
+        numBodyMutexes=g_jolt_settings.num_body_mutexes,
+        maxBodyPairs=g_jolt_settings.max_body_pairs,
+        maxContactConstraints=g_jolt_settings.max_contact_constraints,
         broadPhaseLayerInterface=broad_phase_layer_interface,
         objectLayerPairFilter=object_vs_object_layer_filter,
         objectVsBroadPhaseLayerFilter=object_vs_broad_phase_layer_filter,
@@ -151,7 +134,7 @@ DebugDrawPhysicsBodies :: (world : *World, settings : PhysicsDebugDrawSettings) 
 UpdatePhysicsWorld :: (world : *World) {
     using world.physics;
 
-    Jolt.PhysicsSystem.Update(system, Physics_Delta_Time, Physics_Num_Collision_Steps, temp_allocator, job_system);
+    Jolt.PhysicsSystem.Update(system, 1 / cast(float, g_jolt_settings.target_updates_per_seconds), xx g_jolt_settings.num_collision_steps, temp_allocator, job_system);
 
     if g_physics.debug_draw_settings.enabled {
         DebugDrawPhysicsBodies(world, g_physics.debug_draw_settings);

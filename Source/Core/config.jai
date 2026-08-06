@@ -56,16 +56,19 @@ GetValue :: (registry : *ConfigRegistry, name : string, $T : Type) -> T, exists 
             return value.float_value, true;
         }
         return default, false;
+
     case bool;
         if value.kind == .Bool {
             return value.bool_value, true;
         }
         return default, false;
+
     case string;
         if value.kind == .String {
             return value.string_value, true;
         }
         return default, false;
+
     case;
         #assert false;
     }
@@ -117,7 +120,7 @@ UnregisterConfigEntry :: (registry : *ConfigRegistry, name : string) -> bool {
     return HashMapRemove(*registry.entries, name);
 } @Public
 
-AppendValue :: (builder : *StringBuilder, value : Any) {
+AppendValue :: (builder : *StringBuilder, value : Any, indentation := 0) {
     if value.type.type == {
     case .INTEGER;
         info_int := cast(*Type_Info_Integer, value.type);
@@ -148,6 +151,38 @@ AppendValue :: (builder : *StringBuilder, value : Any) {
 
     case .STRING;
         StringBuilderAppendStringLiteral(builder, cast(*string, value.value_pointer).*);
+
+    case .ARRAY;
+        array_info := cast(*Type_Info_Array, value.type);
+        Append(builder, "[");
+
+        for i : 0..array_info.array_count - 1 {
+            if array_info.element_type.type == .ARRAY {
+                Append(builder, "\n");
+
+                for i : 0..indentation {
+                    Append(builder, "    ");
+                }
+            }
+
+            elem := Any.{
+                value_pointer=value.value_pointer + i * array_info.element_type.runtime_size,
+                type=array_info.element_type,
+            };
+
+            AppendValue(builder, elem, indentation + 1);
+            Append(builder, ",");
+        }
+
+        if array_info.element_type.type == .ARRAY {
+            Append(builder, "\n");
+
+            for i : 0..indentation - 1 {
+                Append(builder, "    ");
+            }
+        }
+
+        Append(builder, "]");
     }
 }
 
@@ -159,7 +194,8 @@ AppendConfig :: (builder : *StringBuilder, name : string, value : Any) {
         if it.type.type != .FLOAT
         && it.type.type != .INTEGER
         && it.type.type != .BOOL
-        && it.type.type != .STRING {
+        && it.type.type != .STRING
+        && it.type.type != .ARRAY {
             continue;
         }
 
@@ -186,6 +222,35 @@ WriteConfigToFile :: (registry : *ConfigRegistry) {
 } @Public
 
 ParseConfigValue :: (parser : *ConfigParser) -> bool, ConfigValue {
+    if MatchToken(parser, .OpenSquare) {
+        values : [..]ConfigValue;
+
+        while !NextTokenIs(parser, .EOF) && !NextTokenIs(parser, .CloseSquare) {
+            ok, val := ParseConfigValue(parser);
+            if !ok {
+                ArrayFree(*values);
+                return false, .{};
+            }
+
+            ArrayPush(*values, val);
+
+            if !MatchToken(parser, .Comma) {
+                if !NextTokenIs(parser, .CloseSquare) {
+                    ExpectedError(parser, PrevToken(parser), NextToken(parser), .Comma, .CloseSquare);
+                    ArrayFree(*values);
+                    return false, .{};
+                }
+            }
+        }
+
+        if !MatchExpect(parser, .CloseSquare) {
+            ArrayFree(*values);
+            return false, .{};
+        }
+
+        return true, .{kind=.Array, values=values};
+    }
+
     if MatchToken(parser, .True) {
         return true, .{kind=.Bool, bool_value=true};
     }
@@ -224,7 +289,7 @@ ParseConfigValue :: (parser : *ConfigParser) -> bool, ConfigValue {
         return false, .{};
     }
 
-    ExpectedError(parser, PrevToken(parser), NextToken(parser), .True, .False, .IntLiteral, .FloatLiteral, .StringLiteral);
+    ExpectedError(parser, PrevToken(parser), NextToken(parser), .OpenSquare, .True, .False, .IntLiteral, .FloatLiteral, .StringLiteral);
 
     return false, .{};
 }
@@ -317,60 +382,118 @@ LoadConfigFromFile :: (registry : *ConfigRegistry) {
     }
 } @Public
 
+FillConfigValue :: (value : ConfigValue, name : string, type : *Type_Info, ptr : *void) {
+    if type.type == {
+    case .INTEGER;
+        if value.kind != .Int && value.kind != .UInt {
+            LogError("%: config value type mismatch, expected Int or UInt, got %", name, value.kind);
+            return;
+        }
+
+        val := ifx value.kind == .Int then value.s64_value else xx value.u64_value;
+        int_info := cast(*Type_Info_Integer, type);
+        if int_info.signed {
+            if int_info.runtime_size == {
+            case 1; cast(*s8,  ptr).* = xx,no_check val;
+            case 2; cast(*s16, ptr).* = xx,no_check val;
+            case 4; cast(*s32, ptr).* = xx,no_check val;
+            case 8; cast(*s64, ptr).* = xx,no_check val;
+            }
+        } else {
+            if int_info.runtime_size == {
+            case 1; cast(*u8,  ptr).* = xx,no_check val;
+            case 2; cast(*u16, ptr).* = xx,no_check val;
+            case 4; cast(*u32, ptr).* = xx,no_check val;
+            case 8; cast(*u64, ptr).* = xx,no_check val;
+            }
+        }
+
+    case .FLOAT;
+        if value.kind != .Float && value.kind != .Int && value.kind != .UInt {
+            LogError("%: config value type mismatch, expected Float, Int or UInt, got %", name, value.kind);
+            return;
+        }
+
+        val := ifx value.kind == .Int then cast(float, value.s64_value) else ifx value.kind == .UInt then cast(float, value.u64_value) else value.float_value;
+        if type.runtime_size == 4 {
+            cast(*float32, ptr).* = val;
+        } else if type.runtime_size == 8 {
+            cast(*float64, ptr).* = val;
+        }
+
+    case .BOOL;
+        if value.kind != .Bool {
+            LogError("%: config value type mismatch, expected Bool, got %", name, value.kind);
+            return;
+        }
+
+        cast(*bool, ptr).* = value.bool_value;
+
+    case .STRING;
+        if value.kind != .String {
+            LogError("%: config value type mismatch, expected String, got %", name, value.kind);
+            return;
+        }
+
+        Free(cast(*string, ptr).data);
+        cast(*string, ptr).* = StringClone(value.string_value);
+
+    case .ENUM;
+        if value.kind != .String {
+            LogError("%: config value type mismatch, expected String, got %", name, value.kind);
+            return;
+        }
+
+        enum_info := cast(*Type_Info_Enum, type);
+        for enum_info.names {
+            if it == value.string_value {
+                if enum_info.runtime_size == {
+                case 1; cast(*u8,  ptr).* = xx,no_check enum_info.values[it_index];
+                case 2; cast(*u16, ptr).* = xx,no_check enum_info.values[it_index];
+                case 4; cast(*u32, ptr).* = xx,no_check enum_info.values[it_index];
+                case 8; cast(*u64, ptr).* = xx,no_check enum_info.values[it_index];
+                }
+
+                break;
+            }
+        }
+
+    case .ARRAY;
+        if value.kind != .Array {
+            LogError("%: config value type mismatch, expected Array, got %", name, value.kind);
+            return;
+        }
+
+        array_info := cast(*Type_Info_Array, type);
+        if array_info.array_count <= 0 {
+            return;
+        }
+
+        if value.values.count != array_info.array_count {
+            LogError("%: number of elements in the array mismatch", name);
+        }
+
+        for i : 0..Min(value.values.count, array_info.array_count) - 1 {
+            FillConfigValue(value.values[i], TPrint("%[%]", name, i), array_info.element_type, ptr + i * array_info.element_type.runtime_size);
+        }
+
+    case;
+        LogError("%: unhandled type %", name, cast(*Type, *type).*);
+    }
+}
+
 FillConfigEntry :: (registry : *ConfigRegistry, name : string, entry : Any) {
     Assert(entry.type.type == .STRUCT);
 
     type := cast(*Type_Info_Struct, entry.type);
     for type.members {
-        ptr := entry.value_pointer + it.offset_in_bytes;
+        member_name := TPrint("%.%", name, it.name);
 
-        if it.type.type == {
-        case .INTEGER;
-            int_info := cast(*Type_Info_Integer, type);
-            // @Todo: range check
-            if int_info.signed {
-                val, ok := GetValue(registry, TPrint("%.%", name, it.name), s64);
-                if ok {
-                    if int_info.runtime_size == {
-                    case 1; cast(*s8,  ptr).* = xx,no_check val;
-                    case 2; cast(*s16, ptr).* = xx,no_check val;
-                    case 4; cast(*s32, ptr).* = xx,no_check val;
-                    case 8; cast(*s64, ptr).* = xx,no_check val;
-                    }
-                }
-            } else {
-                val, ok := GetValue(registry, TPrint("%.%", name, it.name), u64);
-                if ok {
-                    if int_info.runtime_size == {
-                    case 1; cast(*u8,  ptr).* = xx,no_check val;
-                    case 2; cast(*u16, ptr).* = xx,no_check val;
-                    case 4; cast(*u32, ptr).* = xx,no_check val;
-                    case 8; cast(*u64, ptr).* = xx,no_check val;
-                    }
-                }
-            }
-
-        case .FLOAT;
-            val, ok := GetValue(registry, TPrint("%.%", name, it.name), float);
-            if ok {
-                cast(*float, ptr).* = val;
-            }
-
-        case .STRING;
-            str, ok := GetValue(registry, TPrint("%.%", name, it.name), string);
-            if ok {
-                Free(cast(*string, ptr).data);
-                cast(*string, ptr).* = StringClone(str);
-            }
-
-        case .BOOL;
-            val, ok := GetValue(registry, TPrint("%.%", name, it.name), bool);
-            if ok {
-                cast(*bool, ptr).* = val;
-            }
-
-        case;
-            LogError("Config entry '%' has member % of unhandled type %", name, it.name, cast(*Type, *type).*);
+        val := HashMapGetPtr(*registry.parsed_values, member_name);
+        if !val {
+            continue;
         }
+
+        FillConfigValue(val, member_name, it.type, entry.value_pointer + it.offset_in_bytes);
     }
 }

@@ -11,15 +11,14 @@ GameModule :: struct {
     DestroyKilledEntities : (world : *World);
     DestroyWorld : (world : *World);
     DetachEntity : (world : *World, entity : *Entity, keep_same_world_transform : bool = true) -> bool;
-    DisablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
-    EnablePhysicsCollisionLayersCollision : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer);
     EntityIsInHierarchy : (world : *World, entity : *Entity, of : *Entity) -> bool;
     GetDefaultMaterial : () -> *Asset(DataType=Material);
     GetEntity_1 : (world : *World, index : EntityIndex) -> *Entity, GetEntityError;
     GetEntity_2 : (world : *World, id : EntityID) -> *Entity, GetEntityError;
+    GetJoltSettings : () -> *JoltSettings;
     GetPhysicsDebugDrawSettings : () -> *PhysicsDebugDrawSettings;
-    GetPhysicsGlobalSettings : () -> *PhysicsGlobalSettings;
     GetPhysicsGlobals : () -> *PhysicsGlobals;
+    GetPhysicsSettings : () -> *PhysicsSettings;
     GetWorldScale : (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vector(N=3, T=float32);
     InitWorld : (world : *World);
     KillEntity_1 : (world : *World, index : EntityIndex);
@@ -34,11 +33,9 @@ GameModule :: struct {
     SetEntityName : (world : *World, entity : *Entity, new_name : string) -> set_same_name : bool;
     SetPhysicsDebugRendererTarget : (world : *World);
     SetWorldTransformNoScale : (world : *World, entity : *Entity, transform : Matrix(M=4, N=4, T=float32));
-    ShouldPhysicsCollisionLayersCollide : (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool;
     SortByDistance : (results : []RayCastResult);
     SpawnEntity : (world : *World, type : EntityTypeId, name : string = "", id : EntityID = Null_Entity_ID) -> *Entity;
     SubmitWorldToRenderer : (world_to_render : *WorldToRender, world : *World);
-    UpdatePhysicsCollisionLayerMatrix : ();
     UpdatePhysicsWorld : (world : *World);
     UpdateWorld : (world : *World);
     UpdateWorldTransform_1 : (world : *World, entity : *Entity, rigid_body : *RigidBodyComponent);
@@ -84,14 +81,6 @@ DetachEntity :: inline (world : *World, entity : *Entity, keep_same_world_transf
     return g_Game.DetachEntity(world, entity, keep_same_world_transform);
 } @NoProfile
 
-DisablePhysicsCollisionLayersCollision :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
-    g_Game.DisablePhysicsCollisionLayersCollision(a, b);
-} @NoProfile
-
-EnablePhysicsCollisionLayersCollision :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) {
-    g_Game.EnablePhysicsCollisionLayersCollision(a, b);
-} @NoProfile
-
 EntityIsInHierarchy :: inline (world : *World, entity : *Entity, of : *Entity) -> bool {
     return g_Game.EntityIsInHierarchy(world, entity, of);
 } @NoProfile
@@ -110,16 +99,20 @@ GetEntity :: inline (world : *World, id : EntityID) -> *Entity, GetEntityError {
     return _ret0, _ret1;
 } @NoProfile
 
+GetJoltSettings :: inline () -> *JoltSettings {
+    return g_Game.GetJoltSettings();
+} @NoProfile
+
 GetPhysicsDebugDrawSettings :: inline () -> *PhysicsDebugDrawSettings {
     return g_Game.GetPhysicsDebugDrawSettings();
 } @NoProfile
 
-GetPhysicsGlobalSettings :: inline () -> *PhysicsGlobalSettings {
-    return g_Game.GetPhysicsGlobalSettings();
-} @NoProfile
-
 GetPhysicsGlobals :: inline () -> *PhysicsGlobals {
     return g_Game.GetPhysicsGlobals();
+} @NoProfile
+
+GetPhysicsSettings :: inline () -> *PhysicsSettings {
+    return g_Game.GetPhysicsSettings();
 } @NoProfile
 
 GetWorldScale :: inline (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vector(N=3, T=float32) {
@@ -178,10 +171,6 @@ SetWorldTransformNoScale :: inline (world : *World, entity : *Entity, transform 
     g_Game.SetWorldTransformNoScale(world, entity, transform);
 } @NoProfile
 
-ShouldPhysicsCollisionLayersCollide :: inline (a : PhysicsCollisionLayer, b : PhysicsCollisionLayer) -> bool {
-    return g_Game.ShouldPhysicsCollisionLayersCollide(a, b);
-} @NoProfile
-
 SortByDistance :: inline (results : []RayCastResult) {
     g_Game.SortByDistance(results);
 } @NoProfile
@@ -192,10 +181,6 @@ SpawnEntity :: inline (world : *World, type : EntityTypeId, name : string = "", 
 
 SubmitWorldToRenderer :: inline (world_to_render : *WorldToRender, world : *World) {
     g_Game.SubmitWorldToRenderer(world_to_render, world);
-} @NoProfile
-
-UpdatePhysicsCollisionLayerMatrix :: inline () {
-    g_Game.UpdatePhysicsCollisionLayerMatrix();
 } @NoProfile
 
 UpdatePhysicsWorld :: inline (world : *World) {

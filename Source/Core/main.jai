@@ -111,7 +111,7 @@ InitializeCore :: (global_init : bool) {
     context.print_style.struct_printer = CoreStructPrinter;
 
     LoadConfigFromFile(GetEngineConfig());
-    RegisterConfigEntry(GetEngineConfig(), "environment_map", g_environment_map_config);
+    RegisterConfigEntry(GetEngineConfig(), "EnvironmentMap", g_environment_map_config);
 
     g_num_cpus = get_number_of_processors(.ALL_LOGICAL);
     g_num_cpus = Clamp(g_num_cpus, 1, 200);
@@ -146,7 +146,7 @@ ShutdownCore :: (global_shutdown : bool) {
 
     SDL_DestroyWindow(g_window);
 
-    UnregisterConfigEntry(GetEngineConfig(), "environment_map");
+    UnregisterConfigEntry(GetEngineConfig(), "EnvironmentMap");
 }
 
 g_last_frame_start_time : Basic.Apollo_Time;

@@ -10,6 +10,8 @@ ConfigValueKind :: enum u8 {
     Bool;
     Float;
     String;
+    Array;
+    Map;
 }
 
 ConfigValue :: union kind : ConfigValueKind {
@@ -18,4 +20,5 @@ ConfigValue :: union kind : ConfigValueKind {
     .Bool   ,, bool_value : bool;
     .Float  ,, float_value : float;
     .String ,, string_value : string;
+    .Array  ,, values : []ConfigValue;
 }
