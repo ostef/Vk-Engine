@@ -462,10 +462,10 @@ ToJolt :: inline (m : Mat4f) -> Jolt.Mat44 #no_context {
 
 FromJolt :: inline (m : Jolt.Mat44) -> Mat4f #no_context {
     return .{
-        cols[0].x, cols[1].x, cols[2].x, cols[3].x,
-        cols[0].y, cols[1].y, cols[2].y, cols[3].y,
-        cols[0].z, cols[1].z, cols[2].z, cols[3].z,
-        cols[0].w, cols[1].w, cols[2].w, cols[3].w,
+        m.cols[0].x, m.cols[1].x, m.cols[2].x, m.cols[3].x,
+        m.cols[0].y, m.cols[1].y, m.cols[2].y, m.cols[3].y,
+        m.cols[0].z, m.cols[1].z, m.cols[2].z, m.cols[3].z,
+        m.cols[0].w, m.cols[1].w, m.cols[2].w, m.cols[3].w,
     };
 }
 

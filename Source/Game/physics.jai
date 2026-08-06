@@ -157,9 +157,7 @@ UpdatePhysicsWorld :: (world : *World) {
 
         entity := GetEntity(world, it.entity_index);
 
-        world_transform := cast,force(Mat4f, Jolt.BodyInterface.GetWorldTransform(body_interface, it.jolt_body_id));
-
-        world_transform = Transposed(world_transform);
+        world_transform := FromJolt(Jolt.BodyInterface.GetWorldTransform(body_interface, it.jolt_body_id));
         SetWorldTransformNoScale(world, entity, world_transform);
     }
 } @Public
