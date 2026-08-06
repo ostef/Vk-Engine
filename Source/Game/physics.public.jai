@@ -9,6 +9,10 @@ JoltSettings :: struct {
     max_contact_constraints : u32 = 1000;
     target_updates_per_seconds : u32 = 60;
     num_collision_steps : u32 = 1;
+    temp_allocator_size : u32 = 2 * 1024 * 1024;
+    max_jobs : u32 = 2048;
+    max_job_system_barriers : u32 = 8;
+    num_job_system_threads : s32 = -1;
 }
 
 PhysicsSettings :: struct {

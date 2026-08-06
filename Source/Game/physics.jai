@@ -61,9 +61,10 @@ InitPhysicsWorld :: (world : *World) {
 
     using world.physics;
 
-    temp_allocator = Jolt.TempAllocatorImpl.Create(5 * 1024 * 1024);
+    jolt_settings := GetJoltSettings();
+    temp_allocator = Jolt.TempAllocatorImpl.Create(jolt_settings.temp_allocator_size);
 
-    job_system = Jolt.JobSystemThreadPool.Create(Jolt.cMaxPhysicsJobs, Jolt.cMaxPhysicsBarriers, -1);
+    job_system = Jolt.JobSystemThreadPool.Create(jolt_settings.max_jobs, jolt_settings.max_job_system_barriers, jolt_settings.num_job_system_threads);
 
     broad_phase_layer_interface = Jolt.BroadPhaseLayerInterfaceTable.Create(Physics_Num_Collision_Layers, Physics_Num_Broad_Phase_Layers);
     broad_phase_layer_interface.MapObjectToBroadPhaseLayer(broad_phase_layer_interface, xx PhysicsCollisionLayer.NonMoving, xx PhysicsBroadPhaseLayer.NonMoving);
@@ -76,17 +77,26 @@ InitPhysicsWorld :: (world : *World) {
         }
     }
 
+    settings := GetPhysicsSettings();
+
     object_vs_object_layer_filter = Jolt.ObjectLayerPairFilterTable.Create(Physics_Num_Collision_Layers);
-    object_vs_object_layer_filter.EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.NonMoving);
-    object_vs_object_layer_filter.EnableCollision(object_vs_object_layer_filter, xx PhysicsCollisionLayer.Moving, xx PhysicsCollisionLayer.Moving);
+    for i : 0..Physics_Num_Collision_Layers - 1 {
+        for j : 0..Physics_Num_Collision_Layers - 1 {
+            if settings.collision_layer_matrix[i][j] {
+                object_vs_object_layer_filter.EnableCollision(object_vs_object_layer_filter, xx i, xx j);
+            } else {
+                object_vs_object_layer_filter.DisableCollision(object_vs_object_layer_filter, xx i, xx j);
+            }
+        }
+    }
 
     object_vs_broad_phase_layer_filter = Jolt.ObjectVsBroadPhaseLayerFilterTable.Create(broad_phase_layer_interface, Physics_Num_Broad_Phase_Layers, object_vs_object_layer_filter, Physics_Num_Collision_Layers);
 
     system_settings := Jolt.PhysicsSystemSettings.{
-        maxBodies=g_jolt_settings.max_bodies,
-        numBodyMutexes=g_jolt_settings.num_body_mutexes,
-        maxBodyPairs=g_jolt_settings.max_body_pairs,
-        maxContactConstraints=g_jolt_settings.max_contact_constraints,
+        maxBodies=jolt_settings.max_bodies,
+        numBodyMutexes=jolt_settings.num_body_mutexes,
+        maxBodyPairs=jolt_settings.max_body_pairs,
+        maxContactConstraints=jolt_settings.max_contact_constraints,
         broadPhaseLayerInterface=broad_phase_layer_interface,
         objectLayerPairFilter=object_vs_object_layer_filter,
         objectVsBroadPhaseLayerFilter=object_vs_broad_phase_layer_filter,
