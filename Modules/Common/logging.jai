@@ -197,7 +197,7 @@ ConsoleLoggerProc :: (message : string, data : *void, info : Log_Info)
     if message[message.count - 1] != #char "\n"
         StringBuilderAppendString(*builder, "\n");
 
-    if print_colors
+    if print_colors && ((info.common_flags & .ERROR) || (info.common_flags & .WARNING))
         AppendConsoleColor(*builder, .None);
 
     str := StringBuilderBuild(*builder,, Temp);
