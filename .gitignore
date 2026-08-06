@@ -19,6 +19,8 @@ Vk
 engine.prefs
 Data/Ignore
 .EditorState
+editor.toml
+engine.toml
 
 _Build.jai
 _Source

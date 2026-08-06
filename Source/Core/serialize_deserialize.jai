@@ -514,7 +514,7 @@ ParseInteger :: (str : string, $T : Type) -> T, ok : bool, remainder : string, b
     return int_value, ok, remainder, base;
 }
 
-ParseFloat :: (str : string) -> float, ok : bool, remainder : string {
+ParseFloat :: (str : string, $T := float) -> T, ok : bool, remainder : string {
     _str := str;
 
     token := parse_token(*_str);
@@ -528,7 +528,11 @@ ParseFloat :: (str : string) -> float, ok : bool, remainder : string {
         return -F32_NaN, true, _str;
     }
 
-    value, ok, remainder := Basic.string_to_float(str);
+    #if T == float {
+        value, ok, remainder := Basic.string_to_float(str);
+    } else #if T == float64 {
+        value, ok, remainder := Basic.string_to_float64(str);
+    }
 
     return value, ok, remainder;
 }

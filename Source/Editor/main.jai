@@ -63,6 +63,10 @@ OnModuleUnload :: (id : ModuleID) {
     ClearCPUProfilerWindowEventList();
 }
 
+g_editor_config := ConfigRegistry.{
+    filename="editor.toml",
+};
+
 Editor_Base_Font_Size :: 16.0;
 Editor_Medium_Font_Size :: 18.0;
 
@@ -172,6 +176,9 @@ ExitPlayMode :: () {
 InitializeEditor :: (global_init : bool) {
     LogSectionScope(*Log_Editor);
 
+    LoadConfigFromFile(*g_editor_config);
+    RegisterConfigEntry(*g_editor_config, "viewport", g_editor_viewport_config);
+
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
     ImGui.CreateContext();
@@ -280,6 +287,8 @@ ShutdownEditor :: (global_shutdown : bool) {
 
     ImGui_SDL.Terminate();
     ImGui.DestroyContext();
+
+    UnregisterConfigEntry(*g_editor_config, "viewport");
 }
 
 AllEditorState :: struct {

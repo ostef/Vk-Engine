@@ -91,6 +91,8 @@ CoreModule :: struct {
     GetDataDirectoryAbsolutePath : () -> string;
     GetDefaultNumWorkerThreads : () -> s32;
     GetDeltaTime : () -> float;
+    GetEngineConfig : () -> *ConfigRegistry;
+    GetEnvironmentMapConfig : () -> *EnvironmentMapConfig;
     GetEnvironmentMapsToGenerate : () -> []*EnvironmentMap;
     GetFrameInFlight : () -> s64;
     GetFrameTimes : () -> min : float, max : float, avg : float;
@@ -128,6 +130,7 @@ CoreModule :: struct {
     IsMouseButtonDown : (button : MouseButton) -> bool;
     IsMouseButtonPressed : (button : MouseButton) -> bool;
     IsMouseButtonReleased : (button : MouseButton) -> bool;
+    LoadConfigFromFile : (registry : *ConfigRegistry);
     LoadGfxShader : (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader;
     LoadPendingAssets : ();
     PointIsInsideBox : (point : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
@@ -158,6 +161,7 @@ CoreModule :: struct {
     RayIntersectsPlane : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, plane_origin : Vector(N=3, T=float32), plane_normal : Vector(N=3, T=float32)) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
     RayIntersectsSphere : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, sphere_center : Vector(N=3, T=float32), sphere_radius : float) -> intersects : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
     RayIntersectsTriangle : (ray_origin : Vector(N=3, T=float32), ray_dir : Vector(N=3, T=float32), ray_length : float, triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32)) -> intersets : bool, point : Vector(N=3, T=float32), dist : float, normal : Vector(N=3, T=float32);
+    RegisterConfigEntry : (registry : *ConfigRegistry, name : string, entry : Any) -> bool;
     RegisterDataDirectoryChangeCallback : (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64;
     ResetGfxBindingPool : (pool : *GfxBindingPool);
     ResetGfxCommandPool : (pool : *GfxCommandPool);
@@ -179,11 +183,13 @@ CoreModule :: struct {
     TextureUploadPass : (cmd_buffer : *GfxCommandBuffer);
     TriangleIntersectsBox : (triangle_A : Vector(N=3, T=float32), triangle_B : Vector(N=3, T=float32), triangle_C : Vector(N=3, T=float32), triangle_normal : Vector(N=3, T=float32), box_center : Vector(N=3, T=float32), box_half_extents : Vector(N=3, T=float32)) -> bool;
     TrimSpaces : (parser : *DeserializeParser);
+    UnregisterConfigEntry : (registry : *ConfigRegistry, name : string) -> bool;
     UnregisterDataDirectoryChangeCallback : (index : s64);
     UpdateIndentation : (parser : *DeserializeParser);
     WaitForGPUIdle : ();
     WasKeyDown : (key : KeyCode) -> bool;
     WasMouseButtonDown : (button : MouseButton) -> bool;
+    WriteConfigToFile : (registry : *ConfigRegistry);
 }
 
 #if Import_Mode == .Foreign {
@@ -512,6 +518,14 @@ GetDeltaTime :: inline () -> float {
     return g_Core.GetDeltaTime();
 } @NoProfile
 
+GetEngineConfig :: inline () -> *ConfigRegistry {
+    return g_Core.GetEngineConfig();
+} @NoProfile
+
+GetEnvironmentMapConfig :: inline () -> *EnvironmentMapConfig {
+    return g_Core.GetEnvironmentMapConfig();
+} @NoProfile
+
 GetEnvironmentMapsToGenerate :: inline () -> []*EnvironmentMap {
     return g_Core.GetEnvironmentMapsToGenerate();
 } @NoProfile
@@ -665,6 +679,10 @@ IsMouseButtonReleased :: inline (button : MouseButton) -> bool {
     return g_Core.IsMouseButtonReleased(button);
 } @NoProfile
 
+LoadConfigFromFile :: inline (registry : *ConfigRegistry) {
+    g_Core.LoadConfigFromFile(registry);
+} @NoProfile
+
 LoadGfxShader :: inline (name : string, extra_compiler_args : []string = .[], dependencies : *[..]string = null) -> GfxShader {
     return g_Core.LoadGfxShader(name, extra_compiler_args, dependencies);
 } @NoProfile
@@ -797,6 +815,10 @@ RayIntersectsTriangle :: inline (ray_origin : Vector(N=3, T=float32), ray_dir : 
     return _ret0, _ret1, _ret2, _ret3;
 } @NoProfile
 
+RegisterConfigEntry :: inline (registry : *ConfigRegistry, name : string, entry : Any) -> bool {
+    return g_Core.RegisterConfigEntry(registry, name, entry);
+} @NoProfile
+
 RegisterDataDirectoryChangeCallback :: inline (proc : (*File_Watcher(User_Data=void), *File_Change, *void), data : *void) -> s64 {
     return g_Core.RegisterDataDirectoryChangeCallback(proc, data);
 } @NoProfile
@@ -881,6 +903,10 @@ TrimSpaces :: inline (parser : *DeserializeParser) {
     g_Core.TrimSpaces(parser);
 } @NoProfile
 
+UnregisterConfigEntry :: inline (registry : *ConfigRegistry, name : string) -> bool {
+    return g_Core.UnregisterConfigEntry(registry, name);
+} @NoProfile
+
 UnregisterDataDirectoryChangeCallback :: inline (index : s64) {
     g_Core.UnregisterDataDirectoryChangeCallback(index);
 } @NoProfile
@@ -899,6 +925,10 @@ WasKeyDown :: inline (key : KeyCode) -> bool {
 
 WasMouseButtonDown :: inline (button : MouseButton) -> bool {
     return g_Core.WasMouseButtonDown(button);
+} @NoProfile
+
+WriteConfigToFile :: inline (registry : *ConfigRegistry) {
+    g_Core.WriteConfigToFile(registry);
 } @NoProfile
 
 }

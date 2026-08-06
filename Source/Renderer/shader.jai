@@ -277,8 +277,8 @@ ReloadShader :: (shader : *LoadedShader) -> bool {
     defer if !IsNull(*compute_shader) then DestroyGfxShader(*compute_shader);
 
     extra := string.[
-        TPrint("-DNum_Environment_Map_Samples=%", GetCVarUInt("environment_map_num_samples", 128)),
-        TPrint("-DIrradiance_Map_Sample_Delta=%", GetCVarFloat("irradiance_map_sample_delta", 0.025)),
+        TPrint("-DNum_Environment_Map_Samples=%", GetEnvironmentMapConfig().environment_map_num_samples),
+        TPrint("-DIrradiance_Map_Sample_Delta=%", GetEnvironmentMapConfig().irradiance_map_sample_delta),
     ];
 
     if has_vertex_shader {

@@ -19,6 +19,7 @@ Print_Style :: Basic.Print_Style; // Needed for CoreContext
 
 #import "Random"; // Adds random_state to the context, needed to keep the same context between modules
 
+#load "config.public.jai";
 #load "asset.public.jai";
 #load "input.public.jai";
 #load "cpu_frame_profiler.public.jai";

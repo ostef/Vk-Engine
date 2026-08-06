@@ -1,3 +1,7 @@
+g_editor_viewport_config : struct {
+    box_selection_threshold : u32 = 20;
+};
+
 EditorViewport :: struct {
     unique_id : u64;
 
@@ -497,8 +501,8 @@ HandleEventForCameraMovement :: (world : *World, using viewport : *EditorViewpor
 
 IsBoxSelecting :: inline (viewport : *EditorViewport, mouse_position : Vec2f) -> bool {
     return viewport.is_box_selecting
-        && (Abs(mouse_position.x - viewport.selection_start.x) > xx GetCVarUInt("editor.box_selection_threshold", 20)
-        || Abs(mouse_position.y - viewport.selection_start.y) > xx GetCVarUInt("editor.box_selection_threshold", 20));
+        && (Abs(mouse_position.x - viewport.selection_start.x) > xx g_editor_viewport_config.box_selection_threshold
+        || Abs(mouse_position.y - viewport.selection_start.y) > xx g_editor_viewport_config.box_selection_threshold);
 }
 
 PushLassoPoint :: (using viewport : *EditorViewport, point : Vec2i) {
