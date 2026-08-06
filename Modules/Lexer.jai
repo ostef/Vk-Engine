@@ -258,6 +258,22 @@ LexerScanQuotedString :: (using lexer : *Lexer, allowed_quotes := "\"") -> strin
     return StringBuilderBuild(*builder), true;
 }
 
+LexerMatchIdentifier :: (using lexer : *Lexer) -> string
+{
+    if LexerIsAtEnd(lexer) || (!Basic.is_alpha(text[byte_index]) && text[byte_index] == "_")
+    {
+        return "";
+    }
+
+    start := byte_index;
+    while !LexerIsAtEnd(lexer) && Basic.is_alnum(text[byte_index])
+    {
+        LexerAdvance(lexer);
+    }
+
+    return string.{data=text.data + start, count=byte_index - start};
+}
+
 SyntaxError :: (using lexer : *Lexer, fmt_str : string, args : ..Any)
 {
     has_errors = true;
