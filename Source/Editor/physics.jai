@@ -63,6 +63,8 @@ ShowPhysicsSettings :: () {
                     ImGui.TableSetColumnIndex(xx (j + 1));
 
                     if ImGui.Checkbox(CTPrint("##%_%", i, j), *settings.collision_layer_matrix[i][j]) {
+                        settings.collision_layer_matrix[j][i] = settings.collision_layer_matrix[i][j];
+
                         WriteConfigToFile(GetEngineConfig());
                     }
                 }
