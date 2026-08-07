@@ -17,6 +17,18 @@ g_engine_config := ConfigRegistry.{
     filename="engine.toml",
 };
 
+FreeConfigValue :: (value : *ConfigValue) {
+    if value.kind == .String {
+        Free(value.string_value.data);
+    } else if value.kind == .Array {
+        for * value.values {
+            FreeConfigValue(it);
+        }
+
+        Free(value.values.data);
+    }
+}
+
 GetEngineConfig :: inline () -> *ConfigRegistry {
     return *g_engine_config;
 } @Public
@@ -319,6 +331,14 @@ LoadConfigFromFile :: (registry : *ConfigRegistry) {
     if !ok {
         return;
     }
+
+    // Clear parsed values
+    for * registry.parsed_values {
+        FreeConfigValue(it);
+        Free(it_index.data);
+    }
+
+    HashMapClear(*registry.parsed_values);
 
     parser : ConfigParser;
     parser.output_colors = true;
