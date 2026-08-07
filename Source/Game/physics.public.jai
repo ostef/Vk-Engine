@@ -113,8 +113,8 @@ PhysicsMotionQuality :: enum u8 {
 RigidBodyComponent :: struct {
     #as using _ : Component; @Serialize(1) @InspectorNoTree
 
-    layer := PhysicsCollisionLayer.Moving; @Serialize(2)
-    motion_type := PhysicsMotionType.Dynamic; @Serialize(3)
+    layer := PhysicsCollisionLayer.NonMoving; @Serialize(2)
+    motion_type := PhysicsMotionType.Static; @Serialize(3)
     motion_quality := PhysicsMotionQuality.Discrete; @Serialize(5)
     activate_on_create := true; @Serialize(4)
     jolt_body_id : Jolt.BodyID;
