@@ -102,13 +102,32 @@ IsTypeSerializable :: (type : *Type_Info, dependency_stack : *[..]*Type_Info = n
 
     case .STRUCT;
         struct_info := cast(*Type_Info_Struct) type;
-        if struct_info.textual_flags & .UNION {
+        if struct_info.textual_flags & .UNION && !(struct_info.textual_flags & .UNION_IS_TAGGED) {
             return false;
         }
 
-        for struct_info.members {
-            if !(it.flags & .CONSTANT) && GetSerializeFieldId(it.notes) > 0 && IsTypeSerializable(it.type, dependency_stack) {
-                return true;
+        if struct_info.textual_flags & .UNION_IS_TAGGED {
+            if struct_info.members.count <= 0 {
+                return false;
+            }
+
+            // For tagged unions we need all of the members to be serializable
+            for struct_info.members {
+                if it.flags & .CONSTANT {
+                    continue;
+                }
+
+                if GetSerializeFieldId(it.notes) <= 0 || !IsTypeSerializable(it.type, dependency_stack) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            for struct_info.members {
+                if !(it.flags & .CONSTANT) && GetSerializeFieldId(it.notes) > 0 && IsTypeSerializable(it.type, dependency_stack) {
+                    return true;
+                }
             }
         }
 
@@ -284,54 +303,45 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
         }
 
     case .STRUCT;
-        struct_info := cast(*Type_Info_Struct, type);
-        if struct_info.textual_flags & .UNION {
-            LogError("Cannot serialize unions");
-            return;
-        }
-
-        highest_byte_offset := -1;
-        num_serialized_members := 0;
-
-        for struct_info.members {
-            if it.flags & .CONSTANT {
-                continue;
+        SerializeMember :: (serializer : *Serializer, ptr : *void, member : *Type_Info_Struct_Member, highest_byte_offset : *int, num_serialized_members : *int) {
+            if member.flags & .CONSTANT {
+                return;
             }
 
-            if it.offset_in_bytes <= highest_byte_offset || it.type.runtime_size == 0 {
-                continue;
+            if member.offset_in_bytes <= highest_byte_offset.* || member.type.runtime_size == 0 {
+                return;
             }
 
-            if !IsTypeSerializable(it.type) {
-                continue;
+            if !IsTypeSerializable(member.type) {
+                return;
             }
 
-            field_id := GetSerializeFieldId(it.notes);
+            field_id := GetSerializeFieldId(member.notes);
             if field_id <= 0 {
-                continue;
+                return;
             }
 
-            member_type := Devariantize(it.type);
-            member_value := Any.{value_pointer=ptr + it.offset_in_bytes, type=member_type};
+            member_type := Devariantize(member.type);
+            member_value := Any.{value_pointer=ptr + member.offset_in_bytes, type=member_type};
 
             // Only serialize pointers if they point to something
             if member_type.type == .POINTER && !WalkPointer(member_value.value_pointer, xx member_type) {
-                highest_byte_offset = it.offset_in_bytes;
-                continue;
+                highest_byte_offset.* = member.offset_in_bytes;
+                return;
             }
 
             defer {
-                highest_byte_offset = it.offset_in_bytes;
-                num_serialized_members += 1;
+                highest_byte_offset.* = member.offset_in_bytes;
+                num_serialized_members.* += 1;
             }
 
-            if num_serialized_members > 0 {
+            if num_serialized_members.* > 0 {
                 for 1..serializer.indent_level
                     Append(serializer, Serialize_Indent_String);
             }
 
-            if it.name {
-                Append(serializer, "@% ", it.name);
+            if member.name {
+                Append(serializer, "@% ", member.name);
             }
 
             Append(serializer, "%:", field_id);
@@ -355,6 +365,58 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
 
             if single_line || empty_array {
                 Append(serializer, "\n");
+            }
+        }
+
+        struct_info := cast(*Type_Info_Struct, type);
+        if struct_info.textual_flags & .UNION && !(struct_info.textual_flags & .UNION_IS_TAGGED) {
+            LogError("Cannot serialize plain unions");
+            return;
+        }
+
+        highest_byte_offset := -1;
+        num_serialized_members := 0;
+
+        if struct_info.textual_flags & .UNION_IS_TAGGED {
+            if struct_info.members.count <= 0 {
+                LogError("Empty tagged union");
+                return;
+            }
+
+            tag_member := *struct_info.members[0];
+            tag_value : u64;
+            if tag_member.type.runtime_size == {
+            case 1; tag_value = cast(*u8,  ptr + tag_member.offset_in_bytes).*;
+            case 2; tag_value = cast(*u16, ptr + tag_member.offset_in_bytes).*;
+            case 4; tag_value = cast(*u32, ptr + tag_member.offset_in_bytes).*;
+            case 8; tag_value = cast(*u64, ptr + tag_member.offset_in_bytes).*;
+            case;
+                Panic("Corrupt union tag member info");
+                return;
+            }
+
+            active_member_index : s32 = -1;
+            for struct_info.tagged_union_bindings {
+                if it.constant_value == tag_value {
+                    active_member_index = it.member_index;
+                    break;
+                }
+            }
+
+            if active_member_index < 0 {
+                LogError("Could not find active tagged union member");
+                return;
+            }
+
+            tag := Any.{value_pointer=ptr + tag_member.offset_in_bytes, type=tag_member.type};
+            active_member := *struct_info.members[active_member_index];
+            active_value := Any.{value_pointer=ptr + active_member.offset_in_bytes, type=active_member.type};
+
+            SerializeMember(serializer, ptr, tag_member, *highest_byte_offset, *num_serialized_members);
+            SerializeMember(serializer, ptr, active_member, *highest_byte_offset, *num_serialized_members);
+        } else {
+            for * struct_info.members {
+                SerializeMember(serializer, ptr, it, *highest_byte_offset, *num_serialized_members);
             }
         }
 
