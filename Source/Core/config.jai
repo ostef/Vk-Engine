@@ -21,59 +21,6 @@ GetEngineConfig :: inline () -> *ConfigRegistry {
     return *g_engine_config;
 } @Public
 
-GetValue :: (registry : *ConfigRegistry, name : string, $T : Type) -> T, exists : bool {
-    default : T;
-
-    value := HashMapGetPtr(*registry.parsed_values, name);
-    if !value {
-        return default, false;
-    }
-
-    #if T == {
-    case s64;
-        if value.kind == .Int {
-            return value.s64_value, true;
-        }
-        if value.kind == .UInt {
-            return xx value.u64_value, true;
-        }
-        return default, false;
-
-    case u64;
-        if value.kind == .Int {
-            if value.s64_value < 0 {
-                return default, false;
-            }
-            return xx value.s64_value, true;
-        }
-        if value.kind == .UInt {
-            return value.u64_value, true;
-        }
-        return default, false;
-
-    case float;
-        if value.kind == .Float {
-            return value.float_value, true;
-        }
-        return default, false;
-
-    case bool;
-        if value.kind == .Bool {
-            return value.bool_value, true;
-        }
-        return default, false;
-
-    case string;
-        if value.kind == .String {
-            return value.string_value, true;
-        }
-        return default, false;
-
-    case;
-        #assert false;
-    }
-}
-
 RegisterConfigEntry :: (registry : *ConfigRegistry, name : string, entry : Any) -> bool {
     LogSectionScope(*Log_Config);
 
@@ -206,6 +153,8 @@ AppendConfig :: (builder : *StringBuilder, name : string, value : Any) {
 }
 
 WriteConfigToFile :: (registry : *ConfigRegistry) {
+    LogSectionScope(*Log_Config);
+
     if !registry.filename {
         LogError("Config registry filename is not set");
         return;
@@ -459,13 +408,14 @@ FillConfigValue :: (value : ConfigValue, name : string, type : *Type_Info, ptr :
         }
 
     case .ARRAY;
-        if value.kind != .Array {
-            LogError("%: config value type mismatch, expected Array, got %", name, value.kind);
+        array_info := cast(*Type_Info_Array, type);
+        if array_info.array_count <= 0 {
+            LogError("%: only fix sized arrays are supported", name);
             return;
         }
 
-        array_info := cast(*Type_Info_Array, type);
-        if array_info.array_count <= 0 {
+        if value.kind != .Array {
+            LogError("%: config value type mismatch, expected Array, got %", name, value.kind);
             return;
         }
 
