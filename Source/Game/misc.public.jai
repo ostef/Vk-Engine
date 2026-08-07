@@ -76,3 +76,72 @@ TestRayEntity :: struct {
         }
     }
 } @Entity
+
+TestShapeEntity :: struct {
+    #as using _ : Entity; @Serialize(1) @InspectorNoTree
+
+    ShapeKind :: enum {
+        Sphere;
+        Box;
+        Capsule;
+        Cylinder;
+        TaperedCapsule;
+        TaperedCylinder;
+    }
+
+    shape : union kind : ShapeKind @Serialize(1) {
+        .Sphere ,, sphere : struct {
+            radius := 1.0;
+        }; @Serialize(2)
+
+        .Box ,, box : struct {
+            half_extents := Vec3f.{1,1,1};
+        }; @Serialize(2)
+
+        .Capsule ,, capsule : struct {
+            height := 2.0;
+            radius := 0.5;
+        }; @Serialize(2)
+
+        .Cylinder ,, cylinder : struct {
+            height := 2.0;
+            radius := 0.5;
+        }; @Serialize(2)
+
+        .TaperedCapsule ,, tapered_capsule : struct {
+            height := 2.0;
+            top_radius := 0.5;
+            bottom_radius := 0.5;
+        }; @Serialize(2)
+
+        .TaperedCylinder ,, tapered_cylinder : struct {
+            height := 2.0;
+            top_radius := 0.5;
+            bottom_radius := 0.5;
+        }; @Serialize(2)
+    };
+
+    jolt_shape : *Jolt.Shape;
+
+    OnCreate :: (world : *World, using _ : *TestShapeEntity) {
+        if #complete shape.kind == {
+        case .Sphere;
+        case .Box;
+        case .Capsule;
+        case .Cylinder;
+        case .TaperedCapsule;
+        case .TaperedCylinder;
+        }
+    }
+
+    OnDestroy :: (world : *World, using _ : *TestShapeEntity) {
+    }
+
+    OnDebugDraw :: (world : *World, using _ : *TestShapeEntity) {
+        if !jolt_shape {
+            return;
+        }
+
+        jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_transform), ToJolt(Vec3f.{1,1,1}), 0x00ff00ff, false, true);
+    }
+} @Entity
