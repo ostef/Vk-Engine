@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai
+// jai generate.jai - build
 //
 
 
@@ -1294,6 +1294,8 @@ VMA_VULKAN_VERSION :: 1003000;
 VMA_DEDICATED_ALLOCATION :: 1;
 
 VMA_BIND_MEMORY2 :: 1;
+
+VMA_GET_PHYSICAL_DEVICE_PROPERTIES2 :: 1;
 
 VMA_MEMORY_BUDGET :: 1;
 
@@ -7162,10 +7164,11 @@ VkBufferImageCopy :: struct {
     imageExtent:       VkExtent3D;
 }
 
-VkClearColorValue :: union {
+VkClearColorValue :: struct {
     _float32: [4] float;
-    int32:    [4] s32;
-    uint32:   [4] u32;
+
+    #overlay (_float32) int32:  [4] s32;
+    #overlay (_float32) uint32: [4] u32;
 }
 
 VkClearDepthStencilValue :: struct {
@@ -7173,9 +7176,10 @@ VkClearDepthStencilValue :: struct {
     stencil: u32;
 }
 
-VkClearValue :: union {
-    color:        VkClearColorValue;
-    depthStencil: VkClearDepthStencilValue;
+VkClearValue :: struct {
+    color: VkClearColorValue;
+
+    #overlay (color) depthStencil: VkClearDepthStencilValue;
 }
 
 VkClearAttachment :: struct {
@@ -12353,13 +12357,14 @@ VkQueryPoolPerformanceCreateInfoKHR :: struct {
     pCounterIndices:   *u32;
 }
 
-VkPerformanceCounterResultKHR :: union {
-    int32:    s32;
-    int64:    s64;
-    uint32:   u32;
-    uint64:   u64;
-    _float32: float;
-    _float64: float64;
+VkPerformanceCounterResultKHR :: struct {
+    int64: s64; // largest member, moved to the start of the struct/union to support #overlay.
+
+    #overlay (int64) int32:    s32;
+    #overlay (int64) uint32:   u32;
+    #overlay (int64) uint64:   u64;
+    #overlay (int64) _float32: float;
+    #overlay (int64) _float64: float64;
 }
 
 VkAcquireProfilingLockInfoKHR :: struct {
@@ -14182,11 +14187,12 @@ VkPipelineExecutableInfoKHR :: struct {
     executableIndex: u32;
 }
 
-VkPipelineExecutableStatisticValueKHR :: union {
-    b32:  VkBool32;
-    i64:  s64;
-    _u64: u64;
-    f64:  float64;
+VkPipelineExecutableStatisticValueKHR :: struct {
+    i64: s64; // largest member, moved to the start of the struct/union to support #overlay.
+
+    #overlay (i64) b32:  VkBool32;
+    #overlay (i64) _u64: u64;
+    #overlay (i64) f64:  float64;
 }
 
 VkPipelineExecutableStatisticKHR :: struct {
@@ -16333,12 +16339,13 @@ VkPerformanceValueTypeINTEL :: enum u32 {
     VK_PERFORMANCE_VALUE_TYPE_MAX_ENUM_INTEL :: MAX_ENUM_INTEL;
 }
 
-VkPerformanceValueDataINTEL :: union {
-    value32:     u32;
-    value64:     u64;
-    valueFloat:  float;
-    valueBool:   VkBool32;
-    valueString: *u8;
+VkPerformanceValueDataINTEL :: struct {
+    value64: u64; // largest member, moved to the start of the struct/union to support #overlay.
+
+    #overlay (value64) value32:     u32;
+    #overlay (value64) valueFloat:  float;
+    #overlay (value64) valueBool:   VkBool32;
+    #overlay (value64) valueString: *u8;
 }
 
 VkPerformanceValueINTEL :: struct {
@@ -17377,17 +17384,18 @@ VkDescriptorBufferBindingPushDescriptorBufferHandleEXT :: struct {
     buffer: VkBuffer;
 }
 
-VkDescriptorDataEXT :: union {
-    pSampler:              *VkSampler;
-    pCombinedImageSampler: *VkDescriptorImageInfo;
-    pInputAttachmentImage: *VkDescriptorImageInfo;
-    pSampledImage:         *VkDescriptorImageInfo;
-    pStorageImage:         *VkDescriptorImageInfo;
-    pUniformTexelBuffer:   *VkDescriptorAddressInfoEXT;
-    pStorageTexelBuffer:   *VkDescriptorAddressInfoEXT;
-    pUniformBuffer:        *VkDescriptorAddressInfoEXT;
-    pStorageBuffer:        *VkDescriptorAddressInfoEXT;
-    accelerationStructure: VkDeviceAddress;
+VkDescriptorDataEXT :: struct {
+    pSampler: *VkSampler;
+
+    #overlay (pSampler) pCombinedImageSampler: *VkDescriptorImageInfo;
+    #overlay (pSampler) pInputAttachmentImage: *VkDescriptorImageInfo;
+    #overlay (pSampler) pSampledImage:         *VkDescriptorImageInfo;
+    #overlay (pSampler) pStorageImage:         *VkDescriptorImageInfo;
+    #overlay (pSampler) pUniformTexelBuffer:   *VkDescriptorAddressInfoEXT;
+    #overlay (pSampler) pStorageTexelBuffer:   *VkDescriptorAddressInfoEXT;
+    #overlay (pSampler) pUniformBuffer:        *VkDescriptorAddressInfoEXT;
+    #overlay (pSampler) pStorageBuffer:        *VkDescriptorAddressInfoEXT;
+    #overlay (pSampler) accelerationStructure: VkDeviceAddress;
 }
 
 VkDescriptorGetInfoEXT :: struct {
@@ -17564,9 +17572,10 @@ VkAccelerationStructureMotionInstanceTypeNV :: enum u32 {
 
 VkAccelerationStructureMotionInfoFlagsNV :: VkFlags;
 VkAccelerationStructureMotionInstanceFlagsNV :: VkFlags;
-VkDeviceOrHostAddressConstKHR :: union {
+VkDeviceOrHostAddressConstKHR :: struct {
     deviceAddress: VkDeviceAddress;
-    hostAddress:   *void;
+
+    #overlay (deviceAddress) hostAddress: *void;
 }
 
 VkAccelerationStructureGeometryMotionTrianglesDataNV :: struct {
@@ -17711,10 +17720,11 @@ get_flags :: (fields: VkAccelerationStructureSRTMotionInstanceNV) -> VkGeometryI
 }
 
 
-VkAccelerationStructureMotionInstanceDataNV :: union {
-    staticInstance:       VkAccelerationStructureInstanceKHR;
-    matrixMotionInstance: VkAccelerationStructureMatrixMotionInstanceNV;
-    srtMotionInstance:    VkAccelerationStructureSRTMotionInstanceNV;
+VkAccelerationStructureMotionInstanceDataNV :: struct {
+    srtMotionInstance: VkAccelerationStructureSRTMotionInstanceNV; // largest member, moved to the start of the struct/union to support #overlay.
+
+    #overlay (srtMotionInstance) staticInstance:       VkAccelerationStructureInstanceKHR;
+    #overlay (srtMotionInstance) matrixMotionInstance: VkAccelerationStructureMatrixMotionInstanceNV;
 }
 
 VkAccelerationStructureMotionInstanceNV :: struct {
@@ -18384,9 +18394,10 @@ VkMicromapUsageEXT :: struct {
     format:           u32;
 }
 
-VkDeviceOrHostAddressKHR :: union {
+VkDeviceOrHostAddressKHR :: struct {
     deviceAddress: VkDeviceAddress;
-    hostAddress:   *void;
+
+    #overlay (deviceAddress) hostAddress: *void;
 }
 
 VkMicromapBuildInfoEXT :: struct {
@@ -19345,10 +19356,11 @@ VkAccelerationStructureGeometryInstancesDataKHR :: struct {
     data:            VkDeviceOrHostAddressConstKHR;
 }
 
-VkAccelerationStructureGeometryDataKHR :: union {
+VkAccelerationStructureGeometryDataKHR :: struct {
     triangles: VkAccelerationStructureGeometryTrianglesDataKHR;
-    aabbs:     VkAccelerationStructureGeometryAabbsDataKHR;
-    instances: VkAccelerationStructureGeometryInstancesDataKHR;
+
+    #overlay (triangles) aabbs:     VkAccelerationStructureGeometryAabbsDataKHR;
+    #overlay (triangles) instances: VkAccelerationStructureGeometryInstancesDataKHR;
 }
 
 VkAccelerationStructureGeometryKHR :: struct {
@@ -20066,6 +20078,9 @@ VmaVulkanFunctions :: struct {
     vkGetDeviceImageMemoryRequirements:      PFN_vkGetDeviceImageMemoryRequirementsKHR;
 
     vkGetMemoryWin32HandleKHR:               *void;
+
+    /// Fetch from "vkGetPhysicalDeviceProperties2" on Vulkan >= 1.1, but you can also fetch it from "vkGetPhysicalDeviceProperties2KHR" if you enabled extension VK_KHR_get_physical_device_properties2.
+    vkGetPhysicalDeviceProperties2KHR:       PFN_vkGetPhysicalDeviceProperties2KHR;
 }
 
 /// Description of a Allocator to be created.
@@ -20345,6 +20360,20 @@ VmaAllocationCreateInfo :: struct {
     Otherwise, it has the priority of a memory block where it is placed and this variable is ignored.
     */
     priority:       float;
+
+    /** \brief Additional minimum alignment to be used for this allocation. Can be 0.
+    
+    Leave 0 (default) not to impose any additional alignment. If not 0, it must be a power of two.
+    
+    When creating a buffer or an image, specifying a custom alignment is not needed in most cases,
+    because Vulkan implementation inspects the `CreateInfo` structure (including intended usage flags)
+    and returns required alignment through functions like `vkGetBufferMemoryRequirements2`, which VMA automatically
+    uses and respects.
+    Extra alignment may be needed in some cases, like when using a buffer for acceleration structure scratch
+    (`VkPhysicalDeviceAccelerationStructurePropertiesKHR::minAccelerationStructureScratchOffsetAlignment`, see also issue #523)
+    or when doing interop with OpenGL.
+    */
+    minAlignment:   VkDeviceSize;
 }
 
 /// Describes parameter of created #VmaPool.
@@ -20393,8 +20422,14 @@ VmaPoolCreateInfo :: struct {
     /** \brief Additional minimum alignment to be used for all allocations created from this pool. Can be 0.
     
     Leave 0 (default) not to impose any additional alignment. If not 0, it must be a power of two.
-    It can be useful in cases where alignment returned by Vulkan by functions like `vkGetBufferMemoryRequirements` is not enough,
-    e.g. when doing interop with OpenGL.
+    
+    When creating a buffer or an image, specifying a custom alignment is not needed in most cases,
+    because Vulkan implementation inspects the `CreateInfo` structure (including intended usage flags)
+    and returns required alignment through functions like `vkGetBufferMemoryRequirements2`, which VMA automatically
+    uses and respects.
+    Extra alignment may be needed in some cases, like when using a buffer for acceleration structure scratch
+    (`VkPhysicalDeviceAccelerationStructurePropertiesKHR::minAccelerationStructureScratchOffsetAlignment`, see also issue #523)
+    or when doing interop with OpenGL.
     */
     minAllocationAlignment: VkDeviceSize;
 
@@ -20835,18 +20870,37 @@ vmaSetPoolName :: (allocator: VmaAllocator, pool: VmaPool, pName: *u8) -> void #
 
 /** \brief General purpose memory allocation.
 
-\param allocator
-\param pVkMemoryRequirements
-\param pCreateInfo
+\param allocator The main allocator object.
+\param pVkMemoryRequirements Requirements for the allocated memory.
+\param pCreateInfo Allocation creation parameters.
 \param[out] pAllocation Handle to allocated memory.
-\param[out] pAllocationInfo Optional. Information about allocated memory. It can be later fetched using function vmaGetAllocationInfo().
+\param[out] pAllocationInfo Optional, can be null. Information about allocated memory. It can be also fetched later using vmaGetAllocationInfo().
 
-You should free the memory using vmaFreeMemory() or vmaFreeMemoryPages().
+The function creates a #VmaAllocation object without creating a buffer or an image together with it.
 
-It is recommended to use vmaAllocateMemoryForBuffer(), vmaAllocateMemoryForImage(),
+- It is recommended to use vmaAllocateMemoryForBuffer(), vmaAllocateMemoryForImage(),
 vmaCreateBuffer(), vmaCreateImage() instead whenever possible.
+- You can also create a buffer or an image later in an existing allocation using
+vmaCreateAliasingBuffer2(), vmaCreateAliasingImage2().
+- You can also create a buffer or an image on your own and bind it to an existing allocation
+using vmaBindBufferMemory2(), vmaBindImageMemory2().
+
+You must free the returned allocation object using vmaFreeMemory() or vmaFreeMemoryPages().
+
+There is also extended version of this function: vmaAllocateDedicatedMemory()
+that offers additional parameter `pMemoryAllocateNext`.
 */
 vmaAllocateMemory :: (allocator: VmaAllocator, pVkMemoryRequirements: *VkMemoryRequirements, pCreateInfo: *VmaAllocationCreateInfo, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
+
+/** \brief General purpose allocation of a dedicated memory.
+
+This function is similar vmaAllocateMemory(), but
+it always allocates dedicated memory - flag #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT is implied.
+It offers additional parameter `pMemoryAllocateNext`,
+which can be used to attach `pNext` chain to the `VkMemoryAllocateInfo` structure.
+It can be useful for importing external memory. For more information, see \ref other_api_interop.
+*/
+vmaAllocateDedicatedMemory :: (allocator: VmaAllocator, pVkMemoryRequirements: *VkMemoryRequirements, pCreateInfo: *VmaAllocationCreateInfo, pMemoryAllocateNext: *void, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
 
 /** \brief General purpose memory allocation for multiple allocation objects at once.
 
@@ -21276,12 +21330,13 @@ vmaBindImageMemory2 :: (allocator: VmaAllocator, allocation: VmaAllocation, allo
 
 /** \brief Creates a new `VkBuffer`, allocates and binds memory for it.
 
-\param allocator
-\param pBufferCreateInfo
-\param pAllocationCreateInfo
+\param allocator The main allocator object.
+\param pBufferCreateInfo Buffer creation parameters.
+\param pAllocationCreateInfo Allocation creation parameters.
 \param[out] pBuffer Buffer that was created.
 \param[out] pAllocation Allocation that was created.
-\param[out] pAllocationInfo Optional. Information about allocated memory. It can be later fetched using function vmaGetAllocationInfo().
+\param[out] pAllocationInfo Optional, can be null. Information about allocated memory.
+It can be also fetched later using vmaGetAllocationInfo().
 
 This function automatically:
 
@@ -21290,14 +21345,14 @@ This function automatically:
 -# Binds the buffer with the memory.
 
 If any of these operations fail, buffer and allocation are not created,
-returned value is negative error code, `*pBuffer` and `*pAllocation` are null.
+returned value is negative error code, `*pBuffer` and `*pAllocation` are returned as null.
 
 If the function succeeded, you must destroy both buffer and allocation when you
 no longer need them using either convenience function vmaDestroyBuffer() or
 separately, using `vkDestroyBuffer()` and vmaFreeMemory().
 
-If #VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT flag was used,
-VK_KHR_dedicated_allocation extension is used internally to query driver whether
+If VK_KHR_dedicated_allocation extenion or Vulkan version >= 1.1 is used,
+the function queries the driver whether
 it requires or prefers the new buffer to have dedicated allocation. If yes,
 and if dedicated allocation is possible
 (#VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT is not used), it creates dedicated
@@ -21307,6 +21362,9 @@ allocation for this buffer, just like when using
 \note This function creates a new `VkBuffer`. Sub-allocation of parts of one large buffer,
 although recommended as a good practice, is out of scope of this library and could be implemented
 by the user as a higher-level logic on top of VMA.
+
+There is also an extended versions of this function available with additional parameter `pMemoryAllocateNext` -
+see vmaCreateDedicatedBuffer().
 */
 vmaCreateBuffer :: (allocator: VmaAllocator, pBufferCreateInfo: *VkBufferCreateInfo, pAllocationCreateInfo: *VmaAllocationCreateInfo, pBuffer: *VkBuffer, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
 
@@ -21315,8 +21373,22 @@ vmaCreateBuffer :: (allocator: VmaAllocator, pBufferCreateInfo: *VkBufferCreateI
 Similar to vmaCreateBuffer() but provides additional parameter `minAlignment` which allows to specify custom,
 minimum alignment to be used when placing the buffer inside a larger memory block, which may be needed e.g.
 for interop with OpenGL.
+
+\deprecated
+This function in obsolete since new VmaAllocationCreateInfo::minAlignment member allows specifying custom
+alignment while using any allocation function, like the standard vmaCreateBuffer().
 */
 vmaCreateBufferWithAlignment :: (allocator: VmaAllocator, pBufferCreateInfo: *VkBufferCreateInfo, pAllocationCreateInfo: *VmaAllocationCreateInfo, minAlignment: VkDeviceSize, pBuffer: *VkBuffer, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
+
+/** \brief Creates a dedicated buffer while offering extra parameter `pMemoryAllocateNext`.
+
+This function is similar vmaCreateBuffer(), but
+it always allocates dedicated memory for the buffer - flag #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT is implied.
+It offers additional parameter `pMemoryAllocateNext`,
+which can be used to attach `pNext` chain to the `VkMemoryAllocateInfo` structure.
+It can be useful for importing external memory. For more information, see \ref other_api_interop.
+*/
+vmaCreateDedicatedBuffer :: (allocator: VmaAllocator, pBufferCreateInfo: *VkBufferCreateInfo, pAllocationCreateInfo: *VmaAllocationCreateInfo, pMemoryAllocateNext: *void, pBuffer: *VkBuffer, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
 
 /** \brief Creates a new `VkBuffer`, binds already created memory for it.
 
@@ -21378,8 +21450,22 @@ It is safe to pass null as buffer and/or allocation.
 */
 vmaDestroyBuffer :: (allocator: VmaAllocator, buffer: VkBuffer, allocation: VmaAllocation) -> void #foreign vkmemalloc;
 
-/// Function similar to vmaCreateBuffer().
+/** \brief Function similar to vmaCreateBuffer() but for images.
+
+There is also an extended version of this function available: vmaCreateDedicatedImage()
+which offers additional parameter `pMemoryAllocateNext`.
+*/
 vmaCreateImage :: (allocator: VmaAllocator, pImageCreateInfo: *VkImageCreateInfo, pAllocationCreateInfo: *VmaAllocationCreateInfo, pImage: *VkImage, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
+
+/** \brief Function similar to vmaCreateDedicatedBuffer() but for images.
+
+This function is similar vmaCreateImage(), but
+it always allocates dedicated memory for the image - flag #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT is implied.
+It offers additional parameter `pMemoryAllocateNext`,
+which can be used to attach `pNext` chain to the `VkMemoryAllocateInfo` structure.
+It can be useful for importing external memory. For more information, see \ref other_api_interop.
+*/
+vmaCreateDedicatedImage :: (allocator: VmaAllocator, pImageCreateInfo: *VkImageCreateInfo, pAllocationCreateInfo: *VmaAllocationCreateInfo, pMemoryAllocateNext: *void, pImage: *VkImage, pAllocation: *VmaAllocation, pAllocationInfo: *VmaAllocationInfo) -> VkResult #foreign vkmemalloc;
 
 /// Function similar to vmaCreateAliasingBuffer() but for images.
 vmaCreateAliasingImage :: (allocator: VmaAllocator, allocation: VmaAllocation, pImageCreateInfo: *VkImageCreateInfo, pImage: *VkImage) -> VkResult #foreign vkmemalloc;

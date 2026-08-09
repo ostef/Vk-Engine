@@ -121,7 +121,7 @@ GenerateBindings :: () -> bool {
 
         array_add(*extra_clang_arguments, "-x", "c");
 
-        array_add(*source_files, "Source/Vulkan/vulkan.h");
+        array_add(*source_files, "Source/vulkan/vulkan.h");
         array_add(*source_files, "Source/VulkanMemoryAllocator/vk_mem_alloc.h");
 
         generate_library_declarations = false;
