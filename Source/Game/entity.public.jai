@@ -72,7 +72,7 @@ EntityFlags :: enum_flags {
 
 Detect_Entity_Recursive_Attachment :: true;
 
-Entities_Per_Page :: 20;
+Entities_Per_Page :: 300;
 
 EntityStorage :: #bake_arguments PagedArray(Page_Size=Entities_Per_Page);
 

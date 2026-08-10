@@ -20,7 +20,7 @@
     return StringBuilderBuild(*builder);
 };
 
-Components_Per_Page :: 20;
+Components_Per_Page :: 300;
 
 ComponentStorage :: #bake_arguments PagedArray(Page_Size=Components_Per_Page);
 
