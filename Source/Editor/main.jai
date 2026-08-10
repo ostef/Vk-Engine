@@ -538,6 +538,8 @@ UpdateEditor :: () {
         UpdateEditorWorld(g_world);
     }
 
+    SetPhysicsDebugRendererTarget(g_world);
+
     for g_editor_selected_entities {
         entity := GetEntity(g_world, it);
         if !entity {

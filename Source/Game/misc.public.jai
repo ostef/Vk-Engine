@@ -164,6 +164,6 @@ TestShapeEntity :: struct {
             return;
         }
 
-        jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_transform), ToJolt(Vec3f.{1,1,1}), 0xffffffff, false, true);
+        jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_position_rotation_transform), Jolt.Vec3.Make(1,1,1), 0xffffffff, false, true);
     }
 } @Entity
