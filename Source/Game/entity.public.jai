@@ -15,6 +15,7 @@ Entity :: struct {
     local_scale : Vec3f = .{1,1,1}; @Serialize(5)
 
     world_transform : Mat4f;
+    world_position_rotation_transform : Mat4f;
     inv_world_transform : Mat4f;
     parent : EntityID; @Serialize(6)
     children : [..]EntityIndex;

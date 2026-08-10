@@ -38,6 +38,7 @@ SpatialComponent :: struct {
     local_scale : Vec3f = .{1,1,1}; @Serialize(4)
 
     world_transform : Mat4f;
+    world_position_rotation_transform : Mat4f;
     inv_world_transform : Mat4f;
 }
 
@@ -64,8 +65,12 @@ ComponentIsSpatial :: inline (component : *Component) -> bool {
 }
 
 UpdateWorldTransform :: (entity : *Entity, using spatial : *SpatialComponent) {
-    local_transform := Mat4fTransformSRT(local_position, local_rotation, local_scale);
+    local_transform := Mat4fTranslate(local_position) * Mat4fFromQuat(local_rotation);
+    world_position_rotation_transform = entity.world_position_rotation_transform * local_transform;
+
+    local_transform = local_transform * Mat4fScale(local_scale);
     world_transform = entity.world_transform * local_transform;
+
     inv_world_transform = Inverse(world_transform);
 }
 

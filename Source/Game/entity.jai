@@ -317,9 +317,11 @@ SetWorldTransformNoScale :: (world : *World, entity : *Entity, transform : Mat4f
 UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := true, update_components := true) {
     parent := ifx entity.parent != Null_Entity_ID then GetEntity(world, entity.parent);
 
-    local_transform := Mat4fTransformSRT(entity.local_position, entity.local_rotation, entity.local_scale);
+    local_position_rotation_transform := Mat4fTranslate(entity.local_position) * Mat4fFromQuat(entity.local_rotation);
+    local_transform := local_position_rotation_transform * Mat4fScale(entity.local_scale);
 
     if parent {
+        entity.world_position_rotation_transform = parent.world_position_rotation_transform * local_position_rotation_transform;
         entity.world_transform = parent.world_transform * local_transform;
 
         // Remove skewing from world transform
@@ -330,6 +332,7 @@ UpdateWorldTransform :: (world : *World, entity : *Entity, update_children := tr
 
         entity.world_transform = T * ToMat4f(Q) * S2;
     } else {
+        entity.world_position_rotation_transform = local_position_rotation_transform;
         entity.world_transform = local_transform;
     }
 
