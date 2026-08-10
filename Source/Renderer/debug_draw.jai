@@ -1,4 +1,8 @@
 DebugDrawLine :: (renderer : *DebugRenderer, color : Vec4f, start : Vec3f, end : Vec3f) {
+    if !renderer {
+        return;
+    }
+
     ArrayPush(*renderer.lines, .{
         start=start,
         end=end,
