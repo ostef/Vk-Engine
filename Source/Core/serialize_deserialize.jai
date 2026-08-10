@@ -383,37 +383,12 @@ SerializeAny :: (serializer : *Serializer, value : Any) {
                 return;
             }
 
-            tag_member := *struct_info.members[0];
-            tag_value : u64;
-            if tag_member.type.runtime_size == {
-            case 1; tag_value = cast(*u8,  ptr + tag_member.offset_in_bytes).*;
-            case 2; tag_value = cast(*u16, ptr + tag_member.offset_in_bytes).*;
-            case 4; tag_value = cast(*u32, ptr + tag_member.offset_in_bytes).*;
-            case 8; tag_value = cast(*u64, ptr + tag_member.offset_in_bytes).*;
-            case;
-                Panic("Corrupt union tag member info");
-                return;
-            }
-
-            active_member_index : s32 = -1;
-            for struct_info.tagged_union_bindings {
-                if it.constant_value == tag_value {
-                    active_member_index = it.member_index;
-                    break;
-                }
-            }
-
-            if active_member_index < 0 {
-                LogError("Could not find active tagged union member");
-                return;
-            }
-
-            tag := Any.{value_pointer=ptr + tag_member.offset_in_bytes, type=tag_member.type};
-            active_member := *struct_info.members[active_member_index];
-            active_value := Any.{value_pointer=ptr + active_member.offset_in_bytes, type=active_member.type};
+            tag_value, tag_member, active_member := DecomposeTaggedUnion(ptr, struct_info);
 
             SerializeMember(serializer, ptr, tag_member, *highest_byte_offset, *num_serialized_members);
-            SerializeMember(serializer, ptr, active_member, *highest_byte_offset, *num_serialized_members);
+            if active_member {
+                SerializeMember(serializer, ptr, active_member, *highest_byte_offset, *num_serialized_members);
+            }
         } else {
             for * struct_info.members {
                 SerializeMember(serializer, ptr, it, *highest_byte_offset, *num_serialized_members);
@@ -922,7 +897,7 @@ DeserializeAny :: (using parser : *DeserializeParser, value : Any) -> Deserializ
         }
 
         struct_info := cast(*Type_Info_Struct) type;
-        if struct_info.textual_flags & .UNION {
+        if (struct_info.textual_flags & .UNION) && !(struct_info.textual_flags & .UNION_IS_TAGGED) {
             return DeserializeError(parser, "Cannot deserialize unions");
         }
 

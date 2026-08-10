@@ -180,6 +180,37 @@ Initialize :: inline (item : *$T, count : s64)
 }
 @NoProfile
 
+InitializeAny :: inline (any : Any)
+{
+    if any.type.type == {
+    case .STRUCT;
+        struct_info := cast(*Type_Info_Struct, any.type);
+        if struct_info.initializer
+        {
+            struct_info.initializer(any.value_pointer);
+        }
+        else
+        {
+            memset(any.value_pointer, 0, any.type.runtime_size);
+        }
+
+    case .ENUM;
+        enum_info := cast(*Type_Info_Enum, any.type);
+        value := ifx enum_info.values.count > 0 then enum_info.values[0] else 0;
+        if enum_info.runtime_size ==
+        {
+        case 1; cast(*s8,  any.value_pointer).* = xx,no_check value;
+        case 2; cast(*s16, any.value_pointer).* = xx,no_check value;
+        case 4; cast(*s32, any.value_pointer).* = xx,no_check value;
+        case 8; cast(*s64, any.value_pointer).* = xx,no_check value;
+        }
+
+    case;
+        memset(any.value_pointer, 0, any.type.runtime_size);
+    }
+}
+@NoProfile
+
 OffsetOf :: inline ($T : Type, $member : string) -> s64 #no_context
 {
     dummy := cast(*T) null;

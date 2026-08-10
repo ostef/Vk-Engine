@@ -85,63 +85,68 @@ TestShapeEntity :: struct {
         Box;
         Capsule;
         Cylinder;
-        TaperedCapsule;
-        TaperedCylinder;
     }
 
     shape : union kind : ShapeKind @Serialize(1) {
         .Sphere ,, sphere : struct {
-            radius := 1.0;
-        }; @Serialize(2)
+            radius := 1.0; @Serialize(1)
+        }; @Serialize(2) @InspectorNoTree
 
         .Box ,, box : struct {
-            half_extents := Vec3f.{1,1,1};
-        }; @Serialize(2)
+            half_extents := Vec3f.{1,1,1}; @Serialize(1)
+        }; @Serialize(2) @InspectorNoTree
 
         .Capsule ,, capsule : struct {
-            height := 2.0;
-            radius := 0.5;
-        }; @Serialize(2)
+            height := 2.0; @Serialize(1)
+            radius := 0.5; @Serialize(2)
+        }; @Serialize(2) @InspectorNoTree
 
         .Cylinder ,, cylinder : struct {
-            height := 2.0;
-            radius := 0.5;
-        }; @Serialize(2)
-
-        .TaperedCapsule ,, tapered_capsule : struct {
-            height := 2.0;
-            top_radius := 0.5;
-            bottom_radius := 0.5;
-        }; @Serialize(2)
-
-        .TaperedCylinder ,, tapered_cylinder : struct {
-            height := 2.0;
-            top_radius := 0.5;
-            bottom_radius := 0.5;
-        }; @Serialize(2)
-    };
+            height := 2.0; @Serialize(1)
+            radius := 0.5; @Serialize(2)
+        }; @Serialize(2) @InspectorNoTree
+    }; @Serialize(2)
 
     jolt_shape : *Jolt.Shape;
 
-    OnCreate :: (world : *World, using _ : *TestShapeEntity) {
+    OnSpawn :: (world : *World, using test_shape : *TestShapeEntity) {
         if #complete shape.kind == {
         case .Sphere;
+            if shape.sphere.radius <= 0 {
+                return;
+            }
+
+            jolt_shape = Jolt.SphereShape.Create(shape.sphere.radius, null);
         case .Box;
+            if shape.box.half_extents.x <= 0 || shape.box.half_extents.y <= 0 || shape.box.half_extents.z <= 0 {
+                return;
+            }
+
+            jolt_shape = Jolt.BoxShape.Create(ToJolt(shape.box.half_extents), Jolt.ConvexShapeSettings.cDefaultConvexRadius, null);
         case .Capsule;
+            if shape.capsule.radius <= 0 {
+                return;
+            }
+
+            jolt_shape = Jolt.CapsuleShape.Create(Max(shape.capsule.height - 2 * shape.capsule.radius, 0), shape.capsule.radius, null);
         case .Cylinder;
-        case .TaperedCapsule;
-        case .TaperedCylinder;
+            if shape.cylinder.radius <= 0 {
+                return;
+            }
+
+            jolt_shape = Jolt.CylinderShape.Create(Max(shape.cylinder.height, 0), shape.cylinder.radius, Jolt.ConvexShapeSettings.cDefaultConvexRadius, null);
         }
     }
 
-    OnDestroy :: (world : *World, using _ : *TestShapeEntity) {
+    OnDespawn :: (world : *World, using test_shape : *TestShapeEntity) {
+        jolt_shape.Destroy(jolt_shape);
     }
 
-    OnDebugDraw :: (world : *World, using _ : *TestShapeEntity) {
+    OnDebugDraw :: (world : *World, using test_shape : *TestShapeEntity) {
         if !jolt_shape {
             return;
         }
 
-        jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_transform), ToJolt(Vec3f.{1,1,1}), 0x00ff00ff, false, true);
+        jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_transform), ToJolt(Vec3f.{1,1,1}), 0xffffffff, false, true);
     }
 } @Entity

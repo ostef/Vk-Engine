@@ -360,3 +360,31 @@ Devariantize :: (type : *Type_Info) -> *Type_Info {
 
     return type;
 }
+
+DecomposeTaggedUnion :: (ptr : *void, type : *Type_Info_Struct) -> tag_value : u64, tag_member : *Type_Info_Struct_Member, active_member : *Type_Info_Struct_Member, active_member_index : s32 {
+    Assert(type.members.count > 0, "Empty tagged union");
+
+    tag_member := *type.members[0];
+    tag_value : u64;
+    if tag_member.type.runtime_size == {
+    case 1; tag_value = cast(*u8,  ptr + tag_member.offset_in_bytes).*;
+    case 2; tag_value = cast(*u16, ptr + tag_member.offset_in_bytes).*;
+    case 4; tag_value = cast(*u32, ptr + tag_member.offset_in_bytes).*;
+    case 8; tag_value = cast(*u64, ptr + tag_member.offset_in_bytes).*;
+    case;
+        Panic("Corrupt union tag member info");
+        return 0, null, null, -1;
+    }
+
+    active_member_index : s32 = -1;
+    for type.tagged_union_bindings {
+        if it.constant_value == tag_value {
+            active_member_index = it.member_index;
+            break;
+        }
+    }
+
+    active_member := ifx active_member_index >= 0 then *type.members[active_member_index];
+
+    return tag_value, tag_member, active_member, active_member_index;
+}

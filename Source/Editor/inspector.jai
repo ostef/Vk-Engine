@@ -729,8 +729,62 @@ ShowInspector :: (label : *u8, using ctx : *InspectorContext, any : Any, notes :
         return state;
 
     case .STRUCT;
+        InspectMember :: (old_ctx : InspectorContext, using ctx : *InspectorContext, ptr : *void, member : *Type_Info_Struct_Member, highest_offset : *int) -> InteractionState {
+            if member.flags & .CONSTANT || member.offset_in_bytes <= highest_offset.* {
+                return 0;
+            }
+
+            no_custom_inspector := false;
+            not_editable := false;
+            member_no_tree := false;
+            found_serialize_note := false;
+            show_in_inspector := false;
+            for note : member.notes {
+                if StringStartsWith(note, "Serialize(") {
+                    found_serialize_note = true;
+                }
+
+                if note == {
+                case "ShowInInspector";
+                    show_in_inspector = true;
+                case "HideInInspector";
+                    return 0;
+                case "NoCustomInspector";
+                    no_custom_inspector = true;
+                case "NotEditable";
+                    not_editable = true;
+                }
+            }
+
+            if !found_serialize_note && !show_in_inspector {
+                return 0;
+            }
+
+            highest_offset.* = member.offset_in_bytes;
+
+            ImGui.BeginDisabled(not_editable);
+            defer ImGui.EndDisabled();
+
+            item : Any;
+            item.type = member.type;
+            item.value_pointer = ptr + member.offset_in_bytes;
+
+            member_label : *u8;
+            if member.type.type == .POINTER && IsInComponentTypesArray(cast(*Type, *cast(*Type_Info_Pointer, member.type).pointer_to).*) {
+                component_type := cast(*Type, *cast(*Type_Info_Pointer, member.type).pointer_to).*;
+                component_name := GetNiceComponentTypeName(GetComponentTypeId(component_type));
+                member_label = ifx member.name && member.name != "_" then CTPrint("% (% component)", member.name, component_name);
+            } else {
+                member_label = ifx member.name && member.name != "_" then CStringClone(member.name ,, Temp);
+            }
+
+            member_label = Capitalize(MakeString(member_label)).data;
+
+            return ShowInspector(member_label, ctx, item, notes=member.notes, use_custom_inspector=!no_custom_inspector);
+        }
+
         struct_info := cast(*Type_Info_Struct) type;
-        if struct_info.textual_flags & .UNION {
+        if (struct_info.textual_flags & .UNION) && !(struct_info.textual_flags & .UNION_IS_TAGGED) {
             return 0;
         }
 
@@ -767,65 +821,40 @@ ShowInspector :: (label : *u8, using ctx : *InspectorContext, any : Any, notes :
 
         if opened {
             highest_offset := -1;
-            for struct_info.members {
-                if it.flags & .CONSTANT || it.offset_in_bytes <= highest_offset {
-                    continue;
+            if struct_info.textual_flags & .UNION_IS_TAGGED {
+                if struct_info.members.count <= 0 {
+                    return state;
                 }
 
-                no_custom_inspector := false;
-                not_editable := false;
-                member_no_tree := false;
-                color_edit := false;
-                found_serialize_note := false;
-                show_in_inspector := false;
-                for note : it.notes {
-                    if StringStartsWith(note, "Serialize(") {
-                        found_serialize_note = true;
+                tag_value, tag_member, active_member := DecomposeTaggedUnion(ptr, struct_info);
+
+                absolute_offset = old_ctx.absolute_offset + tag_member.offset_in_bytes;
+                state |= InspectMember(old_ctx, ctx, ptr, tag_member, *highest_offset);
+
+                prev_tag_value := tag_value;
+                tag_value, tag_member, active_member = DecomposeTaggedUnion(ptr, struct_info);
+
+                if active_member {
+                    // Reset active member when the tag changes
+                    if prev_tag_value != tag_value {
+                        InitializeAny(Any.{value_pointer=ptr + active_member.offset_in_bytes, type=active_member.type});
                     }
 
-                    if note == {
-                    case "ShowInInspector";
-                        show_in_inspector = true;
-                    case "HideInInspector";
-                        continue it;
-                    case "NoCustomInspector";
-                        no_custom_inspector = true;
-                    case "NotEditable";
-                        not_editable = true;
-                    case "InspectorNoTree";
-                        member_no_tree = true;
-                    case "ColorEdit";
-                        color_edit = true;
-                    }
+                    ResetInspectorContext(ctx);
+                    InitInspectorContext(ctx, active_member.type);
+
+                    older_ctx := old_ctx;
+                    defer old_ctx = older_ctx;
+                    old_ctx = ctx.*;
+
+                    state |= InspectMember(old_ctx, ctx, ptr, active_member, *highest_offset);
                 }
+            } else {
+                for * struct_info.members {
+                    absolute_offset = old_ctx.absolute_offset + it.offset_in_bytes;
 
-                if !found_serialize_note && !show_in_inspector {
-                    continue it;
+                    state |= InspectMember(old_ctx, ctx, ptr, it, *highest_offset);
                 }
-
-                highest_offset = it.offset_in_bytes;
-
-                ImGui.BeginDisabled(not_editable);
-                defer ImGui.EndDisabled();
-
-                item : Any;
-                item.type = it.type;
-                item.value_pointer = ptr + it.offset_in_bytes;
-
-                member_label : *u8;
-                if it.type.type == .POINTER && IsInComponentTypesArray(cast(*Type, *cast(*Type_Info_Pointer, it.type).pointer_to).*) {
-                    component_type := cast(*Type, *cast(*Type_Info_Pointer, it.type).pointer_to).*;
-                    component_name := GetNiceComponentTypeName(GetComponentTypeId(component_type));
-                    member_label = ifx it.name && it.name != "_" then CTPrint("% (% component)", it.name, component_name);
-                } else {
-                    member_label = ifx it.name && it.name != "_" then CStringClone(it.name ,, Temp);
-                }
-
-                member_label = Capitalize(MakeString(member_label)).data;
-
-                absolute_offset = old_ctx.absolute_offset + it.offset_in_bytes;
-
-                state |= ShowInspector(member_label, ctx, item, notes=it.notes, use_custom_inspector=!no_custom_inspector);
             }
         }
 
