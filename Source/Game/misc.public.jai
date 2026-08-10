@@ -94,17 +94,17 @@ TestShapeEntity :: struct {
 
         .Box ,, box : struct {
             half_extents := Vec3f.{1,1,1}; @Serialize(1)
-        }; @Serialize(2) @InspectorNoTree
+        }; @Serialize(3) @InspectorNoTree
 
         .Capsule ,, capsule : struct {
             height := 2.0; @Serialize(1)
             radius := 0.5; @Serialize(2)
-        }; @Serialize(2) @InspectorNoTree
+        }; @Serialize(4) @InspectorNoTree
 
         .Cylinder ,, cylinder : struct {
             height := 2.0; @Serialize(1)
             radius := 0.5; @Serialize(2)
-        }; @Serialize(2) @InspectorNoTree
+        }; @Serialize(5) @InspectorNoTree
     }; @Serialize(2)
 
     jolt_shape : *Jolt.Shape;
