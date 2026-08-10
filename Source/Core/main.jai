@@ -9,7 +9,6 @@
 #load "loader.jai";
 #load "input.jai";
 #load "asset.jai";
-#load "cvar.jai";
 #load "jolt.jai";
 #load "serialize_deserialize.jai";
 #load "config.jai";

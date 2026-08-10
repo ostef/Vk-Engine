@@ -83,11 +83,6 @@ CoreModule :: struct {
     GetAssets : () -> *Assets;
     GetBoxSplittingPlanes : (center : Vector(N=3, T=float32)) -> x : Plane, y : Plane, z : Plane;
     GetCPUFrameProfiler : () -> *CPUFrameProfiler;
-    GetCVarBool : (name : string, default : bool = false) -> bool, exists : bool;
-    GetCVarFloat : (name : string, default : float = 0) -> float, exists : bool;
-    GetCVarInt : (name : string, default : s32 = 0) -> s32, exists : bool;
-    GetCVarString : (name : string, default : string = "") -> string, exists : bool;
-    GetCVarUInt : (name : string, default : u32 = 0) -> u32, exists : bool;
     GetDataDirectoryAbsolutePath : () -> string;
     GetDefaultNumWorkerThreads : () -> s32;
     GetDeltaTime : () -> float;
@@ -169,11 +164,6 @@ CoreModule :: struct {
     SampleAnimation : (anim : *ArmatureAnimation, pose_index : float, output_pose : *ArmaturePose);
     SerializeAny : (serializer : *Serializer, value : Any);
     SetBlendConstant : (pass : *GfxRenderPass, color : Vector(N=4, T=float32));
-    SetCVarBool : (name : string, value : bool);
-    SetCVarFloat : (name : string, value : float);
-    SetCVarInt : (name : string, value : s32);
-    SetCVarString : (name : string, value : string);
-    SetCVarUInt : (name : string, value : u32);
     SetScissor : (pass : *GfxRenderPass, rect : Rect(T=s32));
     SetStencilReference : (pass : *GfxRenderPass, front_value : u32, back_value : u32);
     SetViewport : (pass : *GfxRenderPass, viewport : GfxViewport);
@@ -479,31 +469,6 @@ GetBoxSplittingPlanes :: inline (center : Vector(N=3, T=float32)) -> x : Plane, 
 
 GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
     return g_Core.GetCPUFrameProfiler();
-} @NoProfile
-
-GetCVarBool :: inline (name : string, default : bool = false) -> bool, exists : bool {
-    _ret0, _ret1 := g_Core.GetCVarBool(name, default);
-    return _ret0, _ret1;
-} @NoProfile
-
-GetCVarFloat :: inline (name : string, default : float = 0) -> float, exists : bool {
-    _ret0, _ret1 := g_Core.GetCVarFloat(name, default);
-    return _ret0, _ret1;
-} @NoProfile
-
-GetCVarInt :: inline (name : string, default : s32 = 0) -> s32, exists : bool {
-    _ret0, _ret1 := g_Core.GetCVarInt(name, default);
-    return _ret0, _ret1;
-} @NoProfile
-
-GetCVarString :: inline (name : string, default : string = "") -> string, exists : bool {
-    _ret0, _ret1 := g_Core.GetCVarString(name, default);
-    return _ret0, _ret1;
-} @NoProfile
-
-GetCVarUInt :: inline (name : string, default : u32 = 0) -> u32, exists : bool {
-    _ret0, _ret1 := g_Core.GetCVarUInt(name, default);
-    return _ret0, _ret1;
 } @NoProfile
 
 GetDataDirectoryAbsolutePath :: inline () -> string {
@@ -845,26 +810,6 @@ SerializeAny :: inline (serializer : *Serializer, value : Any) {
 
 SetBlendConstant :: inline (pass : *GfxRenderPass, color : Vector(N=4, T=float32)) {
     g_Core.SetBlendConstant(pass, color);
-} @NoProfile
-
-SetCVarBool :: inline (name : string, value : bool) {
-    g_Core.SetCVarBool(name, value);
-} @NoProfile
-
-SetCVarFloat :: inline (name : string, value : float) {
-    g_Core.SetCVarFloat(name, value);
-} @NoProfile
-
-SetCVarInt :: inline (name : string, value : s32) {
-    g_Core.SetCVarInt(name, value);
-} @NoProfile
-
-SetCVarString :: inline (name : string, value : string) {
-    g_Core.SetCVarString(name, value);
-} @NoProfile
-
-SetCVarUInt :: inline (name : string, value : u32) {
-    g_Core.SetCVarUInt(name, value);
 } @NoProfile
 
 SetScissor :: inline (pass : *GfxRenderPass, rect : Rect(T=s32)) {
