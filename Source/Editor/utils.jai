@@ -817,9 +817,9 @@ EnumCombo :: (label : *u8, value : Any) -> InteractionState {
                     case 8; cast(*s64, ptr).* = xx it;
                     }
                 }
-            }
 
-            state |= LastItemInteractionState();
+                state |= .Started | .Interacting | .Submitted;
+            }
         }
 
         ImGui.EndCombo();
