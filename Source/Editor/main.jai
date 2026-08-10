@@ -311,6 +311,7 @@ AllEditorState :: struct {
     profiler_running : bool; @Serialize(17)
     show_physics_debug_draw_settings : bool; @Serialize(18)
     show_physics_settings : bool; @Serialize(19)
+    physics_debug_draw_settings : PhysicsDebugDrawSettings; @Serialize(20)
 }
 
 SaveState :: () -> []u8 {
@@ -330,6 +331,7 @@ SaveState :: () -> []u8 {
         profiler_running=!GetCPUFrameProfiler().paused,
         show_physics_debug_draw_settings=g_show_physics_debug_draw_settings,
         show_physics_settings=g_show_physics_settings,
+        physics_debug_draw_settings=GetPhysicsDebugDrawSettings(),
     };
 
     memcpy(*all_state.entity_hide_editor_icon, *g_entity_hide_editor_icon, size_of(type_of(g_entity_hide_editor_icon)));
@@ -364,6 +366,10 @@ LoadState :: (state : []u8) {
         ArrayPush(*g_editor_selected_entities, it);
     }
     Free(selected_entities.data);
+
+    GetPhysicsDebugDrawSettings().* = physics_debug_draw_settings;
+    g_show_physics_debug_draw_settings = show_physics_debug_draw_settings;
+    g_show_physics_settings = show_physics_settings;
 
     g_material_editor = material_editor;
     g_entity_outliner = entity_outliner;
