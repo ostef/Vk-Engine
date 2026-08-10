@@ -96,6 +96,7 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
             }
 
             if state {
+                ExecuteEntityCallback(world, entity, "OnValidate");
                 UpdateWorldTransform(world, entity);
             }
         }
@@ -124,7 +125,14 @@ ShowEntityInspector :: (world : *World, entity : *Entity) {
             }
 
             if opened {
-                ShowInspector(null, world, any, notes=.["InspectorNoTree"]);
+                state := ShowInspector(null, world, any, notes=.["InspectorNoTree"]);
+                if state {
+                    if ComponentIsSpatial(it) {
+                        UpdateWorldTransform(entity, cast(*SpatialComponent, it));
+                    }
+
+                    ExecuteComponentCallback(world, entity, it, "OnValidate");
+                }
             }
         }
     }
