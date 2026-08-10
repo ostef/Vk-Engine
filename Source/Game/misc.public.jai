@@ -109,7 +109,12 @@ TestShapeEntity :: struct {
 
     jolt_shape : *Jolt.Shape;
 
-    OnSpawn :: (world : *World, using test_shape : *TestShapeEntity) {
+    RecreateShape :: (world : *World, using test_shape : *TestShapeEntity) {
+        if jolt_shape != null {
+            jolt_shape.Destroy(jolt_shape);
+            jolt_shape = null;
+        }
+
         if #complete shape.kind == {
         case .Sphere;
             if shape.sphere.radius <= 0 {
@@ -128,14 +133,26 @@ TestShapeEntity :: struct {
                 return;
             }
 
-            jolt_shape = Jolt.CapsuleShape.Create(Max(shape.capsule.height - 2 * shape.capsule.radius, 0), shape.capsule.radius, null);
+            if shape.cylinder.height * 0.5 <= shape.capsule.radius {
+                jolt_shape = Jolt.SphereShape.Create(shape.capsule.radius, null);
+            } else {
+                jolt_shape = Jolt.CapsuleShape.Create(Max(shape.capsule.height * 0.5 - shape.capsule.radius, 0), shape.capsule.radius, null);
+            }
         case .Cylinder;
-            if shape.cylinder.radius <= 0 {
+            if shape.cylinder.radius <= 0 || shape.cylinder.height <= 0 {
                 return;
             }
 
-            jolt_shape = Jolt.CylinderShape.Create(Max(shape.cylinder.height, 0), shape.cylinder.radius, Jolt.ConvexShapeSettings.cDefaultConvexRadius, null);
+            jolt_shape = Jolt.CylinderShape.Create(Max(shape.cylinder.height * 0.5, 0), shape.cylinder.radius, Jolt.ConvexShapeSettings.cDefaultConvexRadius, null);
         }
+    }
+
+    OnValidate :: (world : *World, using test_shape : *TestShapeEntity) {
+        RecreateShape(world, test_shape);
+    }
+
+    OnSpawn :: (world : *World, using test_shape : *TestShapeEntity) {
+        RecreateShape(world, test_shape);
     }
 
     OnDespawn :: (world : *World, using test_shape : *TestShapeEntity) {
