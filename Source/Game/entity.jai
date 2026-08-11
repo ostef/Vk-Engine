@@ -580,32 +580,8 @@ KillEntity :: (using world : *World, id : EntityID) {
 
     ArrayPush(*entities_killed_this_frame, entity.index);
 
-    ExecuteEntityCallback(world, entity, "OnKilled");
     for :AllEntityComponents entity {
-        ExecuteComponentCallback(world, entity, it, "OnKilled");
+        ExecuteComponentCallback(world, entity, it, "OnDespawn");
     }
-} @Public
-
-KillEntity :: (using world : *World, index : EntityIndex) {
-    LogSectionScope(*Log_Entities);
-
-    entity := GetEntity(world, index);
-    if !entity {
-        LogError("Killing entity with index % but it does not exist", index);
-        return;
-    }
-
-    for entities_killed_this_frame {
-        if it == index {
-            return;
-        }
-    }
-
-    ArrayPush(*entities_killed_this_frame, index);
-
-    ExecuteEntityCallback(world, entity, "OnKilled");
-    for :AllEntityComponents entity {
-        ExecuteComponentCallback(world, entity, it, "OnKilled");
-    }
-
+    ExecuteEntityCallback(world, entity, "OnDespawn");
 } @Public
