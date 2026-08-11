@@ -286,26 +286,6 @@ ExecuteComponentCallback :: (world : *World, $Callback : string) {
     }
 }
 
-ExecuteComponentCallback :: inline (world : *World, component : *$T, $Callback : string)
-#modify { return T == Component || IsInComponentTypesArray(T); } {
-    #if T == Component {
-        #insert -> string {
-            builder : StringBuilder;
-
-            Appendln(*builder, "if GetComponentTypeId(component) == {");
-            for i : 1..Component_Types.count - 1 {
-                type := Component_Types[i];
-                Appendln(*builder, "case .%1; #if #exists(%1.%2) { entity := GetEntity(world, component.entity_index); if entity { %1.%2(world, entity, xx component); } }", type, Callback);
-            }
-            Appendln(*builder, "}");
-
-            return StringBuilderBuild(*builder);
-        }
-    } else {
-        #insert #run TPrint("#if #exists(T.%1) { T.%1(world, component); }", Callback);
-    }
-}
-
 ExecuteComponentCallback :: inline (world : *World, entity : *Entity, component : *$T, $Callback : string)
 #modify { return T == Component || IsInComponentTypesArray(T); } {
     #if T == Component {

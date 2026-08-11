@@ -21,8 +21,7 @@ GameModule :: struct {
     GetPhysicsSettings : () -> *PhysicsSettings;
     GetWorldScale : (world : *World, entity : *Entity, component : *SpatialComponent = null) -> Vector(N=3, T=float32);
     InitWorld : (world : *World);
-    KillEntity_1 : (world : *World, index : EntityIndex);
-    KillEntity_2 : (world : *World, id : EntityID);
+    KillEntity : (world : *World, id : EntityID);
     LoadWorldFromDirectory : (world : *World, directory : string);
     PhysicsCastRay_1 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, settings : RayCastSettings = .{}) -> RayCastResult;
     PhysicsCastRay_2 : (world : *World, ray_origin : Vector(N=3, T=float32), ray_direction : Vector(N=3, T=float32), ray_length : float, results : *[..]RayCastResult, settings : RayCastSettings = .{}) -> bool;
@@ -123,12 +122,8 @@ InitWorld :: inline (world : *World) {
     g_Game.InitWorld(world);
 } @NoProfile
 
-KillEntity :: inline (world : *World, index : EntityIndex) {
-    g_Game.KillEntity_1(world, index);
-} @NoProfile
-
 KillEntity :: inline (world : *World, id : EntityID) {
-    g_Game.KillEntity_2(world, id);
+    g_Game.KillEntity(world, id);
 } @NoProfile
 
 LoadWorldFromDirectory :: inline (world : *World, directory : string) {

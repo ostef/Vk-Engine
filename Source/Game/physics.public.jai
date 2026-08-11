@@ -124,7 +124,7 @@ RigidBodyComponent :: struct {
         CreateRigidBody(world, entity, rigid_body);
     }
 
-    OnDespawn :: (world : *World, using body : *RigidBodyComponent) {
+    OnDespawn :: (world : *World, entity : *Entity, using body : *RigidBodyComponent) {
         DestroyRigidBody(world, body);
     }
 } @Component @Category(Physics)
@@ -139,23 +139,27 @@ CreateRigidBody :: (world : *World, entity : *Entity, using rigid_body : *RigidB
     compound_subshapes : [..]Jolt.CompoundShapeSettings.SubShapeSettings;
 
     for :AllSphereColliderComponents entity {
-        if it.jolt_shape {
-            ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+        jolt_shape := CreateJoltShape(world, entity, it);
+        if jolt_shape {
+            ArrayPush(*compound_subshapes, .{shape=jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
     }
     for :AllCapsuleColliderComponents entity {
-        if it.jolt_shape {
-            ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+        jolt_shape := CreateJoltShape(world, entity, it);
+        if jolt_shape {
+            ArrayPush(*compound_subshapes, .{shape=jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
     }
     for :AllBoxColliderComponents entity {
-        if it.jolt_shape {
-            ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+        jolt_shape := CreateJoltShape(world, entity, it);
+        if jolt_shape {
+            ArrayPush(*compound_subshapes, .{shape=jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
     }
     for :AllPlaneColliderComponents entity {
-        if it.jolt_shape {
-            ArrayPush(*compound_subshapes, .{shape=it.jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
+        jolt_shape := CreateJoltShape(world, entity, it);
+        if jolt_shape {
+            ArrayPush(*compound_subshapes, .{shape=jolt_shape, position=ToJolt(it.local_position), rotation=ToJolt(it.local_rotation)});
         }
     }
 
@@ -235,37 +239,11 @@ Collider_Color :: Vec4f.{0,1,0,1};
 SphereColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    jolt_shape : *Jolt.Shape;
     density : float = 1000; @Serialize(3)
     radius : float = 0.5; @Serialize(2)
 
-    RecreateJoltShape :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-        jolt_shape = CreateJoltShape(world, entity, sphere);
-    }
-
-    OnValidate :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
-        RecreateJoltShape(world, entity, sphere);
-    }
-
-    OnCreate :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
-        RecreateJoltShape(world, entity, sphere);
-    }
-
-    OnDestroy :: (world : *World, using sphere : *SphereColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-    }
-
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using sphere : *SphereColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_position_rotation_transform), Jolt.Vec3.Make(1,1,1), Jolt.Color_FromVec4(ToJolt(Collider_Color)), false, true);
-        }
+        DebugDrawSphereOutline(world, Collider_Color, TranslationVector(world_transform), radius, right=RightVector(world_transform), up=UpVector(world_transform), forward=ForwardVector(world_transform));
     }
 } @Component @Category(Physics/Colliders)
 
@@ -308,38 +286,17 @@ CreateJoltShape :: (world : *World, entity : *Entity, sphere : *SphereColliderCo
 CapsuleColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    jolt_shape : *Jolt.Shape;
     density : float = 1000; @Serialize(4)
     height : float = 2; @Serialize(2)
     radius : float = 0.5; @Serialize(3)
 
-    RecreateJoltShape :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-        jolt_shape = CreateJoltShape(world, entity, capsule);
-    }
-
-    OnValidate :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
-        RecreateJoltShape(world, entity, capsule);
-    }
-
-    OnCreate :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
-        RecreateJoltShape(world, entity, capsule);
-    }
-
-    OnDestroy :: (world : *World, using capsule : *CapsuleColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-    }
-
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using capsule : *CapsuleColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_position_rotation_transform), Jolt.Vec3.Make(1,1,1), Jolt.Color_FromVec4(ToJolt(Collider_Color)), false, true);
-        }
+        position := TranslationVector(world_transform);
+        normal := UpVector(world_transform);
+        base := position - normal * height * 0.5;
+        tip := position + normal * height * 0.5;
+
+        DebugDrawCapsuleOutline(world, Collider_Color, base, tip, radius);
     }
 } @Component @Category(Physics/Colliders)
 
@@ -383,38 +340,12 @@ CreateJoltShape :: (world : *World, entity : *Entity, capsule : *CapsuleCollider
 BoxColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    jolt_shape : *Jolt.Shape;
     density : float = 1000; @Serialize(3)
     half_extents : Vec3f = .{0.5,0.5,0.5}; @Serialize(2)
     margin : float = 0.01; @Serialize(4)
 
-    RecreateJoltShape :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-        jolt_shape = CreateJoltShape(world, entity, box);
-    }
-
-    OnValidate :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        RecreateJoltShape(world, entity, box);
-    }
-
-    OnCreate :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        RecreateJoltShape(world, entity, box);
-    }
-
-    OnDestroy :: (world : *World, using box : *BoxColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-    }
-
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using box : *BoxColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_position_rotation_transform), Jolt.Vec3.Make(1,1,1), Jolt.Color_FromVec4(ToJolt(Collider_Color)), false, true);
-        }
+        DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, half_extents, world_transform);
     }
 } @Component @Category(Physics/Colliders)
 
@@ -458,36 +389,10 @@ CreateJoltShape :: (world : *World, entity : *Entity, box : *BoxColliderComponen
 PlaneColliderComponent :: struct {
     #as using _ : SpatialComponent; @Serialize(1) @InspectorNoTree
 
-    jolt_shape : *Jolt.Shape;
     half_extent : float = 1; @Serialize(2)
 
-    RecreateJoltShape :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-        jolt_shape = CreateJoltShape(world, entity, plane);
-    }
-
-    OnValidate :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
-        RecreateJoltShape(world, entity, plane);
-    }
-
-    OnCreate :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
-        RecreateJoltShape(world, entity, plane);
-    }
-
-    OnDestroy :: (world : *World, using plane : *PlaneColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Release(jolt_shape);
-            jolt_shape = null;
-        }
-    }
-
     OnDebugDrawSelected :: (world : *World, entity : *Entity, using plane : *PlaneColliderComponent) {
-        if jolt_shape {
-            jolt_shape.Draw(jolt_shape, GetPhysicsGlobals().debug_renderer, ToJolt(world_position_rotation_transform), Jolt.Vec3.Make(1,1,1), Jolt.Color_FromVec4(ToJolt(Collider_Color)), false, true);
-        }
+        DebugDrawBoxOutline(world, Collider_Color, .{0,0,0}, .{half_extent, 0, half_extent}, world_transform);
     }
 } @Component @Category(Physics/Colliders)
 
