@@ -8,7 +8,6 @@ There is still a lot to do on the graphics side of things, but currently I am di
 Supports Linux and Windows.
 
 ## Features:
-* No "big idea" (e.g. ECS), simple and pragmatic entity system
 * Hot reloadable engine modules
 * Custom gizmos
 * Multi editor viewports
