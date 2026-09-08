@@ -73,7 +73,8 @@ EntityFlags :: enum_flags {
 
 Detect_Entity_Recursive_Attachment :: true;
 
-Entities_Per_Page :: 300;
+Entities_Per_Page :: 256;
+#assert Entities_Per_Page <= 256; // Slot index is only 8 bits in the EntityIndex, so it cannot exceed 255
 
 EntityStorage :: #bake_arguments PagedArray(Page_Size=Entities_Per_Page);
 
