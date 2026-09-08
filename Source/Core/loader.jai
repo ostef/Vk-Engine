@@ -198,6 +198,17 @@ ModulesChangeCallback :: (watcher : *File_Watcher(void), change : *File_Change, 
 } @NoProfile
 
 LoaderMain :: () {
+    // Set the working dir
+    exe_dir := path_strip_filename(get_path_of_running_executable());
+
+    path_overwrite_separators(exe_dir, #char "/");
+    while StringEndsWith(exe_dir, "/") {
+        exe_dir.count -= 1;
+    }
+
+    working_dir := path_strip_filename(exe_dir);
+    Basic.set_working_directory(working_dir);
+
     InitConsoleLogger(*g_console_logger);
     SetContextLogger(*g_console_logger, ConsoleLoggerProc);
     g_console_logger.print_stack_trace = false;
