@@ -91,10 +91,16 @@ Quit :: () {
     g_quit = true;
 } @Public
 
+GetCommandLineArguments :: () -> []string {
+    return g_command_line_arguments;
+} @Public
+
 #scope_file
 
 g_num_cpus : s32;
 g_default_num_worker_threads : s32;
+
+g_command_line_arguments : []string;
 
 #scope_export
 
@@ -107,6 +113,8 @@ GetDefaultNumWorkerThreads :: inline () -> s32 {
 } @Public
 
 InitializeCore :: (global_init : bool) {
+    g_command_line_arguments = Basic.get_command_line_arguments();
+
     context.print_style.struct_printer = CoreStructPrinter;
 
     LoadConfigFromFile(GetEngineConfig());

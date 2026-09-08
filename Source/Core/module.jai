@@ -52,6 +52,35 @@ ModuleID :: enum {
 
 Num_Modules :: #run type_info(ModuleID).values.count;
 
+TestsResult :: struct {
+    num_passed : int;
+    num_failed : int;
+}
+
+operator+ :: inline (a : TestsResult, b : TestsResult) -> TestsResult {
+    return .{
+        a.num_passed + b.num_passed,
+        a.num_failed + b.num_failed,
+    };
+}
+
+operator+ :: inline (a : TestsResult, b : bool) -> TestsResult {
+    if b {
+        return .{a.num_passed + 1, a.num_failed};
+    } else {
+        return .{a.num_passed, a.num_failed + 1};
+    }
+}
+
+TestTrue :: (value : bool, location := #caller_location) -> bool {
+    if !value {
+        LogError("Test failed at %:%:%", location.fully_pathed_filename, location.line_number, location.character_number);
+        Basic.print_stack_trace(context.stack_trace);
+    }
+
+    return value;
+}
+
 Module :: struct {
     Initialize : (global_init : bool);
     Shutdown : (global_shutdown : bool);
@@ -62,6 +91,8 @@ Module :: struct {
 
     OnModuleUnload : (id : ModuleID);
     OnModuleLoad : (id : ModuleID);
+
+    RunTests : () -> TestsResult;
 }
 
 ModuleHandshakeProc :: #type (core : *CoreModule) -> *Module #c_call;

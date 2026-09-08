@@ -209,6 +209,15 @@ LoaderMain :: () {
     working_dir := path_strip_filename(exe_dir);
     Basic.set_working_directory(working_dir);
 
+    args := Basic.get_command_line_arguments();
+
+    run_tests := false;
+    for args {
+        if it == "-tests" {
+            run_tests = true;
+        }
+    }
+
     InitConsoleLogger(*g_console_logger);
     SetContextLogger(*g_console_logger, ConsoleLoggerProc);
     g_console_logger.print_stack_trace = false;
@@ -227,7 +236,27 @@ LoaderMain :: () {
         UnloadModule(cast(ModuleID, i), true);
     }
 
-    random_get();
+    if run_tests {
+        result : TestsResult;
+
+        for i : 0..Num_Modules - 1 {
+            module := g_modules[i];
+            if module.RunTests {
+                res := module.RunTests();
+                result += res;
+
+                if res.num_failed > 0 {
+                    LogError("%: % passed, % failed", cast(ModuleID, i), res.num_passed, res.num_failed);
+                } else {
+                    LogMessage("%: % passed, % failed", cast(ModuleID, i), res.num_passed, res.num_failed);
+                }
+            }
+        }
+
+        LogMessage("All tests: % passed, % failed", result.num_passed, result.num_failed);
+
+        return;
+    }
 
     init(*g_modules_watcher, ModulesChangeCallback, merge_window_seconds=1);
     defer deinit(g_modules_watcher);

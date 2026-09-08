@@ -348,10 +348,7 @@ PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ra
     return true;
 } @Public
 
-// CollidePoint :: (world : *World, point : Vec3f) {
-// }
-
-// CollidePoint :: (world : *World, point : Vec3f) {
+// PhysicsCollidePoint :: (world : *World, point : Vec3f) {
 //     if !world.physics.system {
 //         return .{};
 //     }
@@ -394,4 +391,4 @@ PhysicsCastRay :: (world : *World, ray_origin : Vec3f, ray_direction : Vec3f, ra
 
 //     normal : Vec3f;
 
-// }
+// } @Public

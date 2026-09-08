@@ -83,6 +83,7 @@ CoreModule :: struct {
     GetAssets : () -> *Assets;
     GetBoxSplittingPlanes : (center : Vector(N=3, T=float32)) -> x : Plane, y : Plane, z : Plane;
     GetCPUFrameProfiler : () -> *CPUFrameProfiler;
+    GetCommandLineArguments : () -> []string;
     GetDataDirectoryAbsolutePath : () -> string;
     GetDefaultNumWorkerThreads : () -> s32;
     GetDeltaTime : () -> float;
@@ -469,6 +470,10 @@ GetBoxSplittingPlanes :: inline (center : Vector(N=3, T=float32)) -> x : Plane, 
 
 GetCPUFrameProfiler :: inline () -> *CPUFrameProfiler {
     return g_Core.GetCPUFrameProfiler();
+} @NoProfile
+
+GetCommandLineArguments :: inline () -> []string {
+    return g_Core.GetCommandLineArguments();
 } @NoProfile
 
 GetDataDirectoryAbsolutePath :: inline () -> string {

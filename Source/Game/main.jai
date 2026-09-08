@@ -4,11 +4,14 @@
 #load "entity.jai";
 #load "physics.jai";
 
+#load "Tests/ray_cast.jai";
+
 g_module := GameModule.{
     base.OnModuleLoad=OnModuleLoad,
     base.Initialize=InitializeGame,
     base.Shutdown=ShutdownGame,
     base.MainLoop=UpdateGame,
+    base.RunTests=RunTests,
 };
 
 #program_export
@@ -41,4 +44,11 @@ ShutdownGame :: (global_shutdown : bool) {
 
 UpdateGame :: () {
     PhysicsDebugRendererNextFrame();
+}
+
+RunTests :: () -> TestsResult {
+    result : TestsResult;
+    result += RayCastTests();
+
+    return result;
 }
