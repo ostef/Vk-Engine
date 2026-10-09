@@ -7,6 +7,17 @@ There is still a lot to do on the graphics side of things, but currently I am di
 
 Supports Linux and Windows.
 
+## Gallery
+![General Showcase](Screenshots/general_showcase.png)
+### Multi viewport
+![Multi viewport](Screenshots/multi_viewport.png)
+### Custom editor gizmos
+![Gizmos](Screenshots/gizmo.gif)
+### Parallax occlusion mapping, with self shadowing
+![Parallax Occlusion Mapping With Self Shadowing](Screenshots/parallax_occlusion_mapping_with_shadows.gif)
+### 500 moving point lights
+![Light Ballet](Screenshots/light_ballet.png)
+
 ## Features:
 * Hot reloadable engine modules
 * Custom gizmos
@@ -59,16 +70,3 @@ Supports Linux and Windows.
 ## Goals
 * Having a player running, jumping and mantling around (see Unreal Engine Advanced Locomotion System)
 * Sponza running at 155 FPS with all point lights casting shadows
-
-## Gallery
-![General Showcase](Screenshots/general_showcase.png)
-### Multi viewport
-![Multi viewport](Screenshots/multi_viewport.png)
-### Custom editor gizmos
-![Gizmos](Screenshots/gizmo.gif)
-### Parallax occlusion mapping, with self shadowing
-![Parallax Occlusion Mapping With Self Shadowing](Screenshots/parallax_occlusion_mapping_with_shadows.gif)
-### Custom file browser
-![File Browser](Screenshots/file_browser.png)
-### 500 moving point lights
-![Light Ballet](Screenshots/light_ballet.png)
